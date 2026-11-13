@@ -1,0 +1,366 @@
+/** Engine-independent world state. Coordinates are integer cells, with Y pointing up. */
+export type Vec3 = [number, number, number];
+export const WORLD_SIZE = { width: 48, height: 24, depth: 48 } as const;
+export const CHUNK_SIZE = 12;
+export const BLOCK = {
+  Air: 0, Grass: 1, Dirt: 2, Stone: 3, Wood: 4,
+  Planks: 5, Brick: 6, Leaves: 7, Water: 8, Sand: 9,
+} as const;
+export type BlockId = typeof BLOCK[keyof typeof BLOCK];
+export interface BlockDefinition {
+  id: BlockId;
+  name: string;
+  color: Vec3;
+  solid: boolean;
+  buildable: boolean;
+}
+export const BLOCKS: readonly BlockDefinition[] = [
+  { id: 0, name: '空气', color: [0, 0, 0], solid: false, buildable: false },
+  { id: 1, name: '草地', color: [0.38, 0.61, 0.25], solid: true, buildable: true },
+  { id: 2, name: '泥土', color: [0.47, 0.30, 0.17], solid: true, buildable: true },
+  { id: 3, name: '石块', color: [0.53, 0.57, 0.56], solid: true, buildable: true },
+  { id: 4, name: '原木', color: [0.40, 0.24, 0.12], solid: true, buildable: true },
+  { id: 5, name: '木板', color: [0.76, 0.54, 0.29], solid: true, buildable: true },
+  { id: 6, name: '砖块', color: [0.68, 0.35, 0.24], solid: true, buildable: true },
+  { id: 7, name: '树叶', color: [0.23, 0.46, 0.20], solid: true, buildable: true },
+  { id: 8, name: '河水', color: [0.22, 0.57, 0.66], solid: false, buildable: false },
+  { id: 9, name: '沙土', color: [0.83, 0.74, 0.48], solid: true, buildable: true },
+];
+export interface BlockEdit { x: number; y: number; z: number; block: number }
+export interface ChunkCoord { x: number; y: number; z: number }
+export interface VoxelHit {
+  cell: Vec3;
+  normal: Vec3 | null;
+  adjacent: Vec3 | null;
+  block: BlockId;
+  distance: number;
+}
+interface Change { index: number; before: number; after: number }
+interface SavedWorld {
+  version: 1;
+  generatorVersion: 1;
+  seed: string;
+  size: [number, number, number];
+  edits: [number, number][];
+}
+const HISTORY_LIMIT = 200;
+const VOLUME = WORLD_SIZE.width * WORLD_SIZE.height * WORLD_SIZE.depth;
+const WATER_LEVEL = 4;
+
+function seedHash(seed: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < seed.length; i++) hash = Math.imul(hash ^ seed.charCodeAt(i), 16777619);
+  return hash >>> 0;
+}
+function hash01(x: number, z: number, seed: number): number {
+  let h = Math.imul(x | 0, 374761393) ^ Math.imul(z | 0, 668265263) ^ seed;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+function smooth(t: number): number { return t * t * (3 - 2 * t); }
+function mix(a: number, b: number, t: number): number { return a + (b - a) * t; }
+function noise(x: number, z: number, seed: number): number {
+  const ix = Math.floor(x), iz = Math.floor(z), fx = smooth(x - ix), fz = smooth(z - iz);
+  return mix(mix(hash01(ix, iz, seed), hash01(ix + 1, iz, seed), fx),
+    mix(hash01(ix, iz + 1, seed), hash01(ix + 1, iz + 1, seed), fx), fz);
+}
+function validSeed(seed: unknown): asserts seed is string {
+  if (typeof seed !== 'string' || seed.length === 0 || seed.length > 128) {
+    throw new RangeError('地图种子必须为 1–128 个字符。');
+  }
+}
+function validBlock(block: number): block is BlockId {
+  return Number.isInteger(block) && block >= BLOCK.Air && block <= BLOCK.Sand;
+}
+
+/** Finite, seeded, chunk-addressable voxel world with bounded transactional history. */
+export class VoxelWorld {
+  readonly width = WORLD_SIZE.width;
+  readonly height = WORLD_SIZE.height;
+  readonly depth = WORLD_SIZE.depth;
+  readonly chunkSize = CHUNK_SIZE;
+  /** Read for rendering. Mutations must go through edit/set for history and dirty tracking. */
+  readonly blocks = new Uint8Array(VOLUME);
+  private baseline = new Uint8Array(VOLUME);
+  private changes = new Map<number, number>();
+  private past: Change[][] = [];
+  private future: Change[][] = [];
+  private dirty = new Set<string>();
+  private _seed = '';
+  private _revision = 0;
+
+  constructor(seed = '森屿-042') { this.reset(seed); }
+  get seed(): string { return this._seed; }
+  get revision(): number { return this._revision; }
+  /** Number of cells differing from the generated map; also suitable for save status. */
+  get editCount(): number { return this.changes.size; }
+  get canUndo(): boolean { return this.past.length > 0; }
+  get canRedo(): boolean { return this.future.length > 0; }
+  get undoCount(): number { return this.past.length; }
+  get redoCount(): number { return this.future.length; }
+  inBounds(x: number, y: number, z: number): boolean {
+    return Number.isInteger(x) && Number.isInteger(y) && Number.isInteger(z)
+      && x >= 0 && x < this.width && y >= 0 && y < this.height && z >= 0 && z < this.depth;
+  }
+  index(x: number, y: number, z: number): number { return x + this.width * (z + this.depth * y); }
+  coordinates(index: number): Vec3 {
+    return [index % this.width, Math.floor(index / (this.width * this.depth)), Math.floor(index / this.width) % this.depth];
+  }
+  get(x: number, y: number, z: number): BlockId {
+    return this.inBounds(x, y, z) ? this.blocks[this.index(x, y, z)] as BlockId : BLOCK.Air;
+  }
+  surfaceHeight(x: number, z: number, includeWater = true): number {
+    if (!Number.isInteger(x) || !Number.isInteger(z) || x < 0 || x >= this.width || z < 0 || z >= this.depth) return -1;
+    for (let y = this.height - 1; y >= 0; y--) {
+      const block = this.get(x, y, z);
+      if (block !== BLOCK.Air && (includeWater || block !== BLOCK.Water)) return y;
+    }
+    return -1;
+  }
+  count(block?: number): number {
+    let n = 0;
+    for (const value of this.blocks) if (block === undefined ? value !== BLOCK.Air : value === block) n++;
+    return n;
+  }
+  set(x: number, y: number, z: number, block: number): boolean { return this.edit([{ x, y, z, block }]); }
+  /** Validate every edit before applying any. Repeated cells coalesce into one change. */
+  edit(edits: readonly BlockEdit[]): boolean {
+    if (!Array.isArray(edits) || edits.length > VOLUME * 4) throw new RangeError('建造操作过大或格式不正确。');
+    const final = new Map<number, number>();
+    for (const edit of edits) {
+      if (!edit || !this.inBounds(edit.x, edit.y, edit.z)) throw new RangeError('方块坐标超出地图范围。');
+      if (edit.y === 0) throw new RangeError('基岩层不可修改。');
+      if (!validBlock(edit.block)) throw new RangeError('未知的方块类型。');
+      final.set(this.index(edit.x, edit.y, edit.z), edit.block);
+    }
+    const transaction: Change[] = [];
+    for (const [index, after] of final) {
+      const before = this.blocks[index];
+      if (before !== after) transaction.push({ index, before, after });
+    }
+    if (transaction.length === 0) return false;
+    this.apply(transaction, false);
+    this.past.push(transaction);
+    if (this.past.length > HISTORY_LIMIT) this.past.shift();
+    this.future.length = 0;
+    return true;
+  }
+  undo(): boolean {
+    const transaction = this.past.pop();
+    if (!transaction) return false;
+    this.apply(transaction, true);
+    this.future.push(transaction);
+    return true;
+  }
+  redo(): boolean {
+    const transaction = this.future.pop();
+    if (!transaction) return false;
+    this.apply(transaction, false);
+    this.past.push(transaction);
+    return true;
+  }
+  private apply(transaction: readonly Change[], reverse: boolean): void {
+    for (const change of transaction) {
+      const block = reverse ? change.before : change.after;
+      this.blocks[change.index] = block;
+      if (block === this.baseline[change.index]) this.changes.delete(change.index);
+      else this.changes.set(change.index, block);
+      this.markCellDirty(...this.coordinates(change.index));
+    }
+    this._revision++;
+  }
+  private markChunk(x: number, y: number, z: number): void {
+    if (x >= 0 && x < this.width / CHUNK_SIZE && y >= 0 && y < this.height / CHUNK_SIZE && z >= 0 && z < this.depth / CHUNK_SIZE) {
+      this.dirty.add(`${x},${y},${z}`);
+    }
+  }
+  private markCellDirty(x: number, y: number, z: number): void {
+    const cx = Math.floor(x / CHUNK_SIZE), cy = Math.floor(y / CHUNK_SIZE), cz = Math.floor(z / CHUNK_SIZE);
+    this.markChunk(cx, cy, cz);
+    if (x % CHUNK_SIZE === 0) this.markChunk(cx - 1, cy, cz);
+    if (x % CHUNK_SIZE === CHUNK_SIZE - 1) this.markChunk(cx + 1, cy, cz);
+    if (y % CHUNK_SIZE === 0) this.markChunk(cx, cy - 1, cz);
+    if (y % CHUNK_SIZE === CHUNK_SIZE - 1) this.markChunk(cx, cy + 1, cz);
+    if (z % CHUNK_SIZE === 0) this.markChunk(cx, cy, cz - 1);
+    if (z % CHUNK_SIZE === CHUNK_SIZE - 1) this.markChunk(cx, cy, cz + 1);
+  }
+  markAllDirty(): void {
+    for (let y = 0; y < this.height / CHUNK_SIZE; y++)
+      for (let z = 0; z < this.depth / CHUNK_SIZE; z++)
+        for (let x = 0; x < this.width / CHUNK_SIZE; x++) this.markChunk(x, y, z);
+  }
+  consumeDirtyChunks(): ChunkCoord[] {
+    const chunks = [...this.dirty].map((key) => {
+      const [x, y, z] = key.split(',').map(Number);
+      return { x, y, z };
+    });
+    this.dirty.clear();
+    return chunks;
+  }
+  reset(seed = this.seed || '森屿-042'): void {
+    validSeed(seed);
+    this._seed = seed;
+    this.blocks.fill(BLOCK.Air);
+    this.generate();
+    this.baseline = this.blocks.slice();
+    this.changes.clear();
+    this.past.length = this.future.length = 0;
+    this.dirty.clear();
+    this.markAllDirty();
+    this._revision++;
+  }
+  private generate(): void {
+    const seed = seedHash(this.seed), phase = hash01(0, 0, seed) * Math.PI * 2;
+    const put = (x: number, y: number, z: number, value: number) => {
+      if (this.inBounds(x, y, z)) this.blocks[this.index(x, y, z)] = value;
+    };
+    for (let z = 0; z < this.depth; z++) {
+      const river = 10 + Math.sin(z / 8 + phase) * 2.7 + noise(z / 6, 9, seed) * 1.8;
+      for (let x = 0; x < this.width; x++) {
+        const riverDistance = Math.abs(x - river);
+        const broad = noise(x / 14, z / 14, seed);
+        const detail = noise(x / 5, z / 5, seed ^ 0x42f2a);
+        let height = Math.floor(4 + broad * 5 + detail * 1.6);
+        const hill = Math.max(0, 1 - Math.hypot(x - 39, z - 10) / 14);
+        height += Math.floor(hill * 4);
+        const clearing = Math.hypot(x - 27, z - 27);
+        if (clearing < 7) height = 5;
+        else if (clearing < 10) height = Math.round(mix(5, height, smooth((clearing - 7) / 3)));
+        if (riverDistance < 2) height = 2;
+        else if (riverDistance < 3.2) height = 3;
+        else if (riverDistance < 4.1) height = 4;
+        else if (riverDistance < 5.2) height = Math.min(height, 5);
+        for (let y = 0; y <= height; y++) {
+          const top = y === height;
+          put(x, y, z, y === 0 || y < height - 2 ? BLOCK.Stone
+            : top ? (height <= WATER_LEVEL || riverDistance < 4.6 ? BLOCK.Sand : BLOCK.Grass) : BLOCK.Dirt);
+        }
+        for (let y = height + 1; y <= WATER_LEVEL; y++) put(x, y, z, BLOCK.Water);
+      }
+    }
+    // Spaced tree anchors keep the landscape readable and leave a clear building meadow.
+    for (let z = 3; z < this.depth - 3; z += 4) {
+      for (let x = 3; x < this.width - 3; x += 4) {
+        if (hash01(x, z, seed ^ 0x63b59) > 0.49) continue;
+        const tx = x + Math.floor(hash01(x + 1, z, seed) * 2), tz = z + Math.floor(hash01(x, z + 1, seed) * 2);
+        if (Math.hypot(tx - 27, tz - 27) < 10) continue;
+        const ground = this.surfaceHeight(tx, tz);
+        if (this.get(tx, ground, tz) !== BLOCK.Grass || ground + 6 >= this.height) continue;
+        const trunk = 3 + (hash01(tx, tz, seed ^ 0x34212) > 0.5 ? 1 : 0);
+        for (let y = ground + 1; y <= ground + trunk; y++) put(tx, y, tz, BLOCK.Wood);
+        for (let dy = -1; dy <= 2; dy++) {
+          const radius = dy === 2 ? 1 : 2;
+          for (let dz = -radius; dz <= radius; dz++) for (let dx = -radius; dx <= radius; dx++) {
+            if (Math.abs(dx) + Math.abs(dz) > radius + 1) continue;
+            const y = ground + trunk + dy;
+            if (this.get(tx + dx, y, tz + dz) === BLOCK.Air) put(tx + dx, y, tz + dz, BLOCK.Leaves);
+          }
+        }
+      }
+    }
+  }
+  serialize(): string {
+    const snapshot: SavedWorld = {
+      version: 1, generatorVersion: 1, seed: this.seed,
+      size: [this.width, this.height, this.depth],
+      edits: [...this.changes].sort((a, b) => a[0] - b[0]),
+    };
+    return JSON.stringify(snapshot);
+  }
+  static deserialize(json: string): VoxelWorld {
+    if (typeof json !== 'string' || json.length > VOLUME * 24 + 1024) throw new RangeError('存档大小不正确。');
+    const saved: unknown = JSON.parse(json);
+    if (!saved || typeof saved !== 'object') throw new RangeError('存档格式不正确。');
+    const data = saved as Partial<SavedWorld>;
+    if (data.version !== 1 || data.generatorVersion !== 1) throw new RangeError('不支持此存档版本。');
+    validSeed(data.seed);
+    if (!Array.isArray(data.size) || data.size.length !== 3 || data.size[0] !== WORLD_SIZE.width
+      || data.size[1] !== WORLD_SIZE.height || data.size[2] !== WORLD_SIZE.depth) throw new RangeError('存档地图尺寸不匹配。');
+    if (!Array.isArray(data.edits) || data.edits.length > VOLUME) throw new RangeError('存档方块数据不正确。');
+    const seen = new Set<number>();
+    for (const row of data.edits) {
+      if (!Array.isArray(row) || row.length !== 2 || !Number.isInteger(row[0]) || row[0] < WORLD_SIZE.width * WORLD_SIZE.depth
+        || row[0] >= VOLUME || !validBlock(row[1]) || seen.has(row[0])) throw new RangeError('存档包含非法或重复方块。');
+      seen.add(row[0]);
+    }
+    const world = new VoxelWorld(data.seed);
+    for (const [index, block] of data.edits) {
+      world.blocks[index] = block;
+      if (block !== world.baseline[index]) world.changes.set(index, block);
+    }
+    return world;
+  }
+  /** Parse and validate first, then replace; invalid saves never destroy the live map. */
+  load(json: string): void {
+    const other = VoxelWorld.deserialize(json);
+    this._seed = other.seed;
+    this.blocks.set(other.blocks);
+    this.baseline = other.baseline;
+    this.changes = other.changes;
+    this.past.length = this.future.length = 0;
+    this.dirty.clear();
+    this.markAllDirty();
+    this._revision++;
+  }
+  raycast(origin: Vec3, direction: Vec3, maxDistance = 160): VoxelHit | null {
+    return raycast(this, origin, direction, maxDistance);
+  }
+}
+
+/** Grid DDA with an AABB entry test. Distance is measured in world units. */
+export function raycast(world: VoxelWorld, origin: Vec3, direction: Vec3, maxDistance = 160): VoxelHit | null {
+  if (![...origin, ...direction, maxDistance].every(Number.isFinite) || maxDistance < 0) return null;
+  const length = Math.hypot(...direction);
+  if (length < 1e-12) return null;
+  const d: Vec3 = direction.map((value) => value / length) as Vec3;
+  const limits: Vec3 = [world.width, world.height, world.depth];
+  let enter = 0, leave = maxDistance, entryAxis = -1;
+  for (let axis = 0; axis < 3; axis++) {
+    if (Math.abs(d[axis]) < 1e-12) {
+      if (origin[axis] < 0 || origin[axis] >= limits[axis]) return null;
+      continue;
+    }
+    const a = -origin[axis] / d[axis], b = (limits[axis] - origin[axis]) / d[axis];
+    const near = Math.min(a, b), far = Math.max(a, b);
+    if (near > enter) { enter = near; entryAxis = axis; }
+    leave = Math.min(leave, far);
+    if (enter > leave) return null;
+  }
+  const epsilon = 1e-8;
+  const point: Vec3 = origin.map((value, axis) => value + d[axis] * enter) as Vec3;
+  const cell: Vec3 = point.map((value, axis) => Math.floor(value + d[axis] * epsilon)) as Vec3;
+  const step: Vec3 = d.map((value) => Math.sign(value)) as Vec3;
+  const delta: Vec3 = d.map((value) => value === 0 ? Infinity : Math.abs(1 / value)) as Vec3;
+  const next: Vec3 = d.map((value, axis) => value === 0 ? Infinity
+    : ((cell[axis] + (value > 0 ? 1 : 0)) - origin[axis]) / value) as Vec3;
+  let distance = enter;
+  let normal: Vec3 | null = null;
+  if (entryAxis >= 0) { normal = [0, 0, 0]; normal[entryAxis] = -step[entryAxis]; }
+  // Origin exactly on the outer boundary has a well-defined entering face as well.
+  if (normal === null) for (let axis = 0; axis < 3; axis++) {
+    if ((origin[axis] === 0 && d[axis] > 0) || (origin[axis] === limits[axis] && d[axis] < 0)) {
+      normal = [0, 0, 0]; normal[axis] = -step[axis]; break;
+    }
+  }
+  while (distance <= leave + epsilon && world.inBounds(...cell)) {
+    const block = world.get(...cell);
+    if (block !== BLOCK.Air) {
+      return { cell: [...cell], normal: normal && [...normal],
+        adjacent: normal ? cell.map((value, axis) => value + normal![axis]) as Vec3 : null,
+        block, distance: Math.max(0, distance) };
+    }
+    const crossing = Math.min(...next);
+    if (!Number.isFinite(crossing) || crossing > leave + epsilon) break;
+    normal = null;
+    // Advance all tied axes: zero-area edge contacts do not count as solid hits.
+    for (let axis = 0; axis < 3; axis++) {
+      if (Math.abs(next[axis] - crossing) <= epsilon) {
+        if (normal === null) { normal = [0, 0, 0]; normal[axis] = -step[axis]; }
+        cell[axis] += step[axis];
+        next[axis] += delta[axis];
+      }
+    }
+    distance = crossing;
+  }
+  return null;
+}

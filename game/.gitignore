@@ -1,0 +1,10 @@
+dist/
+node_modules/
+.forgeax/
+.assetlib/
+artifacts/
+.tmp-tests/
+.game-builder/state/
+.game-builder/artifacts/
+.game-builder/covers/
+.game-builder/reference/

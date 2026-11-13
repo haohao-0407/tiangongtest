@@ -1,0 +1,2 @@
+import "file:///D:/tiangongtest/view-workspace/.forgeax/host/session-hvoilA/programs/sha256-064589a20c4fc78259a5671386b16f2463609db1bdcbadb0b62ec9759cbe88d9/rolldown-runtime-CPxUEhZH.mjs";
+export { start as default } from "file:///D:/tiangong-tools/forgeax-sdk-0.4.19/.forgeax/cli-runtime/node_modules/.pnpm/@forgeax+view@file+..+..+to_b3a852a671f9a708395597688c2ba41a/node_modules/@forgeax/view/dist/modules/command-executor.mjs";

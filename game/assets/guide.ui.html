@@ -1,0 +1,26 @@
+<div class="shell">
+  <header class="topbar panel" data-interactive>
+    <div class="brand"><span class="brand-icon">▧</span><div><h1>森屿</h1><p>和平家园 · COLONY HOMESTEAD</p></div></div>
+    <div class="clock"><strong id="date">正在铺开家园…</strong><span id="weather">等待世界数据</span></div>
+    <div class="time-controls" aria-label="模拟速度"><button data-speed="0" id="pause" title="暂停">Ⅱ</button><button data-speed="1" class="active">1×</button><button data-speed="3">3×</button><button data-speed="6">6×</button></div>
+    <div class="top-actions"><button id="home" title="复位视角">⌂</button><button id="help-toggle" title="操作帮助">?</button><button id="settings-toggle" title="世界与存档">⚙</button></div>
+  </header>
+  <div id="resources" class="resource-strip" aria-label="殖民地库存"></div>
+  <aside class="colony-sidebar"><div class="side-caption">一起生活的人 <span id="population"></span></div><div id="colonists" class="colonist-list" data-interactive></div><div id="objectives" class="objectives panel"><span class="eyebrow">在这里安家</span><div id="goal-list"></div></div></aside>
+  <aside id="inspector" class="inspector panel" data-interactive hidden><div class="panel-heading"><div><span class="eyebrow">居民档案</span><h2 id="resident-name"></h2></div><button id="inspector-close" class="close" aria-label="关闭居民档案">×</button></div><div id="resident-content"></div></aside>
+  <aside id="settings" class="settings panel" data-interactive hidden>
+    <div class="panel-heading"><h2>世界与存档</h2><button id="settings-close" class="close" aria-label="关闭设置">×</button></div>
+    <label for="seed">世界种子 <span>同一种子 · 同一片土地</span></label><div class="seed-row"><input id="seed" value="森屿-042" maxlength="80" spellcheck="false" aria-label="世界种子"><button id="generate">生成</button></div>
+    <p id="generate-hint" class="muted">生成新世界会重置居民与当前规划。</p><div class="button-grid"><button id="save">保存家园</button><button id="load">读取本机</button><button id="export">导出 JSON</button><button id="import">导入 JSON</button></div>
+    <div id="import-panel" hidden><label for="import-json">粘贴家园 JSON 存档</label><textarea id="import-json" rows="5" spellcheck="false" placeholder="打开导出的 JSON 文件，复制内容到这里。" aria-label="JSON 存档内容"></textarea><div class="button-grid"><button id="import-confirm">确认导入</button><button id="import-cancel">取消</button></div></div><p id="save-status" class="save-status" role="status">本机自动保存 · 无需登录</p><p class="muted">保存土地、居民、工作与研究进度。导出文件可供备份，或复制其内容在另一台电脑载入。</p>
+  </aside>
+  <aside id="help" class="help panel" data-interactive hidden>
+    <div class="panel-heading"><h2>慢慢建立一座家园</h2><button id="help-close" class="close" aria-label="关闭帮助">×</button></div><p>先规划仓储与农田，再安放床铺和工作台。居民根据优先级领取工作；缺材料或走不到时，任务会等待。</p>
+    <div class="help-row"><kbd>左键</kbd><span>查看 / 执行当前规划</span></div><div class="help-row"><kbd>W A S D</kbd><span>移动视角</span></div><div class="help-row"><kbd>Q / E</kbd><span>旋转视角</span></div><div class="help-row"><kbd>滚轮</kbd><span>缩放</span></div><div class="help-row"><kbd>中键拖动</kbd><span>环绕观察</span></div><div class="help-row"><kbd>F</kbd><span>回到家园</span></div><p class="muted">沙盒模式保留无限材料与方块撤销，独立于居民工作。此版本没有战斗。</p>
+  </aside>
+  <section id="workspace" class="workspace panel" data-interactive hidden><div class="panel-heading"><div><span id="panel-kicker" class="eyebrow">家园管理</span><h2 id="panel-title"></h2></div><button id="panel-close" class="close" aria-label="收起面板">×</button></div><div id="panel-content" class="panel-content"></div></section>
+  <footer class="bottom-area"><div class="selection-info"><span class="status-dot"></span><span id="status">居民正在准备安家…</span><span id="cell"></span></div>
+    <nav class="toolbar panel" data-interactive aria-label="家园菜单"><button data-menu="inspect" class="active"><span>⌖</span>查看</button><button data-menu="build"><span>▧</span>建造</button><button data-menu="plan"><span>▦</span>规划</button><button data-menu="work"><span>☷</span>工作</button><button data-menu="production"><span>⚒</span>生产</button><button data-menu="research"><span>◇</span>研究</button><button data-menu="trade"><span>⇄</span>贸易</button><button data-menu="logs"><span>≡</span>记录</button><button data-menu="sandbox"><span>▨</span>沙盒</button></nav>
+    <div class="footer-hint"><span id="tool-hint">查看模式 · 左键选择居民或地块</span><span id="quick-save">本机存档</span></div>
+  </footer>
+</div>
