@@ -210,11 +210,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   }
   /** 仓库：格子式面板，照 Unity 那边搬过来的。搜索 / 升降序 / 分类 / 网格。 */
   let whQuery = '', whDesc = false, whCategory = 'all';
+  // Unity 那边只分「方块 / 非方块」两类，这里照搬
   const CATEGORY_OF: Record<string, string> = {
-    wood: 'material', stone: 'material', steel: 'material', components: 'material', cloth: 'material',
-    food: 'food', meal: 'food', medicine: 'food', silver: 'coin',
+    wood: 'block', stone: 'block', steel: 'block',
+    food: 'item', meal: 'item', medicine: 'item', cloth: 'item', silver: 'item', components: 'item',
   };
-  const CATEGORY_NAMES: Record<string, string> = { all: '全部', material: '材料', food: '食药', coin: '货币' };
+  const CATEGORY_NAMES: Record<string, string> = { all: '全部', block: '方块', item: '非方块' };
 
   function renderWarehouse(c: ColonySnapshot, root: HTMLElement) {
     const tools = make('div', 'wh-tools');
@@ -225,7 +226,18 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     search.setAttribute('aria-label', '搜索物品');
 
     const order = make('button', 'wh-order', whDesc ? '降序' : '升序');
-    const category = make('button', 'wh-category', CATEGORY_NAMES[whCategory]!);
+
+    // 分类是下拉，不是循环按钮——Unity 那边点开就是「全部 / 方块 / 非方块」
+    const category = make('select', 'wh-category') as HTMLSelectElement;
+    category.setAttribute('aria-label', '物品分类');
+    for (const [key, label] of Object.entries(CATEGORY_NAMES)) {
+      const option = doc.createElement('option');
+      option.value = key;
+      option.textContent = label;
+      category.append(option);
+    }
+    category.value = whCategory;
+
     tools.append(search, order, category);
     root.append(tools);
 
@@ -260,12 +272,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
     search.addEventListener('input', () => { whQuery = search.value; drawGrid(); });
     order.addEventListener('click', () => { whDesc = !whDesc; order.textContent = whDesc ? '降序' : '升序'; drawGrid(); });
-    category.addEventListener('click', () => {
-      const keys = Object.keys(CATEGORY_NAMES);
-      whCategory = keys[(keys.indexOf(whCategory) + 1) % keys.length]!;
-      category.textContent = CATEGORY_NAMES[whCategory]!;
-      drawGrid();
-    });
+    category.addEventListener('change', () => { whCategory = category.value; drawGrid(); });
 
     drawGrid();
 

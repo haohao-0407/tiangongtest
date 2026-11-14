@@ -291,7 +291,7 @@ export default async function dualViewProbe(play) {
   assert.ok(cells >= 28, `仓库应铺满格子，实际 ${cells} 个`);
   assert.equal(await play.page.locator('#workspace .wh-search').count(), 1, '仓库应有搜索框');
   assert.equal(await play.page.locator('#workspace .wh-order').count(), 1, '仓库应有升降序按钮');
-  assert.equal(await play.page.locator('#workspace .wh-category').count(), 1, '仓库应有分类按钮');
+  assert.equal(await play.page.locator('#workspace .wh-category').count(), 1, '仓库应有分类下拉');
 
   // 搜索过滤：输入「木」应该只剩木材一类
   await play.page.locator('#workspace .wh-search').fill('木');
@@ -306,7 +306,16 @@ export default async function dualViewProbe(play) {
   const orderAfter = (await play.page.locator('#workspace .wh-order').textContent()) ?? '';
   assert.notEqual(orderBefore, orderAfter, '点升降序按钮文案应切换');
 
+  // 分类下拉：先清掉搜索词，再切到「方块」——应该只剩建材那几类
   await play.page.locator('#workspace .wh-search').fill('');
+  await advance(0.3);
+  await play.page.locator('#workspace .wh-category').selectOption('block');
+  await advance(0.4);
+  const blocks = await play.page.locator('#workspace .wh-cell:not(.empty)').count();
+  assert.equal(blocks, 3, `「方块」分类应只剩 3 项，实际 ${blocks}`);
+  await play.page.locator('#workspace .wh-category').selectOption('all');
+  await advance(0.3);
+
   await advance(0.3);
   await play.screenshot('warehouse-grid');
   await play.page.locator('[data-menu="inspect"]').click();
