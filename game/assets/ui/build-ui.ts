@@ -802,12 +802,30 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const backBtn = get('options-back');
   if (backBtn) on(backBtn, 'click', () => { if (optionsLayer) optionsLayer.hidden = true; });
   on(get('pause-quit'), 'click', () => {
-    // 浏览器只允许脚本自己开的窗口调用 close()，普通标签页会被忽略
+    // 退出前先把进度落盘，别让人白玩
+    requestSave('manual');
+    pauseLayer.hidden = true;
+
+    // 浏览器只允许脚本自己开的窗口调用 close()，普通标签页会被静默忽略。
+    // 所以这里分三步退化：关窗口 → 跳空白页 → 铺一块「已退出」的黑屏。
     win.close();
+
     win.setTimeout(() => {
-      pauseLayer.hidden = true;
-      saySave('浏览器不允许页面自行关闭，请直接关掉这个标签页');
-    }, 150);
+      try {
+        // 跳到空白页等效于退出：页面没了，进程交给浏览器回收
+        win.location.replace('about:blank');
+        return;
+      } catch {
+        // 被沙箱或 iframe 拦住时兜底
+      }
+
+      // 最后兜底：铺占位屏，至少让玩家知道游戏已经关了
+      const goodbye = doc.createElement('div');
+      goodbye.className = 'goodbye';
+      goodbye.textContent = '游戏已退出，可以关闭这个标签页了';
+      doc.body.append(goodbye);
+      try { send('pause'); } catch { /* 引擎可能已经断了，忽略 */ }
+    }, 120);
   });
 
   // 右键在画布上是「按住拖动平移镜头」，浏览器默认菜单会抢这个操作，拦掉。

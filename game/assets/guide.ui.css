@@ -104,3 +104,6 @@
 /* 快捷栏上方的选中物品名，照 Unity 那套。 */
 .hotbar-name{display:none;position:absolute;left:50%;bottom:74px;transform:translateX(-50%);font-size:11px;color:#f0ead6;text-shadow:0 1px 3px #00000099;pointer-events:none;letter-spacing:.06em;z-index:21}
 .shell[data-view-mode="character"] .hotbar-name{display:block}
+
+/* 退出游戏的兜底占位屏：关不掉标签页时至少让玩家知道游戏停了。 */
+.goodbye{position:fixed;inset:0;display:grid;place-items:center;background:#05070b;color:#87977c;font-size:13px;letter-spacing:.1em;z-index:2147483647}

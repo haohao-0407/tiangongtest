@@ -396,6 +396,14 @@ export default async function dualViewProbe(play) {
   await play.page.keyboard.press('KeyR');
   await advance(0.6);
 
+  // 退出游戏按钮本身只验存在。
+  // 真点会把页面导航走，验收框架拿不到最终帧，所以点击行为不在这个脚本里跑。
+  await play.page.keyboard.press('Escape');
+  await advance(0.4);
+  assert.equal(await play.page.locator('#pause-quit').count(), 1, '暂停层应有「退出游戏」');
+  await play.page.keyboard.press('Escape');
+  await advance(0.4);
+
   return {
     spawn,
     walkedMeters: Number(walked.toFixed(2)),
