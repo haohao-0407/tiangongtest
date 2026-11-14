@@ -120,3 +120,10 @@
 .vital-bar.health i{background:#b93b32}
 .vital-bar.stamina i{background:#a8bd58}
 .vital-gold{margin-left:auto;min-width:64px;padding:3px 10px;text-align:right;font-size:12px;color:#f0e6c8;background:#5c4526;border:1px solid #7a5f36;border-radius:2px}
+
+/* 木箱面板：照 Unity 的 ChestWindow。米色底 + 五列格 + 计入仓库那行。 */
+.chest-include{display:flex;align-items:center;gap:7px;margin-bottom:9px;font-size:11px;color:#5d6b52}
+.chest-toggle{display:inline-block;width:11px;height:11px;background:#7d9560;border:1px solid #5f7449;border-radius:1px}
+.chest-grid{display:grid;grid-template-columns:repeat(5,64px);justify-content:center;gap:5px;padding:9px;background:#e9dfc8;border:1px solid #cbbb98;border-radius:5px}
+.chest-cell{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#d9c9a8;border:1px solid #c2ad86;border-radius:3px;overflow:hidden}
+.chest-cell.empty{background:#e2d5b9;border-color:#cfc0a0}

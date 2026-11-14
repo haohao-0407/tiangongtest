@@ -140,6 +140,8 @@ export class ColonyView {
 
   private playerEntities:EntityHandle[]=[];
   private playerParts:Part[]=[];
+  private chestEntities:EntityHandle[]=[];
+  private chestAt:V3|null=null;
   private playerFacing=Number.NaN;
 
   /** 每帧调，只改位置/姿态，不重建实体。 */
@@ -194,6 +196,28 @@ export class ColonyView {
   }
 
   get playerEntityCount(){return this.playerEntities.length;}
+
+  /** 放一个木箱。重复调用同一位置不做任何事。 */
+  setChest(pos:V3){
+    if(this.chestAt&&this.chestAt[0]===pos[0]&&this.chestAt[2]===pos[2])return;
+    this.chestAt=pos;
+    for(const e of this.chestEntities)this.world.despawn(e).unwrap();
+    this.chestEntities=[];
+    const [x,y,z]=pos;
+    // 箱体 + 盖子 + 正面的锁扣，凑成一个能认出来的箱子
+    const parts:Part[]=[
+      {p:[x,y+.28,z],s:[.86,.56,.72],c:'wood'},
+      {p:[x,y+.60,z],s:[.9,.12,.76],c:'dark'},
+      {p:[x,y+.30,z+.37],s:[.18,.2,.06],c:'steel'},
+    ];
+    this.chestEntities=parts.map((part,i)=>this.world.spawn(
+      {component:Name,data:{value:`chest/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s}},
+      {component:MeshFilter,data:{assetHandle:this.cube}},{component:MeshRenderer,data:{materials:[this.material(part.c)]}},
+      {component:ShadowParticipation,data:{cast:true,receive:true}},
+    ).unwrap());
+  }
+
+  clearChest(){for(const e of this.chestEntities)this.world.despawn(e).unwrap();this.chestEntities=[];this.chestAt=null;}
 
   disposePlayer(){for(const e of this.playerEntities)this.world.despawn(e).unwrap();this.playerEntities=[];this.playerParts=[];}
 }

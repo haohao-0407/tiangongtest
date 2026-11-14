@@ -22,7 +22,7 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
     vitals?: { health: number; maxHealth: number; stamina: number; maxStamina: number; gold: number };
   } };
 type SaveIntent = 'auto' | 'manual' | 'export';
-const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人' };
+const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人', chest: '木箱' };
 const BUILD_ICONS: Record<string, string> = { bed: '▱', table: '▤', stove: '♨', workbench: '⚒', researchDesk: '◇', solar: '☀', battery: '▥', cooler: '❄', medicalBed: '+', wall: '▧', door: '▯', floor: '▦' };
 const RESOURCE_ICONS: Record<Resource, string> = { wood: '▰', stone: '◆', steel: '▱', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙' };
 const int = (value: number) => Math.floor(Number.isFinite(value) ? value : 0);
@@ -479,6 +479,71 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       : '地面干净，没有待搬运的物资。'));
   }
 
+  /**
+   * 木箱：照 Unity 的 ChestWindow。五列二十格，顶部搜索 + 升降序 + 分类，
+   * 还有一行「计入仓库」状态。天工只有这一个箱子且资源本来就是全局的，
+   * 所以它显示的就是仓库里的东西，勾选框常亮。
+   */
+  let chestDesc = false, chestQuery = '', chestCategory = 'all';
+  function renderChest(c: ColonySnapshot, root: HTMLElement) {
+    root.append(note('这个箱子放在初始储藏区。打开它就是仓库里的全部家当，随从会往这里搬东西。'));
+
+    const include = make('div', 'chest-include');
+    include.append(make('i', 'chest-toggle'));
+    include.append(make('span', '', '计入仓库：开'));
+    root.append(include);
+
+    const tools = make('div', 'wh-tools');
+    const search = make('input', 'wh-search') as HTMLInputElement;
+    search.type = 'text';
+    search.placeholder = '搜索物品名…';
+    search.value = chestQuery;
+    search.setAttribute('aria-label', '搜索物品');
+
+    const order = make('button', 'wh-order', chestDesc ? '降序' : '升序');
+    const category = make('button', 'wh-category', CATEGORY_NAMES[chestCategory]!);
+    tools.append(search, order, category);
+    root.append(tools);
+
+    const grid = make('div', 'chest-grid');
+    root.append(grid);
+
+    const draw = () => {
+      const items = RESOURCE_TYPES
+        .filter((r) => chestCategory === 'all' || CATEGORY_OF[r] === chestCategory)
+        .filter((r) => !chestQuery || RESOURCE_NAMES[r].includes(chestQuery))
+        .map((r) => ({ name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
+        .sort((a, b) => {
+          const diff = a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+          const result = diff === 0 ? a.count - b.count : diff;
+          return chestDesc ? -result : result;
+        });
+
+      clear(grid);
+      // 五列，固定铺满二十格
+      for (let i = 0; i < 20; i++) {
+        const item = items[i];
+        const cell = make('div', `chest-cell${item ? '' : ' empty'}`);
+        if (item) {
+          cell.title = `${item.name} · ${item.count}`;
+          cell.append(make('span', 'wh-icon', item.icon));
+          if (item.count > 0) cell.append(make('span', 'wh-count', String(item.count)));
+        }
+        grid.append(cell);
+      }
+    };
+
+    search.addEventListener('input', () => { chestQuery = search.value; draw(); });
+    order.addEventListener('click', () => { chestDesc = !chestDesc; order.textContent = chestDesc ? '降序' : '升序'; draw(); });
+    category.addEventListener('click', () => {
+      const keys = Object.keys(CATEGORY_NAMES);
+      chestCategory = keys[(keys.indexOf(chestCategory) + 1) % keys.length]!;
+      category.textContent = CATEGORY_NAMES[chestCategory]!;
+      draw();
+    });
+    draw();
+  }
+
   /** 随从：居民的概览页。姓名、在干什么、三项关键需求，点进去看完整档案。 */
   function renderFollower(c: ColonySnapshot, root: HTMLElement) {
     root.append(note('跟着你一起生活的人。点名字可以打开完整档案，也能在工作页调他们的优先级。'));
@@ -567,7 +632,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const root = get('panel-content'), scrollTop = root.scrollTop; clear(root);
     if (panel === 'sandbox') { renderSandbox(root); root.scrollTop = scrollTop; return; }
     if (!c) { root.append(empty('正在等待居民与世界数据…')); return; }
-    ({ build: renderBuild, plan: renderPlan, work: renderWork, production: renderProduction, research: renderResearch, trade: renderTrade, logs: renderLogs, warehouse: renderWarehouse, follower: renderFollower } as Record<string, (c: ColonySnapshot, root: HTMLElement) => void>)[panel]?.(c, root);
+    ({ build: renderBuild, plan: renderPlan, work: renderWork, production: renderProduction, research: renderResearch, trade: renderTrade, logs: renderLogs, warehouse: renderWarehouse, follower: renderFollower, chest: renderChest } as Record<string, (c: ColonySnapshot, root: HTMLElement) => void>)[panel]?.(c, root);
     root.scrollTop = scrollTop;
   }
   function renderInspector(c: ColonySnapshot, force = false) {
@@ -718,6 +783,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       try { win.localStorage.setItem(SAVE_KEY, msg.data); saySave('家园已载入，自动存档已同步'); } catch { saySave('家园已载入，但本机存储不可用'); }
       return;
     }
+    if (msg?.type === 'voxel:openChest') { openPanel('chest'); return; }
     if (msg?.type === 'voxel:save') {
       const intent = pendingSave ?? 'auto', data = typeof msg.data === 'string' ? msg.data : JSON.stringify(msg.data);
       pendingSave = null;
@@ -755,6 +821,10 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }
   };
   if (port) { on(port, 'message', message); port.start?.(); send('sync'); } else saySave('引擎通信不可用');
+
+  // 验收脚本要能在不开地图的情况下打开木箱面板（面板挂在 port 消息上，
+  // 外部没法直接戳）。只暴露这一件事，不碰别的。
+  (win as unknown as { __wbOpenChest?: () => void }).__wbOpenChest = () => openPanel('chest');
 
   // ---- ESC 暂停层 ----
   // 分两级：先关面板，面板都关了才弹出暂停层。

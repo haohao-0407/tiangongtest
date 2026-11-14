@@ -65,6 +65,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       // 血的用途等战斗系统上了再接；体力先给跳跃扣费，金币直接映射银币存量。
       const vitals = { health: 100, maxHealth: 100, stamina: 100, maxStamina: 100 };
 
+      // 初始储藏区的木箱。天工的资源本来就在全局池里，这个箱子是它的一个「看得见的容器」：
+      // 打开它看到的就是仓库里的东西，也是 Unity 那边「箱子默认计入仓库」的同一个意思。
+      let chestPos: Point | null = null;
+
       /** 从共享池扣一份进背包，返回是否真的拿到了。 */
       const takeToBag = (resource: string, amount = 1): boolean => {
         const pool = (colonyState.resources as Record<string, number>)[resource] ?? 0;
@@ -151,6 +155,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         y: 0, vy: 0, grounded: true, facing: 0, moving: false,
       };
       player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z));
+
+      /** 把木箱摆到玩家旁边两格，高度取那一格的地面。 */
+      const placeChest = () => {
+        const cx = Math.floor(player.x) + 2, cz = Math.floor(player.z);
+        chestPos = [cx, voxels.terrainHeight(cx, cz), cz];
+        colonyView.setChest(chestPos);
+      };
+      placeChest();
 
       /** AABB 覆盖到的格子范围，四个方向都用这个，别再用中心格近似。 */
       const boxCells = (cx: number, cz: number, footY: number) => ({
@@ -302,7 +314,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           parts: colonyView.playerEntityCount,
           bag: bag.map((slot) => (slot ? { resource: slot.resource, count: slot.count } : null)),
           bagSelected,
-          vitals: { ...vitals, gold: Math.floor((colonyState.resources as Record<string, number>).silver ?? 0) } },
+          vitals: { ...vitals, gold: Math.floor((colonyState.resources as Record<string, number>).silver ?? 0) },
+          chest: chestPos },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth], worldSize: [voxels.width, voxels.height, voxels.depth],
         terrain: { target: terrainTarget, size: terrainSize, shape: terrainShape, sample: terrainSample, preview: { ...terrainPreview }, minHeight: 1, maxHeight: voxels.height - 2 }, buildHeight,
         pcg: pcgView.read(),
@@ -440,7 +453,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             terrainView.clear(); pcgView.clear();
             viewMode = 'god'; followId = null; terrainTarget = clamp(terrainTarget, 1, voxels.height - 2);
             for (const entry of chunks.values()) { world.despawn(entry.entity).unwrap(); entities.delete(entry.entity); release(entry.handle); } chunks.clear();
-            player.x = voxels.width / 2; player.z = voxels.depth / 2; player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z)); player.grounded = true; player.vy = 0;
+            player.x = voxels.width / 2; player.z = voxels.depth / 2; player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z)); player.grounded = true; player.vy = 0; placeChest();
             lastEdit = null; lastTerrainRevision = -1; tool = 'inspect'; crop = 'rice'; home(); changed('新的和平殖民地已生成');
             godReturn = { target: [...target], yaw, pitch, distance };
           }
@@ -703,6 +716,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             if (!sandbox && tool !== 'level' && hit && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
               const x=hit.cell[0],z=hit.cell[2];
               if(input.mouse.justPressed(2)){tool='inspect';status='已取消当前工具';refreshState=true;}
+              else if(tool==='inspect' && chestPos && x===chestPos[0] && z===chestPos[2]){port?.postMessage({type:'voxel:openChest'});status='打开木箱';refreshState=true;}
               else if(tool.startsWith('build:'))execute({action:'build',kind:tool.slice(6),x,z,target:buildHeight ?? voxels.terrainHeight(x,z)});
               else if(tool.startsWith('zone:'))execute({action:'designate',kind:tool.slice(5),x,z,w:3,d:3,crop});
               else if(['chop','mine','harvest'].includes(tool))execute({action:'designate',kind:tool,x,z});

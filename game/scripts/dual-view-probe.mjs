@@ -415,6 +415,26 @@ export default async function dualViewProbe(play) {
   await play.page.keyboard.press('KeyR');
   await advance(0.6);
 
+  // ---- 木箱：位置在投影里，面板能打开 ----
+  const chestState = await read();
+  assert.ok(Array.isArray(chestState.player.chest), `投影里应有木箱位置，实际 ${JSON.stringify(chestState.player.chest)}`);
+
+  await play.page.evaluate(() => window.__wbOpenChest());
+  await advance(0.6);
+  assert.equal(await play.page.locator('#workspace').isVisible(), true, '木箱面板应打开');
+  assert.equal(await play.page.locator('#workspace .chest-grid').count(), 1, '木箱应渲染成格子');
+  const chestCells = await play.page.locator('#workspace .chest-cell').count();
+  assert.equal(chestCells, 20, `木箱应是 5×4 二十格，实际 ${chestCells}`);
+  const chestFilled = await play.page.locator('#workspace .chest-cell:not(.empty)').count();
+  assert.ok(chestFilled >= 5, `木箱里应该装着现有物资，实际 ${chestFilled} 格`);
+  assert.ok(
+    ((await play.page.locator('#workspace .chest-include').textContent()) ?? '').includes('计入仓库'),
+    '木箱应有「计入仓库」状态行',
+  );
+  await play.screenshot('chest-panel');
+  await play.page.locator('[data-menu="inspect"]').click();
+  await advance(0.3);
+
   // 退出游戏按钮本身只验存在。
   // 真点会把页面导航走，验收框架拿不到最终帧，所以点击行为不在这个脚本里跑。
   await play.page.keyboard.press('Escape');
