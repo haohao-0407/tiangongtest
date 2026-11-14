@@ -1108,6 +1108,17 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   doc.addEventListener('contextmenu', blockCanvasMenu, true);
   releases.push(() => doc.removeEventListener('contextmenu', blockCanvasMenu, true));
 
+  // 同一条思路：网页的拖拽选字也要拦。CSS 的 user-select 挡不住所有情况
+  // （部分浏览器长按会先起一次 selectstart），这里再兜一层，输入框除外。
+  const blockSelect = (event: Event) => {
+    const target = event.composedPath()[0] as HTMLElement | null;
+    const tag = target?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    event.preventDefault();
+  };
+  doc.addEventListener('selectstart', blockSelect, true);
+  releases.push(() => doc.removeEventListener('selectstart', blockSelect, true));
+
   // ---- 暂停里的设置页 ----
   const optInvertX = get<HTMLInputElement>('opt-invert-x');
   const optInvertY = get<HTMLInputElement>('opt-invert-y');

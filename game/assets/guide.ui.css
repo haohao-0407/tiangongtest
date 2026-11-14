@@ -161,3 +161,8 @@
 .shell:has(#workspace:not([hidden])) .hotbar{display:flex;bottom:96px;z-index:22}
 .hotbar-slot.drop-target{border-color:#e0a94a;background:rgba(200,150,70,.7);box-shadow:0 0 0 2px #e0a94a88}
 .drag-ghost{position:absolute;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:#d9c9a8;border:1px solid #c2ad86;border-radius:3px;box-shadow:0 6px 16px #00000055;opacity:.9;pointer-events:none;z-index:99;font-size:16px}
+
+/* 关掉网页的「长按拖拽选字」。游戏里拖动是干活的，选中一片蓝字很碍眼。
+   输入框单独放开——搜索时还是要能选文字改错。 */
+.shell{user-select:none}
+.shell input,.shell textarea{user-select:text}
