@@ -319,8 +319,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             const dx = Number(k.downCode('KeyD') || k.downCode('ArrowRight')) - Number(k.downCode('KeyA') || k.downCode('ArrowLeft'));
             const dz = Number(k.downCode('KeyS') || k.downCode('ArrowDown')) - Number(k.downCode('KeyW') || k.downCode('ArrowUp'));
 
-            // ---- V 切换视角 ----
-            if (k.justPressedCode('KeyV')) {
+            // ---- R 切换视角 ----
+            if (k.justPressedCode('KeyR')) {
               if (viewMode === 'god') {
                 // 先存俯视构图，切回来才能原样还原
                 godReturn = { target: [...target] as Point, yaw, pitch, distance };
@@ -330,12 +330,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 yaw = player.facing + Math.PI;
                 pitch = 0.36;
                 distance = 12;
-                status = '玩家视角 · WASD 移动 / 空格跳跃 / V 切回俯视';
+                status = '玩家视角 · WASD 移动 / 空格跳跃 / R 切回俯视';
               } else {
                 viewMode = 'god'; followId = null;
                 target = [...godReturn.target] as Point;
                 yaw = godReturn.yaw; pitch = godReturn.pitch; distance = godReturn.distance;
-                status = '俯视视角 · V 切到玩家';
+                status = '俯视视角 · R 切到玩家';
               }
               refreshState = true;
             }

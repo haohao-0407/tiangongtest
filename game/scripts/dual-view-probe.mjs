@@ -12,8 +12,8 @@ const READ = 'voxel.world';
 export default async function dualViewProbe(play) {
   const read = () => play.state(READ);
   const advance = (seconds) => play.advance(seconds, { read: READ, stepSeconds: 0.05 });
-  const tapV = async () => {
-    await play.page.keyboard.press('KeyV');
+  const tapR = async () => {
+    await play.page.keyboard.press('KeyR');
     await advance(0.4);
   };
   const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -26,8 +26,8 @@ export default async function dualViewProbe(play) {
   const godTarget = [...s0.camera.target];
   const spawn = { x: s0.player.x, z: s0.player.z };
 
-  // ---- 2. V 切到玩家视角 ----
-  await tapV();
+  // ---- 2. R 切到玩家视角 ----
+  await tapR();
   const s1 = await read();
   assert.equal(s1.camera.mode, 'character', 'V 应切到玩家视角');
   assert.equal(s1.camera.followId, 'player', '玩家视角的跟随目标应是自己');
@@ -136,8 +136,8 @@ export default async function dualViewProbe(play) {
   assert.equal(s4.player.grounded, true, '应已落地');
   assert.equal(s4.player.parts, 11, `落地后玩家部件数仍应是 11，实际 ${s4.player.parts}`);
 
-  // ---- 7. V 切回俯视，构图恢复 ----
-  await tapV();
+  // ---- 7. R 切回俯视，构图恢复 ----
+  await tapR();
   const s5 = await read();
   assert.equal(s5.camera.mode, 'god', 'V 应切回俯视');
   assert.equal(s5.camera.followId, null, '俯视视角不应残留跟随目标');
@@ -157,7 +157,7 @@ export default async function dualViewProbe(play) {
   assert.ok(playerDrift < 0.3, `俯视视角下玩家不该自己走，实测位移 ${playerDrift.toFixed(2)}`);
 
   // ---- 截图 ----
-  await tapV();
+  await tapR();
   const shot = await play.screenshot('player-view');
   assert.equal(shot.rendered, true, '玩家视角必须是真实渲染像素');
 
@@ -173,13 +173,13 @@ export default async function dualViewProbe(play) {
   const hiddenInPlayer = await toolbar.isVisible();
   assert.equal(hiddenInPlayer, false, '玩家视角下底部菜单应隐藏');
 
-  await tapV();
+  await tapR();
   await advance(0.3);
   const shownInGod = await toolbar.isVisible();
   assert.equal(shownInGod, true, '俯视视角下底部菜单应重新出现');
 
   // ---- 10. 快捷栏只在玩家视角出现 ----
-  await tapV();
+  await tapR();
   const hotbar = play.page.locator('#hotbar');
   assert.equal(await hotbar.isVisible(), true, '玩家视角下快捷栏应可见');
   const slotCount = await play.page.locator('#hotbar .hotbar-slot').count();
@@ -193,7 +193,7 @@ export default async function dualViewProbe(play) {
     .evaluateAll((slots) => slots.findIndex((slot) => slot.classList.contains('active')));
   assert.equal(activeIndex, 3, `按 4 应选中第 4 格，实际索引 ${activeIndex}`);
 
-  await tapV();
+  await tapR();
   await advance(0.3);
   assert.equal(await hotbar.isVisible(), false, '俯视视角下快捷栏应隐藏');
 
