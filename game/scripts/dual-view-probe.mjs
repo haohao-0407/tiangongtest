@@ -465,6 +465,8 @@ export default async function dualViewProbe(play) {
   // ---- 随从面板：靠近右键打开，左数值右背包 ----
   // 顺带确认「靠近谁」这个判定跑通了（角色视角下才有值）
   assert.ok('nearColonist' in (await read()).player, '投影里应有 nearColonist 字段');
+  assert.ok('nearHint' in (await read()).player, '投影里应有 nearHint 字段（靠近提示用）');
+  assert.equal(await play.page.locator('#interact-hint').count(), 1, '应有靠近提示条');
   const cid = (await read()).colony.colonists[0].id;
   await play.page.evaluate((id) => window.__wbOpenFollower(id), cid);
   await advance(0.6);

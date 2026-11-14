@@ -20,6 +20,7 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
     bag: ({ resource: string; count: number } | null)[];
     bagSelected: number;
     vitals?: { health: number; maxHealth: number; stamina: number; maxStamina: number; gold: number };
+    nearHint?: 'chest' | 'follower' | null;
   } };
 type SaveIntent = 'auto' | 'manual' | 'export';
 const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人', chest: '木箱', followerBag: '随从' };
@@ -653,6 +654,17 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     root.append(list);
   }
 
+  /** 靠近提示：贴着箱子或随从时，在准星上方挂一条「右键 打开…」。 */
+  function renderInteractHint() {
+    const hint = get('interact-hint');
+    const text = get('hint-text');
+    if (!hint || !text) return;
+    const kind = state?.player?.nearHint ?? null;
+    if (!kind) { hint.setAttribute('hidden', ''); return; }
+    text.textContent = kind === 'chest' ? '打开木箱' : '打开随从背包';
+    hint.removeAttribute('hidden');
+  }
+
   /** 右上角三条数值：血量、体力、金币。照 Unity 的 VitalsUI。 */
   function renderVitals() {
     const v = state?.player?.vitals;
@@ -912,6 +924,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (c) renderColony(c); else renderPanel();
     if (c) renderHotbar(c);
     renderVitals();
+    renderInteractHint();
     syncTerrainControls();
     if (!booted) {
       booted = true; lastSavedStamp = latestStamp; lastSavedSim = c?.time ?? 0;

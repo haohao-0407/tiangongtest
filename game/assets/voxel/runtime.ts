@@ -328,7 +328,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           bag: bag.map((slot) => (slot ? { resource: slot.resource, count: slot.count } : null)),
           bagSelected,
           vitals: { ...vitals, gold: Math.floor((colonyState.resources as Record<string, number>).silver ?? 0) },
-          chest: chestPos, nearColonist: viewMode === 'character' ? (nearColonist()?.id ?? null) : null },
+          chest: chestPos,
+          nearColonist: viewMode === 'character' ? (nearColonist()?.id ?? null) : null,
+          // 靠近提示用：贴着箱子还是贴着人
+          nearHint: viewMode !== 'character' ? null
+            : (chestPos && Math.floor(player.x) === chestPos[0] && Math.floor(player.z) === chestPos[2]) ? 'chest'
+            : nearColonist() ? 'follower' : null },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth], worldSize: [voxels.width, voxels.height, voxels.depth],
         terrain: { target: terrainTarget, size: terrainSize, shape: terrainShape, sample: terrainSample, preview: { ...terrainPreview }, minHeight: 1, maxHeight: voxels.height - 2 }, buildHeight,
         pcg: pcgView.read(),
@@ -729,14 +734,17 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             if (!sandbox && tool !== 'level' && hit && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
               const x=hit.cell[0],z=hit.cell[2];
               if(input.mouse.justPressed(2)){
-                // 角色视角下贴着居民右键 = 打开它的背包/状态面板。
+                // 角色视角下贴着东西右键 = 打开它。箱子优先于随从（箱子不会自己走开）。
                 // 俯视视角不接这个键，那里右键是拖镜头和取消工具。
+                const chestHere = viewMode === 'character' && chestPos
+                  && x === chestPos[0] && z === chestPos[2];
                 const near = viewMode === 'character' ? nearColonist() : null;
-                if (near) { port?.postMessage({ type: 'voxel:openFollower', id: near.id }); status = '打开随从'; }
+                if (chestHere) { port?.postMessage({ type: 'voxel:openChest' }); status = '打开木箱'; }
+                else if (near) { port?.postMessage({ type: 'voxel:openFollower', id: near.id }); status = '打开随从'; }
                 else { tool='inspect'; status='已取消当前工具'; }
                 refreshState=true;
               }
-              else if(tool==='inspect' && chestPos && x===chestPos[0] && z===chestPos[2]){port?.postMessage({type:'voxel:openChest'});status='打开木箱';refreshState=true;}
+
               else if(tool.startsWith('build:'))execute({action:'build',kind:tool.slice(6),x,z,target:buildHeight ?? voxels.terrainHeight(x,z)});
               else if(tool.startsWith('zone:'))execute({action:'designate',kind:tool.slice(5),x,z,w:3,d:3,crop});
               else if(['chop','mine','harvest'].includes(tool))execute({action:'designate',kind:tool,x,z});
