@@ -117,7 +117,39 @@ export default async function dualViewProbe(play) {
   await advance(0.3);
   assert.equal(await hotbar.isVisible(), false, '俯视视角下快捷栏应隐藏');
 
-  // ---- 11. 竖排新面板能打开 ----
+  // ---- 12. ESC 暂停层 ----
+  // 开局居民档案是自动打开的，所以 ESC 是分层的：第一次关面板，第二次才弹暂停
+  const pauseLayer = play.page.locator('#pause-menu');
+  assert.equal(await pauseLayer.isVisible(), false, '开局不该有暂停层');
+
+  await play.page.keyboard.press('Escape');
+  await advance(0.4);
+  assert.equal(await pauseLayer.isVisible(), false, '第一次 ESC 应先关掉面板，不弹暂停');
+
+  await play.page.keyboard.press('Escape');
+  await advance(0.5);
+  assert.equal(await pauseLayer.isVisible(), true, '第二次 ESC 应弹出暂停层');
+  const paused = await read();
+  assert.equal(paused.colony.speed, 0, `暂停时模拟速度应为 0，实际 ${paused.colony.speed}`);
+  await play.screenshot('pause-menu');
+
+  await play.page.keyboard.press('Escape');
+  await advance(0.5);
+  assert.equal(await pauseLayer.isVisible(), false, '再按 ESC 应收起暂停层');
+  const resumed = await read();
+  assert.ok(resumed.colony.speed > 0, `恢复后速度应大于 0，实际 ${resumed.colony.speed}`);
+
+  // 暂停层里的「设置」复用右上角那块面板
+  await play.page.keyboard.press('Escape');
+  await advance(0.4);
+  await play.page.locator('#pause-settings').click();
+  await advance(0.4);
+  assert.equal(await play.page.locator('#settings').isVisible(), true, '暂停层「设置」应打开世界与存档面板');
+  assert.equal(await pauseLayer.isVisible(), false, '打开设置后暂停层应收起');
+  await play.page.locator('#settings-close').click();
+  await advance(0.3);
+
+  // ---- 13. 竖排新面板能打开 ----
   for (const [menu, title] of [['warehouse', '仓库'], ['follower', '随从']]) {
     await play.page.locator(`[data-menu="${menu}"]`).click();
     await advance(0.5);
@@ -135,6 +167,6 @@ export default async function dualViewProbe(play) {
     walkedMeters: Number(walked.toFixed(2)),
     cameraToPlayer: Number(camToPlayer.toFixed(2)),
     jumpRise: Number((s3.player.y - groundY).toFixed(2)),
-    checks: 14,
+    checks: 18,
   };
 }

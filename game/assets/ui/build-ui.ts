@@ -440,6 +440,70 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   };
   if (port) { on(port, 'message', message); port.start?.(); send('sync'); } else saySave('引擎通信不可用');
 
+  // ---- ESC 暂停层 ----
+  // 分两级：先关面板，面板都关了才弹出暂停层。
+  // 必须在 UI 层监听——鼠标停在面板上时引擎那边被 uiHover 挡掉，收不到 ESC。
+  const pauseLayer = get('pause-menu');
+  let speedBeforePause = 1;
+  const setPaused = (paused: boolean) => {
+    if (!pauseLayer) return;
+    pauseLayer.hidden = !paused;
+    if (paused) {
+      speedBeforePause = state?.colony?.speed || 1;
+      if (speedBeforePause === 0) speedBeforePause = 1;
+      colonyCommand({ action: 'speed', value: 0 });
+    } else {
+      colonyCommand({ action: 'speed', value: speedBeforePause });
+    }
+  };
+
+  const onEscape = (event: KeyboardEvent) => {
+    if (event.code !== 'Escape') return;
+    try {
+      const workspaceOpen = !get('workspace').hidden;
+      const sideOpen = !get('settings').hidden || !get('help').hidden || !get('inspector').hidden;
+      // 1) 有面板：先关面板
+      if (panel || workspaceOpen || sideOpen) {
+        panel = '';
+        get('workspace').hidden = true;
+        hideSidePanels();
+        selectedResident = null;
+        syncHover();
+        event.preventDefault();
+        return;
+      }
+      // 2) 有工具：交给引擎取消工具，这时候别弹暂停层
+      if (state?.tool && state.tool !== 'inspect') return;
+      // 3) 都没有：弹暂停层
+      setPaused(pauseLayer.hidden === true);
+      event.preventDefault();
+    } catch {
+      // 面板状态异常时静默跳过，不要让 ESC 把整个 UI 卡死
+    }
+  };
+  // 挂 window 的捕获阶段，这是事件链最早的一站。
+  // 引擎的输入扫描会在 document 层拦掉 Escape（实测 document 捕获收不到，
+  // 但手动 dispatch 到 shadow host 能收到），所以只能再往前站。
+  win.addEventListener('keydown', onEscape as EventListener, true);
+  releases.push(() => win.removeEventListener('keydown', onEscape as EventListener, true));
+
+  on(get('pause-settings'), 'click', () => {
+    // 弹暂停层里的「设置」就是右上角那个齿轮，复用同一块面板
+    setPaused(false);
+    hideSidePanels();
+    get('workspace').hidden = true;
+    panel = '';
+    get('settings').hidden = false;
+  });
+  on(get('pause-quit'), 'click', () => {
+    // 浏览器只允许脚本自己开的窗口调用 close()，普通标签页会被忽略
+    win.close();
+    win.setTimeout(() => {
+      pauseLayer.hidden = true;
+      saySave('浏览器不允许页面自行关闭，请直接关掉这个标签页');
+    }, 150);
+  });
+
   // 数字键切快捷栏格子。只在玩家视角接管——
   // 俯视视角的 1/2/3 是速度、沙盒里 1-6 是选方块，不能抢。
   on(win, 'keydown', ((event: KeyboardEvent) => {
