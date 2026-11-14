@@ -14,7 +14,7 @@ import {
 import { Name, PROPAGATE_TRANSFORMS_SYSTEM, Transform } from '@forgeax/engine/scene';
 import { RenderQueue, type AssetHandle } from '@forgeax/engine/types';
 import { assetGuid, guidText, PACKAGE_IDS, SUN_OUTGOING_DIRECTION } from '../shared/asset-refs.ts';
-import { BLOCKS, VoxelWorld } from './model.ts';
+import { BLOCK, BLOCKS, VoxelWorld } from './model.ts';
 import { buildChunkMesh } from './mesh.ts';
 import { ColonySimulation } from '../colony/simulation.ts';
 import { ColonyView } from '../colony/view.ts';
@@ -59,6 +59,49 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let followId: string | null = null;
       let godReturn = { target: [27, 5, 27] as Point, yaw: Math.PI / 4, pitch: 0.82, distance: 47 };
       const FOLLOW_SMOOTH = 8;
+
+      // ---- 玩家角色 ----
+      // 不进 simulation：殖民地那套需求/工作/优先级对"你"没有意义，
+      // 玩家就是玩家，不是第四个居民。位置只活在表现层。
+      // 碰撞不挂物理引擎，和 Unity 那边一个思路——直接查体素，
+      // 规则可预测，也不会出现"人贴着墙缝钻过去"。
+      const PLAYER_RADIUS = 0.32;
+      const PLAYER_SPEED = 4.5;        // 米/秒
+      const PLAYER_JUMP = 1.1;         // 能跳多高
+      const PLAYER_GRAVITY = -26;      // 重力加速度
+      const player = {
+        x: voxels.width / 2, z: voxels.depth / 2,
+        y: 0, vy: 0, grounded: true, facing: 0, moving: false,
+      };
+      player.y = voxels.surfaceHeight(Math.floor(player.x), Math.floor(player.z)) + 1;
+
+      /** 脚下这一列，从 fromY 往下找第一个实心方块，返回可以站的脚底高度。 */
+      const groundHeight = (x: number, z: number, fromY: number): number => {
+        const gx = Math.floor(x), gz = Math.floor(z);
+        const start = Math.min(voxels.height - 1, Math.floor(fromY));
+        for (let y = start; y >= 0; y--) {
+          if (voxels.get(gx, y, gz) !== BLOCK.Air) return y + 1;
+        }
+        return 0;
+      };
+
+      /**
+       * 能不能把这个角色放在这里。
+       * 用身体半径往四个方向各探一次，再把脚和头两格都验一遍——
+       * 只看中心格会让人一半嵌进墙里，观感很糟。
+       */
+      const canStand = (x: number, z: number, footY: number): boolean => {
+        const fy = Math.floor(footY);
+        const probes: number[][] = [[x + PLAYER_RADIUS, z], [x - PLAYER_RADIUS, z], [x, z + PLAYER_RADIUS], [x, z - PLAYER_RADIUS]];
+        for (const [px, pz] of probes) {
+          const gx = Math.floor(px!), gz = Math.floor(pz!);
+          for (let dy = 0; dy <= 1; dy++) {
+            if (!voxels.inBounds(gx, fy + dy, gz)) return false;
+            if (voxels.get(gx, fy + dy, gz) !== BLOCK.Air) return false;
+          }
+        }
+        return true;
+      };
       let publishElapsed = 0, simViewElapsed = 0, lastTerrainRevision = voxels.revision;
       let eye: Point = [0, 0, 0], lastEdit: Record<string, unknown> | null = null;
       let hoverCell: Point | null = null, hoverKey = '', refreshState = true, stopped = false;
@@ -140,6 +183,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         edits: voxels.editCount, editCount: voxels.editCount, revision: voxels.revision,
         undo: tool.startsWith('sandbox:') && voxels.canUndo, redo: tool.startsWith('sandbox:') && voxels.canRedo, hoverCell: hoverCell ? [...hoverCell] : null,
         status, lastEdit, camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
+        player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth],
       });
       const publish = () => {
@@ -150,15 +194,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       };
       const changed = (message: string) => { status = message; updateChunks(); refreshState = true; };
       const home = () => {
-        // 角色视角回位 = 贴回自己跟的那个人；俯视视角才是回地图中心
-        if (viewMode === 'character' && followId) {
-          const c = colonyState.colonists.find(p => p.id === followId);
-          if (c) {
-            target = [c.position[0], c.position[1] + 0.9, c.position[2]];
-            yaw = 0; pitch = 0.48; distance = 14;
-            refreshState = true;
-            return;
-          }
+        // 玩家视角回位 = 站回自己背后；俯视视角才是回地图中心
+        if (viewMode === 'character') {
+          yaw = player.facing + Math.PI; pitch = 0.36; distance = 12;
+          target = [player.x, player.y + 1.1, player.z];
+          refreshState = true;
+          return;
         }
         target = [27, 5, 27]; yaw = Math.PI / 4; pitch = 0.82; distance = 47; refreshState = true;
       };
@@ -236,44 +277,72 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             // ---- V 切换视角 ----
             if (k.justPressedCode('KeyV')) {
               if (viewMode === 'god') {
-                const id = colonyState.selectedColonistId ?? colonyState.colonists[0]?.id ?? null;
-                if (id) {
-                  // 先存俯视构图，切回来才能原样还原
-                  godReturn = { target: [...target] as Point, yaw, pitch, distance };
-                  followId = id; viewMode = 'character';
-                  yaw = 0; pitch = 0.48; distance = 14;
-                  const who = colonyState.colonists.find(p => p.id === id);
-                  status = `跟随 ${who?.name ?? '居民'} · V 切回俯视`;
-                } else {
-                  status = '没有可以跟随的居民';
-                }
+                // 先存俯视构图，切回来才能原样还原
+                godReturn = { target: [...target] as Point, yaw, pitch, distance };
+                viewMode = 'character';
+                followId = 'player';
+                // 站到玩家背后看过去
+                yaw = player.facing + Math.PI;
+                pitch = 0.36;
+                distance = 12;
+                status = '玩家视角 · WASD 移动 / 空格跳跃 / V 切回俯视';
               } else {
                 viewMode = 'god'; followId = null;
                 target = [...godReturn.target] as Point;
                 yaw = godReturn.yaw; pitch = godReturn.pitch; distance = godReturn.distance;
-                status = '俯视视角 · V 跟随居民';
+                status = '俯视视角 · V 切到玩家';
               }
               refreshState = true;
             }
 
             if (viewMode === 'character') {
-              // 角色视角：target 追着居民跑，玩家只能转视角和缩放。
-              // 不响应 WASD 平移——那是俯视视角的特权，角色视角下会跟丢人。
-              const c = followId ? colonyState.colonists.find(p => p.id === followId) : null;
-              if (c) {
-                // 帧率无关的指数平滑，和 GridCamera 那套一致
-                const t = 1 - Math.exp(-FOLLOW_SMOOTH * dt);
-                target[0] += (c.position[0] - target[0]) * t;
-                target[1] += (c.position[1] + 0.9 - target[1]) * t;
-                target[2] += (c.position[2] - target[2]) * t;
+              // 角色视角 = 玩家本人。WASD 相对相机朝向移动，空格跳跃。
+              const fwdX = -Math.sin(yaw), fwdZ = -Math.cos(yaw);
+              const rgtX = Math.cos(yaw), rgtZ = -Math.sin(yaw);
+              // dz 是 S - W，所以 W 对应 -dz
+              let mx = rgtX * dx + fwdX * (-dz);
+              let mz = rgtZ * dx + fwdZ * (-dz);
+              const len = Math.hypot(mx, mz);
+
+              if (len > 1e-4) {
+                mx /= len; mz /= len;
+                player.facing = Math.atan2(mx, mz);
+                player.moving = true;
+
+                const step = PLAYER_SPEED * dt;
+                const nx = player.x + mx * step, nz = player.z + mz * step;
+                if (canStand(nx, nz, player.y)) { player.x = nx; player.z = nz; }
+                // 贴墙滑：分轴各试一次，不然贴着墙会整个人卡死
+                else if (canStand(nx, player.z, player.y)) player.x = nx;
+                else if (canStand(player.x, nz, player.y)) player.z = nz;
               } else {
-                // 跟的人没了（离开 / 死亡），自动退回俯视
-                viewMode = 'god'; followId = null;
-                target = [...godReturn.target] as Point;
-                yaw = godReturn.yaw; pitch = godReturn.pitch; distance = godReturn.distance;
-                status = '居民不在了 · 已回到俯视';
-                refreshState = true;
+                player.moving = false;
               }
+
+              // 空格在角色视角归跳跃；俯视视角仍然留给暂停
+              if (k.justPressedCode('Space') && player.grounded) {
+                player.vy = Math.sqrt(-2 * PLAYER_GRAVITY * PLAYER_JUMP);
+                player.grounded = false;
+              }
+
+              if (!player.grounded) {
+                player.vy += PLAYER_GRAVITY * dt;
+                player.y += player.vy * dt;
+                const g = groundHeight(player.x, player.z, player.y + 0.2);
+                if (player.y <= g) { player.y = g; player.vy = 0; player.grounded = true; }
+              } else {
+                // 走出台沿：脚下空了就开始掉
+                const g = groundHeight(player.x, player.z, player.y + 0.2);
+                if (player.y > g + 0.05) { player.grounded = false; player.vy = 0; }
+                else player.y = g;
+              }
+
+              // 相机跟着玩家，不是跟着居民了
+              const desired: Point = [player.x, player.y + 1.1, player.z];
+              const t = 1 - Math.exp(-FOLLOW_SMOOTH * dt);
+              target[0] += (desired[0] - target[0]) * t;
+              target[1] += (desired[1] - target[1]) * t;
+              target[2] += (desired[2] - target[2]) * t;
 
               yaw += (Number(k.downCode('KeyE')) - Number(k.downCode('KeyQ'))) * dt * 1.2;
               if (input.mouse.button(1)) {
@@ -296,7 +365,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             }
 
             if (k.justPressedCode('KeyF')) home();
-            if (k.justPressedCode('Space')) execute({action:'speed',value:colonyState.speed===0?1:0});
+            // 空格：俯视视角是暂停，玩家视角留给跳跃（上面已处理）
+            if (k.justPressedCode('Space') && viewMode === 'god') execute({action:'speed',value:colonyState.speed===0?1:0});
             if (k.justPressedCode('Escape')) {tool='inspect';refreshState=true;}
             if (dx || dz || input.mouse.button(1) || input.mouse.wheelDelta) refreshState = true;
           }
@@ -304,6 +374,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           eye = [target[0] + Math.sin(yaw) * horizontal, target[1] + Math.sin(pitch) * distance, target[2] + Math.cos(yaw) * horizontal];
           const rotation = quat.fromLookAt(quat.create(), eye, target, [0, 1, 0]);
           world.set(camera, Transform, { pos: eye, quat: [rotation[0]!, rotation[1]!, rotation[2]!, rotation[3]!] }).unwrap();
+          // 玩家每帧单独更新，不跟殖民地的 20Hz 快照走
+          colonyView.updatePlayer(player, world.getResource(Time).elapsed);
         },
       }).unwrap();
       cameraSystemAdded = true;

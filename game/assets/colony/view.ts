@@ -16,12 +16,15 @@ export type ColonyRenderState={
   crops:{id?:string;x:number;y:number;z:number;growth:number;kind?:string;planted?:boolean}[];
   items:{id:string;resource:string;amount:number;x:number;y:number;z:number}[];
   selectedColonistId?:string|null;
+  /** 玩家角色。不属于殖民地模拟，只在这里画出来。 */
+  player?:{x:number;y:number;z:number;facing:number;moving:boolean;grounded:boolean};
 };
 const COLORS:Record<string,string>={
   wood:'#a97943',stone:'#9ca9a5',steel:'#899fae',food:'#e4bc63',meal:'#d4834b',medicine:'#ecf4dd',cloth:'#c2b3d9',silver:'#e5d69b',components:'#d0ad45',
   dark:'#2e4247',cream:'#f0ddba',blanket:'#568b9b',white:'#fff3d5',green:'#63935e',gold:'#e5c66f',blue:'#4d7d96',black:'#233135',
   shirt0:'#e0a160',shirt1:'#6b9ba5',shirt2:'#b17f91',shirt3:'#849d60',skin:'#e5b48a',hair:'#60483e',light:'#c5e4cd',soil:'#7e563b',
   blueprint:'#75cece',zoneFarm:'#90bd65',zoneStock:'#75baca',selected:'#ecd78c',health:'#9fc174',bad:'#c56b55',
+  playerBody:'#e8b44a',playerHair:'#4a3a2c',playerMark:'#ffd76e',
 };
 const rgba=(hex:string):[number,number,number,number]=>{
   const n=parseInt(hex.slice(1),16);const f=(v:number)=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4;
@@ -127,5 +130,52 @@ export class ColonyView {
     }
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }
-  dispose(){for(const g of this.groups.values())for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.clear();for(const m of this.materials.values())this.assets.release(m).unwrap();this.materials.clear();this.assets.release(this.cube).unwrap();}
+  dispose(){this.disposePlayer();for(const g of this.groups.values())for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.clear();for(const m of this.materials.values())this.assets.release(m).unwrap();this.materials.clear();this.assets.release(this.cube).unwrap();}
+
+  // ---- 玩家角色 ----
+  // 玩家每帧都在动，不能跟着殖民地那套 20Hz 的快照刷新，
+  // 否则走起来一顿一顿的。这里单独维护一组实体，只更新 Transform。
+
+  private playerEntities:EntityHandle[]=[];
+  private playerParts:Part[]=[];
+
+  /** 每帧调，只改位置/姿态，不重建实体。 */
+  updatePlayer(p:{x:number;y:number;z:number;facing:number;moving:boolean;grounded:boolean},time:number){
+    const [x,y,z]=[p.x,p.y,p.z];
+    const swing=p.moving?Math.sin(time*11)*.09:0;
+    const fx=Math.sin(p.facing),fz=Math.cos(p.facing);
+    const parts:Part[]=[
+      {p:[x-.13,y+.22+swing,z],s:[.18,.44,.24],c:'dark'},{p:[x+.13,y+.22-swing,z],s:[.18,.44,.24],c:'dark'},
+      {p:[x,y+.69,z],s:[.52,.55,.32],c:'playerBody'},
+      {p:[x,y+1.12,z],s:[.4,.4,.37],c:'skin'},
+      {p:[x,y+1.34,z],s:[.43,.12,.4],c:'playerHair'},
+      {p:[x-.1+fx*.13,y+1.14,z+fz*.13],s:[.05,.055,.028],c:'black'},
+      {p:[x+.1+fx*.13,y+1.14,z+fz*.13],s:[.05,.055,.028],c:'black'},
+      {p:[x-.33,y+.65-swing,z],s:[.13,.43,.19],c:'skin'},{p:[x+.33,y+.65+swing,z],s:[.13,.43,.19],c:'skin'},
+      {p:[x,y+1.9,z],s:[.22,.22,.22],c:'playerMark',shadow:false},
+    ];
+    if(p.grounded)parts.push({p:[x,y+.025,z],s:[.72,.03,.72],c:'playerMark',shadow:false});
+
+    // 形状变了（落地/起跳）才重建；平时只挪位置
+    if(this.playerEntities.length!==parts.length){
+      for(const e of this.playerEntities)this.world.despawn(e).unwrap();
+      this.playerParts=parts;
+      this.playerEntities=parts.map((part,i)=>this.world.spawn(
+        {component:Name,data:{value:`player/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s}},
+        {component:MeshFilter,data:{assetHandle:this.cube}},{component:MeshRenderer,data:{materials:[this.material(part.c)]}},
+        {component:ShadowParticipation,data:{cast:part.shadow!==false,receive:true}},
+      ).unwrap());
+      return;
+    }
+    for(let i=0;i<parts.length;i++){
+      const next=parts[i]!,prev=this.playerParts[i]!;
+      if(next.p.some((n,j)=>n!==prev.p[j])||next.s.some((n,j)=>n!==prev.s[j])){
+        this.world.set(this.playerEntities[i]!,Transform,{pos:next.p,scale:next.s}).unwrap();
+        prev.p=next.p;prev.s=next.s;
+      }
+      if(next.c!==prev.c)this.world.set(this.playerEntities[i]!,MeshRenderer,{materials:[this.material(next.c)]}).unwrap();
+    }
+  }
+
+  disposePlayer(){for(const e of this.playerEntities)this.world.despawn(e).unwrap();this.playerEntities=[];this.playerParts=[];}
 }
