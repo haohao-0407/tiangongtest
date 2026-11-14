@@ -448,6 +448,24 @@ export default async function dualViewProbe(play) {
   await play.page.locator('[data-menu="inspect"]').click();
   await advance(0.3);
 
+  // ---- 随从面板：靠近右键打开，左数值右背包 ----
+  // 顺带确认「靠近谁」这个判定跑通了（角色视角下才有值）
+  assert.ok('nearColonist' in (await read()).player, '投影里应有 nearColonist 字段');
+  const cid = (await read()).colony.colonists[0].id;
+  await play.page.evaluate((id) => window.__wbOpenFollower(id), cid);
+  await advance(0.6);
+  assert.equal(await play.page.locator('#workspace').isVisible(), true, '随从面板应打开');
+  assert.equal(await play.page.locator('#workspace .fb-bar.health').count(), 1, '应有血条');
+  assert.equal(await play.page.locator('#workspace .fb-bar.stamina').count(), 1, '应有体力条');
+  const fbCells = await play.page.locator('#workspace .fb-cell').count();
+  assert.equal(fbCells, 9, `随从背包应是九格，实际 ${fbCells}`);
+  const fbText = (await play.page.locator('#workspace .fb-wrap').textContent()) ?? '';
+  assert.ok(fbText.includes('状态'), '应显示状态');
+  assert.ok(fbText.includes('任务'), '应显示任务');
+  await play.screenshot('follower-panel');
+  await play.page.locator('[data-menu="inspect"]').click();
+  await advance(0.3);
+
   // 退出游戏按钮本身只验存在。
   // 真点会把页面导航走，验收框架拿不到最终帧，所以点击行为不在这个脚本里跑。
   await play.page.keyboard.press('Escape');

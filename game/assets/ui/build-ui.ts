@@ -22,7 +22,7 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
     vitals?: { health: number; maxHealth: number; stamina: number; maxStamina: number; gold: number };
   } };
 type SaveIntent = 'auto' | 'manual' | 'export';
-const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人', chest: '木箱' };
+const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人', chest: '木箱', followerBag: '随从' };
 const BUILD_ICONS: Record<string, string> = { bed: '▱', table: '▤', stove: '♨', workbench: '⚒', researchDesk: '◇', solar: '☀', battery: '▥', cooler: '❄', medicalBed: '+', wall: '▧', door: '▯', floor: '▦' };
 const RESOURCE_ICONS: Record<Resource, string> = { wood: '▰', stone: '◆', steel: '▱', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙' };
 const int = (value: number) => Math.floor(Number.isFinite(value) ? value : 0);
@@ -420,6 +420,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
   /** 仓库：格子式面板，照 Unity 那边搬过来的。搜索 / 升降序 / 分类 / 网格。 */
   let whQuery = '', whDesc = false, whCategory = 'all', whMenuOpen = false, chestMenuOpen = false;
+  // 当前打开的随从面板对应哪个居民
+  let followerPanelId: string | null = null;
   // Unity 那边只分「方块 / 非方块」两类，这里照搬
   const CATEGORY_OF: Record<string, string> = {
     wood: 'block', stone: 'block', steel: 'block',
@@ -554,6 +556,54 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     draw();
   }
 
+  /**
+   * 随从面板：左栏数值、右栏背包。照 Unity 的 FollowerPanelUI。
+   * 靠近某个居民右键打开，显示的是它自己的状态和身上背的东西。
+   */
+  function renderFollowerBag(c: ColonySnapshot, root: HTMLElement) {
+    const p = c.colonists.find((x) => x.id === followerPanelId) ?? c.colonists[0];
+    if (!p) { root.append(note('找不到这个居民。')); return; }
+
+    const wrap = make('div', 'fb-wrap');
+    const left = make('div', 'fb-left');
+    const right = make('div', 'fb-right');
+
+    // 血条：天工用 health（0-100）
+    const hpRow = make('div', 'fb-bar health');
+    hpRow.append(make('i', ''), make('span', 'fb-bar-text', `${Math.round(p.health)} / 100`));
+    const hpFill = hpRow.querySelector('i') as HTMLElement;
+    hpFill.style.width = `${Math.max(0, Math.min(100, p.health))}%`;
+
+    // 体力条：天工对应的是 rest（休息度）
+    const spRow = make('div', 'fb-bar stamina');
+    spRow.append(make('i', ''), make('span', 'fb-bar-text', `${Math.round(p.rest)} / 100`));
+    const spFill = spRow.querySelector('i') as HTMLElement;
+    spFill.style.width = `${Math.max(0, Math.min(100, p.rest))}%`;
+
+    left.append(hpRow, spRow);
+    left.append(make('p', 'fb-line', `状态：${p.task || '待命'}`));
+    left.append(make('p', 'fb-line', `任务：${p.jobId ? '进行中' : '无'}`));
+
+    // 右栏：九格背包，装的是它正在搬的东西
+    const grid = make('div', 'fb-grid');
+    const carrying = Object.entries(p.carrying ?? {}).filter(([, n]) => (n ?? 0) > 0) as [string, number][];
+    for (let i = 0; i < 9; i++) {
+      const cell = make('div', `fb-cell${carrying[i] ? '' : ' empty'}`);
+      if (carrying[i]) {
+        const [res, count] = carrying[i]!;
+        cell.title = `${RESOURCE_NAMES[res as Resource] ?? res} · ${count}`;
+        cell.append(make('span', 'wh-icon', RESOURCE_ICONS[res as Resource] ?? '·'));
+        cell.append(make('span', 'wh-count', String(count)));
+      }
+      grid.append(cell);
+    }
+    right.append(grid);
+    right.append(note(carrying.length ? '' : '身上没有东西'));
+
+    wrap.append(left, right);
+    root.append(wrap);
+  }
+
   /** 随从：居民的概览页。姓名、在干什么、三项关键需求，点进去看完整档案。 */
   function renderFollower(c: ColonySnapshot, root: HTMLElement) {
     root.append(note('跟着你一起生活的人。点名字可以打开完整档案，也能在工作页调他们的优先级。'));
@@ -638,11 +688,15 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const stamp = JSON.stringify([panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, state.buildHeight, state.terrain && [state.terrain.target, state.terrain.size, state.terrain.shape, state.terrain.sample], c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, bills: c.bills, trade: c.trade, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete, b.phase, b.blockedReason, percent(b.progress * 100)]), terrainPlans: c.terrainPlans?.map(p => [p.id, p.state, p.remainingCut, p.remainingFill, p.blockedReason]), jobs: c.jobs.map(j => [j.id, j.state, j.label]), zones: c.zones.length, time: Math.floor(c.time) }]);
     if (!force && stamp === lastPanelStamp) return;
     lastPanelStamp = stamp;
-    get('panel-title').textContent = MENU_NAMES[panel] ?? '家园管理';
+    // 随从面板的标题是那个人的名字，不是栏目名
+    const followerName = panel === 'followerBag'
+      ? c?.colonists.find((x) => x.id === followerPanelId)?.name
+      : undefined;
+    get('panel-title').textContent = followerName ?? MENU_NAMES[panel] ?? '家园管理';
     const root = get('panel-content'), scrollTop = root.scrollTop; clear(root);
     if (panel === 'sandbox') { renderSandbox(root); root.scrollTop = scrollTop; return; }
     if (!c) { root.append(empty('正在等待居民与世界数据…')); return; }
-    ({ build: renderBuild, plan: renderPlan, work: renderWork, production: renderProduction, research: renderResearch, trade: renderTrade, logs: renderLogs, warehouse: renderWarehouse, follower: renderFollower, chest: renderChest } as Record<string, (c: ColonySnapshot, root: HTMLElement) => void>)[panel]?.(c, root);
+    ({ build: renderBuild, plan: renderPlan, work: renderWork, production: renderProduction, research: renderResearch, trade: renderTrade, logs: renderLogs, warehouse: renderWarehouse, follower: renderFollower, chest: renderChest, followerBag: renderFollowerBag } as Record<string, (c: ColonySnapshot, root: HTMLElement) => void>)[panel]?.(c, root);
     root.scrollTop = scrollTop;
   }
   function renderInspector(c: ColonySnapshot, force = false) {
@@ -794,6 +848,11 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       return;
     }
     if (msg?.type === 'voxel:openChest') { openPanel('chest'); return; }
+    if (msg?.type === 'voxel:openFollower' && typeof msg.id === 'string') {
+      followerPanelId = msg.id;
+      openPanel('followerBag');
+      return;
+    }
     if (msg?.type === 'voxel:save') {
       const intent = pendingSave ?? 'auto', data = typeof msg.data === 'string' ? msg.data : JSON.stringify(msg.data);
       pendingSave = null;
@@ -834,7 +893,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
   // 验收脚本要能在不开地图的情况下打开木箱面板（面板挂在 port 消息上，
   // 外部没法直接戳）。只暴露这一件事，不碰别的。
-  (win as unknown as { __wbOpenChest?: () => void }).__wbOpenChest = () => openPanel('chest');
+  const hooks = win as unknown as { __wbOpenChest?: () => void; __wbOpenFollower?: (id: string) => void };
+  hooks.__wbOpenChest = () => openPanel('chest');
+  hooks.__wbOpenFollower = (id: string) => { followerPanelId = id; openPanel('followerBag'); };
 
   // ---- ESC 暂停层 ----
   // 分两级：先关面板，面板都关了才弹出暂停层。

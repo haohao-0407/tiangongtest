@@ -127,3 +127,17 @@
 .chest-grid{display:grid;grid-template-columns:repeat(5,64px);justify-content:center;gap:5px;padding:9px;background:#e9dfc8;border:1px solid #cbbb98;border-radius:5px}
 .chest-cell{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#d9c9a8;border:1px solid #c2ad86;border-radius:3px;overflow:hidden}
 .chest-cell.empty{background:#e2d5b9;border-color:#cfc0a0}
+
+/* 随从面板：左数值右背包，照 Unity 的 FollowerPanelUI。 */
+.fb-wrap{display:flex;gap:16px;align-items:flex-start}
+.fb-left{flex:none;width:150px}
+.fb-bar{position:relative;height:16px;margin-bottom:7px;background:#1d2620;border:1px solid #3a4b3a;border-radius:2px;overflow:hidden}
+.fb-bar i{display:block;height:100%}
+.fb-bar.health i{background:#b93b32}
+.fb-bar.stamina i{background:#b9c94a}
+.fb-bar-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;text-shadow:0 1px 2px #00000088}
+.fb-line{margin:5px 0;font-size:11px;color:#4d5b45}
+.fb-right{flex:1;min-width:0}
+.fb-grid{display:grid;grid-template-columns:repeat(3,52px);gap:5px;margin-bottom:8px}
+.fb-cell{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#d9c9a8;border:1px solid #c2ad86;border-radius:3px;overflow:hidden}
+.fb-cell.empty{background:#e6dcc4;border-color:#cfc0a0}

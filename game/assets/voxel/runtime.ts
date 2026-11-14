@@ -156,6 +156,19 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       };
       player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z));
 
+      /** 玩家脚边一格内（格子曼哈顿距离）最近的居民。照 Unity 的 FollowerInteract。 */
+      const nearColonist = () => {
+        const px = Math.floor(player.x), pz = Math.floor(player.z);
+        let best: { id: string; dist: number } | null = null;
+        for (const p of colonyState.colonists) {
+          const cx = Math.floor(p.position[0]), cz = Math.floor(p.position[2]);
+          const d = Math.abs(cx - px) + Math.abs(cz - pz);
+          if (d > 1) continue;
+          if (!best || d < best.dist) best = { id: p.id, dist: d };
+        }
+        return best;
+      };
+
       /** 把木箱摆到玩家旁边两格，高度取那一格的地面。 */
       const placeChest = () => {
         const cx = Math.floor(player.x) + 2, cz = Math.floor(player.z);
@@ -315,7 +328,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           bag: bag.map((slot) => (slot ? { resource: slot.resource, count: slot.count } : null)),
           bagSelected,
           vitals: { ...vitals, gold: Math.floor((colonyState.resources as Record<string, number>).silver ?? 0) },
-          chest: chestPos },
+          chest: chestPos, nearColonist: viewMode === 'character' ? (nearColonist()?.id ?? null) : null },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth], worldSize: [voxels.width, voxels.height, voxels.depth],
         terrain: { target: terrainTarget, size: terrainSize, shape: terrainShape, sample: terrainSample, preview: { ...terrainPreview }, minHeight: 1, maxHeight: voxels.height - 2 }, buildHeight,
         pcg: pcgView.read(),
@@ -715,7 +728,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             } else if (!stroke) { terrainView.clearPreview(); previewKey = ''; }
             if (!sandbox && tool !== 'level' && hit && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
               const x=hit.cell[0],z=hit.cell[2];
-              if(input.mouse.justPressed(2)){tool='inspect';status='已取消当前工具';refreshState=true;}
+              if(input.mouse.justPressed(2)){
+                // 角色视角下贴着居民右键 = 打开它的背包/状态面板。
+                // 俯视视角不接这个键，那里右键是拖镜头和取消工具。
+                const near = viewMode === 'character' ? nearColonist() : null;
+                if (near) { port?.postMessage({ type: 'voxel:openFollower', id: near.id }); status = '打开随从'; }
+                else { tool='inspect'; status='已取消当前工具'; }
+                refreshState=true;
+              }
               else if(tool==='inspect' && chestPos && x===chestPos[0] && z===chestPos[2]){port?.postMessage({type:'voxel:openChest'});status='打开木箱';refreshState=true;}
               else if(tool.startsWith('build:'))execute({action:'build',kind:tool.slice(6),x,z,target:buildHeight ?? voxels.terrainHeight(x,z)});
               else if(tool.startsWith('zone:'))execute({action:'designate',kind:tool.slice(5),x,z,w:3,d:3,crop});
