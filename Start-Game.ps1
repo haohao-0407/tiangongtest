@@ -87,8 +87,41 @@ Write-Host "工程: $(Join-Path $PSScriptRoot 'game')" -ForegroundColor DarkGray
 
 Push-Location (Join-Path $PSScriptRoot 'game')
 try {
-    if ($Check) { pnpm exec forgeax project check --json }
-    else { pnpm exec forgeax dev start --headless false --json }
+    if ($Check) {
+        pnpm exec forgeax project check --json
+    } else {
+        # 先清掉可能残留的会话。
+        # 上次如果是直接关浏览器窗口（而不是关这个终端），服务会停在 waiting，
+        # 新启动撞上它会一直等，表现就是「窗口不动了、网页也不弹」。
+        # 这里先 stop 一次，没有会话时它只会返回 stopped，不影响正常启动。
+        Write-Host "清理上次可能残留的会话..." -ForegroundColor DarkGray
+        pnpm exec forgeax dev stop 2>&1 | Out-Null
+
+        Write-Host "正在启动，大约 30-60 秒，浏览器会自动弹出。请稍候..." -ForegroundColor Cyan
+        $raw = pnpm exec forgeax dev start --headless false --json 2>$null
+        $result = $null
+        try { $result = ($raw | Out-String).Trim() | ConvertFrom-Json } catch { }
+
+        Write-Host ""
+        if ($result -and $result.ok) {
+            Write-Host "启动成功" -ForegroundColor Green
+            Write-Host "  游戏地址: $($result.value.url)" -ForegroundColor White
+            Write-Host "  状态:     $($result.value.phase)" -ForegroundColor White
+            Write-Host ""
+            Write-Host "浏览器窗口应该已经弹出。关掉这个黑窗口 = 关掉游戏。" -ForegroundColor Yellow
+        } else {
+            Write-Host "启动失败" -ForegroundColor Red
+            if ($result -and $result.error) {
+                Write-Host "  原因: $($result.error.code)" -ForegroundColor Yellow
+                Write-Host "  提示: $($result.error.hint)" -ForegroundColor Yellow
+            } else {
+                Write-Host "  没有拿到有效的返回结果，原始输出:" -ForegroundColor Yellow
+                Write-Host $raw
+            }
+            Write-Host ""
+            Write-Host "先试试把这个窗口关掉重新双击一次。" -ForegroundColor Cyan
+        }
+    }
 } finally {
     Pop-Location
 }
