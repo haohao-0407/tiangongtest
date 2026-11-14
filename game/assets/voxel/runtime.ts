@@ -46,6 +46,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let unregister: (() => void) | undefined;
       let receive: (event: MessageEvent) => void = () => {};
       let selected = 5, mode: 'build' | 'remove' = 'build', uiHover = false;
+      // 右键拖动平移的方向是否反转（设置面板里切）
+      let invertPan = false;
       let tool = 'inspect';
       let crop: 'rice' | 'corn' = 'rice';
       let status = '和平殖民地 · 规划家园，照顾每一位居民';
@@ -276,6 +278,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           }
           if (c.action === 'focus' && typeof c.id === 'string') {const pawn=colonyState.colonists.find(p=>p.id===c.id);if(pawn){target=[...pawn.position];target[1]-=1;}}
           if (c.action === 'hover') uiHover = c.value === true;
+          if (c.action === 'setting' && c.key === 'invertPan') { invertPan = c.value === true; refreshState = true; }
           if (c.action === 'undo' && tool.startsWith('sandbox:') && voxels.undo()) changed('已撤销上一步');
           if (c.action === 'redo' && tool.startsWith('sandbox:') && voxels.redo()) changed('已重做上一步');
           if (c.action === 'reseed' && typeof c.seed === 'string' && c.seed.trim()) {
@@ -414,6 +417,16 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                   yaw -= input.mouse.movementDelta.x * 0.005;
                   pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.35, 1.25);
                 }
+                // 右键按住拖动 = 平移镜头，和 Unity 那边手感一致。
+                // 拉得越远，同样的像素位移扫过的地面越多，所以系数带上 distance。
+                if (input.mouse.button(2)) {
+                  const k2 = distance * 0.0018 * (invertPan ? -1 : 1);
+                  const rx = Math.cos(yaw), rz = -Math.sin(yaw);
+                  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+                  const mx = input.mouse.movementDelta.x * k2, mz = input.mouse.movementDelta.y * k2;
+                  target[0] = clamp(target[0] - rx * mx - fx * mz, 0, voxels.width);
+                  target[2] = clamp(target[2] - rz * mx - fz * mz, 0, voxels.depth);
+                }
                 // Engine wheelDelta is a signed notch accumulator, not DOM pixel deltaY.
                 distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 15, 100);
               }
@@ -423,7 +436,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             // 空格：俯视视角是暂停，玩家视角留给跳跃（上面已处理）
             if (k.justPressedCode('Space') && viewMode === 'god') execute({action:'speed',value:colonyState.speed===0?1:0});
             if (k.justPressedCode('Escape')) {tool='inspect';refreshState=true;}
-            if (dx || dz || input.mouse.button(1) || input.mouse.wheelDelta) refreshState = true;
+            if (dx || dz || input.mouse.button(1) || input.mouse.button(2) || input.mouse.wheelDelta) refreshState = true;
           }
           const horizontal = distance * Math.cos(pitch);
           eye = [target[0] + Math.sin(yaw) * horizontal, target[1] + Math.sin(pitch) * distance, target[2] + Math.cos(yaw) * horizontal];
