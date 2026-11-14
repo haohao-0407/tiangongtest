@@ -504,6 +504,16 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }, 150);
   });
 
+  // 右键在游戏里是「取消工具 / 拆除方块」，但浏览器默认会在画布上弹上下文菜单，
+  // 一弹就把画面挡住，玩家会以为右键没反应。
+  // 只拦 canvas：输入框、文本域的右键（复制粘贴）要留着。
+  const blockCanvasMenu = (event: MouseEvent) => {
+    const target = event.target as HTMLElement | null;
+    if (target?.tagName === 'CANVAS') event.preventDefault();
+  };
+  doc.addEventListener('contextmenu', blockCanvasMenu, true);
+  releases.push(() => doc.removeEventListener('contextmenu', blockCanvasMenu, true));
+
   // 数字键切快捷栏格子。只在玩家视角接管——
   // 俯视视角的 1/2/3 是速度、沙盒里 1-6 是选方块，不能抢。
   on(win, 'keydown', ((event: KeyboardEvent) => {

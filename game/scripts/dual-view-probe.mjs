@@ -168,7 +168,18 @@ export default async function dualViewProbe(play) {
   await play.page.locator('#settings-close').click();
   await advance(0.3);
 
-  // ---- 13. 竖排新面板能打开 ----
+  // ---- 13. 右键不该弹出浏览器菜单 ----
+  // 直接派发 contextmenu 到 canvas，检查是否被 preventDefault
+  const menuBlocked = await play.page.locator('canvas').evaluateAll((els) => {
+    const el = els[0];
+    if (!el) return null;
+    const ev = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+    el.dispatchEvent(ev);
+    return ev.defaultPrevented;
+  });
+  assert.equal(menuBlocked, true, 'canvas 上的右键菜单应被拦截');
+
+  // ---- 14. 竖排新面板能打开 ----
   for (const [menu, title] of [['warehouse', '仓库'], ['follower', '随从']]) {
     await play.page.locator(`[data-menu="${menu}"]`).click();
     await advance(0.5);
