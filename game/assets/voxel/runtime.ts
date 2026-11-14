@@ -423,7 +423,9 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                   const k2 = distance * 0.0018 * (invertPan ? -1 : 1);
                   const rx = Math.cos(yaw), rz = -Math.sin(yaw);
                   const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
-                  const mx = input.mouse.movementDelta.x * k2, mz = input.mouse.movementDelta.y * k2;
+                  // 上下方向默认取反：鼠标往上推，地面往下走（拖动更自然）。
+                  // 左右的符号保持不变，整体反转交给设置里的开关。
+                  const mx = input.mouse.movementDelta.x * k2, mz = -input.mouse.movementDelta.y * k2;
                   target[0] = clamp(target[0] - rx * mx - fx * mz, 0, voxels.width);
                   target[2] = clamp(target[2] - rz * mx - fz * mz, 0, voxels.depth);
                 }
