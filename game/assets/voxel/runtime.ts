@@ -50,6 +50,15 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let crop: 'rice' | 'corn' = 'rice';
       let status = '和平殖民地 · 规划家园，照顾每一位居民';
       let target: Point = [27, 5, 27], yaw = Math.PI / 4, pitch = 0.82, distance = 47;
+
+      // ---- 双视角 ----
+      // god = 俯视上帝视角，自由平移；character = 贴着某位居民看。
+      // 切到角色视角时把俯视的构图存进 godReturn，切回来原样恢复，
+      // 否则玩家切一圈回来发现自己被丢到地图角落。
+      let viewMode: 'god' | 'character' = 'god';
+      let followId: string | null = null;
+      let godReturn = { target: [27, 5, 27] as Point, yaw: Math.PI / 4, pitch: 0.82, distance: 47 };
+      const FOLLOW_SMOOTH = 8;
       let publishElapsed = 0, simViewElapsed = 0, lastTerrainRevision = voxels.revision;
       let eye: Point = [0, 0, 0], lastEdit: Record<string, unknown> | null = null;
       let hoverCell: Point | null = null, hoverKey = '', refreshState = true, stopped = false;
@@ -130,7 +139,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         seed: voxels.seed, selected, mode, tool, crop, colony: colonyState, blocks: voxels.count(), nonAirCount: voxels.count(),
         edits: voxels.editCount, editCount: voxels.editCount, revision: voxels.revision,
         undo: tool.startsWith('sandbox:') && voxels.canUndo, redo: tool.startsWith('sandbox:') && voxels.canRedo, hoverCell: hoverCell ? [...hoverCell] : null,
-        status, lastEdit, camera: { target: [...target], eye: [...eye], distance, yaw, pitch },
+        status, lastEdit, camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth],
       });
       const publish = () => {
@@ -140,7 +149,19 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         refreshState = false;
       };
       const changed = (message: string) => { status = message; updateChunks(); refreshState = true; };
-      const home = () => { target = [27, 5, 27]; yaw = Math.PI / 4; pitch = 0.82; distance = 47; refreshState = true; };
+      const home = () => {
+        // 角色视角回位 = 贴回自己跟的那个人；俯视视角才是回地图中心
+        if (viewMode === 'character' && followId) {
+          const c = colonyState.colonists.find(p => p.id === followId);
+          if (c) {
+            target = [c.position[0], c.position[1] + 0.9, c.position[2]];
+            yaw = 0; pitch = 0.48; distance = 14;
+            refreshState = true;
+            return;
+          }
+        }
+        target = [27, 5, 27]; yaw = Math.PI / 4; pitch = 0.82; distance = 47; refreshState = true;
+      };
       const execute = (command: ColonyCommand) => {
         const result = colony.command(command); status = result.message; colonyState = colony.snapshot(); refreshState = true;
         return result;
@@ -211,16 +232,69 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             const k = input.keyboard;
             const dx = Number(k.downCode('KeyD') || k.downCode('ArrowRight')) - Number(k.downCode('KeyA') || k.downCode('ArrowLeft'));
             const dz = Number(k.downCode('KeyS') || k.downCode('ArrowDown')) - Number(k.downCode('KeyW') || k.downCode('ArrowUp'));
-            const speed = distance * 0.32 * dt;
-            target[0] = clamp(target[0] + (Math.cos(yaw) * dx + Math.sin(yaw) * dz) * speed, 0, voxels.width);
-            target[2] = clamp(target[2] + (-Math.sin(yaw) * dx + Math.cos(yaw) * dz) * speed, 0, voxels.depth);
-            yaw += (Number(k.downCode('KeyE')) - Number(k.downCode('KeyQ'))) * dt * 1.2;
-            if (input.mouse.button(1)) {
-              yaw -= input.mouse.movementDelta.x * 0.005;
-              pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.35, 1.25);
+
+            // ---- V 切换视角 ----
+            if (k.justPressedCode('KeyV')) {
+              if (viewMode === 'god') {
+                const id = colonyState.selectedColonistId ?? colonyState.colonists[0]?.id ?? null;
+                if (id) {
+                  // 先存俯视构图，切回来才能原样还原
+                  godReturn = { target: [...target] as Point, yaw, pitch, distance };
+                  followId = id; viewMode = 'character';
+                  yaw = 0; pitch = 0.48; distance = 14;
+                  const who = colonyState.colonists.find(p => p.id === id);
+                  status = `跟随 ${who?.name ?? '居民'} · V 切回俯视`;
+                } else {
+                  status = '没有可以跟随的居民';
+                }
+              } else {
+                viewMode = 'god'; followId = null;
+                target = [...godReturn.target] as Point;
+                yaw = godReturn.yaw; pitch = godReturn.pitch; distance = godReturn.distance;
+                status = '俯视视角 · V 跟随居民';
+              }
+              refreshState = true;
             }
-            // Engine wheelDelta is a signed notch accumulator, not DOM pixel deltaY.
-            distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 15, 100);
+
+            if (viewMode === 'character') {
+              // 角色视角：target 追着居民跑，玩家只能转视角和缩放。
+              // 不响应 WASD 平移——那是俯视视角的特权，角色视角下会跟丢人。
+              const c = followId ? colonyState.colonists.find(p => p.id === followId) : null;
+              if (c) {
+                // 帧率无关的指数平滑，和 GridCamera 那套一致
+                const t = 1 - Math.exp(-FOLLOW_SMOOTH * dt);
+                target[0] += (c.position[0] - target[0]) * t;
+                target[1] += (c.position[1] + 0.9 - target[1]) * t;
+                target[2] += (c.position[2] - target[2]) * t;
+              } else {
+                // 跟的人没了（离开 / 死亡），自动退回俯视
+                viewMode = 'god'; followId = null;
+                target = [...godReturn.target] as Point;
+                yaw = godReturn.yaw; pitch = godReturn.pitch; distance = godReturn.distance;
+                status = '居民不在了 · 已回到俯视';
+                refreshState = true;
+              }
+
+              yaw += (Number(k.downCode('KeyE')) - Number(k.downCode('KeyQ'))) * dt * 1.2;
+              if (input.mouse.button(1)) {
+                yaw -= input.mouse.movementDelta.x * 0.005;
+                pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.15, 1.2);
+              }
+              distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 5, 40);
+            } else {
+              // 俯视视角：原来的自由平移 + 环绕 + 缩放
+              const speed = distance * 0.32 * dt;
+              target[0] = clamp(target[0] + (Math.cos(yaw) * dx + Math.sin(yaw) * dz) * speed, 0, voxels.width);
+              target[2] = clamp(target[2] + (-Math.sin(yaw) * dx + Math.cos(yaw) * dz) * speed, 0, voxels.depth);
+              yaw += (Number(k.downCode('KeyE')) - Number(k.downCode('KeyQ'))) * dt * 1.2;
+              if (input.mouse.button(1)) {
+                yaw -= input.mouse.movementDelta.x * 0.005;
+                pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.35, 1.25);
+              }
+              // Engine wheelDelta is a signed notch accumulator, not DOM pixel deltaY.
+              distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 15, 100);
+            }
+
             if (k.justPressedCode('KeyF')) home();
             if (k.justPressedCode('Space')) execute({action:'speed',value:colonyState.speed===0?1:0});
             if (k.justPressedCode('Escape')) {tool='inspect';refreshState=true;}
