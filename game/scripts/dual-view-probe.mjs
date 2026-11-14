@@ -431,6 +431,19 @@ export default async function dualViewProbe(play) {
     ((await play.page.locator('#workspace .chest-include').textContent()) ?? '').includes('计入仓库'),
     '木箱应有「计入仓库」状态行',
   );
+  // 分类和仓库用同一个下拉组件
+  assert.equal(await play.page.locator('#workspace .chest-grid ~ * .wh-cat-trigger').count() + await play.page.locator('#workspace .wh-cat-trigger').count() > 0, true, '木箱应有分类下拉');
+  await play.page.locator('#workspace .wh-cat-trigger').click();
+  await advance(0.3);
+  assert.equal(await play.page.locator('#workspace .wh-cat-menu').isVisible(), true, '木箱分类应能展开');
+  await play.page.locator('#workspace .wh-cat-option[data-cat="block"]').click();
+  await advance(0.4);
+  const chestFiltered = await play.page.locator('#workspace .chest-cell:not(.empty)').count();
+  assert.equal(chestFiltered, 3, `木箱切「方块」应只剩 3 项，实际 ${chestFiltered}`);
+  await play.page.locator('#workspace .wh-cat-trigger').click();
+  await advance(0.3);
+  await play.page.locator('#workspace .wh-cat-option[data-cat="all"]').click();
+  await advance(0.3);
   await play.screenshot('chest-panel');
   await play.page.locator('[data-menu="inspect"]').click();
   await advance(0.3);

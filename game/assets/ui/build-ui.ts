@@ -304,6 +304,73 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     root.append(materials, note(`当前土地 ${state?.edits ?? 0} 格改动 · 1—7 选材 · 左键执行 · 右键拆除`));
     root.append(note('连续砖墙叠高两格后，露出的墙面自动生成窗框与窗台。选道路后点击地表铺设；道路两侧生成沿边人行道，相邻道路相差一格高度时生成台阶。增删、撤销与读档都会更新细节。'));
   }
+  /**
+   * 分类下拉。仓库和木箱共用同一个实现。
+   * 照 Unity 的 DropdownList：trigger 展开、竖排选项、点外部收起、选完自动收起。
+   */
+  function makeCategoryDropdown(
+    initial: string,
+    onChange: (key: string) => void,
+    initiallyOpen = false,
+    onToggle: (open: boolean) => void = () => {},
+  ) {
+    let current = initial;
+    const dropdown = make('div', 'wh-dropdown');
+    const trigger = make('button', 'wh-cat-trigger');
+    const label = make('span', '', CATEGORY_NAMES[current]!);
+    trigger.append(label, make('span', 'wh-cat-caret', '▾'));
+
+    const menu = make('div', 'wh-cat-menu');
+    if (!initiallyOpen) menu.setAttribute('hidden', '');
+    const options = new Map<string, HTMLButtonElement>();
+    for (const [key, text] of Object.entries(CATEGORY_NAMES)) {
+      const btn = make('button', `wh-cat-option${key === current ? ' active' : ''}`, text);
+      btn.dataset.cat = key;
+      options.set(key, btn);
+      menu.append(btn);
+    }
+    dropdown.append(trigger, menu);
+
+    // 展开状态由调用方保存：面板重建时新组件的局部变量会归零，
+    // 但用户眼里那是一个「还开着」的下拉，不能重建一次就自己合上。
+    let open = initiallyOpen;
+    if (initiallyOpen) dropdown.classList.add('open');
+    const close = () => {
+      open = false;
+      menu.setAttribute('hidden', '');
+      dropdown.classList.remove('open');
+      onToggle(false);
+    };
+    trigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      open = !open;
+      if (open) menu.removeAttribute('hidden'); else menu.setAttribute('hidden', '');
+      dropdown.classList.toggle('open', open);
+      onToggle(open);
+    });
+    for (const [key, btn] of options) {
+      btn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        close();
+        if (key === current) return;
+        current = key;
+        label.textContent = CATEGORY_NAMES[key]!;
+        for (const [k, other] of options) other.classList.toggle('active', k === key);
+        onChange(key);
+      });
+    }
+    // 点外面收起。下拉在 Shadow DOM 里，必须用 composedPath 判断。
+    doc.addEventListener('mousedown', (event) => {
+      if (!open) return;
+      const inside = event.composedPath().some(
+        (node) => (node as HTMLElement)?.classList?.contains?.('wh-dropdown'),
+      );
+      if (!inside) close();
+    }, true);
+
+    return dropdown;
+  }
+
   // ---- 物品右键菜单 ----
   // 照 Unity 的 WarehouseItemMenu：点格子弹出，在这里对单件资源做操作。
   // Unity 那边三项是「选中 / 获取 / 聚焦」，天工只有全局资源池、没有背包，
@@ -352,9 +419,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   doc.addEventListener('mousedown', closeItemMenuOnDown, true);
 
   /** 仓库：格子式面板，照 Unity 那边搬过来的。搜索 / 升降序 / 分类 / 网格。 */
-  let whQuery = '', whDesc = false, whCategory = 'all', whMenuOpen = false;
-  // 面板每次重建都会重挂 document 监听，旧的先摘掉，别越堆越多
-  let whDocDown: ((event: MouseEvent) => void) | null = null;
+  let whQuery = '', whDesc = false, whCategory = 'all', whMenuOpen = false, chestMenuOpen = false;
   // Unity 那边只分「方块 / 非方块」两类，这里照搬
   const CATEGORY_OF: Record<string, string> = {
     wood: 'block', stone: 'block', steel: 'block',
@@ -372,24 +437,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
     const order = make('button', 'wh-order', whDesc ? '降序' : '升序');
 
-    // 分类用自绘下拉，照 Unity 的 DropdownList：
-    // TriggerButton 展开 → Panel 竖排选项 → Blocker 全屏透明层负责收起。
-    // 不用原生 select：它的展开层是浏览器画的，样式拦不住，还在 Shadow DOM 里容易错位。
-    const dropdown = make('div', 'wh-dropdown');
-    const trigger = make('button', 'wh-cat-trigger');
-    const triggerLabel = make('span', '', CATEGORY_NAMES[whCategory]!);
-    trigger.append(triggerLabel, make('span', 'wh-cat-caret', '▾'));
-    const menu = make('div', 'wh-cat-menu');
-    if (!whMenuOpen) menu.setAttribute('hidden', '');
-    if (whMenuOpen) dropdown.classList.add('open');
-    const optionButtons = new Map<string, HTMLButtonElement>();
-    for (const [key, label] of Object.entries(CATEGORY_NAMES)) {
-      const option = make('button', `wh-cat-option${key === whCategory ? ' active' : ''}`, label);
-      option.dataset.cat = key;
-      optionButtons.set(key, option);
-      menu.append(option);
-    }
-    dropdown.append(trigger, menu);
+    // 分类下拉：和木箱共用同一个组件
+    const dropdown = makeCategoryDropdown(whCategory, (key) => { whCategory = key; drawGrid(); }, whMenuOpen, (v) => { whMenuOpen = v; });
 
     tools.append(search, order, dropdown);
     root.append(tools);
@@ -438,39 +487,6 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     search.addEventListener('input', () => { whQuery = search.value; drawGrid(); });
     order.addEventListener('click', () => { whDesc = !whDesc; order.textContent = whDesc ? '降序' : '升序'; drawGrid(); });
 
-    // 下拉交互：展开/收起，选完自动收起，选同一项不重复触发
-    const closeMenu = () => { menu.setAttribute('hidden', ''); dropdown.classList.remove('open'); whMenuOpen = false; };
-    trigger.addEventListener('click', (event) => {
-      event.stopPropagation();
-      const willOpen = menu.hasAttribute('hidden');
-      if (willOpen) menu.removeAttribute('hidden'); else menu.setAttribute('hidden', '');
-      whMenuOpen = willOpen;
-      dropdown.classList.toggle('open', willOpen);
-    });
-    for (const [key, option] of optionButtons) {
-      option.addEventListener('click', (event) => {
-        event.stopPropagation();
-        closeMenu();
-        if (key === whCategory) return;   // 选的是同一项，不用重画
-        whCategory = key;
-        triggerLabel.textContent = CATEGORY_NAMES[key]!;
-        for (const [k, b] of optionButtons) b.classList.toggle('active', k === key);
-        drawGrid();
-      });
-    }
-    // 点别处收起。下拉在 Shadow DOM 里，必须用 composedPath 判断，
-    // 否则 event.target 在 document 层会被重定向到 host，永远判成「点在外面」。
-    const onDocDown = (event: MouseEvent) => {
-      if (menu.hasAttribute('hidden')) return;
-      const inside = event.composedPath().some(
-        (node) => (node as HTMLElement)?.classList?.contains?.('wh-dropdown'),
-      );
-      if (!inside) closeMenu();
-    };
-    if (whDocDown) doc.removeEventListener('mousedown', whDocDown, true);
-    whDocDown = onDocDown;
-    doc.addEventListener('mousedown', onDocDown, true);
-
     drawGrid();
 
     const loose = c.items.filter((item) => item.amount > 0);
@@ -501,7 +517,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     search.setAttribute('aria-label', '搜索物品');
 
     const order = make('button', 'wh-order', chestDesc ? '降序' : '升序');
-    const category = make('button', 'wh-category', CATEGORY_NAMES[chestCategory]!);
+    const category = makeCategoryDropdown(chestCategory, (key) => { chestCategory = key; draw(); }, chestMenuOpen, (v) => { chestMenuOpen = v; });
     tools.append(search, order, category);
     root.append(tools);
 
@@ -535,12 +551,6 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
     search.addEventListener('input', () => { chestQuery = search.value; draw(); });
     order.addEventListener('click', () => { chestDesc = !chestDesc; order.textContent = chestDesc ? '降序' : '升序'; draw(); });
-    category.addEventListener('click', () => {
-      const keys = Object.keys(CATEGORY_NAMES);
-      chestCategory = keys[(keys.indexOf(chestCategory) + 1) % keys.length]!;
-      category.textContent = CATEGORY_NAMES[chestCategory]!;
-      draw();
-    });
     draw();
   }
 
