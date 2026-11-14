@@ -127,11 +127,14 @@ export default async function dualViewProbe(play) {
   const s3 = await read();
   assert.equal(s3.player.grounded, false, '起跳后应处于离地状态');
   assert.ok(s3.player.y > groundY + 0.15, `起跳后高度应上升，实测 Δ${(s3.player.y - groundY).toFixed(2)}`);
+  // 玩家模型必须始终只有一套（曾经落地/起跳来回切换导致叠出两套人）
+  assert.equal(s3.player.parts, 11, `空中时玩家部件数应为 11，实际 ${s3.player.parts}`);
 
   // ---- 6. 落地 ----
   await advance(1.5);
   const s4 = await read();
   assert.equal(s4.player.grounded, true, '应已落地');
+  assert.equal(s4.player.parts, 11, `落地后玩家部件数仍应是 11，实际 ${s4.player.parts}`);
 
   // ---- 7. V 切回俯视，构图恢复 ----
   await tapV();

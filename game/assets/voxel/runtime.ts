@@ -224,7 +224,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         status, lastEdit, camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
         player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
           // 给验收用：当前是不是嵌在实心方块里
-          embedded: blocked(player.x, player.z, player.y) },
+          embedded: blocked(player.x, player.z, player.y),
+          parts: colonyView.playerEntityCount },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth],
       });
       const publish = () => {

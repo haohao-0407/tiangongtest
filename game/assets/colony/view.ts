@@ -159,12 +159,14 @@ export class ColonyView {
       {p:rot(.33,.65+swing,0),s:[.19,.43,.19],c:'skin'},    // 右臂
       {p:[x,y+1.9,z],s:[.22,.22,.22],c:'playerMark',shadow:false},  // 头顶标记不跟着转
     ];
-    if(p.grounded)parts.push({p:[x,y+.025,z],s:[.72,.03,.72],c:'playerMark',shadow:false});
+    // 落地光晕固定占第 11 格，不落地时缩成 0 隐藏。
+    // 早先按部件数量决定要不要重建，结果落地/起跳各 10、11 个来回切，
+    // 旧实体没被干净回收，屏幕上就叠出两套人。
+    // 现在数量恒定为 11：建一次，之后只改位置和缩放。
+    parts.push({p:[x,y+.025,z],s:p.grounded?[.72,.03,.72]:[0,0,0],c:'playerMark',shadow:false});
 
-    // 形状变了（落地/起跳）才重建；平时只挪位置
-    if(this.playerEntities.length!==parts.length){
-      for(const e of this.playerEntities)this.world.despawn(e).unwrap();
-      this.playerParts=parts;
+    if(this.playerEntities.length===0){
+      this.playerParts=parts.map(q=>({p:[...q.p] as V3,s:[...q.s] as V3,c:q.c,shadow:q.shadow}));
       this.playerEntities=parts.map((part,i)=>this.world.spawn(
         {component:Name,data:{value:`player/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s}},
         {component:MeshFilter,data:{assetHandle:this.cube}},{component:MeshRenderer,data:{materials:[this.material(part.c)]}},
@@ -181,6 +183,8 @@ export class ColonyView {
       if(next.c!==prev.c)this.world.set(this.playerEntities[i]!,MeshRenderer,{materials:[this.material(next.c)]}).unwrap();
     }
   }
+
+  get playerEntityCount(){return this.playerEntities.length;}
 
   disposePlayer(){for(const e of this.playerEntities)this.world.despawn(e).unwrap();this.playerEntities=[];this.playerParts=[];}
 }
