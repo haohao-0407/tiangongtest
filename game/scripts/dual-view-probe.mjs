@@ -161,6 +161,13 @@ export default async function dualViewProbe(play) {
   const shot = await play.screenshot('player-view');
   assert.equal(shot.rendered, true, '玩家视角必须是真实渲染像素');
 
+  // 转个方向再拍一张，用来人工核对「整个身子跟着转」
+  await play.page.keyboard.down('KeyA');
+  await advance(1.2);
+  await play.page.keyboard.up('KeyA');
+  await advance(0.5);
+  await play.screenshot('player-turned');
+
   // ---- 9. 底部指挥官菜单只在俯视视角出现 ----
   const toolbar = play.page.locator('.bottom-area');
   const hiddenInPlayer = await toolbar.isVisible();

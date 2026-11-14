@@ -138,6 +138,7 @@ export class ColonyView {
 
   private playerEntities:EntityHandle[]=[];
   private playerParts:Part[]=[];
+  private playerFacing=Number.NaN;
 
   /** 每帧调，只改位置/姿态，不重建实体。 */
   updatePlayer(p:{x:number;y:number;z:number;facing:number;moving:boolean;grounded:boolean},time:number){
@@ -147,6 +148,12 @@ export class ColonyView {
     // 之前只挪眼睛的位置，身体还是固定朝向，看着像块不动的砖。
     const cos=Math.cos(p.facing),sin=Math.sin(p.facing);
     const rot=(lx:number,ly:number,lz:number):V3=>[x+lx*cos+lz*sin,y+ly,z-lx*sin+lz*cos];
+    // 光有位置旋转不够——躯干和头在中心（lx=lz=0），位置根本不变，
+    // 方块本身又是轴对齐的，转起来就像上半身钉死了。
+    // 这里给每个方块真的加一个绕 Y 的旋转，人整体才会跟着转。
+    const spin:[number,number,number,number]=[0,Math.sin(p.facing/2),0,Math.cos(p.facing/2)];
+    const facingChanged=Math.abs(p.facing-this.playerFacing)>1e-4;
+    this.playerFacing=p.facing;
     const parts:Part[]=[
       {p:rot(-.13,.22+swing,0),s:[.18,.44,.24],c:'dark'},   // 左腿
       {p:rot(.13,.22-swing,0),s:[.18,.44,.24],c:'dark'},    // 右腿
@@ -168,7 +175,7 @@ export class ColonyView {
     if(this.playerEntities.length===0){
       this.playerParts=parts.map(q=>({p:[...q.p] as V3,s:[...q.s] as V3,c:q.c,shadow:q.shadow}));
       this.playerEntities=parts.map((part,i)=>this.world.spawn(
-        {component:Name,data:{value:`player/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s}},
+        {component:Name,data:{value:`player/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s,quat:spin}},
         {component:MeshFilter,data:{assetHandle:this.cube}},{component:MeshRenderer,data:{materials:[this.material(part.c)]}},
         {component:ShadowParticipation,data:{cast:part.shadow!==false,receive:true}},
       ).unwrap());
@@ -176,8 +183,8 @@ export class ColonyView {
     }
     for(let i=0;i<parts.length;i++){
       const next=parts[i]!,prev=this.playerParts[i]!;
-      if(next.p.some((n,j)=>n!==prev.p[j])||next.s.some((n,j)=>n!==prev.s[j])){
-        this.world.set(this.playerEntities[i]!,Transform,{pos:next.p,scale:next.s}).unwrap();
+      if(next.p.some((n,j)=>n!==prev.p[j])||next.s.some((n,j)=>n!==prev.s[j])||facingChanged){
+        this.world.set(this.playerEntities[i]!,Transform,{pos:next.p,scale:next.s,quat:spin}).unwrap();
         prev.p=next.p;prev.s=next.s;
       }
       if(next.c!==prev.c)this.world.set(this.playerEntities[i]!,MeshRenderer,{materials:[this.material(next.c)]}).unwrap();
