@@ -240,7 +240,35 @@ export default async function dualViewProbe(play) {
   });
   assert.equal(menuBlocked, true, 'canvas 上的右键菜单应被拦截');
 
-  // ---- 14. 竖排新面板能打开 ----
+  // ---- 15. 上帝视角右键菜单（仓库 / 随从 / 规划） ----
+  const ctxMenu = play.page.locator('#ctx-menu');
+  // 先确保手里没工具，否则右键是取消工具
+  await play.page.locator('[data-menu="inspect"]').click();
+  await advance(0.4);
+  assert.equal(await ctxMenu.isVisible(), false, '平时不该显示右键菜单');
+
+  await play.page.mouse.click(640, 340, { button: 'right' });
+  await advance(0.5);
+  assert.equal(await ctxMenu.isVisible(), true, '上帝视角右键应弹出菜单');
+  await play.screenshot('context-menu');
+
+  // 点「仓库」应该打开对应面板
+  await play.page.locator('#ctx-menu [data-ctx="warehouse"]').click();
+  await advance(0.5);
+  assert.equal(await ctxMenu.isVisible(), false, '选了菜单项应收起菜单');
+  assert.equal(await play.page.locator('#workspace').isVisible(), true, '右键菜单选「仓库」应打开工作区');
+  await play.page.locator('[data-menu="inspect"]').click();
+  await advance(0.4);
+
+  // 点别处应该收起菜单
+  await play.page.mouse.click(640, 340, { button: 'right' });
+  await advance(0.4);
+  assert.equal(await ctxMenu.isVisible(), true, '再次右键应能弹出');
+  await play.page.mouse.click(900, 200);
+  await advance(0.4);
+  assert.equal(await ctxMenu.isVisible(), false, '点别处应收起菜单');
+
+  // ---- 16. 竖排新面板能打开 ----
   for (const [menu, title] of [['warehouse', '仓库'], ['follower', '随从']]) {
     await play.page.locator(`[data-menu="${menu}"]`).click();
     await advance(0.5);

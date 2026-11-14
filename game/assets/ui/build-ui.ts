@@ -460,6 +460,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const onEscape = (event: KeyboardEvent) => {
     if (event.code !== 'Escape') return;
     try {
+      // 右键菜单优先关，它盖在最上面
+      if (ctxMenu && !ctxMenu.hidden) { ctxMenu.hidden = true; event.preventDefault(); return; }
       const workspaceOpen = !get('workspace').hidden;
       const sideOpen = !get('settings').hidden || !get('help').hidden || !get('inspector').hidden;
       // 1) 有面板：先关面板
@@ -504,15 +506,56 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }, 150);
   });
 
-  // 右键在游戏里是「取消工具 / 拆除方块」，但浏览器默认会在画布上弹上下文菜单，
-  // 一弹就把画面挡住，玩家会以为右键没反应。
-  // 只拦 canvas：输入框、文本域的右键（复制粘贴）要留着。
+  // ---- 上帝视角右键菜单（对齐 Unity 那套：仓库 / 随从 / 规划） ----
+  const ctxMenu = get('ctx-menu');
+  const hideCtxMenu = () => { if (ctxMenu) ctxMenu.hidden = true; };
+  const showCtxMenu = (clientX: number, clientY: number) => {
+    if (!ctxMenu) return;
+    ctxMenu.hidden = false;
+    const rect = shellEl?.getBoundingClientRect();
+    // 贴着鼠标，但别让人点到屏幕外
+    const x = Math.min(clientX - (rect?.left ?? 0), (rect?.width ?? 0) - 116);
+    const y = Math.min(clientY - (rect?.top ?? 0), (rect?.height ?? 0) - 108);
+    ctxMenu.style.left = `${Math.max(4, x)}px`;
+    ctxMenu.style.top = `${Math.max(4, y)}px`;
+  };
+
+  // 右键在游戏里有两层含义，和 Unity 一致：
+  //   手里拿着工具 → 取消工具（引擎那边处理，UI 不插手）
+  //   空手 → 弹出快捷菜单
+  // 玩家视角没有这个菜单。
   const blockCanvasMenu = (event: MouseEvent) => {
     const target = event.target as HTMLElement | null;
-    if (target?.tagName === 'CANVAS') event.preventDefault();
+    if (target?.tagName !== 'CANVAS') return;
+    event.preventDefault();
+    if (shellEl?.dataset.viewMode === 'character') { hideCtxMenu(); return; }
+    if (state?.tool && state.tool !== 'inspect') { hideCtxMenu(); return; }
+    showCtxMenu(event.clientX, event.clientY);
   };
   doc.addEventListener('contextmenu', blockCanvasMenu, true);
   releases.push(() => doc.removeEventListener('contextmenu', blockCanvasMenu, true));
+
+  if (ctxMenu) {
+    on(ctxMenu, 'click', (event) => {
+      const btn = (event.target as HTMLElement | null)?.closest?.('[data-ctx]') as HTMLElement | null;
+      if (!btn?.dataset.ctx) return;
+      hideCtxMenu();
+      openPanel(btn.dataset.ctx);
+    });
+    // 点菜单自身别触发「点外面关闭」
+    on(ctxMenu, 'mousedown', (e) => e.stopPropagation());
+  }
+  // 点别处收起菜单。捕获阶段执行，比任何冒泡处理器都早，
+  // 所以要用 composedPath 判断这次点击是不是落在菜单内——
+  // 菜单在 Shadow DOM 里，event.target 在 document 层会被重定向到 host。
+  const closeCtxOnMouseDown = (event: MouseEvent) => {
+    const inside = event.composedPath().some(
+      (node) => (node as HTMLElement)?.classList?.contains?.('ctx-menu'),
+    );
+    if (!inside) hideCtxMenu();
+  };
+  doc.addEventListener('mousedown', closeCtxOnMouseDown, true);
+  releases.push(() => doc.removeEventListener('mousedown', closeCtxOnMouseDown, true));
 
   // 数字键切快捷栏格子。只在玩家视角接管——
   // 俯视视角的 1/2/3 是速度、沙盒里 1-6 是选方块，不能抢。

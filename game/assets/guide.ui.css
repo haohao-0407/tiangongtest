@@ -44,3 +44,9 @@
 .pause-card h2{margin:0 0 16px;font-size:14px;font-weight:600;color:#e9e6d2;letter-spacing:.5px}
 .pause-card button{display:block;width:100%;margin:5px 0;padding:7px 10px;font-size:11px;color:#dcd9c3;background:#2b3729;border:1px solid #46543f;border-radius:4px;cursor:pointer}
 .pause-card button:hover{background:#38472f;border-color:#5d7052}
+
+/* 上帝视角右键菜单：跟 Unity 那套一样，弹在鼠标位置。 */
+.ctx-menu{position:absolute;min-width:104px;padding:5px;display:flex;flex-direction:column;gap:2px;z-index:25}
+.ctx-menu[hidden]{display:none}
+.ctx-menu button{padding:7px 12px;text-align:left;font-size:11px;border:1px solid transparent;background:transparent;border-radius:6px;white-space:nowrap}
+.ctx-menu button:hover{background:#e0eace;border-color:#aebf93}
