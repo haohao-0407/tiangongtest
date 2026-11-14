@@ -586,8 +586,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }
 
               // 空格在角色视角归跳跃；俯视视角仍然留给暂停
-              if (k.justPressedCode('Space') && player.grounded && vitals.stamina >= 8) {
-                vitals.stamina -= 8;
+              // 跳跃不消耗体力。体力留给后面的采集/战斗，先不在这里扣。
+              if (k.justPressedCode('Space') && player.grounded) {
                 player.vy = Math.sqrt(-2 * PLAYER_GRAVITY * PLAYER_JUMP);
                 player.grounded = false;
                 refreshState = true;

@@ -120,12 +120,19 @@ export default async function dualViewProbe(play) {
   const totalTurn = Math.abs(((facingEnd - facingIdle2 + Math.PI) % (Math.PI * 2)) - Math.PI);
   assert.ok(totalTurn > 0.4, `转身幅度应该够明显，实测 ${totalTurn.toFixed(2)} 弧度`);
 
-  // ---- 5. 空格跳跃：离地后 y 会升起来 ----
+  // ---- 5. 空格跳跃：离地后 y 会升起来，且不消耗体力 ----
   const groundY = s2.player.y;
+  const staminaBeforeJump = s2.player.vitals?.stamina ?? 0;
   await play.page.keyboard.press('Space');
   await advance(0.18);
   const s3 = await read();
   assert.equal(s3.player.grounded, false, '起跳后应处于离地状态');
+  // 跳跃不扣体力：只允许因为「站着回体力」而略微变多，不许变少
+  const staminaAfterJump = s3.player.vitals?.stamina ?? 0;
+  assert.ok(
+    staminaAfterJump >= staminaBeforeJump - 0.01,
+    `跳跃不该扣体力，跳前 ${staminaBeforeJump.toFixed(1)} → 跳后 ${staminaAfterJump.toFixed(1)}`,
+  );
   assert.ok(s3.player.y > groundY + 0.15, `起跳后高度应上升，实测 Δ${(s3.player.y - groundY).toFixed(2)}`);
   // 玩家模型必须始终只有一套（曾经落地/起跳来回切换导致叠出两套人）
   assert.equal(s3.player.parts, 11, `空中时玩家部件数应为 11，实际 ${s3.player.parts}`);
