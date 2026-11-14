@@ -47,7 +47,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let receive: (event: MessageEvent) => void = () => {};
       let selected = 5, mode: 'build' | 'remove' = 'build', uiHover = false;
       // 右键拖动平移：水平和垂直各自可反转，灵敏度可调（都在暂停 → 设置里）
-      let invertPanX = false, invertPanY = true, panSensitivity = 0.009;
+      let invertPanX = false, invertPanY = false, panSensitivity = 0.009;
       let tool = 'inspect';
       let crop: 'rice' | 'corn' = 'rice';
       let status = '和平殖民地 · 规划家园，照顾每一位居民';
@@ -428,10 +428,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                   const k2 = distance * panSensitivity;
                   const rx = Math.cos(yaw), rz = -Math.sin(yaw);
                   const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+                  // 方向照 Unity 的 GridCamera.HandleDragPan：
+                  //   pivot += (right * dx + forward * dy) * scale
+                  // 是加不是减。DOM 的 movementY 向下为正，Unity 的 delta.y 向上为正，
+                  // 所以垂直那一项要取负号，否则「抓地图」的手感会反。
                   const mx = input.mouse.movementDelta.x * k2 * (invertPanX ? -1 : 1);
-                  const mz = input.mouse.movementDelta.y * k2 * (invertPanY ? -1 : 1);
-                  target[0] = clamp(target[0] - rx * mx - fx * mz, 0, voxels.width);
-                  target[2] = clamp(target[2] - rz * mx - fz * mz, 0, voxels.depth);
+                  const mz = -input.mouse.movementDelta.y * k2 * (invertPanY ? -1 : 1);
+                  target[0] = clamp(target[0] + rx * mx + fx * mz, 0, voxels.width);
+                  target[2] = clamp(target[2] + rz * mx + fz * mz, 0, voxels.depth);
                 }
                 // Engine wheelDelta is a signed notch accumulator, not DOM pixel deltaY.
                 distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 15, 100);

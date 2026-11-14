@@ -251,7 +251,13 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         .filter((r) => whCategory === 'all' || CATEGORY_OF[r] === whCategory)
         .filter((r) => !whQuery || RESOURCE_NAMES[r].includes(whQuery))
         .map((r) => ({ name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
-        .sort((a, b) => (whDesc ? b.count - a.count : a.count - b.count));
+        // 照 Unity 的 ChestWindow：按显示名的字典序排，不是按数量。
+        // 同名（理论上不会）才拿数量兜底，保证顺序稳定、不会每帧跳。
+        .sort((a, b) => {
+          const diff = a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+          const result = diff === 0 ? a.count - b.count : diff;
+          return whDesc ? -result : result;
+        });
 
       clear(grid);
       // 固定 7 列，空位补格子，看起来才像一整个仓库面板
