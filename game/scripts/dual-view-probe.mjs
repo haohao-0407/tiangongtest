@@ -291,7 +291,7 @@ export default async function dualViewProbe(play) {
   assert.ok(cells >= 28, `仓库应铺满格子，实际 ${cells} 个`);
   assert.equal(await play.page.locator('#workspace .wh-search').count(), 1, '仓库应有搜索框');
   assert.equal(await play.page.locator('#workspace .wh-order').count(), 1, '仓库应有升降序按钮');
-  assert.equal(await play.page.locator('#workspace .wh-category').count(), 1, '仓库应有分类下拉');
+  assert.equal(await play.page.locator('#workspace .wh-cat-trigger').count(), 1, '仓库应有分类下拉');
 
   // 搜索过滤：输入「木」应该只剩木材一类
   // 面板打开后点里面的控件、打字，都不该把面板关掉
@@ -314,11 +314,26 @@ export default async function dualViewProbe(play) {
   // 分类下拉：先清掉搜索词，再切到「方块」——应该只剩建材那几类
   await play.page.locator('#workspace .wh-search').fill('');
   await advance(0.3);
-  await play.page.locator('#workspace .wh-category').selectOption('block');
+  await play.page.locator('#workspace .wh-cat-trigger').click();
+  await advance(0.3);
+  assert.equal(await play.page.locator('#workspace .wh-cat-menu').isVisible(), true, '点分类应展开下拉');
+  await play.screenshot('warehouse-dropdown');
+  // 展开后要一直挂着。之前面板的刷新戳里带了游戏时间，
+  // 每秒变一次就把整个内容重建，展开的下拉跟着被销毁——看着像「自己关了」。
+  await advance(2.5);
+  assert.equal(
+    await play.page.locator('#workspace .wh-cat-menu').isVisible(),
+    true,
+    '下拉展开两秒半后仍应保持展开',
+  );
+  await play.page.locator('#workspace .wh-cat-option[data-cat="block"]').click();
   await advance(0.4);
+  assert.equal(await play.page.locator('#workspace .wh-cat-menu').isVisible(), false, '选完应自动收起');
   const blocks = await play.page.locator('#workspace .wh-cell:not(.empty)').count();
   assert.equal(blocks, 3, `「方块」分类应只剩 3 项，实际 ${blocks}`);
-  await play.page.locator('#workspace .wh-category').selectOption('all');
+  await play.page.locator('#workspace .wh-cat-trigger').click();
+  await advance(0.3);
+  await play.page.locator('#workspace .wh-cat-option[data-cat="all"]').click();
   await advance(0.3);
 
   await advance(0.3);

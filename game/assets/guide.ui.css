@@ -75,3 +75,15 @@
 .wh-icon{font-size:18px;line-height:1}
 .wh-count{position:absolute;right:3px;bottom:2px;font-size:9px;line-height:1;color:#3d4a36;font-weight:600}
 .wh-label{position:absolute;left:3px;top:2px;font-size:8px;line-height:1;color:#7c8a72}
+
+/* 自绘分类下拉：照 Unity 的 DropdownList，展开层自己画，样式才跟得上主题。 */
+.wh-dropdown{position:relative;flex:none}
+.wh-cat-trigger{display:flex;align-items:center;gap:7px;padding:7px 10px;font-size:11px;color:#45523c;background:#eef3e4;border:1px solid #c3d0b2;border-radius:5px;cursor:pointer;white-space:nowrap}
+.wh-cat-trigger:hover{background:#e0eace;border-color:#aebf93}
+.wh-cat-caret{font-size:8px;color:#7c8a72;line-height:1}
+.wh-dropdown.open .wh-cat-caret{transform:rotate(180deg)}
+.wh-cat-menu{position:absolute;top:calc(100% + 4px);right:0;min-width:100%;display:flex;flex-direction:column;padding:3px;background:#f7f9f0;border:1px solid #c3d0b2;border-radius:5px;box-shadow:0 5px 14px #1e321e26;z-index:30}
+.wh-cat-menu[hidden]{display:none}
+.wh-cat-option{padding:7px 11px;font-size:11px;text-align:left;color:#45523c;background:transparent;border:0;border-radius:3px;cursor:pointer;white-space:nowrap}
+.wh-cat-option:hover{background:#e0eace}
+.wh-cat-option.active{color:#2f4a2a;font-weight:600;background:#dbe6cc}

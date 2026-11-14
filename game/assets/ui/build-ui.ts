@@ -209,7 +209,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     root.append(materials, note(`当前土地 ${state?.edits ?? 0} 格改动 · 1—6 选材 · 左键执行 · 右键拆除`));
   }
   /** 仓库：格子式面板，照 Unity 那边搬过来的。搜索 / 升降序 / 分类 / 网格。 */
-  let whQuery = '', whDesc = false, whCategory = 'all';
+  let whQuery = '', whDesc = false, whCategory = 'all', whMenuOpen = false;
+  // 面板每次重建都会重挂 document 监听，旧的先摘掉，别越堆越多
+  let whDocDown: ((event: MouseEvent) => void) | null = null;
   // Unity 那边只分「方块 / 非方块」两类，这里照搬
   const CATEGORY_OF: Record<string, string> = {
     wood: 'block', stone: 'block', steel: 'block',
@@ -227,18 +229,26 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
     const order = make('button', 'wh-order', whDesc ? '降序' : '升序');
 
-    // 分类是下拉，不是循环按钮——Unity 那边点开就是「全部 / 方块 / 非方块」
-    const category = make('select', 'wh-category') as HTMLSelectElement;
-    category.setAttribute('aria-label', '物品分类');
+    // 分类用自绘下拉，照 Unity 的 DropdownList：
+    // TriggerButton 展开 → Panel 竖排选项 → Blocker 全屏透明层负责收起。
+    // 不用原生 select：它的展开层是浏览器画的，样式拦不住，还在 Shadow DOM 里容易错位。
+    const dropdown = make('div', 'wh-dropdown');
+    const trigger = make('button', 'wh-cat-trigger');
+    const triggerLabel = make('span', '', CATEGORY_NAMES[whCategory]!);
+    trigger.append(triggerLabel, make('span', 'wh-cat-caret', '▾'));
+    const menu = make('div', 'wh-cat-menu');
+    if (!whMenuOpen) menu.setAttribute('hidden', '');
+    if (whMenuOpen) dropdown.classList.add('open');
+    const optionButtons = new Map<string, HTMLButtonElement>();
     for (const [key, label] of Object.entries(CATEGORY_NAMES)) {
-      const option = doc.createElement('option');
-      option.value = key;
-      option.textContent = label;
-      category.append(option);
+      const option = make('button', `wh-cat-option${key === whCategory ? ' active' : ''}`, label);
+      option.dataset.cat = key;
+      optionButtons.set(key, option);
+      menu.append(option);
     }
-    category.value = whCategory;
+    dropdown.append(trigger, menu);
 
-    tools.append(search, order, category);
+    tools.append(search, order, dropdown);
     root.append(tools);
 
     const grid = make('div', 'wh-grid');
@@ -278,7 +288,39 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
     search.addEventListener('input', () => { whQuery = search.value; drawGrid(); });
     order.addEventListener('click', () => { whDesc = !whDesc; order.textContent = whDesc ? '降序' : '升序'; drawGrid(); });
-    category.addEventListener('change', () => { whCategory = category.value; drawGrid(); });
+
+    // 下拉交互：展开/收起，选完自动收起，选同一项不重复触发
+    const closeMenu = () => { menu.setAttribute('hidden', ''); dropdown.classList.remove('open'); whMenuOpen = false; };
+    trigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const willOpen = menu.hasAttribute('hidden');
+      if (willOpen) menu.removeAttribute('hidden'); else menu.setAttribute('hidden', '');
+      whMenuOpen = willOpen;
+      dropdown.classList.toggle('open', willOpen);
+    });
+    for (const [key, option] of optionButtons) {
+      option.addEventListener('click', (event) => {
+        event.stopPropagation();
+        closeMenu();
+        if (key === whCategory) return;   // 选的是同一项，不用重画
+        whCategory = key;
+        triggerLabel.textContent = CATEGORY_NAMES[key]!;
+        for (const [k, b] of optionButtons) b.classList.toggle('active', k === key);
+        drawGrid();
+      });
+    }
+    // 点别处收起。下拉在 Shadow DOM 里，必须用 composedPath 判断，
+    // 否则 event.target 在 document 层会被重定向到 host，永远判成「点在外面」。
+    const onDocDown = (event: MouseEvent) => {
+      if (menu.hasAttribute('hidden')) return;
+      const inside = event.composedPath().some(
+        (node) => (node as HTMLElement)?.classList?.contains?.('wh-dropdown'),
+      );
+      if (!inside) closeMenu();
+    };
+    if (whDocDown) doc.removeEventListener('mousedown', whDocDown, true);
+    whDocDown = onDocDown;
+    doc.addEventListener('mousedown', onDocDown, true);
 
     drawGrid();
 
@@ -330,7 +372,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   function renderPanel(force = false) {
     if (!panel || !state) return;
     const c = state.colony;
-    const stamp = JSON.stringify([panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, bills: c.bills, trade: c.trade, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete]), jobs: c.jobs.map(j => [j.id, j.state, j.label]), zones: c.zones.length, time: Math.floor(c.time) }]);
+    const stamp = JSON.stringify([panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, bills: c.bills, trade: c.trade, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete]), jobs: c.jobs.map(j => [j.id, j.state, j.label]), zones: c.zones.length }]);
     if (!force && stamp === lastPanelStamp) return;
     lastPanelStamp = stamp;
     get('panel-title').textContent = MENU_NAMES[panel] ?? '家园管理';
