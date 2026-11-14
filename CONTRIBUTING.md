@@ -15,10 +15,10 @@
 
 ## 快速版（给人看）
 
-```bash
+```powershell
 # 拉取
 git pull
-cd game && pnpm install     # 只有首次或 lockfile 变了才需要
+.\Start-Game.ps1 -Repair   # 首次拉取、依赖变动或安装异常时使用
 
 # 推送
 git checkout -b feature/你的名字
@@ -49,22 +49,18 @@ tiangongtest\
 └── view-workspace\      运行时产物（不入库）
 ```
 
-**关键**：`game/node_modules` **不在 git 里**。任何人拉取后都要自己 `pnpm install` 一次。
+**关键**：`game/node_modules` **不在 git 里**。首次启动会自动安装所需依赖；开发前也可用 `.\Start-Game.ps1 -Repair` 安装并自检。
 
 ---
 
 ## 2. 拉取（pull）
 
-```bash
+```powershell
 cd <仓库根>
 git pull
 
-# 只有以下情况才需要重新装依赖：
-#   - 第一次拉这个仓库
-#   - pnpm-lock.yaml 变了
-#   - package.json 的 dependencies 变了
-cd game
-pnpm install
+# 首次拉取、pnpm-lock.yaml 或 dependencies 变动时：
+.\Start-Game.ps1 -Repair
 ```
 
 **验证环境是否正常**：
@@ -73,17 +69,17 @@ pnpm install
 .\Start-Game.ps1 -Check
 ```
 
-看到 `{"ok":true,...}` 就说明能跑。**不要**靠“看起来没报错”判断。
+看到“自检通过”且退出码为 0，说明环境与工程检查通过。自检不自动修复依赖，也不等同于游戏画面或玩法验收；缺少依赖时按提示执行 `-Repair`。
 
 ### 拉取后必须做的事
 
 | 检查项 | 命令 | 期望 |
 |:--|:--|:--|
-| 环境自检 | `.\Start-Game.ps1 -Check` | `ok: true` |
+| 环境自检 | `.\Start-Game.ps1 -Check` | 显示“自检通过”，退出码 0 |
 | 类型检查 | `cd game; pnpm exec tsc --noEmit` | 无输出 |
 | 单元测试 | `cd game; pnpm test` | 全绿 |
 
-**注意**：`.\Start-Game.ps1` 输出的是 JSON，那是给工具读的，不是给人看的。
+启动器显示阶段进度和错误原因，并把原始输出保存在 `.launcher/`。手动执行 `pnpm` 命令前，先确认 `pnpm --version` 与 `game/package.json` 的 `packageManager` 一致；启动器会自行选择准确版本，不使用碰巧排在 PATH 最前面的其他版本。
 
 ---
 
@@ -115,6 +111,7 @@ git status --short
 | `node_modules/` | 依赖不入库 |
 | `dist/` | 构建产物 |
 | `game/.tmp-tests/` | 临时文件 |
+| `.launcher/` | 本机启动日志、工具链与缓存 |
 | `view-workspace/.forgeax/` | 运行时产物 |
 | `*.log`、`.DS_Store` | 垃圾文件 |
 
@@ -134,7 +131,7 @@ git push -u origin feature/<分支名>
 
 | 禁止 | 原因 |
 |:--|:--|
-| **把 `Start-Game.ps1` 的路径改回 `D:\tiangong-tools` 写死** | 只有那台机器能跑，其他人全部报错。**这个坑已经踩过一次** |
+| **把启动脚本或 `.npmrc` 改回固定盘符路径** | 其他机器无法复用；使用工程相对路径或本机配置 |
 | **手改 `dist/` 里的文件** | 构建产物，下次构建就被覆盖 |
 | **手改 GUID** | GUID 由 `guidText(packageId, assetKey)` 推导，改了就全断 |
 | **手动编辑 `package.json` 的 dependencies** | 用 `pnpm add <name>`，否则 frozen lockfile 会拒绝 |
@@ -148,18 +145,21 @@ git push -u origin feature/<分支名>
 
 | 项 | 要求 | 说明 |
 |:--|:--|:--|
-| Node.js | ≥ 22.13 | 本机可用 WorkBuddy 自带的私有 node |
-| pnpm | 由 `packageManager` 字段决定（当前 12.15.0） | 用 `corepack enable` 或直接调 pnpm |
+| Node.js | ≥ 22.13 | 启动器实际读取版本；可用系统安装或 WorkBuddy 自带版本 |
+| pnpm | 由 `packageManager` 字段决定（当前 12.15.0） | 启动器通过 Corepack 选择准确版本；没有 Corepack 时用 npm 安装到本仓库，不做全局安装 |
 | SDK | `@forgeax/engine@0.4.19` | 从 npm 装，**版本必须严格对齐**（`frozenLockfile: true`） |
-| 可选缓存目录 | `D:\tiangong-tools` | 存在就用，不存在跳过，**功能不受影响** |
+| 启动数据目录 | 本仓库 `.launcher/` | 默认存放日志、临时文件、Corepack 和 pnpm 缓存；已有 `COREPACK_HOME` 设置会保留 |
+
+`game/.npmrc` 使用相对路径 `../.launcher/pnpm-store` 和 `../.launcher/npm-cache`，使手动安装与启动器使用相同缓存位置。首次准备工具或下载依赖需要联网。
 
 ### 启动脚本怎么找 node
 
-`Start-Game.ps1` 按顺序探测，读到第一个就停：
+`Start-Game.ps1` 按顺序探测，选择实际可运行且版本合格的 Node：
 
-1. 系统 PATH 里的 `node`
-2. `%USERPROFILE%\.workbuddy\binaries\node\versions\current` 指向的目录
-3. 上面目录下版本号最大的那个
+1. 显式 `-NodePath`，其次是 `GAME_NODE_PATH`；指定路径无效会直接报错
+2. 系统 PATH 与常见安装位置（包括 NVM、Volta）
+3. `%USERPROFILE%\.workbuddy\binaries\node\versions\current` 指向的目录
+4. WorkBuddy 其他版本目录，按版本号从高到低尝试
 
 **所以不要往脚本里写死 node 路径。**
 
@@ -179,11 +179,13 @@ $s = [System.IO.File]::ReadAllText($p, [System.Text.Encoding]::UTF8)
 [System.IO.File]::WriteAllText($p, $s, (New-Object System.Text.UTF8Encoding($true)))
 ```
 
-### dev server 随终端关闭
+### 游戏会话与启动窗口
 
-`forgeax dev start` 起的浏览器是**这条命令的子进程**。命令结束（或终端关闭），浏览器就关。
+当前安装的 ForgeAX 0.4.19 会创建独立后台服务。正常 Windows 环境下，启动命令退出不代表游戏停止；沙箱或其他进程管理环境可能另行回收子进程。
 
-**AI 不要试图在后台起服务然后让用户用** —— 活不过一轮对话。要长期运行，让用户自己双击 `启动游戏.bat`。
+用户双击 `启动游戏.bat` 启动即可。正常会话会复用，失败或浏览器已断开的等待会话会恢复；不要在每次启动前无条件 `dev stop`。显式停止使用 `.\Start-Game.ps1 -Stop`，强制重启使用 `-Restart`。
+
+启动器每个阶段默认等待最多 180 秒，可通过 `-TimeoutSeconds 600` 延长。`-NoBrowser` 用于不显示浏览器窗口的验证。失败返回非零退出码，双击入口会保留错误；按提示查看 `.launcher/` 下的日志。
 
 ### 构建时的批量删除保护
 
@@ -219,8 +221,8 @@ resolved 190, reused 0,   downloaded 190 ← 要好几分钟
 
 按这个顺序排查：
 
-1. `.\Start-Game.ps1 -Check` 报什么错？
-2. `cd game; ls node_modules` —— 有没有装依赖？
-3. `node -v` —— 版本够不够 22.13？
-4. `cd game; pnpm install` —— 重装一次试试
-5. 还是不行，看 `game/docs/` 里有没有环境说明，或者问人
+1. 运行 `.\Start-Game.ps1 -Check`，阅读错误和输出的日志位置。
+2. 提示缺少或不匹配的依赖时，运行 `.\Start-Game.ps1 -Repair`；不要手动改锁文件。
+3. 提示 Node 不可用时，安装 Node.js 22.13 或更新版本，或使用 `-NodePath` 指定。
+4. 下载超时时检查网络，必要时加 `-TimeoutSeconds 600`；已有会话异常时用 `-Restart`。
+5. 仍失败时保留 `.launcher/` 中对应日志，并说明失败阶段；不要只反馈“窗口没反应”。
