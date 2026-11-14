@@ -606,6 +606,35 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
   /** 随从：居民的概览页。姓名、在干什么、三项关键需求，点进去看完整档案。 */
   function renderFollower(c: ColonySnapshot, root: HTMLElement) {
+    // 你自己单独一块。玩家不在 colonists 里，所以列表里那些全是随从，
+    // 但界面上得让人一眼看出「哪个是我」。
+    const v = state?.player?.vitals;
+    if (v) {
+      const self = make('div', 'self-card');
+      const head = make('div', 'self-head');
+      head.append(make('span', 'self-tag', '玩家'), make('strong', '', '你'));
+      self.append(head);
+
+      const bars = make('div', 'self-bars');
+      for (const [cls, n, max, label] of [
+        ['health', v.health, v.maxHealth, '生命'],
+        ['stamina', v.stamina, v.maxStamina, '体力'],
+      ] as [string, number, number, string][]) {
+        const bar = make('div', `fb-bar ${cls}`);
+        const fill = make('i', '');
+        fill.style.width = `${Math.max(0, Math.min(100, max > 0 ? (n / max) * 100 : 0))}%`;
+        bar.append(fill, make('span', 'fb-bar-text', `${label} ${Math.round(n)} / ${max}`));
+        bars.append(bar);
+      }
+      self.append(bars);
+
+      const carried = (state?.player?.bag ?? []).filter(Boolean);
+      self.append(make('p', 'self-foot', carried.length
+        ? `身上带着 ${carried.length} 种东西 · 银币 ${Math.floor(v.gold)}`
+        : `身上没有东西 · 银币 ${Math.floor(v.gold)}`));
+      root.append(self);
+    }
+
     root.append(note('跟着你一起生活的人。点名字可以打开完整档案，也能在工作页调他们的优先级。'));
     const list = make('div', 'row-list');
     for (const p of c.colonists) {

@@ -448,6 +448,20 @@ export default async function dualViewProbe(play) {
   await play.page.locator('[data-menu="inspect"]').click();
   await advance(0.3);
 
+  // ---- 随从页：玩家单独一块，和随从列表分开 ----
+  await play.page.locator('[data-menu="follower"]').click();
+  await advance(0.5);
+  assert.equal(await play.page.locator('#workspace .self-card').count(), 1, '随从页顶部应有玩家卡片');
+  assert.ok(
+    ((await play.page.locator('#workspace .self-tag').textContent()) ?? '').includes('玩家'),
+    '玩家卡片应带「玩家」标签',
+  );
+  const followerRows = await play.page.locator('#workspace .row-list .production-row').count();
+  assert.ok(followerRows >= 3, `下面应该是随从列表，实际 ${followerRows} 行`);
+  await play.screenshot('follower-list');
+  await play.page.locator('[data-menu="inspect"]').click();
+  await advance(0.3);
+
   // ---- 随从面板：靠近右键打开，左数值右背包 ----
   // 顺带确认「靠近谁」这个判定跑通了（角色视角下才有值）
   assert.ok('nearColonist' in (await read()).player, '投影里应有 nearColonist 字段');
