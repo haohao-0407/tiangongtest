@@ -155,3 +155,9 @@
 .interact-hint[hidden]{display:none}
 .shell[data-view-mode="character"] .interact-hint:not([hidden]){display:flex}
 .hint-key{padding:1px 6px;font-size:10px;color:#1d2620;background:#d6cfb4;border-radius:2px;box-shadow:0 1px 0 #8f8a72}
+
+/* 打开面板时快捷栏也要在场——它是拖放的目标。
+   上帝视角下底部有那排菜单，所以往上抬一截避让。 */
+.shell:has(#workspace:not([hidden])) .hotbar{display:flex;bottom:96px;z-index:22}
+.hotbar-slot.drop-target{border-color:#e0a94a;background:rgba(200,150,70,.7);box-shadow:0 0 0 2px #e0a94a88}
+.drag-ghost{position:absolute;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:#d9c9a8;border:1px solid #c2ad86;border-radius:3px;box-shadow:0 6px 16px #00000055;opacity:.9;pointer-events:none;z-index:99;font-size:16px}

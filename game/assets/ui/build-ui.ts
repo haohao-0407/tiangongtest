@@ -531,7 +531,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const items = RESOURCE_TYPES
         .filter((r) => chestCategory === 'all' || CATEGORY_OF[r] === chestCategory)
         .filter((r) => !chestQuery || RESOURCE_NAMES[r].includes(chestQuery))
-        .map((r) => ({ name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
+        .map((r) => ({ kind: r as string, name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
         .sort((a, b) => {
           const diff = a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
           const result = diff === 0 ? a.count - b.count : diff;
@@ -547,6 +547,13 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
           cell.title = `${item.name} · ${item.count}`;
           cell.append(make('span', 'wh-icon', item.icon));
           if (item.count > 0) cell.append(make('span', 'wh-count', String(item.count)));
+          cell.dataset.item = item.kind;
+          cell.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openItemMenu(item.kind, event.clientX, event.clientY);
+          });
+          attachDrag(cell, item.kind, 'pool');
         }
         grid.append(cell);
       }
@@ -595,6 +602,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         cell.title = `${RESOURCE_NAMES[res as Resource] ?? res} · ${count}`;
         cell.append(make('span', 'wh-icon', RESOURCE_ICONS[res as Resource] ?? '·'));
         cell.append(make('span', 'wh-count', String(count)));
+        cell.dataset.item = res;
+        cell.addEventListener('contextmenu', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          openItemMenu(res, event.clientX, event.clientY);
+        });
       }
       grid.append(cell);
     }
@@ -654,6 +667,65 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     root.append(list);
   }
 
+  /**
+   * 让一个容器格子能被拖到快捷栏。照 Unity 的 ContainerSlot 拖放：
+   * 源格知道自己装的是哪件东西，落点格（快捷栏）知道自己收哪一格。
+   * 用指针事件手写，不用 HTML5 draggable——后者在 Shadow DOM 里行为不一致。
+   */
+  function attachDrag(cell: HTMLElement, resource: string, from: 'pool' | 'follower') {
+    cell.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      const startX = event.clientX, startY = event.clientY;
+      let ghost: HTMLElement | null = null;
+
+      const move = (moveEvent: PointerEvent) => {
+        if (!ghost) {
+          if (Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY) < 6) return;
+          ghost = make('div', 'drag-ghost');
+          ghost.append(make('span', 'wh-icon', RESOURCE_ICONS[resource as Resource] ?? '·'));
+          const rect = shellEl?.getBoundingClientRect();
+          ghost.style.left = `${moveEvent.clientX - (rect?.left ?? 0) - 22}px`;
+          ghost.style.top = `${moveEvent.clientY - (rect?.top ?? 0) - 22}px`;
+          shellEl?.append(ghost);
+        } else {
+          const rect = shellEl?.getBoundingClientRect();
+          ghost.style.left = `${moveEvent.clientX - (rect?.left ?? 0) - 22}px`;
+          ghost.style.top = `${moveEvent.clientY - (rect?.top ?? 0) - 22}px`;
+        }
+        for (const slot of Array.from(shellEl?.querySelectorAll('#hotbar .hotbar-slot') ?? [])) {
+          const r = slot.getBoundingClientRect();
+          const inside = moveEvent.clientX >= r.left && moveEvent.clientX <= r.right
+            && moveEvent.clientY >= r.top && moveEvent.clientY <= r.bottom;
+          slot.classList.toggle('drop-target', inside);
+        }
+      };
+
+      const up = (upEvent: PointerEvent) => {
+        doc.removeEventListener('pointermove', move, true);
+        doc.removeEventListener('pointerup', up, true);
+        ghost?.remove();
+        ghost = null;
+        const target = Array.from(shellEl?.querySelectorAll('#hotbar .hotbar-slot') ?? []).find((slot) => {
+          const r = slot.getBoundingClientRect();
+          return upEvent.clientX >= r.left && upEvent.clientX <= r.right
+            && upEvent.clientY >= r.top && upEvent.clientY <= r.bottom;
+        }) as HTMLElement | undefined;
+        for (const slot of Array.from(shellEl?.querySelectorAll('#hotbar .hotbar-slot') ?? [])) {
+          slot.classList.remove('drop-target');
+        }
+        if (!target) return;
+        const index = Number(target.dataset.index);
+        if (!Number.isFinite(index)) return;
+        // 拖进快捷栏 = 拿到手上。随从身上的东西先放回共享池再拿。
+        if (from === 'follower') send('takeFromFollower', { resource, slot: index });
+        else send('take', { resource, amount: 1, slot: index });
+      };
+
+      doc.addEventListener('pointermove', move, true);
+      doc.addEventListener('pointerup', up, true);
+    });
+  }
+
   /** 靠近提示：贴着箱子或随从时，在准星上方挂一条「右键 打开…」。 */
   function renderInteractHint() {
     const hint = get('interact-hint');
@@ -697,6 +769,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     for (let i = 0; i < 9; i++) {
       const item = bag[i] ?? null;
       const slot = make('div', `hotbar-slot${i === selected ? ' active' : ''}${item ? '' : ' empty'}`);
+      slot.dataset.index = String(i);
       slot.append(make('span', 'hotbar-key', String(i + 1)));
       if (item) {
         const res = item.resource as Resource;

@@ -453,6 +453,18 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             status = ok ? '拿到手上了' : '背包放不下，或者仓库里没有了';
             refreshState = true;
           }
+          if (c.action === 'takeFromFollower') {
+            const res = String(c.resource || '');
+            const who = colonyState.colonists.find((p) => (p.carrying as Record<string, number>)[res] > 0);
+            if (!who) status = '那个人身上没有这个';
+            else if (takeToBag(res, 1)) {
+              const carried = who.carrying as Record<string, number>;
+              carried[res] = (carried[res] ?? 0) - 1;
+              if (carried[res] <= 0) delete carried[res];
+              status = '从随从手里拿到了';
+            } else status = '背包放不下';
+            refreshState = true;
+          }
           if (c.action === 'drop') {
             dropFromBag(Number(c.slot) || 0);
             status = '放回仓库了';

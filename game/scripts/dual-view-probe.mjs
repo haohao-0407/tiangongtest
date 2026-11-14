@@ -452,6 +452,21 @@ export default async function dualViewProbe(play) {
   await play.page.locator('#workspace .wh-cat-option[data-cat="all"]').click();
   await advance(0.3);
   await play.screenshot('chest-panel');
+
+  // 木箱格子右键也能弹物品菜单
+  await play.page.locator('#workspace .chest-cell[data-item]').first().click({ button: 'right' });
+  await advance(0.4);
+  assert.equal(await itemMenu.isVisible(), true, '木箱格子右键应弹物品菜单');
+  // 点空白处收起菜单（ESC 会连面板一起关掉）
+  await play.page.mouse.click(20, 500);
+  await advance(0.4);
+  // 重新打开木箱面板，确认快捷栏在场
+  await play.page.evaluate(() => window.__wbOpenChest());
+  await advance(0.5);
+  assert.equal(await play.page.locator('#workspace').isVisible(), true, '木箱面板应重新打开');
+  assert.equal(await play.page.locator('#hotbar').isVisible(), true, '打开面板时快捷栏应可见');
+  assert.equal(await play.page.locator('#hotbar .hotbar-slot[data-index="0"]').count(), 1, '快捷栏格子应带索引');
+
   await play.page.locator('[data-menu="inspect"]').click();
   await advance(0.3);
 
