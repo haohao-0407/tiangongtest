@@ -48,6 +48,59 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let unregister: (() => void) | undefined;
       let receive: (event: MessageEvent) => void = () => {};
       let selected = 5, mode: 'build' | 'remove' = 'build', uiHover = false;
+      // 右键拖动平移：水平和垂直各自可反转，灵敏度可调（都在暂停 → 设置里）
+      let invertPanX = false, invertPanY = false, panSensitivity = 0.009;
+      // ---- 玩家背包（快捷栏） ----
+      // 照 Unity 的 PlayerInventory + HotbarUI：固定 9 格，数字键 1~9 切换。
+      // 天工的资源原本全在共享池里，这里是「从池子拿到手上」——
+      // 拿走的会从池子扣掉，放回去再加回池子，总量守恒。
+      type BagSlot = { resource: string; count: number } | null;
+      const bag: BagSlot[] = Array.from({ length: 9 }, () => null);
+      let bagSelected = 0;
+
+      /** 从共享池扣一份进背包，返回是否真的拿到了。 */
+      const takeToBag = (resource: string, amount = 1): boolean => {
+        const pool = (colonyState.resources as Record<string, number>)[resource] ?? 0;
+        if (pool < amount) return false;
+        let left = amount;
+        // 先叠到已有的同种格子
+        for (const slot of bag) {
+          if (left <= 0) break;
+          if (!slot || slot.resource !== resource) continue;
+          const room = 99 - slot.count;
+          const put = Math.min(room, left);
+          slot.count += put;
+          left -= put;
+        }
+        // 再开空格
+        for (let i = 0; i < bag.length && left > 0; i++) {
+          if (bag[i]) continue;
+          const put = Math.min(99, left);
+          bag[i] = { resource, count: put };
+          left -= put;
+        }
+        const taken = amount - left;
+        if (taken <= 0) return false;
+        (colonyState.resources as Record<string, number>)[resource] = pool - taken;
+        // 拿到手就自动选中它所在的格子，省得玩家再去找
+        const at = bag.findIndex((slot) => slot && slot.resource === resource);
+        if (at >= 0) bagSelected = at;
+        return true;
+      };
+
+      /** 把某一格放回共享池。 */
+      const dropFromBag = (index: number): void => {
+        const slot = bag[index];
+        if (!slot) return;
+        const pool = (colonyState.resources as Record<string, number>)[slot.resource] ?? 0;
+        (colonyState.resources as Record<string, number>)[slot.resource] = pool + slot.count;
+        bag[index] = null;
+      };
+
+      // 仓库里右键「聚焦」时，相机要飞过去的点
+      let focusTarget: Point | null = null;
+      // 哪些建筑产出哪种资源。查不到就说明这种东西只能靠采集，没有可聚焦的点。
+      const PRODUCER_OF: Record<string, string> = { food: 'farm', meal: 'stove', medicine: 'medicalBed' };
       let tool = 'inspect';
       let terrainTarget = 6, terrainSize = 3, terrainShape: 'brush' | 'rectangle' = 'brush', terrainSample = false;
       let buildHeight: number | null = null;
@@ -73,40 +126,79 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       // 玩家就是玩家，不是第四个居民。位置只活在表现层。
       // 碰撞不挂物理引擎，和 Unity 那边一个思路——直接查体素，
       // 规则可预测，也不会出现"人贴着墙缝钻过去"。
-      const PLAYER_RADIUS = 0.32;
-      const PLAYER_SPEED = 4.5;        // 米/秒
-      const PLAYER_JUMP = 1.1;         // 能跳多高
-      const PLAYER_GRAVITY = -26;      // 重力加速度
+      // 角色碰撞：AABB 包围盒 + 分轴扫掠，和 Unity 的 CharacterController 一个路数。
+      // 之前用「四个探点 + 硬推」，三样毛病都出在那儿：
+      //   探点各偏 0.32 米 → 撞墙停在半米外，看着像空气墙
+      //   只探轴对齐四向 → 斜着能挤过对角缝
+      //   推出一次跳半米 → 看起来像瞬移
+      // 换成真实包围盒后，撞墙时位置会被压到方块表面，斜走靠分轴自然滑墙。
+      const PLAYER_HALF = 0.28;   // 半宽（体宽 0.56，比方块窄一点，过 1 格门不别扭）
+      const PLAYER_HEIGHT = 1.8;  // 身高
+      const MOVE_STEP = 0.05;     // 每步 5 厘米，够细，撞墙误差不超过这个数
+      const PLAYER_SPEED = 4.5;   // 米/秒
+      const TURN_SPEED = 14;      // 转身平滑系数，和 Unity 的 PlayerController 一致
+      const PLAYER_JUMP = 1.1;    // 能跳多高
+      const PLAYER_GRAVITY = -26; // 重力加速度
       const player = {
         x: voxels.width / 2, z: voxels.depth / 2,
         y: 0, vy: 0, grounded: true, facing: 0, moving: false,
       };
       player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z));
 
-      /** 脚下这一列，从 fromY 往下找第一个实心方块，返回可以站的脚底高度。 */
-      const groundHeight = (x: number, z: number, fromY: number): number => {
-        const gx = Math.floor(x), gz = Math.floor(z);
-        const start = Math.min(voxels.height - 1, Math.floor(fromY));
-        for (let y = start; y >= 0; y--) {
-          if (voxels.get(gx, y, gz) !== BLOCK.Air) return y + 1;
+      /** AABB 覆盖到的格子范围，四个方向都用这个，别再用中心格近似。 */
+      const boxCells = (cx: number, cz: number, footY: number) => ({
+        minX: Math.floor(cx - PLAYER_HALF),
+        maxX: Math.floor(cx + PLAYER_HALF - 1e-6),
+        minZ: Math.floor(cz - PLAYER_HALF),
+        maxZ: Math.floor(cz + PLAYER_HALF - 1e-6),
+        minY: Math.floor(footY + 1e-4),
+        maxY: Math.floor(footY + PLAYER_HEIGHT - 1e-6),
+      });
+
+      /** 这个位置会不会和实心方块撞上。整盒遍历，斜向自然也覆盖到了。 */
+      const blocked = (cx: number, cz: number, footY: number): boolean => {
+        const b = boxCells(cx, cz, footY);
+        for (let x = b.minX; x <= b.maxX; x++) {
+          for (let y = b.minY; y <= b.maxY; y++) {
+            for (let z = b.minZ; z <= b.maxZ; z++) {
+              if (!voxels.inBounds(x, y, z)) return true;
+              if (voxels.get(x, y, z) !== BLOCK.Air) return true;
+            }
+          }
         }
-        return 0;
+        return false;
+      };
+
+      /** 脚下这片（整个 AABB 覆盖范围）最高的地面高度，取最高才不会踩进旁边的高台。 */
+      const groundUnder = (cx: number, cz: number, fromY: number): number => {
+        const b = boxCells(cx, cz, fromY);
+        const start = Math.min(voxels.height - 1, b.minY);
+        let top = 0;
+        for (let x = b.minX; x <= b.maxX; x++) {
+          for (let z = b.minZ; z <= b.maxZ; z++) {
+            for (let y = start; y >= 0; y--) {
+              if (voxels.get(x, y, z) !== BLOCK.Air) { if (y + 1 > top) top = y + 1; break; }
+            }
+          }
+        }
+        return top;
       };
 
       /**
-       * 能不能把这个角色放在这里。
-       * 用身体半径往四个方向各探一次，再把脚和头两格都验一遍——
-       * 只看中心格会让人一半嵌进墙里，观感很糟。
+       * 沿单轴推进，一小步一小步走，撞上就停在最后那个合法位置。
+       * 分轴调用（先 X 再 Z）等于自动获得贴墙滑行：
+       * 斜着撞墙时 X 被挡住，Z 还能继续走，人就顺着墙滑过去了。
        */
-      const canStand = (x: number, z: number, footY: number): boolean => {
-        const fy = Math.floor(footY);
-        const probes: number[][] = [[x + PLAYER_RADIUS, z], [x - PLAYER_RADIUS, z], [x, z + PLAYER_RADIUS], [x, z - PLAYER_RADIUS]];
-        for (const [px, pz] of probes) {
-          const gx = Math.floor(px!), gz = Math.floor(pz!);
-          for (let dy = 0; dy <= 1; dy++) {
-            if (!voxels.inBounds(gx, fy + dy, gz)) return false;
-            if (voxels.get(gx, fy + dy, gz) !== BLOCK.Air) return false;
-          }
+      const sweep = (axis: 0 | 1, delta: number): boolean => {
+        if (Math.abs(delta) < 1e-6) return true;
+        const steps = Math.max(1, Math.ceil(Math.abs(delta) / MOVE_STEP));
+        const step = delta / steps;
+        for (let i = 0; i < steps; i++) {
+          const nx = axis === 0 ? player.x + step : player.x;
+          const nz = axis === 1 ? player.z + step : player.z;
+          if (blocked(nx, nz, player.y)) return false;
+          player.x = nx;
+          player.z = nz;
         }
         return true;
       };
@@ -191,7 +283,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         edits: voxels.editCount, editCount: voxels.editCount, revision: voxels.revision,
         undo: tool.startsWith('sandbox:') && voxels.canUndo, redo: tool.startsWith('sandbox:') && voxels.canRedo, hoverCell: hoverCell ? [...hoverCell] : null,
         status, lastEdit, camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
-        player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing },
+        player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
+          // 给验收用：当前是不是嵌在实心方块里
+          embedded: blocked(player.x, player.z, player.y),
+          parts: colonyView.playerEntityCount,
+          bag: bag.map((slot) => (slot ? { resource: slot.resource, count: slot.count } : null)),
+          bagSelected },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth], worldSize: [voxels.width, voxels.height, voxels.depth],
         terrain: { target: terrainTarget, size: terrainSize, shape: terrainShape, sample: terrainSample, preview: { ...terrainPreview }, minHeight: 1, maxHeight: voxels.height - 2 }, buildHeight,
       });
@@ -290,6 +387,34 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           }
           if (c.action === 'focus' && typeof c.id === 'string') {const pawn=colonyState.colonists.find(p=>p.id===c.id);if(pawn){target=[...pawn.position];target[1]-=1;}}
           if (c.action === 'hover') uiHover = c.value === true;
+          if (c.action === 'take') {
+            const ok = takeToBag(String(c.resource || ''), Number(c.amount) || 1);
+            status = ok ? '拿到手上了' : '背包放不下，或者仓库里没有了';
+            refreshState = true;
+          }
+          if (c.action === 'drop') {
+            dropFromBag(Number(c.slot) || 0);
+            status = '放回仓库了';
+            refreshState = true;
+          }
+          if (c.action === 'bagSelect') {
+            bagSelected = Math.max(0, Math.min(8, Number(c.index) || 0));
+            refreshState = true;
+          }
+          if (c.action === 'focus') {
+            const kind = String(c.resource || '');
+            const want = PRODUCER_OF[kind];
+            const site = want ? colonyState.buildings.find((b) => b.kind === want) : undefined;
+            if (site) { focusTarget = [site.x + 0.5, site.y + 1, site.z + 0.5]; status = '镜头已对准产出地'; }
+            else status = '没有产出它的建筑，只能去地图上采集';
+            refreshState = true;
+          }
+          if (c.action === 'setting') {
+            if (c.key === 'invertPanX') invertPanX = c.value === true;
+            if (c.key === 'invertPanY') invertPanY = c.value === true;
+            if (c.key === 'panSensitivity') panSensitivity = Number(c.value) || 0.009;
+            refreshState = true;
+          }
           if (c.action === 'undo' && tool.startsWith('sandbox:') && voxels.undo()) changed('已撤销上一步');
           if (c.action === 'redo' && tool.startsWith('sandbox:') && voxels.redo()) changed('已重做上一步');
           if (c.action === 'reseed' && typeof c.seed === 'string' && c.seed.trim()) {
@@ -334,13 +459,16 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             world.set(sunEntity,DirectionalLight,{intensity:0.45+day*2.75}).unwrap();
             world.set(ambientEntity,Skylight,{intensity:0.38+day*0.47}).unwrap();
           }
-          if (input && !uiHover) {
+          // 注意：外层不再用 !uiHover 包住整块。
+          // 鼠标停在 HUD 上只该屏蔽「鼠标操作」，键盘走照常——
+          // 否则玩家一边按 W 一边把鼠标划过快捷栏，人就会莫名其妙停住。
+          if (input) {
             const k = input.keyboard;
             const dx = Number(k.downCode('KeyD') || k.downCode('ArrowRight')) - Number(k.downCode('KeyA') || k.downCode('ArrowLeft'));
             const dz = Number(k.downCode('KeyS') || k.downCode('ArrowDown')) - Number(k.downCode('KeyW') || k.downCode('ArrowUp'));
 
-            // ---- V 切换视角 ----
-            if (k.justPressedCode('KeyV')) {
+            // ---- R 切换视角 ----
+            if (k.justPressedCode('KeyR')) {
               if (viewMode === 'god') {
                 // 先存俯视构图，切回来才能原样还原
                 godReturn = { target: [...target] as Point, yaw, pitch, distance };
@@ -350,12 +478,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 yaw = player.facing + Math.PI;
                 pitch = 0.36;
                 distance = 12;
-                status = '玩家视角 · WASD 移动 / 空格跳跃 / V 切回俯视';
+                status = '玩家视角 · WASD 移动 / 空格跳跃 / R 切回俯视';
               } else {
                 viewMode = 'god'; followId = null;
                 target = [...godReturn.target] as Point;
                 yaw = godReturn.yaw; pitch = godReturn.pitch; distance = godReturn.distance;
-                status = '俯视视角 · V 切到玩家';
+                status = '俯视视角 · R 切到玩家';
               }
               refreshState = true;
             }
@@ -371,15 +499,20 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
 
               if (len > 1e-4) {
                 mx /= len; mz /= len;
-                player.facing = Math.atan2(mx, mz);
+                // 平滑转向，帧率无关：t = 1 - exp(-k*dt)，和 Unity 那边同一个公式。
+                // 角度要按最短路径插值——直接线性插值会在 ±π 附近绕一大圈。
+                const want = Math.atan2(mx, mz);
+                const t = 1 - Math.exp(-TURN_SPEED * dt);
+                let diff = ((want - player.facing + Math.PI) % (Math.PI * 2)) - Math.PI;
+                if (diff < -Math.PI) diff += Math.PI * 2;
+                player.facing += diff * t;
                 player.moving = true;
 
+                // 分轴推进：先 X 再 Z。
+                // 斜着撞墙时 X 被挡、Z 照走，位置会被压到方块表面而不是停在半米外。
                 const step = PLAYER_SPEED * dt;
-                const nx = player.x + mx * step, nz = player.z + mz * step;
-                if (canStand(nx, nz, player.y)) { player.x = nx; player.z = nz; }
-                // 贴墙滑：分轴各试一次，不然贴着墙会整个人卡死
-                else if (canStand(nx, player.z, player.y)) player.x = nx;
-                else if (canStand(player.x, nz, player.y)) player.z = nz;
+                sweep(0, mx * step);
+                sweep(1, mz * step);
               } else {
                 player.moving = false;
               }
@@ -392,12 +525,13 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
 
               if (!player.grounded) {
                 player.vy += PLAYER_GRAVITY * dt;
-                player.y += player.vy * dt;
-                const g = groundHeight(player.x, player.z, player.y + 0.2);
-                if (player.y <= g) { player.y = g; player.vy = 0; player.grounded = true; }
+                const ny = player.y + player.vy * dt;
+                const g = groundUnder(player.x, player.z, player.y + 0.1);
+                if (ny <= g) { player.y = g; player.vy = 0; player.grounded = true; }
+                else player.y = ny;
               } else {
                 // 走出台沿：脚下空了就开始掉
-                const g = groundHeight(player.x, player.z, player.y + 0.2);
+                const g = groundUnder(player.x, player.z, player.y + 0.1);
                 if (player.y > g + 0.05) { player.grounded = false; player.vy = 0; }
                 else player.y = g;
               }
@@ -410,20 +544,48 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               target[2] += (desired[2] - target[2]) * t;
 
               yaw += (Number(k.downCode('KeyE')) - Number(k.downCode('KeyQ'))) * dt * 1.2;
-              if (input.mouse.button(1)) {
-                yaw -= input.mouse.movementDelta.x * 0.005;
-                pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.15, 1.2);
+              if (!uiHover) {
+                if (input.mouse.button(1)) {
+                  yaw -= input.mouse.movementDelta.x * 0.005;
+                  pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.15, 1.2);
+                }
+                distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 5, 40);
               }
-              distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 5, 40);
             } else {
+              // 聚焦飞行：有目标就先飞过去，路上不响应拖动
+              if (focusTarget) {
+                const t = 1 - Math.exp(-7 * dt);
+                target[0] += (focusTarget[0] - target[0]) * t;
+                target[2] += (focusTarget[2] - target[2]) * t;
+                if (Math.hypot(focusTarget[0] - target[0], focusTarget[2] - target[2]) < 0.05) focusTarget = null;
+              }
               // 俯视视角：原来的自由平移 + 环绕 + 缩放
               const speed = distance * 0.32 * dt;
               target[0] = clamp(target[0] + (Math.cos(yaw) * dx + Math.sin(yaw) * dz) * speed, 0, voxels.width);
               target[2] = clamp(target[2] + (-Math.sin(yaw) * dx + Math.cos(yaw) * dz) * speed, 0, voxels.depth);
               yaw += (Number(k.downCode('KeyE')) - Number(k.downCode('KeyQ'))) * dt * 1.2;
-              if (input.mouse.button(1)) {
-                yaw -= input.mouse.movementDelta.x * 0.005;
-                pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.35, 1.25);
+              if (!uiHover) {
+                if (input.mouse.button(1)) {
+                  yaw -= input.mouse.movementDelta.x * 0.005;
+                  pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.35, 1.25);
+                }
+                // 右键按住拖动 = 平移镜头，和 Unity 那边手感一致。
+                // 拉得越远，同样的像素位移扫过的地面越多，所以系数带上 distance。
+                if (input.mouse.button(2)) {
+                  const k2 = distance * panSensitivity;
+                  const rx = Math.cos(yaw), rz = -Math.sin(yaw);
+                  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+                  // 方向照 Unity 的 GridCamera.HandleDragPan：
+                  //   pivot += (right * dx + forward * dy) * scale
+                  // 是加不是减。DOM 的 movementY 向下为正，Unity 的 delta.y 向上为正，
+                  // 所以垂直那一项要取负号，否则「抓地图」的手感会反。
+                  const mx = input.mouse.movementDelta.x * k2 * (invertPanX ? -1 : 1);
+                  const mz = -input.mouse.movementDelta.y * k2 * (invertPanY ? -1 : 1);
+                  target[0] = clamp(target[0] + rx * mx + fx * mz, 0, voxels.width);
+                  target[2] = clamp(target[2] + rz * mx + fz * mz, 0, voxels.depth);
+                }
+                // Engine wheelDelta is a signed notch accumulator, not DOM pixel deltaY.
+                distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 15, 100);
               }
               // Engine wheelDelta is a signed notch accumulator, not DOM pixel deltaY.
               distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 15, Math.max(100, Math.max(voxels.width, voxels.depth) * 1.4));
@@ -433,7 +595,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             // 空格：俯视视角是暂停，玩家视角留给跳跃（上面已处理）
             if (k.justPressedCode('Space') && viewMode === 'god') execute({action:'speed',value:colonyState.speed===0?1:0});
             if (k.justPressedCode('Escape')) {cancelStroke();terrainSample=false;tool='inspect';refreshState=true;}
-            if (dx || dz || input.mouse.button(1) || input.mouse.wheelDelta) refreshState = true;
+            if (dx || dz || input.mouse.button(1) || input.mouse.button(2) || input.mouse.wheelDelta) refreshState = true;
           }
           const horizontal = distance * Math.cos(pitch);
           eye = [target[0] + Math.sin(yaw) * horizontal, target[1] + Math.sin(pitch) * distance, target[2] + Math.cos(yaw) * horizontal];

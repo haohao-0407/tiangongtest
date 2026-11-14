@@ -41,3 +41,66 @@
 .terrain-controls{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}.terrain-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:end;gap:9px}.terrain-field{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:10px;color:#627957}.terrain-field input,.terrain-field select{width:100%;font-size:11px}.terrain-fields>button{font-size:10px;min-height:31px;white-space:normal}.terrain-preview{font-size:11px;color:#496b49;line-height:1.6;overflow-wrap:anywhere}.terrain-controls .panel-note{margin-bottom:0}.terrain-toolbar{position:absolute;right:16px;top:122px;width:300px;max-width:calc(100% - 32px);padding:12px;max-height:calc(100% - 232px);overflow:auto}.terrain-toolbar .terrain-controls{margin-bottom:0}.terrain-toolbar .terrain-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.foundation-controls{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:12px}.foundation-auto{display:flex;align-items:center;gap:7px;font-size:11px}.foundation-auto input{margin:0}.foundation-controls .terrain-field{width:125px}.terrain-plan-list{margin-top:8px}.terrain-plan-list .production-row{align-items:flex-start}.terrain-plan-list .production-row>button{flex:0 0 auto;font-size:10px}.terrain-plan-list .row-main p{overflow-wrap:anywhere}.footer-hint{gap:10px;align-items:flex-end}.footer-hint #tool-hint{min-width:0;flex:1;white-space:normal}.footer-hint #quick-save{flex:0 0 auto}.shell[data-view-mode="character"] .terrain-toolbar{display:none}
 @media(max-height:650px){.terrain-toolbar{top:107px;max-height:calc(100% - 214px);padding:10px}.terrain-controls{gap:6px;margin-bottom:9px}.terrain-fields{gap:7px}}
 @media(max-width:800px){.terrain-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.terrain-toolbar{right:10px;width:260px;max-width:calc(100% - 20px)}.foundation-controls{gap:10px}.terrain-plan-list .production-row{gap:7px}}
+
+/* ESC 暂停层：仿 Unity 那个深色居中小卡片，全屏压暗。 */
+.pause-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(16,26,18,.52);z-index:30}
+.pause-overlay[hidden]{display:none}
+.pause-card{min-width:190px;padding:20px 30px 18px;background:#1d2620;border:2px solid #3a4b3a;border-radius:8px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.pause-card h2{margin:0 0 16px;font-size:14px;font-weight:600;color:#e9e6d2;letter-spacing:.5px}
+.pause-card button{display:block;width:100%;margin:5px 0;padding:7px 10px;font-size:11px;color:#dcd9c3;background:#2b3729;border:1px solid #46543f;border-radius:4px;cursor:pointer}
+.pause-card button:hover{background:#38472f;border-color:#5d7052}
+
+/* 设置里的开关按钮 */
+.setting-toggle{display:block;width:100%;margin-top:6px;padding:7px 10px;font-size:11px;text-align:left;color:#4a5a42;background:#eef3e4;border:1px solid #c3d0b2;border-radius:6px}
+.setting-toggle:hover{background:#e0eace;border-color:#aebf93}
+
+/* 暂停里的设置页：深色面板，条目横排，和暂停卡片同一套视觉。 */
+.options-card{min-width:300px;padding:22px 26px 18px}
+.options-card h2{margin-bottom:18px}
+.opt-row{display:flex;align-items:center;gap:9px;margin:7px 0;padding:7px 10px;background:#26302b;border:1px solid #3a4b3a;border-radius:4px;font-size:11px;color:#dcd9c3;cursor:pointer}
+.opt-row input[type="checkbox"]{width:12px;height:12px;margin:0;cursor:pointer}
+.opt-row span{flex:1}
+.opt-row.opt-slider{gap:10px;cursor:default}
+.opt-row input[type="range"]{flex:1;height:3px;margin:0;cursor:pointer}
+.opt-row #opt-sensitivity-value{flex:none;min-width:34px;text-align:right;color:#a9b79a;font-size:10px}
+.options-card #options-back{margin-top:12px;padding:8px 10px;font-size:11px;color:#e6e3cd;background:#2f3d31;border:1px solid #4a5c48;border-radius:4px;cursor:pointer;width:100%}
+.options-card #options-back:hover{background:#3a4b3a}
+
+/* 仓库格子面板：照 Unity 那边搬的，搜索 + 升降序 + 分类 + 七列网格。 */
+.wh-tools{display:flex;gap:6px;margin-bottom:10px}
+.wh-search{flex:1;min-width:0;padding:7px 10px;font-size:11px;color:#3d4a36;background:#f6f8ef;border:1px solid #c3d0b2;border-radius:5px}
+.wh-search::placeholder{color:#9aa892}
+.wh-order{flex:none;padding:7px 12px;font-size:11px;color:#45523c;background:#eef3e4;border:1px solid #c3d0b2;border-radius:5px;cursor:pointer;white-space:nowrap}
+.wh-order:hover{background:#e0eace;border-color:#aebf93}
+.wh-category{flex:none;padding:7px 8px;font-size:11px;color:#45523c;background:#eef3e4;border:1px solid #c3d0b2;border-radius:5px;cursor:pointer;white-space:nowrap}
+.wh-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:9px;background:#e9efdc;border:1px solid #cbd6bb;border-radius:6px}
+.wh-cell{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#f7f9f0;border:1px solid #c9d4b8;border-radius:4px;overflow:hidden}
+.wh-cell.empty{background:#e2e8d5;border-color:#d3dcc6}
+.wh-icon{font-size:18px;line-height:1}
+.wh-count{position:absolute;right:3px;bottom:2px;font-size:9px;line-height:1;color:#3d4a36;font-weight:600}
+.wh-label{position:absolute;left:3px;top:2px;font-size:8px;line-height:1;color:#7c8a72}
+
+/* 自绘分类下拉：照 Unity 的 DropdownList，展开层自己画，样式才跟得上主题。 */
+.wh-dropdown{position:relative;flex:none}
+.wh-cat-trigger{display:flex;align-items:center;gap:7px;padding:7px 10px;font-size:11px;color:#45523c;background:#eef3e4;border:1px solid #c3d0b2;border-radius:5px;cursor:pointer;white-space:nowrap}
+.wh-cat-trigger:hover{background:#e0eace;border-color:#aebf93}
+.wh-cat-caret{font-size:8px;color:#7c8a72;line-height:1}
+.wh-dropdown.open .wh-cat-caret{transform:rotate(180deg)}
+.wh-cat-menu{position:absolute;top:calc(100% + 4px);right:0;min-width:100%;display:flex;flex-direction:column;padding:3px;background:#f7f9f0;border:1px solid #c3d0b2;border-radius:5px;box-shadow:0 5px 14px #1e321e26;z-index:30}
+.wh-cat-menu[hidden]{display:none}
+.wh-cat-option{padding:7px 11px;font-size:11px;text-align:left;color:#45523c;background:transparent;border:0;border-radius:3px;cursor:pointer;white-space:nowrap}
+.wh-cat-option:hover{background:#e0eace}
+.wh-cat-option.active{color:#2f4a2a;font-weight:600;background:#dbe6cc}
+
+/* 仓库格子右键菜单：深色小卡，和暂停卡片同一套。 */
+.item-menu{position:absolute;min-width:112px;padding:5px;display:flex;flex-direction:column;gap:2px;z-index:35;background:#1d2620;border:2px solid #3a4b3a;border-radius:6px;box-shadow:0 8px 22px #0d150f55}
+.item-menu[hidden]{display:none}
+.item-menu-title{padding:5px 10px 7px;font-size:10px;color:#93a487;border-bottom:1px solid #33422f;margin-bottom:3px}
+.item-menu button{padding:7px 10px;text-align:left;font-size:11px;color:#dcd9c3;background:transparent;border:1px solid transparent;border-radius:4px;cursor:pointer}
+.item-menu button:hover{background:#2f3d31;border-color:#4a5c48}
+.item-menu button[disabled]{color:#6d7a66;cursor:not-allowed}
+.item-menu button[disabled]:hover{background:transparent;border-color:transparent}
+
+/* 快捷栏上方的选中物品名，照 Unity 那套。 */
+.hotbar-name{display:none;position:absolute;left:50%;bottom:74px;transform:translateX(-50%);font-size:11px;color:#f0ead6;text-shadow:0 1px 3px #00000099;pointer-events:none;letter-spacing:.06em;z-index:21}
+.shell[data-view-mode="character"] .hotbar-name{display:block}

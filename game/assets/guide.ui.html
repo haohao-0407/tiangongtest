@@ -1,4 +1,29 @@
 <div class="shell">
+  <div id="item-menu" class="item-menu" data-interactive hidden>
+    <div id="item-menu-title" class="item-menu-title"></div>
+    <button data-item-action="select">选中</button>
+    <button data-item-action="take">获取</button>
+    <button data-item-action="focus">聚焦</button>
+  </div>
+
+
+  <div id="pause-menu" class="pause-overlay" data-interactive hidden>
+    <div class="pause-card">
+      <h2>已暂停</h2>
+      <button id="pause-settings">设置</button>
+      <button id="pause-quit">退出游戏</button>
+    </div>
+  </div>
+  <div id="game-options" class="pause-overlay" data-interactive hidden>
+    <div class="pause-card options-card">
+      <h2>设置</h2>
+      <label class="opt-row"><input type="checkbox" id="opt-invert-x"><span>反转水平拖动</span></label>
+      <label class="opt-row"><input type="checkbox" id="opt-invert-y"><span>反转垂直拖动</span></label>
+      <div class="opt-row opt-slider"><span>拖拽灵敏度</span><input type="range" id="opt-sensitivity" min="1" max="30" step="1" value="9"><span id="opt-sensitivity-value">0.009</span></div>
+      <button id="options-back">返回</button>
+    </div>
+  </div>
+
   <header class="topbar panel" data-interactive>
     <div class="brand"><span class="brand-icon">▧</span><div><h1>森屿</h1><p>和平家园 · COLONY HOMESTEAD</p></div></div>
     <div class="clock"><strong id="date">正在铺开家园…</strong><span id="weather">等待世界数据</span></div>
@@ -11,7 +36,8 @@
   <aside id="settings" class="settings panel" data-interactive hidden>
     <div class="panel-heading"><h2>世界与存档</h2><button id="settings-close" class="close" aria-label="关闭设置">×</button></div>
     <label for="seed">世界种子 <span>同一种子 · 同一片土地</span></label><div class="seed-row"><input id="seed" value="森屿-042" maxlength="80" spellcheck="false" aria-label="世界种子"><button id="generate">生成</button></div>
-    <p id="world-size" class="muted">新地图默认 250 × 250 格</p><p id="generate-hint" class="muted">生成新世界会重置居民与当前规划。</p><div class="button-grid"><button id="save">保存家园</button><button id="load">读取本机</button><button id="export">导出 JSON</button><button id="import">导入 JSON</button></div>
+    <p id="world-size" class="muted">新地图默认 250 × 250 格</p><p id="generate-hint" class="muted">生成新世界会重置居民与当前规划。</p>
+    <div class="button-grid"><button id="save">保存家园</button><button id="load">读取本机</button><button id="export">导出 JSON</button><button id="import">导入 JSON</button></div>
     <div id="import-panel" hidden><label for="import-json">粘贴家园 JSON 存档</label><textarea id="import-json" rows="5" spellcheck="false" placeholder="打开导出的 JSON 文件，复制内容到这里。" aria-label="JSON 存档内容"></textarea><div class="button-grid"><button id="import-confirm">确认导入</button><button id="import-cancel">取消</button></div></div><p id="save-status" class="save-status" role="status">本机自动保存 · 无需登录</p><p class="muted">保存土地、居民、工作与研究进度。导出文件可供备份，或复制其内容在另一台电脑载入。</p>
   </aside>
   <aside id="help" class="help panel" data-interactive hidden>
@@ -23,6 +49,7 @@
   <footer class="bottom-area"><div class="selection-info"><span class="status-dot"></span><span id="status">居民正在准备安家…</span><span id="cell"></span></div>
         <div class="footer-hint"><span id="tool-hint">查看模式 · 左键选择居民或地块</span><span id="quick-save">本机存档</span></div>
 </footer>
+  <div id="hotbar-name" class="hotbar-name"></div>
   <div class="hotbar" id="hotbar" data-interactive aria-label="快捷栏"></div>
   <nav class="tool-rail panel" data-interactive aria-label="家园菜单"><button data-menu="warehouse"><span>▤</span>仓库</button><button data-menu="follower"><span>☺</span>随从</button><button data-menu="plan"><span>▦</span>规划</button><div class="rail-sep"></div><button data-menu="inspect" class="active"><span>⌖</span>查看</button><button data-menu="build"><span>▧</span>建造</button><button data-menu="work"><span>☷</span>工作</button><button data-menu="production"><span>⚒</span>生产</button><button data-menu="research"><span>◇</span>研究</button><button data-menu="trade"><span>⇄</span>贸易</button><button data-menu="logs"><span>≡</span>记录</button><button data-menu="sandbox"><span>▨</span>沙盒</button></nav>
 </div>

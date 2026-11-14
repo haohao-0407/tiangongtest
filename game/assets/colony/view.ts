@@ -138,30 +138,44 @@ export class ColonyView {
 
   private playerEntities:EntityHandle[]=[];
   private playerParts:Part[]=[];
+  private playerFacing=Number.NaN;
 
   /** 每帧调，只改位置/姿态，不重建实体。 */
   updatePlayer(p:{x:number;y:number;z:number;facing:number;moving:boolean;grounded:boolean},time:number){
     const [x,y,z]=[p.x,p.y,p.z];
     const swing=p.moving?Math.sin(time*11)*.09:0;
-    const fx=Math.sin(p.facing),fz=Math.cos(p.facing);
+    // 整个人绕 Y 轴转：先在「朝 +Z」的局部坐标里摆好，再按 facing 旋到世界。
+    // 之前只挪眼睛的位置，身体还是固定朝向，看着像块不动的砖。
+    const cos=Math.cos(p.facing),sin=Math.sin(p.facing);
+    const rot=(lx:number,ly:number,lz:number):V3=>[x+lx*cos+lz*sin,y+ly,z-lx*sin+lz*cos];
+    // 光有位置旋转不够——躯干和头在中心（lx=lz=0），位置根本不变，
+    // 方块本身又是轴对齐的，转起来就像上半身钉死了。
+    // 这里给每个方块真的加一个绕 Y 的旋转，人整体才会跟着转。
+    const spin:[number,number,number,number]=[0,Math.sin(p.facing/2),0,Math.cos(p.facing/2)];
+    const facingChanged=Math.abs(p.facing-this.playerFacing)>1e-4;
+    this.playerFacing=p.facing;
     const parts:Part[]=[
-      {p:[x-.13,y+.22+swing,z],s:[.18,.44,.24],c:'dark'},{p:[x+.13,y+.22-swing,z],s:[.18,.44,.24],c:'dark'},
-      {p:[x,y+.69,z],s:[.52,.55,.32],c:'playerBody'},
-      {p:[x,y+1.12,z],s:[.4,.4,.37],c:'skin'},
-      {p:[x,y+1.34,z],s:[.43,.12,.4],c:'playerHair'},
-      {p:[x-.1+fx*.13,y+1.14,z+fz*.13],s:[.05,.055,.028],c:'black'},
-      {p:[x+.1+fx*.13,y+1.14,z+fz*.13],s:[.05,.055,.028],c:'black'},
-      {p:[x-.33,y+.65-swing,z],s:[.13,.43,.19],c:'skin'},{p:[x+.33,y+.65+swing,z],s:[.13,.43,.19],c:'skin'},
-      {p:[x,y+1.9,z],s:[.22,.22,.22],c:'playerMark',shadow:false},
+      {p:rot(-.13,.22+swing,0),s:[.18,.44,.24],c:'dark'},   // 左腿
+      {p:rot(.13,.22-swing,0),s:[.18,.44,.24],c:'dark'},    // 右腿
+      {p:rot(0,.69,0),s:[.32,.55,.52],c:'playerBody'},      // 躯干（前后厚、左右窄）
+      {p:rot(0,1.12,0),s:[.4,.4,.37],c:'skin'},             // 头
+      {p:rot(0,1.34,0),s:[.43,.12,.4],c:'playerHair'},      // 头发
+      {p:rot(-.1,1.14,.19),s:[.05,.055,.028],c:'black'},    // 左眼
+      {p:rot(.1,1.14,.19),s:[.05,.055,.028],c:'black'},     // 右眼
+      {p:rot(-.33,.65-swing,0),s:[.19,.43,.19],c:'skin'},   // 左臂
+      {p:rot(.33,.65+swing,0),s:[.19,.43,.19],c:'skin'},    // 右臂
+      {p:[x,y+1.9,z],s:[.22,.22,.22],c:'playerMark',shadow:false},  // 头顶标记不跟着转
     ];
-    if(p.grounded)parts.push({p:[x,y+.025,z],s:[.72,.03,.72],c:'playerMark',shadow:false});
+    // 落地光晕固定占第 11 格，不落地时缩成 0 隐藏。
+    // 早先按部件数量决定要不要重建，结果落地/起跳各 10、11 个来回切，
+    // 旧实体没被干净回收，屏幕上就叠出两套人。
+    // 现在数量恒定为 11：建一次，之后只改位置和缩放。
+    parts.push({p:[x,y+.025,z],s:p.grounded?[.72,.03,.72]:[0,0,0],c:'playerMark',shadow:false});
 
-    // 形状变了（落地/起跳）才重建；平时只挪位置
-    if(this.playerEntities.length!==parts.length){
-      for(const e of this.playerEntities)this.world.despawn(e).unwrap();
-      this.playerParts=parts;
+    if(this.playerEntities.length===0){
+      this.playerParts=parts.map(q=>({p:[...q.p] as V3,s:[...q.s] as V3,c:q.c,shadow:q.shadow}));
       this.playerEntities=parts.map((part,i)=>this.world.spawn(
-        {component:Name,data:{value:`player/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s}},
+        {component:Name,data:{value:`player/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s,quat:spin}},
         {component:MeshFilter,data:{assetHandle:this.cube}},{component:MeshRenderer,data:{materials:[this.material(part.c)]}},
         {component:ShadowParticipation,data:{cast:part.shadow!==false,receive:true}},
       ).unwrap());
@@ -169,13 +183,15 @@ export class ColonyView {
     }
     for(let i=0;i<parts.length;i++){
       const next=parts[i]!,prev=this.playerParts[i]!;
-      if(next.p.some((n,j)=>n!==prev.p[j])||next.s.some((n,j)=>n!==prev.s[j])){
-        this.world.set(this.playerEntities[i]!,Transform,{pos:next.p,scale:next.s}).unwrap();
+      if(next.p.some((n,j)=>n!==prev.p[j])||next.s.some((n,j)=>n!==prev.s[j])||facingChanged){
+        this.world.set(this.playerEntities[i]!,Transform,{pos:next.p,scale:next.s,quat:spin}).unwrap();
         prev.p=next.p;prev.s=next.s;
       }
       if(next.c!==prev.c)this.world.set(this.playerEntities[i]!,MeshRenderer,{materials:[this.material(next.c)]}).unwrap();
     }
   }
+
+  get playerEntityCount(){return this.playerEntities.length;}
 
   disposePlayer(){for(const e of this.playerEntities)this.world.despawn(e).unwrap();this.playerEntities=[];this.playerParts=[];}
 }

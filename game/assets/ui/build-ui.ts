@@ -12,7 +12,14 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
   worldSize?: [number, number, number]; buildHeight?: number | null;
   terrain?: { target: number; size: number; shape: 'brush' | 'rectangle'; sample: boolean; minHeight: number; maxHeight: number; preview?: { cells: number; cut: number; fill: number } };
   /** 相机状态。mode 决定哪些 HUD 该出现：指挥官视角要菜单，玩家视角不要。 */
-  camera?: { mode?: 'god' | 'character'; followId?: string | null } };
+  camera?: { mode?: 'god' | 'character'; followId?: string | null };
+  /** 玩家角色。位置只活在表现层，不进殖民地模拟。 */
+  player?: {
+    x: number; y: number; z: number; grounded: boolean; moving: boolean; facing: number;
+    embedded: boolean; parts: number;
+    bag: ({ resource: string; count: number } | null)[];
+    bagSelected: number;
+  } };
 type SaveIntent = 'auto' | 'manual' | 'export';
 const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人' };
 const BUILD_ICONS: Record<string, string> = { bed: '▱', table: '▤', stove: '♨', workbench: '⚒', researchDesk: '◇', solar: '☀', battery: '▥', cooler: '❄', medicalBed: '+', wall: '▧', door: '▯', floor: '▦' };
@@ -36,7 +43,6 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   // 视角标记挂在 .shell 上（UI 在 Shadow DOM 里，不能用 body）
   let shellEl: HTMLElement | null = null;
   // 快捷栏选中的格子，只在玩家视角有意义
-  let hotbarIndex = 0;
   let booted = false, disposed = false, lastWorldSeed = '', confirmUntil = 0, lastCardsStamp = '', lastPanelStamp = '', lastInspectorStamp = '';
   let pendingSave: SaveIntent | null = null, queuedSave: SaveIntent | null = null;
   let lastSaveTime = -Infinity, lastSavedSim = 0, lastSavedStamp = '', latestStamp = '', savingStamp = '', savingSim = 0;
@@ -294,29 +300,179 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }
     root.append(materials, note(`当前土地 ${state?.edits ?? 0} 格改动 · 1—6 选材 · 左键执行 · 右键拆除`));
   }
-  /** 仓库：把九类资源的存量、用途和地面散落物摆在一张表里。 */
+  // ---- 物品右键菜单 ----
+  // 照 Unity 的 WarehouseItemMenu：点格子弹出，在这里对单件资源做操作。
+  // Unity 那边三项是「选中 / 获取 / 聚焦」，天工只有全局资源池、没有背包，
+  // 「获取」没有对应物，所以这里只留能真正起作用的两个。
+  let whSelected = '', pendingItem: string | null = null;
+  const itemMenu = get('item-menu');
+  const itemMenuTitle = get('item-menu-title');
+  const closeItemMenu = () => { if (itemMenu) itemMenu.hidden = true; };
+  const openItemMenu = (kind: string, clientX: number, clientY: number) => {
+    if (!itemMenu) return;
+    pendingItem = kind;
+    if (itemMenuTitle) itemMenuTitle.textContent = RESOURCE_NAMES[kind as Resource];
+    itemMenu.hidden = false;
+    const rect = shellEl?.getBoundingClientRect();
+    const x = Math.min(clientX - (rect?.left ?? 0), (rect?.width ?? 0) - 126);
+    const y = Math.min(clientY - (rect?.top ?? 0), (rect?.height ?? 0) - 120);
+    itemMenu.style.left = `${Math.max(4, x)}px`;
+    itemMenu.style.top = `${Math.max(4, y)}px`;
+  };
+  if (itemMenu) {
+    on(itemMenu, 'click', (event) => {
+      const btn = (event.target as HTMLElement | null)?.closest?.('[data-item-action]') as HTMLElement | null;
+      if (!btn?.dataset.itemAction || !pendingItem) return;
+      const action = btn.dataset.itemAction;
+      const kind = pendingItem;
+      closeItemMenu();
+      if (action === 'select') {
+        whSelected = whSelected === kind ? '' : kind;
+        renderPanel(true);
+      } else if (action === 'take') {
+        // 照 Unity 的 OnTake：从共享池扣一份拿到手上
+        send('take', { resource: kind, amount: 1 });
+      } else if (action === 'focus') {
+        // 天工没有容器，聚焦的目标改成「产出这种东西的建筑」
+        send('focus', { resource: kind });
+      }
+    });
+  }
+  const closeItemMenuOnDown = (event: MouseEvent) => {
+    if (!itemMenu || itemMenu.hidden) return;
+    const inside = event.composedPath().some(
+      (node) => (node as HTMLElement)?.classList?.contains?.('item-menu'),
+    );
+    if (!inside) closeItemMenu();
+  };
+  doc.addEventListener('mousedown', closeItemMenuOnDown, true);
+
+  /** 仓库：格子式面板，照 Unity 那边搬过来的。搜索 / 升降序 / 分类 / 网格。 */
+  let whQuery = '', whDesc = false, whCategory = 'all', whMenuOpen = false;
+  // 面板每次重建都会重挂 document 监听，旧的先摘掉，别越堆越多
+  let whDocDown: ((event: MouseEvent) => void) | null = null;
+  // Unity 那边只分「方块 / 非方块」两类，这里照搬
+  const CATEGORY_OF: Record<string, string> = {
+    wood: 'block', stone: 'block', steel: 'block',
+    food: 'item', meal: 'item', medicine: 'item', cloth: 'item', silver: 'item', components: 'item',
+  };
+  const CATEGORY_NAMES: Record<string, string> = { all: '全部', block: '方块', item: '非方块' };
+
   function renderWarehouse(c: ColonySnapshot, root: HTMLElement) {
-    root.append(note('这里只统计已经入库的资源。散在地上的物资要先由居民搬回来才算数。'));
-    const list = make('div', 'row-list');
-    const hints: Record<Resource, string> = {
-      wood: '建造与制作', stone: '墙体与炉灶', steel: '工具与电力设备', food: '直接吃，或加工成熟食',
-      meal: '吃了心情更好', medicine: '治疗疾病', cloth: '床铺与医护床', silver: '贸易结算', components: '高级设备零件',
-    };
-    for (const r of RESOURCE_TYPES) {
-      const row = make('div', 'production-row'), main = make('div', 'row-main');
-      main.append(make('strong', '', `${RESOURCE_ICONS[r]} ${RESOURCE_NAMES[r]}`), make('p', '', hints[r]));
-      row.append(main, make('span', 'need-value', String(int(c.resources[r]))));
-      list.append(row);
+    const tools = make('div', 'wh-tools');
+    const search = make('input', 'wh-search') as HTMLInputElement;
+    search.type = 'text';
+    search.placeholder = '搜索物品名…';
+    search.value = whQuery;
+    search.setAttribute('aria-label', '搜索物品');
+
+    const order = make('button', 'wh-order', whDesc ? '降序' : '升序');
+
+    // 分类用自绘下拉，照 Unity 的 DropdownList：
+    // TriggerButton 展开 → Panel 竖排选项 → Blocker 全屏透明层负责收起。
+    // 不用原生 select：它的展开层是浏览器画的，样式拦不住，还在 Shadow DOM 里容易错位。
+    const dropdown = make('div', 'wh-dropdown');
+    const trigger = make('button', 'wh-cat-trigger');
+    const triggerLabel = make('span', '', CATEGORY_NAMES[whCategory]!);
+    trigger.append(triggerLabel, make('span', 'wh-cat-caret', '▾'));
+    const menu = make('div', 'wh-cat-menu');
+    if (!whMenuOpen) menu.setAttribute('hidden', '');
+    if (whMenuOpen) dropdown.classList.add('open');
+    const optionButtons = new Map<string, HTMLButtonElement>();
+    for (const [key, label] of Object.entries(CATEGORY_NAMES)) {
+      const option = make('button', `wh-cat-option${key === whCategory ? ' active' : ''}`, label);
+      option.dataset.cat = key;
+      optionButtons.set(key, option);
+      menu.append(option);
     }
-    root.append(list);
+    dropdown.append(trigger, menu);
+
+    tools.append(search, order, dropdown);
+    root.append(tools);
+
+    const grid = make('div', 'wh-grid');
+    const emptyHint = note('没有匹配的物品。');
+    root.append(grid, emptyHint);
+
+    /** 只重画网格。搜索框不能跟着重建，否则每敲一个字就丢焦点。 */
+    const drawGrid = () => {
+      const items = RESOURCE_TYPES
+        .filter((r) => whCategory === 'all' || CATEGORY_OF[r] === whCategory)
+        .filter((r) => !whQuery || RESOURCE_NAMES[r].includes(whQuery))
+        .map((r) => ({ kind: r as string, name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
+        // 照 Unity 的 ChestWindow：按显示名的字典序排，不是按数量。
+        // 同名（理论上不会）才拿数量兜底，保证顺序稳定、不会每帧跳。
+        .sort((a, b) => {
+          const diff = a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+          const result = diff === 0 ? a.count - b.count : diff;
+          return whDesc ? -result : result;
+        });
+
+      clear(grid);
+      // 固定 7 列，空位补格子，看起来才像一整个仓库面板
+      const slots = Math.max(28, Math.ceil(items.length / 7) * 7);
+      for (let i = 0; i < slots; i++) {
+        const item = items[i];
+        const cell = make('div', `wh-cell${item ? '' : ' empty'}${item && item.kind === whSelected ? ' selected' : ''}`);
+        if (item) {
+          cell.title = `${item.name} · ${item.count}`;
+          cell.append(make('span', 'wh-icon', item.icon));
+          if (item.count > 0) cell.append(make('span', 'wh-count', String(item.count)));
+          cell.append(make('span', 'wh-label', item.name));
+          cell.dataset.item = item.kind;
+          cell.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openItemMenu(item.kind, event.clientX, event.clientY);
+          });
+        }
+        grid.append(cell);
+      }
+      emptyHint.hidden = items.length > 0;
+    };
+
+    search.addEventListener('input', () => { whQuery = search.value; drawGrid(); });
+    order.addEventListener('click', () => { whDesc = !whDesc; order.textContent = whDesc ? '降序' : '升序'; drawGrid(); });
+
+    // 下拉交互：展开/收起，选完自动收起，选同一项不重复触发
+    const closeMenu = () => { menu.setAttribute('hidden', ''); dropdown.classList.remove('open'); whMenuOpen = false; };
+    trigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const willOpen = menu.hasAttribute('hidden');
+      if (willOpen) menu.removeAttribute('hidden'); else menu.setAttribute('hidden', '');
+      whMenuOpen = willOpen;
+      dropdown.classList.toggle('open', willOpen);
+    });
+    for (const [key, option] of optionButtons) {
+      option.addEventListener('click', (event) => {
+        event.stopPropagation();
+        closeMenu();
+        if (key === whCategory) return;   // 选的是同一项，不用重画
+        whCategory = key;
+        triggerLabel.textContent = CATEGORY_NAMES[key]!;
+        for (const [k, b] of optionButtons) b.classList.toggle('active', k === key);
+        drawGrid();
+      });
+    }
+    // 点别处收起。下拉在 Shadow DOM 里，必须用 composedPath 判断，
+    // 否则 event.target 在 document 层会被重定向到 host，永远判成「点在外面」。
+    const onDocDown = (event: MouseEvent) => {
+      if (menu.hasAttribute('hidden')) return;
+      const inside = event.composedPath().some(
+        (node) => (node as HTMLElement)?.classList?.contains?.('wh-dropdown'),
+      );
+      if (!inside) closeMenu();
+    };
+    if (whDocDown) doc.removeEventListener('mousedown', whDocDown, true);
+    whDocDown = onDocDown;
+    doc.addEventListener('mousedown', onDocDown, true);
+
+    drawGrid();
 
     const loose = c.items.filter((item) => item.amount > 0);
-    const section = make('div', 'detail-section');
-    section.append(make('h3', '', '散落在外'));
-    section.append(make('p', 'muted', loose.length
-      ? `共 ${loose.length} 堆物资还在地上，居民会陆续搬回仓储。`
+    root.append(note(loose.length
+      ? `另有 ${loose.length} 堆物资还散在地上，居民会陆续搬回仓储。`
       : '地面干净，没有待搬运的物资。'));
-    root.append(section);
   }
 
   /** 随从：居民的概览页。姓名、在干什么、三项关键需求，点进去看完整档案。 */
@@ -339,23 +495,46 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     root.append(list);
   }
 
-  /** 玩家快捷栏。九格对应九类资源，数字键或点击切换选中。 */
+  /**
+   * 玩家快捷栏。照 Unity 的 HotbarUI：九格显示背包前九格，数字键或点击切换。
+   * 上方显示当前选中的物品名；右键格子把东西放回共享池。
+   */
   function renderHotbar(c: ColonySnapshot) {
     const bar = get('hotbar');
     if (!bar) return;
-    const counts = RESOURCE_TYPES.map((r) => Math.floor(c.resources[r]));
-    const signature = `${hotbarIndex}|${counts.join(',')}`;
+    // 背包挂在顶层的 player 上，不在 colony 快照里
+    const player = state?.player;
+    const bag = player?.bag ?? [];
+    const selected = player?.bagSelected ?? 0;
+    const signature = `${selected}|${bag.map((b: { resource: string; count: number } | null) => (b ? `${b.resource}:${b.count}` : '-')).join(',')}`;
     if (bar.dataset.signature === signature) return;
     bar.dataset.signature = signature;
     clear(bar);
-    RESOURCE_TYPES.forEach((r, index) => {
-      const slot = make('div', `hotbar-slot${index === hotbarIndex ? ' active' : ''}${counts[index]! <= 0 ? ' empty' : ''}`);
-      slot.append(make('span', 'hotbar-key', String(index + 1)));
-      slot.append(make('span', '', RESOURCE_ICONS[r]));
-      slot.append(make('span', 'hotbar-count', String(counts[index])));
-      slot.addEventListener('click', () => { hotbarIndex = index; renderHotbar(c); });
+
+    for (let i = 0; i < 9; i++) {
+      const item = bag[i] ?? null;
+      const slot = make('div', `hotbar-slot${i === selected ? ' active' : ''}${item ? '' : ' empty'}`);
+      slot.append(make('span', 'hotbar-key', String(i + 1)));
+      if (item) {
+        const res = item.resource as Resource;
+        slot.append(make('span', '', RESOURCE_ICONS[res] ?? '·'));
+        slot.append(make('span', 'hotbar-count', String(item.count)));
+        slot.title = `${RESOURCE_NAMES[res] ?? item.resource} · ${item.count}（右键放回仓库）`;
+        slot.addEventListener('contextmenu', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          send('drop', { slot: i });
+        });
+      }
+      slot.addEventListener('click', () => send('bagSelect', { index: i }));
       bar.append(slot);
-    });
+    }
+
+    const nameEl = get('hotbar-name');
+    if (nameEl) {
+      const cur = bag[selected];
+      nameEl.textContent = cur ? (RESOURCE_NAMES[cur.resource as Resource] ?? '') : '';
+    }
   }
 
   function renderPanel(force = false) {
@@ -423,8 +602,15 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     ];
     const goalRoot = clear(get('goal-list')); for (const [text, done] of goals) { const row = make('div', `goal${done ? ' done' : ''}`); row.append(make('span', 'goal-mark', done ? '✓' : '○'), make('span', '', text)); goalRoot.append(row); }
     if (c.selectedColonistId && c.selectedColonistId !== lastSelectedFromWorld) {
-      lastSelectedFromWorld = c.selectedColonistId; selectedResident = c.selectedColonistId;
-      panel = ''; get('workspace').hidden = true; hideSidePanels(); get('inspector').hidden = false;
+      lastSelectedFromWorld = c.selectedColonistId;
+      // 只在没开别的面板时才切到档案。
+      // 之前这里无条件关面板，用户正在看仓库时会被凭空顶掉——
+      // 每 0.4 秒的投影刷新都会跑一次这段，看着就像「面板自己关了」。
+      if (!panel && get('workspace').hidden) {
+        selectedResident = c.selectedColonistId;
+        hideSidePanels();
+        get('inspector').hidden = false;
+      }
     }
     renderInspector(c); renderPanel();
   }
@@ -552,6 +738,100 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   };
   if (port) { on(port, 'message', message); port.start?.(); send('sync'); } else saySave('引擎通信不可用');
 
+  // ---- ESC 暂停层 ----
+  // 分两级：先关面板，面板都关了才弹出暂停层。
+  // 必须在 UI 层监听——鼠标停在面板上时引擎那边被 uiHover 挡掉，收不到 ESC。
+  const pauseLayer = get('pause-menu');
+  const optionsLayer = get('game-options');
+  let speedBeforePause = 1;
+  const setPaused = (paused: boolean) => {
+    if (!pauseLayer) return;
+    pauseLayer.hidden = !paused;
+    if (paused) {
+      speedBeforePause = state?.colony?.speed || 1;
+      if (speedBeforePause === 0) speedBeforePause = 1;
+      colonyCommand({ action: 'speed', value: 0 });
+    } else {
+      colonyCommand({ action: 'speed', value: speedBeforePause });
+    }
+  };
+
+  const onEscape = (event: KeyboardEvent) => {
+    if (event.code !== 'Escape') return;
+    try {
+      // 0) 设置页盖在暂停层上面，先退这一层，回到「已暂停」
+      if (optionsLayer && !optionsLayer.hidden) {
+        optionsLayer.hidden = true;
+        event.preventDefault();
+        return;
+      }
+      const workspaceOpen = !get('workspace').hidden;
+      const sideOpen = !get('settings').hidden || !get('help').hidden || !get('inspector').hidden;
+      // 1) 有面板：先关面板
+      if (panel || workspaceOpen || sideOpen) {
+        panel = '';
+        get('workspace').hidden = true;
+        hideSidePanels();
+        selectedResident = null;
+        syncHover();
+        event.preventDefault();
+        return;
+      }
+      // 2) 有工具：交给引擎取消工具，这时候别弹暂停层
+      if (state?.tool && state.tool !== 'inspect') return;
+      // 3) 都没有：弹暂停层
+      setPaused(pauseLayer.hidden === true);
+      event.preventDefault();
+    } catch {
+      // 面板状态异常时静默跳过，不要让 ESC 把整个 UI 卡死
+    }
+  };
+  // 挂 window 的捕获阶段，这是事件链最早的一站。
+  // 引擎的输入扫描会在 document 层拦掉 Escape（实测 document 捕获收不到，
+  // 但手动 dispatch 到 shadow host 能收到），所以只能再往前站。
+  win.addEventListener('keydown', onEscape as EventListener, true);
+  releases.push(() => win.removeEventListener('keydown', onEscape as EventListener, true));
+
+  on(get('pause-settings'), 'click', () => {
+    // 暂停 → 设置 是同一套流程里的两页，不跳去右上角那个「世界与存档」
+    if (optionsLayer) optionsLayer.hidden = false;
+  });
+  const backBtn = get('options-back');
+  if (backBtn) on(backBtn, 'click', () => { if (optionsLayer) optionsLayer.hidden = true; });
+  on(get('pause-quit'), 'click', () => {
+    // 浏览器只允许脚本自己开的窗口调用 close()，普通标签页会被忽略
+    win.close();
+    win.setTimeout(() => {
+      pauseLayer.hidden = true;
+      saySave('浏览器不允许页面自行关闭，请直接关掉这个标签页');
+    }, 150);
+  });
+
+  // 右键在画布上是「按住拖动平移镜头」，浏览器默认菜单会抢这个操作，拦掉。
+  // 只拦 canvas：输入框的右键（复制粘贴）要留着。
+  const blockCanvasMenu = (event: MouseEvent) => {
+    const target = event.target as HTMLElement | null;
+    if (target?.tagName === 'CANVAS') event.preventDefault();
+  };
+  doc.addEventListener('contextmenu', blockCanvasMenu, true);
+  releases.push(() => doc.removeEventListener('contextmenu', blockCanvasMenu, true));
+
+  // ---- 暂停里的设置页 ----
+  const optInvertX = get<HTMLInputElement>('opt-invert-x');
+  const optInvertY = get<HTMLInputElement>('opt-invert-y');
+  const optSens = get<HTMLInputElement>('opt-sensitivity');
+  const optSensValue = get('opt-sensitivity-value');
+  if (optInvertX) on(optInvertX, 'change', () => send('setting', { key: 'invertPanX', value: optInvertX.checked }));
+  if (optInvertY) on(optInvertY, 'change', () => send('setting', { key: 'invertPanY', value: optInvertY.checked }));
+  if (optSens) {
+    const pushSens = () => {
+      const value = Number(optSens.value) / 1000;
+      optSensValue.textContent = value.toFixed(3);
+      send('setting', { key: 'panSensitivity', value });
+    };
+    on(optSens, 'input', pushSens);
+  }
+
   // 数字键切快捷栏格子。只在玩家视角接管——
   // 俯视视角的 1/2/3 是速度、沙盒里 1-6 是选方块，不能抢。
   on(win, 'keydown', ((event: KeyboardEvent) => {
@@ -559,9 +839,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const match = /^Digit([1-9])$/.exec(event.code);
     if (!match) return;
     const next = Number(match[1]) - 1;
-    if (next === hotbarIndex) return;
-    hotbarIndex = next;
-    if (state?.colony) renderHotbar(state.colony);
+    if (next === (state?.player?.bagSelected ?? 0)) return;
+    // 选中态归引擎管，UI 只发指令——这样背包和快捷栏永远是同一份真相
+    send('bagSelect', { index: next });
   }) as EventListener);
   const timer = win.setInterval(() => {
     if (!booted) { send('sync'); return; }
