@@ -9,7 +9,7 @@ import type { VoxelWorld } from '../voxel/model.ts';
 type V3=[number,number,number];
 type Part={p:V3;s:V3;c:string;shadow?:boolean};
 type RenderPawn={id:string;name:string;position:V3;health:number;task?:string;job?:string;carrying?:Partial<Record<string,number>>};
-type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;complete:boolean;progress:number;powered?:boolean};
+type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;complete:boolean;progress:number;powered?:boolean;phase?:string};
 export type ColonyRenderState={
   colonists:RenderPawn[]; buildings:RenderBuilding[];
   zones:{id:string;kind:string;x:number;z:number;w:number;d:number}[];
@@ -82,10 +82,10 @@ export class ColonyView {
       this.put(`居民/${p.id}`,parts,active);
     }
     for(const b of state.buildings){
-      const x=b.x+.5,y=b.y,z=b.z+.5;
+      const w=b.w??1,d=b.d??1,x=b.x+w/2,y=b.y,z=b.z+d/2;
       const parts:Part[]=[];
       const part=(dx:number,dy:number,dz:number,sx:number,sy:number,sz:number,c:string,shadow=true)=>parts.push({p:[x+dx,y+dy,z+dz],s:[sx,sy,sz],c,shadow});
-      if(!b.complete){part(0,.45,0,.86,.9,.86,'blueprint',false);part(0,.02,0,.98,.035,.98,'zoneStock',false);part(0,1.02,0,.8*Math.max(.02,Math.min(1,b.progress)),.06,.07,'light',false);}
+      if(!b.complete){part(0,.45,0,w-.14,.9,d-.14,'blueprint',false);part(0,.02,0,w-.02,.035,d-.02,b.phase==='preparingTerrain'?'selected':'zoneStock',false);part(0,1.02,0,w*.8*Math.max(.02,Math.min(1,b.progress)),.06,.07,'light',false);}
       else switch(b.kind){
         case 'wall':part(0,.9,0,1,1.8,1,'stone');part(0,1.84,0,1.03,.08,1.03,'cream');break;
         case 'door':part(-.41,.9,0,.18,1.8,.35,'wood');part(.41,.9,0,.18,1.8,.35,'wood');part(0,1.72,0,1,.18,.35,'wood');break;
@@ -104,12 +104,12 @@ export class ColonyView {
         default:part(0,.4,0,.8,.8,.8,'wood');break;
       }
       if(b.complete&&['solar','battery','cooler'].includes(b.kind))part(.26,.7,.47,.08,.08,.025,b.powered?'green':'bad',false);
-      this.put(`设施/${b.id}`,parts,active,`${b.kind}:${b.complete}:${b.powered}`);
+      this.put(`设施/${b.id}`,parts,active,`${b.kind}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}`);
     }
     for(const zone of state.zones){
       const parts:Part[]=[];
       for(let x=zone.x;x<zone.x+zone.w;x++)for(let z=zone.z;z<zone.z+zone.d;z++){
-        const y=this.terrain().surfaceHeight(x,z)+1;
+        const y=this.terrain().terrainHeight(x,z);
         parts.push({p:[x+.5,y+.026,z+.5],s:[.94,.045,.94],c:zone.kind==='farm'?'zoneFarm':'zoneStock',shadow:false});
       }
       this.put(`区域/${zone.id}`,parts,active);

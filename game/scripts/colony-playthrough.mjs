@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 
 const READ = 'voxel.world';
 const COSTS = { bed: { wood: 12, cloth: 3 }, floor: { wood: 3 } };
+const FOOTPRINTS = { bed: [1, 2], floor: [1, 1] };
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const pawnBy = (state, id) => state.colony.colonists.find((pawn) => pawn.id === id);
 const buildingBy = (state, id) => state.colony.buildings.find((building) => building.id === id);
@@ -63,7 +64,7 @@ export default async function colonyPlaythrough(play) {
   };
   // Choose normal visible terrain solely through the public player hover result.
   // No private voxel access, synthetic input events, injected commands or exposed test targets.
-  const findPlot = async (footprint = 1) => {
+  const findPlot = async ([width, depth] = [1, 1]) => {
     await play.mouse.move([0.50, 0.46]);
     await play.keyboard.press('KeyF');
     const candidates = [];
@@ -74,24 +75,30 @@ export default async function colonyPlaythrough(play) {
       play.signal.throwIfAborted();
       await play.mouse.move(point);
       const state = await advance(0.1), cell = state.hoverCell;
-      if (!Array.isArray(cell) || cell[1] !== 6) continue;
-      const [x, , z] = cell, endX = x + footprint - 1, endZ = z + footprint - 1;
-      if (x < 21 || z < 21 || endX > 33 || endZ > 33) continue;
-      const occupied = state.colony.buildings.some((b) => b.x >= x && b.x <= endX && b.z >= z && b.z <= endZ);
+      const campHeight = state.colony.buildings.find((b) => b.complete)?.y;
+      if (!Array.isArray(cell) || cell[1] !== campHeight) continue;
+      const [x, , z] = cell, endX = x + width - 1, endZ = z + depth - 1;
+      const campX = Math.floor(state.dimensions[0] / 2) + 3, campZ = Math.floor(state.dimensions[2] / 2) + 3;
+      if (x < campX - 6 || z < campZ - 6 || endX > campX + 6 || endZ > campZ + 6) continue;
+      const occupied = state.colony.buildings.some((b) => x < b.x + b.w && endX >= b.x && z < b.z + b.d && endZ >= b.z);
       const zoned = state.colony.zones.some((zone) => x < zone.x + zone.w && endX >= zone.x && z < zone.z + zone.d && endZ >= zone.z);
       const pawnHere = state.colony.colonists.some((pawn) => pawn.position[0] >= x - 0.5 && pawn.position[0] <= endX + 1.5 && pawn.position[2] >= z - 0.5 && pawn.position[2] <= endZ + 1.5);
+      // These reservation checks intentionally use already-level foundations;
+      // terrain-playthrough covers buildings waiting for residents to fill/cut.
+      if (state.tool.startsWith('build:') && (state.terrain.preview.cut || state.terrain.preview.fill)) continue;
       if (!occupied && !zoned && !pawnHere) return { point, cell: [...cell], state };
     }
-    throw new Error(`No visible unoccupied ${footprint}×${footprint} meadow plot found through real hover input.`);
+    throw new Error(`No visible unoccupied ${width}×${depth} meadow plot found through real hover input.`);
   };
   const placeBuilding = async (kind) => {
     await chooseTool('build', `build-${kind}`, `build:${kind}`);
-    const plot = await findPlot(), priorIds = new Set(plot.state.colony.buildings.map((b) => b.id));
+    const plot = await findPlot(FOOTPRINTS[kind]), priorIds = new Set(plot.state.colony.buildings.map((b) => b.id));
     await play.mouse.click(plot.point);
     const state = await wait((s) => s.colony.buildings.some((b) => !priorIds.has(b.id)));
     const building = state.colony.buildings.find((b) => !priorIds.has(b.id));
     assert.equal(building.kind, kind);
     assert.deepEqual([building.x, building.y, building.z], plot.cell);
+    assert.deepEqual([building.w, building.d], FOOTPRINTS[kind]);
     assert.equal(building.complete, false, 'A paused order must remain a blueprint.');
     assert.equal(building.progress, 0);
     for (const [resource, amount] of Object.entries(COSTS[kind])) {
@@ -123,7 +130,7 @@ export default async function colonyPlaythrough(play) {
   await play.step('pause-freezes-the-whole-simulation', async () => {
     const before = clone((await speed(0)).colony);
     const after = await advance(12);
-    assert.deepEqual(after.colony, before, 'Paused simulation must not change time, needs, jobs, stocks or events.');
+    assert.deepEqual(clone(after.colony), before, 'Paused simulation must not change time, needs, jobs, stocks or events.');
     await capture('colony-02-paused-simulation');
   });
 
@@ -192,7 +199,7 @@ export default async function colonyPlaythrough(play) {
   await play.step('mouse-designates-farm-and-stockpile-zones', async () => {
     for (const kind of ['farm', 'stockpile']) {
       await chooseTool('plan', `tool-zone-${kind}`, `zone:${kind}`);
-      const plot = await findPlot(3), before = plot.state.colony.zones.length;
+      const plot = await findPlot([3, 3]), before = plot.state.colony.zones.length;
       await play.mouse.click(plot.point);
       const state = await wait((s) => s.colony.zones.length === before + 1);
       const zone = state.colony.zones.find((z) => z.kind === kind && z.x === plot.cell[0] && z.z === plot.cell[2]);
@@ -271,14 +278,14 @@ export default async function colonyPlaythrough(play) {
     await play.page.locator('#load').click();
     const loaded = await wait((s) => s.colony.bills.meal === baseline.colony.bills.meal);
     await settings(false);
-    assert.deepEqual(loaded.colony, baseline.colony, 'Load must restore every public simulation field while paused.');
+    assert.deepEqual(clone(loaded.colony), baseline.colony, 'Load must restore every public simulation field while paused.');
     assert.equal(loaded.seed, baseline.seed);
     assert.equal(loaded.nonAirCount, baseline.nonAirCount);
     assert.equal(loaded.edits, baseline.edits);
     await capture('colony-12-manual-save-restored-colony');
     await play.reload();
     const restored = await wait((s) => s.colony?.time === baseline.colony.time && s.colony?.speed === 0);
-    assert.deepEqual(restored.colony, baseline.colony, 'Browser reload must retain the complete paused simulation.');
+    assert.deepEqual(clone(restored.colony), baseline.colony, 'Browser reload must retain the complete paused simulation.');
     assert.equal(restored.seed, baseline.seed);
     assert.equal(restored.nonAirCount, baseline.nonAirCount);
     assert.equal(restored.edits, baseline.edits);

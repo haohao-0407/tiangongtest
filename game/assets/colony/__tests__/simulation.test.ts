@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BLOCK, VoxelWorld } from '../../voxel/model.ts';
 import { BUILDING_DEFS, ColonySimulation, DAY_SECONDS, JOB_TYPES, RESOURCE_TYPES } from '../simulation.ts';
 
-function setup(seed='colony-test') { const world=new VoxelWorld(seed);return {world,sim:new ColonySimulation(world)}; }
+function setup(seed='colony-test') { const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed,size:[48,24,48],edits:[]}));return {world,sim:new ColonySimulation(world)}; }
 function run(sim:ColonySimulation,seconds:number) { for(let i=0;i<seconds*4;i++)sim.tick(.25); }
 function onlyJob(sim:ColonySimulation,job:string) {
   for(const c of sim.snapshot().colonists)for(const type of JOB_TYPES)sim.command({action:'priority',colonistId:c.id,job:type,value:type===job?1:0});
@@ -108,7 +108,7 @@ describe('inventory reservation, work and walking',()=>{
     const pos=freeCell(sim,world);const save=raw(sim);
     // This isolated fixture encloses the blueprint with actual completed walls.
     for(const[dx,dz]of[[1,0],[-1,0],[0,1],[0,-1]])save.buildings.push({id:`test-wall-${dx}-${dz}`,kind:'wall',x:pos.x+dx!,y:6,z:pos.z+dz!,complete:true,progress:1,reserved:{},powered:false,comfort:0,roomId:null});
-    sim.load(save);const order=sim.command({action:'build',kind:'bed',...pos});expect(order.ok).toBe(true);
+    sim.load(save);const order=sim.command({action:'build',kind:'floor',...pos});expect(order.ok).toBe(true);
     run(sim,60);expect(sim.snapshot().buildings.find(b=>b.id===order.id)!.complete).toBe(false);
     expect(sim.snapshot().jobs.find(j=>j.targetId===order.id)!.state).toBe('blocked');
   });

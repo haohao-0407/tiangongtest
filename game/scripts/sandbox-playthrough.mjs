@@ -47,8 +47,10 @@ export default async function sandboxPlaythrough(play) {
       await play.mouse.move(point);
       await play.keyboard.press('KeyB');
       const state = await read(), cell = state.hoverCell;
-      if (!Array.isArray(cell) || cell[1] !== 6 || cell[0] < 21 || cell[0] > 33 || cell[2] < 21 || cell[2] > 33 || used.has(cell.join(','))) continue;
-      const building = state.colony.buildings.some(b => b.x === cell[0] && b.z === cell[2]);
+      const campX = Math.floor(state.dimensions[0] / 2) + 3, campZ = Math.floor(state.dimensions[2] / 2) + 3;
+      const campHeight = state.colony.buildings.find(b => b.complete)?.y;
+      if (!Array.isArray(cell) || cell[1] !== campHeight || cell[0] < campX - 6 || cell[0] > campX + 6 || cell[2] < campZ - 6 || cell[2] > campZ + 6 || used.has(cell.join(','))) continue;
+      const building = state.colony.buildings.some(b => cell[0] >= b.x && cell[0] < b.x + b.w && cell[2] >= b.z && cell[2] < b.z + b.d);
       const pawn = state.colony.colonists.some(p => Math.abs(p.position[0] - cell[0] - 0.5) < 0.7 && Math.abs(p.position[2] - cell[2] - 0.5) < 0.7);
       if (!building && !pawn) return { point, cell: [...cell], state };
     }
@@ -59,10 +61,11 @@ export default async function sandboxPlaythrough(play) {
     await wait(s => s.colony?.colonists.length === 3 && s.nonAirCount > 1000 && s.chunks > 0);
     await sandbox(true);
     const state = await read();
-    assert.deepEqual(state.dimensions, [48, 24, 48]);
+    assert.deepEqual(state.dimensions, [250, 24, 250]);
     assert.equal(state.edits, 0, 'The isolated acceptance world starts without terrain edits.');
-    assert.ok(state.nonAirCount < 48 * 24 * 48);
-    assert.ok(state.chunks <= 32);
+    const [width, height, depth] = state.dimensions;
+    assert.ok(state.nonAirCount < width * height * depth);
+    assert.ok(state.chunks <= Math.ceil(width / 24) * Math.ceil(depth / 24), 'All terrain meshes fit the current 24-cell chunks, including partial edges.');
     assert.equal(await play.page.locator('[data-block]').count(), 6);
     assert.equal(state.colony.speed, 0, 'Sandbox entry pauses autonomous simulation.');
     await capture('sandbox-01-procedural-terrain-and-materials');
@@ -141,7 +144,10 @@ export default async function sandboxPlaythrough(play) {
     await capture('sandbox-09-camera-zoom');
     await play.keyboard.press('KeyF');
     const reset = await wait(s => Math.abs(s.camera.distance - 47) < 0.01);
-    assert.deepEqual(reset.camera.target, [27, 5, 27]);
+    const resident = reset.colony.colonists[0];
+    const home = resident ? [resident.position[0] + 1, Math.max(1, resident.position[1] - 1), resident.position[2] + 1]
+      : [reset.dimensions[0] / 2, 5, reset.dimensions[2] / 2];
+    assert.deepEqual(reset.camera.target, home, 'Home returns to the first resident at the current camp.');
     assert.ok(Math.abs(reset.camera.yaw - Math.PI / 4) < 0.001);
   });
 
@@ -171,7 +177,8 @@ export default async function sandboxPlaythrough(play) {
     const target = await findBuildSpot();
     await play.mouse.click(target.point);
     const beforeReload = await wait(s => s.seed === regenerated.seed && s.edits === 1 && s.lastEdit?.block === 5);
-    const index = target.cell[0] + 48 * (target.cell[2] + 48 * target.cell[1]);
+    const [width, , depth] = beforeReload.dimensions;
+    const index = target.cell[0] + width * (target.cell[2] + depth * target.cell[1]);
     await play.page.waitForFunction(({ key, seed, index }) => {
       try {
         const value = JSON.parse(localStorage.getItem(key) ?? 'null');

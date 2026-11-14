@@ -9,6 +9,8 @@ const SAVE_KEY = 'homestead.colony.v2';
 const MANUAL_KEY = 'homestead.colony.v2.manual';
 const LEGACY_KEY = 'homestead.voxel.v1';
 type State = { seed: string; selected: number; mode: string; tool?: string; crop?: string; edits: number; undo: boolean; redo: boolean; hoverCell?: unknown; status?: string; revision?: number; colony?: ColonySnapshot;
+  worldSize?: [number, number, number]; buildHeight?: number | null;
+  terrain?: { target: number; size: number; shape: 'brush' | 'rectangle'; sample: boolean; minHeight: number; maxHeight: number; preview?: { cells: number; cut: number; fill: number } };
   /** 相机状态。mode 决定哪些 HUD 该出现：指挥官视角要菜单，玩家视角不要。 */
   camera?: { mode?: 'god' | 'character'; followId?: string | null } };
 type SaveIntent = 'auto' | 'manual' | 'export';
@@ -55,6 +57,47 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const empty = (text: string) => make('p', 'empty-message', text);
   const clockText = (hour: number) => `${String(Math.floor(hour)).padStart(2, '0')}:${String(Math.floor((hour % 1) * 60)).padStart(2, '0')}`;
   const costText = (cost: Partial<Record<Resource, number>>) => Object.entries(cost).map(([r, amount]) => `${RESOURCE_NAMES[r as Resource]} ${amount}`).join(' · ');
+  const terrainControls = make('div', 'terrain-controls');
+  const terrainFields = make('div', 'terrain-fields');
+  const numberField = (labelText: string, id: string, value: number) => {
+    const label = make('label', 'terrain-field', labelText), input = make('input');
+    input.type = 'number'; input.id = id; input.dataset.testid = id; input.step = '1'; input.value = String(value);
+    label.append(input); return { label, input };
+  };
+  const terrainHeight = numberField('目标标高', 'terrain-target', 6);
+  const terrainSize = numberField('笔刷宽度（格）', 'terrain-size', 3);
+  const terrainShapeLabel = make('label', 'terrain-field', '选区方式'), terrainShape = make('select');
+  terrainShape.id = 'terrain-shape'; terrainShape.dataset.testid = 'terrain-shape';
+  for (const [value, label] of [['brush', '涂抹笔刷'], ['rectangle', '矩形框选']]) {
+    const option = make('option', '', label); option.value = value!; terrainShape.append(option);
+  }
+  terrainShapeLabel.append(terrainShape);
+  const sampleHeight = button('取样地面高度', 'terrain-sample'); sampleHeight.dataset.terrainAction = 'sample';
+  const terrainPreview = make('p', 'terrain-preview'); terrainPreview.dataset.testid = 'terrain-preview'; terrainPreview.setAttribute('aria-live', 'polite');
+  const terrainInstructions = make('p', 'panel-note', '拖动左键规划，松开提交；Shift + 点击取样。填挖由居民逐步完成。');
+  terrainFields.append(terrainHeight.label, terrainSize.label, terrainShapeLabel, sampleHeight);
+  terrainControls.append(terrainFields, terrainPreview, terrainInstructions);
+  const buildingPhase = (phase?: string) => ({ preparingTerrain: '整平地基', readyToBuild: '等待施工', constructing: '正在施工', completed: '已完工' }[phase ?? ''] ?? '等待施工');
+  function syncTerrainControls() {
+    const t = state?.terrain, active = shadow.activeElement;
+    const min = t?.minHeight ?? 1, max = t?.maxHeight ?? (state?.worldSize?.[1] ?? 24) - 2;
+    terrainHeight.input.min = String(min); terrainHeight.input.max = String(max);
+    terrainSize.input.min = '1'; terrainSize.input.max = String(Math.min(25, state?.worldSize?.[0] ?? 250, state?.worldSize?.[2] ?? 250));
+    if (active !== terrainHeight.input) terrainHeight.input.value = String(t?.target ?? 6);
+    if (active !== terrainSize.input) terrainSize.input.value = String(t?.size ?? 3);
+    if (active !== terrainShape) terrainShape.value = t?.shape ?? 'brush';
+    terrainSize.input.disabled = t?.shape === 'rectangle';
+    sampleHeight.textContent = t?.sample ? '点击地面完成取样…' : '取样地面高度';
+    sampleHeight.classList.toggle('active', t?.sample === true);
+    const preview = t?.preview;
+    terrainPreview.textContent = preview && preview.cells > 0
+      ? `选区 ${preview.cells} 格 · 挖 ${int(preview.cut)} 格层 · 填 ${int(preview.fill)} 格层`
+      : `目标标高 ${t?.target ?? 6} · ${t?.shape === 'rectangle' ? '拖动框选任意范围' : `${t?.size ?? 3} × ${t?.size ?? 3} 格笔刷`} · 普通土方只消耗工时`;
+    const floating = get('terrain-toolbar');
+    const inPlan = panel === 'plan' && !get('workspace').hidden;
+    floating.hidden = inPlan || currentTool !== 'level' || (state?.camera?.mode ?? 'god') !== 'god' || !!panel || !get('settings').hidden || !get('help').hidden || !get('inspector').hidden;
+    if (!inPlan && !floating.hidden && terrainControls.parentElement !== floating) floating.append(terrainControls);
+  }
   const syncHover = () => {
     const active = shadow.activeElement?.tagName;
     const hovering = [...shadow.querySelectorAll<HTMLElement>('[data-interactive]')].some(el => !el.hidden && el.matches(':hover'));
@@ -65,12 +108,15 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     on(el, 'pointerleave', syncHover);
   }
   on(shadow, 'focusin', () => send('hover', { value: true }));
-  on(shadow, 'focusout', () => win.setTimeout(syncHover, 0));
+  on(shadow, 'focusout', () => win.setTimeout(() => { syncHover(); renderPanel(); }, 0));
   on(shadow, 'contextmenu', e => e.preventDefault());
 
   const showTool = (tool: string) => {
     const hints: Record<string, string> = { inspect: '查看模式 · 左键选择居民或地块', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树木，居民会领取工作', mine: '采矿规划 · 点击石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
-    get('tool-hint').textContent = tool.startsWith('build:') ? `建造 ${BUILDING_DEFS[tool.slice(6) as keyof typeof BUILDING_DEFS]?.name ?? ''} · 点击地面安放蓝图` : hints[tool] ?? '点击地图执行当前规划';
+    get('tool-hint').textContent = tool === 'level'
+      ? `等高整地 · 标高 ${state?.terrain?.target ?? 6} · ${state?.terrain?.shape === 'rectangle' ? '左键拖框' : '左键拖涂'} · 松开提交 · Shift 取样`
+      : tool.startsWith('build:') ? `建造 ${BUILDING_DEFS[tool.slice(6) as keyof typeof BUILDING_DEFS]?.name ?? ''} · ${state?.buildHeight == null ? '取落点标高' : `地基标高 ${state.buildHeight}`} · 先整平，再施工` : hints[tool] ?? '点击地图执行当前规划';
+    syncTerrainControls();
   };
   const chooseTool = (tool: string) => {
     currentTool = tool; send('tool', { value: tool }); showTool(tool);
@@ -84,34 +130,74 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (next === 'sandbox' && panel) chooseTool('sandbox:build');
     get('workspace').hidden = !panel;
     for (const b of shadow.querySelectorAll<HTMLElement>('[data-menu]')) b.classList.toggle('active', b.dataset.menu === (panel || 'inspect'));
-    lastPanelStamp = ''; renderPanel(true); syncHover();
+    lastPanelStamp = ''; renderPanel(true); syncTerrainControls(); syncHover();
   };
 
   function renderBuild(c: ColonySnapshot, root: HTMLElement) {
-    root.append(note('材料足够才能下达施工蓝图，居民会领取材料并施工。散落物资需先搬运入库；研究锁定的建筑暂不可规划。'));
+    root.append(note('建筑可以先放在不平地面上：自动规划足迹内的填挖，先整平，再领取材料施工。已建建筑或通路受阻时会等待。'));
+    const foundation = make('div', 'foundation-controls'), autoLabel = make('label', 'foundation-auto'), auto = make('input');
+    auto.type = 'checkbox'; auto.id = 'build-height-auto'; auto.dataset.testid = 'build-height-auto'; auto.checked = state?.buildHeight == null;
+    autoLabel.append(auto, make('span', '', '采用落点地面标高'));
+    const height = numberField('地基标高', 'build-height', state?.buildHeight ?? state?.terrain?.target ?? 6);
+    height.input.min = String(state?.terrain?.minHeight ?? 1); height.input.max = String(state?.terrain?.maxHeight ?? 22); height.input.disabled = auto.checked;
+    foundation.append(autoLabel, height.label); root.append(foundation);
     const grid = make('div', 'card-grid');
     for (const def of Object.values(BUILDING_DEFS)) {
       const locked = !!def.research && !c.research.completed.includes(def.research);
       const short = Object.entries(def.cost).some(([r, amount]) => c.resources[r as Resource] < (amount ?? 0));
-      const b = toolButton('', `build:${def.id}`, `build-${def.id}`, 'build-card'); b.disabled = locked || short;
+      const b = toolButton('', `build:${def.id}`, `build-${def.id}`, 'build-card'); b.disabled = locked;
       const title = make('span', 'card-title'); title.append(make('span', 'card-icon', BUILD_ICONS[def.id] ?? '▧'), make('span', '', def.name));
-      b.append(title, make('span', 'card-description', def.description), make('span', 'card-cost', costText(def.cost)));
+      const footprint = def.footprint ?? [1, 1];
+      b.append(title, make('span', 'card-description', `${footprint[0]} × ${footprint[1]} 格 · ${def.description}`), make('span', 'card-cost', costText(def.cost)));
       if (locked) b.append(make('span', 'card-lock', `需研究：${RESEARCH_DEFS[def.research!]?.name ?? def.research}`));
-      else if (short) b.append(make('span', 'card-lock', '材料不足 · 先搬运入库'));
+      else if (short) b.append(make('span', 'card-lock', '可先规划 · 施工前等待材料'));
       grid.append(b);
     }
     root.append(grid);
+    const pending = c.buildings.filter(b => !b.complete);
+    if (pending.length) {
+      const section = make('div', 'detail-section'); section.append(make('h3', '', `待建建筑 · ${pending.length}`));
+      const list = make('div', 'row-list terrain-plan-list');
+      for (const b of pending.slice(-8)) {
+        const row = make('div', 'production-row'), main = make('div', 'row-main'); row.dataset.testid = `building-plan-${b.id}`;
+        main.append(make('strong', '', `${BUILDING_DEFS[b.kind].name} · ${buildingPhase(b.phase)}`), make('p', '', `${b.w ?? 1} × ${b.d ?? 1} 格 · 地基 ${b.y} · 施工 ${percent(b.progress * 100)}%`));
+        if (b.blockedReason) main.append(make('p', 'thought bad', b.blockedReason));
+        row.append(main, button('取消建筑', `building-cancel-${b.id}`, { action: 'cancel', id: b.id })); list.append(row);
+      }
+      if (pending.length > 8) list.append(note(`显示最近 8 项，共 ${pending.length} 项待建。`));
+      section.append(list); root.append(section);
+    }
   }
   function renderPlan(c: ColonySnapshot, root: HTMLElement) {
-    root.append(note('区域以点击地面为起点规划 3 × 3 格。规划会产生居民工作，实际执行由工作优先级、资源和可达性决定。'));
+    root.append(note('先选择等高整地并设置标高，拖涂或框选后松开提交蓝图。可暂停规划，再恢复模拟让居民填挖。农田与仓储仍为 3 × 3 格。'));
+    root.append(terrainControls); syncTerrainControls();
     const grid = make('div', 'planning-tools');
     const entries = [
+      ['level', '等高整地', '涂抹或框选，将选区填挖到同一标高。', 'tool-level'],
       ['zone:farm', '农田', '种植、照料与收获食物。', 'tool-zone-farm'], ['zone:stockpile', '仓储', '搬运散落物资，集中保管。', 'tool-zone-stockpile'],
       ['chop', '伐木', '标记树木，获取木材。', 'tool-chop'], ['mine', '采矿', '标记矿石，获取建材。', 'tool-mine'],
       ['harvest', '收获', '标记成熟作物。', 'tool-harvest'], ['cancel', '取消规划', '移除未完成的规划或工作。', 'tool-cancel'],
     ];
     for (const [tool, name, detail, id] of entries) { const b = toolButton('', tool!, id!); b.append(make('strong', '', name), make('span', '', detail)); grid.append(b); }
     root.append(grid);
+    const plans = c.terrainPlans ?? [];
+    if (plans.length) {
+      const section = make('div', 'detail-section'); section.append(make('h3', '', '整地蓝图'));
+      const list = make('div', 'row-list terrain-plan-list');
+      const active = plans.filter(p => p.state !== 'completed');
+      const visible = [...active, ...plans.filter(p => p.state === 'completed').slice(-2)].slice(0, 8);
+      const names = { queued: '等待居民', working: '正在填挖', blocked: '等待条件', completed: '已整平' };
+      for (const plan of visible) {
+        const row = make('div', 'production-row'), main = make('div', 'row-main'); row.dataset.testid = `terrain-plan-${plan.id}`;
+        main.append(make('strong', '', `标高 ${plan.target} · ${names[plan.state]}${plan.buildingId ? ' · 建筑地基' : ''}`), make('p', '', `${plan.cells.length} 格 · 待挖 ${int(plan.remainingCut)} · 待填 ${int(plan.remainingFill)} · ${percent(plan.progress * 100)}%`));
+        if (plan.blockedReason) main.append(make('p', 'thought bad', plan.blockedReason));
+        row.append(main);
+        if (plan.state !== 'completed') row.append(button(plan.buildingId ? '取消建筑' : '取消整地', `terrain-cancel-${plan.id}`, { action: 'cancel', id: plan.buildingId ?? plan.id }));
+        list.append(row);
+      }
+      if (active.length > 8) list.append(note(`显示前 8 项，共 ${active.length} 项未完成整地。`));
+      section.append(list); root.append(section);
+    }
     const crops = make('div', 'schedule-row'); crops.append(make('span', '', '农田作物'));
     for (const [id, name] of [['rice', '稻米'], ['corn', '玉米']] as const) {
       const b = button(name, `crop-${id}`); b.dataset.crop = id; b.classList.toggle('active', (state?.crop ?? 'rice') === id);
@@ -274,8 +360,11 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
   function renderPanel(force = false) {
     if (!panel || !state) return;
+    const content = get('panel-content'), focused = shadow.activeElement;
+    // A simulation snapshot must not replace a field while the player is typing.
+    if (!force && focused && content.contains(focused) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(focused.tagName)) return;
     const c = state.colony;
-    const stamp = JSON.stringify([panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, bills: c.bills, trade: c.trade, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete]), jobs: c.jobs.map(j => [j.id, j.state, j.label]), zones: c.zones.length, time: Math.floor(c.time) }]);
+    const stamp = JSON.stringify([panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, state.buildHeight, state.terrain && [state.terrain.target, state.terrain.size, state.terrain.shape, state.terrain.sample], c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, bills: c.bills, trade: c.trade, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete, b.phase, b.blockedReason, percent(b.progress * 100)]), terrainPlans: c.terrainPlans?.map(p => [p.id, p.state, p.remainingCut, p.remainingFill, p.blockedReason]), jobs: c.jobs.map(j => [j.id, j.state, j.label]), zones: c.zones.length, time: Math.floor(c.time) }]);
     if (!force && stamp === lastPanelStamp) return;
     lastPanelStamp = stamp;
     get('panel-title').textContent = MENU_NAMES[panel] ?? '家园管理';
@@ -359,6 +448,26 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   for (const resource of RESOURCE_TYPES) { const el = make('div', 'resource'); el.id = `resource-${resource}`; el.append(make('span', 'resource-symbol', RESOURCE_ICONS[resource]), make('span', '', RESOURCE_NAMES[resource]), make('b', '', '—')); get('resources').append(el); }
   for (const b of shadow.querySelectorAll<HTMLElement>('[data-speed]')) b.dataset.testid = `speed-${b.dataset.speed}`;
   for (const b of shadow.querySelectorAll<HTMLElement>('[data-menu]')) b.dataset.testid = `menu-${b.dataset.menu}`;
+  on(shadow, 'change', (event) => {
+    const field = event.target as HTMLInputElement | HTMLSelectElement | null;
+    if (!field) return;
+    if (field.id === 'terrain-shape') {
+      send('terrain-settings', { shape: field.value }); return;
+    }
+    if (['terrain-target', 'terrain-size', 'build-height'].includes(field.id)) {
+      const input = field as HTMLInputElement, value = input.valueAsNumber;
+      if (!Number.isInteger(value) || !input.checkValidity()) { input.reportValidity(); return; }
+      if (input.id === 'build-height') send('build-height', { value });
+      else send('terrain-settings', input.id === 'terrain-target' ? { target: value } : { size: value });
+      return;
+    }
+    if (field.id === 'build-height-auto') {
+      const auto = field as HTMLInputElement, height = get<HTMLInputElement>('build-height');
+      height.disabled = auto.checked;
+      if (auto.checked) send('build-height', { value: null });
+      else if (height.checkValidity()) send('build-height', { value: height.valueAsNumber });
+    }
+  });
   on(shadow, 'click', (event) => {
     const b = (event.target as Element | null)?.closest<HTMLButtonElement>('button'); if (!b || b.disabled) return;
     if (b.dataset.speed) { colonyCommand({ action: 'speed', value: Number(b.dataset.speed) }); return; }
@@ -367,18 +476,19 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (b.dataset.crop) { send('crop', { value: b.dataset.crop }); return; }
     if (b.dataset.block) { send('select', { block: Number(b.dataset.block) }); chooseTool('sandbox:build'); return; }
     if (b.dataset.voxelAction) { send(b.dataset.voxelAction); return; }
+    if (b.dataset.terrainAction === 'sample') { chooseTool('level'); send('terrain-sample'); return; }
     if (b.dataset.command) {
       if (b.dataset.resident) { selectedResident = b.dataset.resident; panel = ''; get('workspace').hidden = true; hideSidePanels(); get('inspector').hidden = false; chooseTool('inspect'); if (state?.colony) renderInspector(state.colony, true); }
       colonyCommand(JSON.parse(b.dataset.command) as ColonyCommand); return;
     }
     switch (b.id) {
       case 'home': send('home'); break;
-      case 'panel-close': panel = ''; get('workspace').hidden = true; syncHover(); break;
-      case 'inspector-close': get('inspector').hidden = true; syncHover(); break;
-      case 'settings-toggle': { const hidden = !get('settings').hidden; hideSidePanels(); get('workspace').hidden = true; panel = ''; get('settings').hidden = hidden; break; }
-      case 'help-toggle': { const hidden = !get('help').hidden; hideSidePanels(); get('workspace').hidden = true; panel = ''; get('help').hidden = hidden; break; }
-      case 'settings-close': get('settings').hidden = true; syncHover(); break;
-      case 'help-close': get('help').hidden = true; syncHover(); break;
+      case 'panel-close': panel = ''; get('workspace').hidden = true; syncTerrainControls(); syncHover(); break;
+      case 'inspector-close': get('inspector').hidden = true; syncTerrainControls(); syncHover(); break;
+      case 'settings-toggle': { const hidden = !get('settings').hidden; hideSidePanels(); get('workspace').hidden = true; panel = ''; get('settings').hidden = hidden; syncTerrainControls(); break; }
+      case 'help-toggle': { const hidden = !get('help').hidden; hideSidePanels(); get('workspace').hidden = true; panel = ''; get('help').hidden = hidden; syncTerrainControls(); break; }
+      case 'settings-close': get('settings').hidden = true; syncTerrainControls(); syncHover(); break;
+      case 'help-close': get('help').hidden = true; syncTerrainControls(); syncHover(); break;
       case 'save': requestSave('manual'); break;
       case 'load': loadSaved(); break;
       case 'export': requestSave('export'); break;
@@ -429,10 +539,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     get('status').textContent = state.status ?? '选择一项规划，让居民开始工作';
     get('cell').textContent = Array.isArray(state.hoverCell) ? `[ ${state.hoverCell.join(', ')} ]` : '';
     if (state.seed !== lastWorldSeed) { lastWorldSeed = state.seed; get<HTMLInputElement>('seed').value = state.seed; }
+    get('world-size').textContent = state.worldSize ? `当前地图 ${state.worldSize[0]} × ${state.worldSize[2]} 格 · 新地图默认 250 × 250` : '新地图默认 250 × 250 格';
     const c = state.colony;
-    latestStamp = JSON.stringify([state.seed, state.revision, state.edits, c && [c.speed, c.buildings.map(b => [b.id, b.complete]), c.zones, c.bills, c.research.active, c.colonists.map(p => [p.id, p.priorities, p.schedule])]]);
+    latestStamp = JSON.stringify([state.seed, state.revision, state.edits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.colonists.map(p => [p.id, p.priorities, p.schedule])]]);
     if (c) renderColony(c); else renderPanel();
     if (c) renderHotbar(c);
+    syncTerrainControls();
     if (!booted) {
       booted = true; lastSavedStamp = latestStamp; lastSavedSim = c?.time ?? 0;
       const data = readSave(false); if (data) requestLoad(data, '正在恢复上次的家园…');

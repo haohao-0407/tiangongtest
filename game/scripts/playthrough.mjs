@@ -1,2 +1,3 @@
-// Default acceptance is the peaceful-colony flow. Sandbox has its own full regression script.
-export { default } from './colony-playthrough.mjs';
+// Default acceptance covers terrain planning and dependent colony construction.
+// General colony and sandbox regressions remain in their dedicated scripts.
+export { default } from './terrain-playthrough.mjs';

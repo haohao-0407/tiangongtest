@@ -1,7 +1,10 @@
 /** Engine-independent world state. Coordinates are integer cells, with Y pointing up. */
 export type Vec3 = [number, number, number];
-export const WORLD_SIZE = { width: 48, height: 24, depth: 48 } as const;
-export const CHUNK_SIZE = 12;
+export interface WorldSize { width: number; height: number; depth: number }
+export const WORLD_SIZE = { width: 250, height: 24, depth: 250 } as const;
+export const LEGACY_WORLD_SIZE = { width: 48, height: 24, depth: 48 } as const;
+// Larger chunks keep a 250 × 250 map to 121 terrain draw entities at the default height.
+export const CHUNK_SIZE = 24;
 export const BLOCK = {
   Air: 0, Grass: 1, Dirt: 2, Stone: 3, Wood: 4,
   Planks: 5, Brick: 6, Leaves: 7, Water: 8, Sand: 9,
@@ -38,13 +41,13 @@ export interface VoxelHit {
 interface Change { index: number; before: number; after: number }
 interface SavedWorld {
   version: 1;
-  generatorVersion: 1;
+  generatorVersion: 1 | 2;
   seed: string;
   size: [number, number, number];
   edits: [number, number][];
 }
 const HISTORY_LIMIT = 200;
-const VOLUME = WORLD_SIZE.width * WORLD_SIZE.height * WORLD_SIZE.depth;
+const MAX_WORLD_VOLUME = 16_777_216;
 const WATER_LEVEL = 4;
 
 function seedHash(seed: string): number {
@@ -72,26 +75,38 @@ function validSeed(seed: unknown): asserts seed is string {
 function validBlock(block: number): block is BlockId {
   return Number.isInteger(block) && block >= BLOCK.Air && block <= BLOCK.Sand;
 }
+function validSize(size: WorldSize): void {
+  if (!size || ![size.width, size.height, size.depth].every(Number.isInteger)
+    || size.width < 8 || size.width > 512 || size.depth < 8 || size.depth > 512
+    || size.height < 8 || size.height > 128 || size.width * size.height * size.depth > MAX_WORLD_VOLUME) {
+    throw new RangeError('地图尺寸不正确或超出可支持范围。');
+  }
+}
 
 /** Finite, seeded, chunk-addressable voxel world with bounded transactional history. */
 export class VoxelWorld {
-  readonly width = WORLD_SIZE.width;
-  readonly height = WORLD_SIZE.height;
-  readonly depth = WORLD_SIZE.depth;
+  private size: WorldSize = { ...WORLD_SIZE };
+  get width(): number { return this.size.width; }
+  get height(): number { return this.size.height; }
+  get depth(): number { return this.size.depth; }
   readonly chunkSize = CHUNK_SIZE;
   /** Read for rendering. Mutations must go through edit/set for history and dirty tracking. */
-  readonly blocks = new Uint8Array(VOLUME);
-  private baseline = new Uint8Array(VOLUME);
+  private _blocks = new Uint8Array(0);
+  get blocks(): Uint8Array { return this._blocks; }
+  private baseline = new Uint8Array(0);
+  private blockCounts = new Uint32Array(BLOCKS.length);
   private changes = new Map<number, number>();
   private past: Change[][] = [];
   private future: Change[][] = [];
   private dirty = new Set<string>();
   private _seed = '';
   private _revision = 0;
+  private _generatorVersion: 1 | 2 = 2;
 
-  constructor(seed = '森屿-042') { this.reset(seed); }
+  constructor(seed = '森屿-042', size: WorldSize = WORLD_SIZE) { this.regenerate(seed, size, 2); }
   get seed(): string { return this._seed; }
   get revision(): number { return this._revision; }
+  get generatorVersion(): 1 | 2 { return this._generatorVersion; }
   /** Number of cells differing from the generated map; also suitable for save status. */
   get editCount(): number { return this.changes.size; }
   get canUndo(): boolean { return this.past.length > 0; }
@@ -117,15 +132,28 @@ export class VoxelWorld {
     }
     return -1;
   }
+  /** Ground's top face / foot height. Vegetation and water never become terrain. */
+  terrainHeight(x: number, z: number): number {
+    if (!this.inBounds(x, 0, z)) return -1;
+    for (let y = this.height - 1; y >= 0; y--) {
+      const block = this.blocks[this.index(x, y, z)]!;
+      if (block !== BLOCK.Air && block !== BLOCK.Water && block !== BLOCK.Wood && block !== BLOCK.Leaves) return y + 1;
+    }
+    return -1;
+  }
+  /** Water's top face, or -1 for a column with no water. */
+  waterSurfaceHeight(x: number, z: number): number {
+    if (!this.inBounds(x, 0, z)) return -1;
+    for (let y = this.height - 1; y >= 0; y--) if (this.blocks[this.index(x, y, z)] === BLOCK.Water) return y + 1;
+    return -1;
+  }
   count(block?: number): number {
-    let n = 0;
-    for (const value of this.blocks) if (block === undefined ? value !== BLOCK.Air : value === block) n++;
-    return n;
+    return block === undefined ? this.blocks.length - this.blockCounts[BLOCK.Air]! : this.blockCounts[block] ?? 0;
   }
   set(x: number, y: number, z: number, block: number): boolean { return this.edit([{ x, y, z, block }]); }
   /** Validate every edit before applying any. Repeated cells coalesce into one change. */
   edit(edits: readonly BlockEdit[]): boolean {
-    if (!Array.isArray(edits) || edits.length > VOLUME * 4) throw new RangeError('建造操作过大或格式不正确。');
+    if (!Array.isArray(edits) || edits.length > this.blocks.length * 4) throw new RangeError('建造操作过大或格式不正确。');
     const final = new Map<number, number>();
     for (const edit of edits) {
       if (!edit || !this.inBounds(edit.x, edit.y, edit.z)) throw new RangeError('方块坐标超出地图范围。');
@@ -162,6 +190,8 @@ export class VoxelWorld {
   private apply(transaction: readonly Change[], reverse: boolean): void {
     for (const change of transaction) {
       const block = reverse ? change.before : change.after;
+      this.blockCounts[this.blocks[change.index]!]!--;
+      this.blockCounts[block]!++;
       this.blocks[change.index] = block;
       if (block === this.baseline[change.index]) this.changes.delete(change.index);
       else this.changes.set(change.index, block);
@@ -197,19 +227,33 @@ export class VoxelWorld {
     this.dirty.clear();
     return chunks;
   }
-  reset(seed = this.seed || '森屿-042'): void {
+  /** A new map uses the current default; loading a legacy map does not pin new games to its size. */
+  reset(seed = this.seed || '森屿-042', size: WorldSize = WORLD_SIZE): void {
+    this.regenerate(seed, size, 2);
+  }
+  private regenerate(seed: string, size: WorldSize, generatorVersion: 1 | 2): void {
     validSeed(seed);
+    validSize(size);
+    this.size = { width: size.width, height: size.height, depth: size.depth };
+    this._blocks = new Uint8Array(this.width * this.height * this.depth);
     this._seed = seed;
-    this.blocks.fill(BLOCK.Air);
-    this.generate();
+    this._generatorVersion = generatorVersion;
+    if (generatorVersion === 1) this.generateLegacy();
+    else this.generate();
     this.baseline = this.blocks.slice();
+    this.recount();
     this.changes.clear();
     this.past.length = this.future.length = 0;
     this.dirty.clear();
     this.markAllDirty();
     this._revision++;
   }
-  private generate(): void {
+  private recount(): void {
+    this.blockCounts.fill(0);
+    for (const block of this.blocks) this.blockCounts[block]!++;
+  }
+  /** Do not change: v1 saves reconstruct their baseline using these exact coordinates and rules. */
+  private generateLegacy(): void {
     const seed = seedHash(this.seed), phase = hash01(0, 0, seed) * Math.PI * 2;
     const put = (x: number, y: number, z: number, value: number) => {
       if (this.inBounds(x, y, z)) this.blocks[this.index(x, y, z)] = value;
@@ -259,43 +303,107 @@ export class VoxelWorld {
       }
     }
   }
+  private generate(): void {
+    const seed = seedHash(this.seed), phase = hash01(0, 0, seed) * Math.PI * 2;
+    const cx = Math.floor(this.width / 2), cz = Math.floor(this.depth / 2);
+    const scale = Math.max(0.5, Math.min(this.width, this.depth) / 100);
+    const clearingRadius = Math.min(16, Math.min(this.width, this.depth) / 4);
+    const maxGround = Math.max(1, this.height - 7), meadowHeight = Math.min(5, maxGround);
+    const waterLevel = Math.min(WATER_LEVEL, meadowHeight - 1);
+    const put = (x: number, y: number, z: number, value: number) => {
+      if (this.inBounds(x, y, z)) this.blocks[this.index(x, y, z)] = value;
+    };
+    for (let z = 0; z < this.depth; z++) {
+      const river = this.width * 0.27 + Math.sin(z / (12 * scale) + phase) * 3 * scale + noise(z / 18, 9, seed) * 2;
+      for (let x = 0; x < this.width; x++) {
+        const riverDistance = Math.abs(x - river);
+        const broad = noise(x / (18 * scale), z / (18 * scale), seed);
+        const detail = noise(x / 12, z / 12, seed ^ 0x42f2a);
+        let height = Math.floor(4 + broad * 5 + detail * 1.6);
+        const hill = Math.max(0, 1 - Math.hypot(x - this.width * 0.8, z - this.depth * 0.23) / (16 * scale));
+        height += Math.floor(hill * 4);
+        if (riverDistance < 2) height = 2;
+        else if (riverDistance < 3.2) height = 3;
+        else if (riverDistance < 4.1) height = 4;
+        else if (riverDistance < 5.2) height = Math.min(height, 5);
+        // The camp clearing wins over the river on small/custom maps too.
+        const clearing = Math.hypot(x - cx, z - cz);
+        if (clearing < clearingRadius) height = meadowHeight;
+        else if (clearing < clearingRadius + 4) height = Math.round(mix(meadowHeight, height, smooth((clearing - clearingRadius) / 4)));
+        height = Math.max(1, Math.min(maxGround, height));
+        for (let y = 0; y <= height; y++) {
+          const top = y === height;
+          put(x, y, z, y === 0 || y < height - 2 ? BLOCK.Stone
+            : top ? (height <= waterLevel ? BLOCK.Sand : BLOCK.Grass) : BLOCK.Dirt);
+        }
+        for (let y = height + 1; y <= waterLevel; y++) put(x, y, z, BLOCK.Water);
+      }
+    }
+    for (let z = 3; z < this.depth - 3; z += 5) {
+      for (let x = 3; x < this.width - 3; x += 5) {
+        if (hash01(x, z, seed ^ 0x63b59) > 0.49) continue;
+        const tx = x + Math.floor(hash01(x + 1, z, seed) * 2), tz = z + Math.floor(hash01(x, z + 1, seed) * 2);
+        if (Math.hypot(tx - cx, tz - cz) < clearingRadius + 4) continue;
+        const ground = this.surfaceHeight(tx, tz);
+        if (this.get(tx, ground, tz) !== BLOCK.Grass || ground + 6 >= this.height) continue;
+        const trunk = 3 + (hash01(tx, tz, seed ^ 0x34212) > 0.5 ? 1 : 0);
+        for (let y = ground + 1; y <= ground + trunk; y++) put(tx, y, tz, BLOCK.Wood);
+        for (let dy = -1; dy <= 2; dy++) {
+          const radius = dy === 2 ? 1 : 2;
+          for (let dz = -radius; dz <= radius; dz++) for (let dx = -radius; dx <= radius; dx++) {
+            if (Math.abs(dx) + Math.abs(dz) > radius + 1) continue;
+            const y = ground + trunk + dy;
+            if (this.get(tx + dx, y, tz + dz) === BLOCK.Air) put(tx + dx, y, tz + dz, BLOCK.Leaves);
+          }
+        }
+      }
+    }
+  }
   serialize(): string {
     const snapshot: SavedWorld = {
-      version: 1, generatorVersion: 1, seed: this.seed,
+      version: 1, generatorVersion: this.generatorVersion, seed: this.seed,
       size: [this.width, this.height, this.depth],
       edits: [...this.changes].sort((a, b) => a[0] - b[0]),
     };
     return JSON.stringify(snapshot);
   }
   static deserialize(json: string): VoxelWorld {
-    if (typeof json !== 'string' || json.length > VOLUME * 24 + 1024) throw new RangeError('存档大小不正确。');
+    if (typeof json !== 'string' || json.length > MAX_WORLD_VOLUME * 24 + 1024) throw new RangeError('存档大小不正确。');
     const saved: unknown = JSON.parse(json);
     if (!saved || typeof saved !== 'object') throw new RangeError('存档格式不正确。');
     const data = saved as Partial<SavedWorld>;
-    if (data.version !== 1 || data.generatorVersion !== 1) throw new RangeError('不支持此存档版本。');
+    if (data.version !== 1 || (data.generatorVersion !== 1 && data.generatorVersion !== 2)) throw new RangeError('不支持此存档版本。');
     validSeed(data.seed);
-    if (!Array.isArray(data.size) || data.size.length !== 3 || data.size[0] !== WORLD_SIZE.width
-      || data.size[1] !== WORLD_SIZE.height || data.size[2] !== WORLD_SIZE.depth) throw new RangeError('存档地图尺寸不匹配。');
-    if (!Array.isArray(data.edits) || data.edits.length > VOLUME) throw new RangeError('存档方块数据不正确。');
+    if (!Array.isArray(data.size) || data.size.length !== 3) throw new RangeError('存档地图尺寸不正确。');
+    const size = { width: data.size[0], height: data.size[1], depth: data.size[2] };
+    validSize(size);
+    if (data.generatorVersion === 1 && (size.width !== 48 || size.height !== 24 || size.depth !== 48)) throw new RangeError('旧版地图尺寸不匹配。');
+    const volume = size.width * size.height * size.depth;
+    if (!Array.isArray(data.edits) || data.edits.length > volume) throw new RangeError('存档方块数据不正确。');
     const seen = new Set<number>();
     for (const row of data.edits) {
-      if (!Array.isArray(row) || row.length !== 2 || !Number.isInteger(row[0]) || row[0] < WORLD_SIZE.width * WORLD_SIZE.depth
-        || row[0] >= VOLUME || !validBlock(row[1]) || seen.has(row[0])) throw new RangeError('存档包含非法或重复方块。');
+      if (!Array.isArray(row) || row.length !== 2 || !Number.isInteger(row[0]) || row[0] < size.width * size.depth
+        || row[0] >= volume || !validBlock(row[1]) || seen.has(row[0])) throw new RangeError('存档包含非法或重复方块。');
       seen.add(row[0]);
     }
-    const world = new VoxelWorld(data.seed);
+    const world = new VoxelWorld(data.seed, size);
+    if (data.generatorVersion === 1) world.regenerate(data.seed, size, 1);
     for (const [index, block] of data.edits) {
       world.blocks[index] = block;
       if (block !== world.baseline[index]) world.changes.set(index, block);
     }
+    world.recount();
     return world;
   }
   /** Parse and validate first, then replace; invalid saves never destroy the live map. */
   load(json: string): void {
     const other = VoxelWorld.deserialize(json);
     this._seed = other.seed;
-    this.blocks.set(other.blocks);
+    this.size = { ...other.size };
+    this._generatorVersion = other.generatorVersion;
+    this._blocks = other._blocks;
     this.baseline = other.baseline;
+    this.blockCounts = other.blockCounts;
     this.changes = other.changes;
     this.past.length = this.future.length = 0;
     this.dirty.clear();
