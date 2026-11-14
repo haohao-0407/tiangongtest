@@ -271,7 +271,7 @@ export default async function dualViewProbe(play) {
   const panDist = Math.hypot(camAfter[0] - camBefore[0], camAfter[2] - camBefore[2]);
   assert.ok(panDist > 1.0, `右键拖动应平移镜头，实测位移 ${panDist.toFixed(2)}`);
 
-  // ---- 16. 竖排新面板能打开 ----
+  // ---- 16. 竖排面板能打开 ----
   for (const [menu, title] of [['warehouse', '仓库'], ['follower', '随从']]) {
     await play.page.locator(`[data-menu="${menu}"]`).click();
     await advance(0.5);
@@ -283,6 +283,34 @@ export default async function dualViewProbe(play) {
     await play.page.locator('[data-menu="inspect"]').click();
     await advance(0.3);
   }
+
+  // ---- 17. 仓库是格子面板，搜索/排序/分类都能用 ----
+  await play.page.locator('[data-menu="warehouse"]').click();
+  await advance(0.5);
+  const cells = await play.page.locator('#workspace .wh-cell').count();
+  assert.ok(cells >= 28, `仓库应铺满格子，实际 ${cells} 个`);
+  assert.equal(await play.page.locator('#workspace .wh-search').count(), 1, '仓库应有搜索框');
+  assert.equal(await play.page.locator('#workspace .wh-order').count(), 1, '仓库应有升降序按钮');
+  assert.equal(await play.page.locator('#workspace .wh-category').count(), 1, '仓库应有分类按钮');
+
+  // 搜索过滤：输入「木」应该只剩木材一类
+  await play.page.locator('#workspace .wh-search').fill('木');
+  await advance(0.4);
+  const filtered = await play.page.locator('#workspace .wh-cell:not(.empty)').count();
+  assert.equal(filtered, 1, `搜索「木」应只剩 1 项，实际 ${filtered}`);
+
+  // 升降序切换
+  const orderBefore = (await play.page.locator('#workspace .wh-order').textContent()) ?? '';
+  await play.page.locator('#workspace .wh-order').click();
+  await advance(0.3);
+  const orderAfter = (await play.page.locator('#workspace .wh-order').textContent()) ?? '';
+  assert.notEqual(orderBefore, orderAfter, '点升降序按钮文案应切换');
+
+  await play.page.locator('#workspace .wh-search').fill('');
+  await advance(0.3);
+  await play.screenshot('warehouse-grid');
+  await play.page.locator('[data-menu="inspect"]').click();
+  await advance(0.3);
 
   return {
     spawn,

@@ -208,29 +208,71 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }
     root.append(materials, note(`当前土地 ${state?.edits ?? 0} 格改动 · 1—6 选材 · 左键执行 · 右键拆除`));
   }
-  /** 仓库：把九类资源的存量、用途和地面散落物摆在一张表里。 */
+  /** 仓库：格子式面板，照 Unity 那边搬过来的。搜索 / 升降序 / 分类 / 网格。 */
+  let whQuery = '', whDesc = false, whCategory = 'all';
+  const CATEGORY_OF: Record<string, string> = {
+    wood: 'material', stone: 'material', steel: 'material', components: 'material', cloth: 'material',
+    food: 'food', meal: 'food', medicine: 'food', silver: 'coin',
+  };
+  const CATEGORY_NAMES: Record<string, string> = { all: '全部', material: '材料', food: '食药', coin: '货币' };
+
   function renderWarehouse(c: ColonySnapshot, root: HTMLElement) {
-    root.append(note('这里只统计已经入库的资源。散在地上的物资要先由居民搬回来才算数。'));
-    const list = make('div', 'row-list');
-    const hints: Record<Resource, string> = {
-      wood: '建造与制作', stone: '墙体与炉灶', steel: '工具与电力设备', food: '直接吃，或加工成熟食',
-      meal: '吃了心情更好', medicine: '治疗疾病', cloth: '床铺与医护床', silver: '贸易结算', components: '高级设备零件',
+    const tools = make('div', 'wh-tools');
+    const search = make('input', 'wh-search') as HTMLInputElement;
+    search.type = 'text';
+    search.placeholder = '搜索物品名…';
+    search.value = whQuery;
+    search.setAttribute('aria-label', '搜索物品');
+
+    const order = make('button', 'wh-order', whDesc ? '降序' : '升序');
+    const category = make('button', 'wh-category', CATEGORY_NAMES[whCategory]!);
+    tools.append(search, order, category);
+    root.append(tools);
+
+    const grid = make('div', 'wh-grid');
+    const emptyHint = note('没有匹配的物品。');
+    root.append(grid, emptyHint);
+
+    /** 只重画网格。搜索框不能跟着重建，否则每敲一个字就丢焦点。 */
+    const drawGrid = () => {
+      const items = RESOURCE_TYPES
+        .filter((r) => whCategory === 'all' || CATEGORY_OF[r] === whCategory)
+        .filter((r) => !whQuery || RESOURCE_NAMES[r].includes(whQuery))
+        .map((r) => ({ name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
+        .sort((a, b) => (whDesc ? b.count - a.count : a.count - b.count));
+
+      clear(grid);
+      // 固定 7 列，空位补格子，看起来才像一整个仓库面板
+      const slots = Math.max(28, Math.ceil(items.length / 7) * 7);
+      for (let i = 0; i < slots; i++) {
+        const item = items[i];
+        const cell = make('div', `wh-cell${item ? '' : ' empty'}`);
+        if (item) {
+          cell.title = `${item.name} · ${item.count}`;
+          cell.append(make('span', 'wh-icon', item.icon));
+          if (item.count > 0) cell.append(make('span', 'wh-count', String(item.count)));
+          cell.append(make('span', 'wh-label', item.name));
+        }
+        grid.append(cell);
+      }
+      emptyHint.hidden = items.length > 0;
     };
-    for (const r of RESOURCE_TYPES) {
-      const row = make('div', 'production-row'), main = make('div', 'row-main');
-      main.append(make('strong', '', `${RESOURCE_ICONS[r]} ${RESOURCE_NAMES[r]}`), make('p', '', hints[r]));
-      row.append(main, make('span', 'need-value', String(int(c.resources[r]))));
-      list.append(row);
-    }
-    root.append(list);
+
+    search.addEventListener('input', () => { whQuery = search.value; drawGrid(); });
+    order.addEventListener('click', () => { whDesc = !whDesc; order.textContent = whDesc ? '降序' : '升序'; drawGrid(); });
+    category.addEventListener('click', () => {
+      const keys = Object.keys(CATEGORY_NAMES);
+      whCategory = keys[(keys.indexOf(whCategory) + 1) % keys.length]!;
+      category.textContent = CATEGORY_NAMES[whCategory]!;
+      drawGrid();
+    });
+
+    drawGrid();
 
     const loose = c.items.filter((item) => item.amount > 0);
-    const section = make('div', 'detail-section');
-    section.append(make('h3', '', '散落在外'));
-    section.append(make('p', 'muted', loose.length
-      ? `共 ${loose.length} 堆物资还在地上，居民会陆续搬回仓储。`
+    root.append(note(loose.length
+      ? `另有 ${loose.length} 堆物资还散在地上，居民会陆续搬回仓储。`
       : '地面干净，没有待搬运的物资。'));
-    root.append(section);
   }
 
   /** 随从：居民的概览页。姓名、在干什么、三项关键需求，点进去看完整档案。 */

@@ -61,3 +61,16 @@
 .opt-row #opt-sensitivity-value{flex:none;min-width:34px;text-align:right;color:#a9b79a;font-size:10px}
 .options-card #options-back{margin-top:12px;padding:8px 10px;font-size:11px;color:#e6e3cd;background:#2f3d31;border:1px solid #4a5c48;border-radius:4px;cursor:pointer;width:100%}
 .options-card #options-back:hover{background:#3a4b3a}
+
+/* 仓库格子面板：照 Unity 那边搬的，搜索 + 升降序 + 分类 + 七列网格。 */
+.wh-tools{display:flex;gap:6px;margin-bottom:10px}
+.wh-search{flex:1;min-width:0;padding:7px 10px;font-size:11px;color:#3d4a36;background:#f6f8ef;border:1px solid #c3d0b2;border-radius:5px}
+.wh-search::placeholder{color:#9aa892}
+.wh-order,.wh-category{flex:none;padding:7px 12px;font-size:11px;color:#45523c;background:#eef3e4;border:1px solid #c3d0b2;border-radius:5px;cursor:pointer;white-space:nowrap}
+.wh-order:hover,.wh-category:hover{background:#e0eace;border-color:#aebf93}
+.wh-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:9px;background:#e9efdc;border:1px solid #cbd6bb;border-radius:6px}
+.wh-cell{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#f7f9f0;border:1px solid #c9d4b8;border-radius:4px;overflow:hidden}
+.wh-cell.empty{background:#e2e8d5;border-color:#d3dcc6}
+.wh-icon{font-size:18px;line-height:1}
+.wh-count{position:absolute;right:3px;bottom:2px;font-size:9px;line-height:1;color:#3d4a36;font-weight:600}
+.wh-label{position:absolute;left:3px;top:2px;font-size:8px;line-height:1;color:#7c8a72}
