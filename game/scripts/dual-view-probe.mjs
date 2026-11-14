@@ -294,6 +294,11 @@ export default async function dualViewProbe(play) {
   assert.equal(await play.page.locator('#workspace .wh-category').count(), 1, '仓库应有分类下拉');
 
   // 搜索过滤：输入「木」应该只剩木材一类
+  // 面板打开后点里面的控件、打字，都不该把面板关掉
+  assert.equal(await play.page.locator('#workspace').isVisible(), true, '仓库打开后应保持显示');
+  await play.page.locator('#workspace .wh-search').click();
+  await advance(0.3);
+  assert.equal(await play.page.locator('#workspace').isVisible(), true, '点搜索框不该关面板');
   await play.page.locator('#workspace .wh-search').fill('木');
   await advance(0.4);
   const filtered = await play.page.locator('#workspace .wh-cell:not(.empty)').count();

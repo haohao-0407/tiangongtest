@@ -383,8 +383,15 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     ];
     const goalRoot = clear(get('goal-list')); for (const [text, done] of goals) { const row = make('div', `goal${done ? ' done' : ''}`); row.append(make('span', 'goal-mark', done ? '✓' : '○'), make('span', '', text)); goalRoot.append(row); }
     if (c.selectedColonistId && c.selectedColonistId !== lastSelectedFromWorld) {
-      lastSelectedFromWorld = c.selectedColonistId; selectedResident = c.selectedColonistId;
-      panel = ''; get('workspace').hidden = true; hideSidePanels(); get('inspector').hidden = false;
+      lastSelectedFromWorld = c.selectedColonistId;
+      // 只在没开别的面板时才切到档案。
+      // 之前这里无条件关面板，用户正在看仓库时会被凭空顶掉——
+      // 每 0.4 秒的投影刷新都会跑一次这段，看着就像「面板自己关了」。
+      if (!panel && get('workspace').hidden) {
+        selectedResident = c.selectedColonistId;
+        hideSidePanels();
+        get('inspector').hidden = false;
+      }
     }
     renderInspector(c); renderPanel();
   }
