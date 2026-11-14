@@ -88,11 +88,21 @@ export default async function dualViewProbe(play) {
   const shot = await play.screenshot('player-view');
   assert.equal(shot.rendered, true, '玩家视角必须是真实渲染像素');
 
+  // ---- 9. 底部指挥官菜单只在俯视视角出现 ----
+  const toolbar = play.page.locator('.bottom-area');
+  const hiddenInPlayer = await toolbar.isVisible();
+  assert.equal(hiddenInPlayer, false, '玩家视角下底部菜单应隐藏');
+
+  await tapV();
+  await advance(0.3);
+  const shownInGod = await toolbar.isVisible();
+  assert.equal(shownInGod, true, '俯视视角下底部菜单应重新出现');
+
   return {
     spawn,
     walkedMeters: Number(walked.toFixed(2)),
     cameraToPlayer: Number(camToPlayer.toFixed(2)),
     jumpRise: Number((s3.player.y - groundY).toFixed(2)),
-    checks: 8,
+    checks: 9,
   };
 }

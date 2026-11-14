@@ -8,7 +8,9 @@ import {
 const SAVE_KEY = 'homestead.colony.v2';
 const MANUAL_KEY = 'homestead.colony.v2.manual';
 const LEGACY_KEY = 'homestead.voxel.v1';
-type State = { seed: string; selected: number; mode: string; tool?: string; crop?: string; edits: number; undo: boolean; redo: boolean; hoverCell?: unknown; status?: string; revision?: number; colony?: ColonySnapshot };
+type State = { seed: string; selected: number; mode: string; tool?: string; crop?: string; edits: number; undo: boolean; redo: boolean; hoverCell?: unknown; status?: string; revision?: number; colony?: ColonySnapshot;
+  /** 相机状态。mode 决定哪些 HUD 该出现：指挥官视角要菜单，玩家视角不要。 */
+  camera?: { mode?: 'god' | 'character'; followId?: string | null } };
 type SaveIntent = 'auto' | 'manual' | 'export';
 const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地' };
 const BUILD_ICONS: Record<string, string> = { bed: '▱', table: '▤', stove: '♨', workbench: '⚒', researchDesk: '◇', solar: '☀', battery: '▥', cooler: '❄', medicalBed: '+', wall: '▧', door: '▯', floor: '▦' };
@@ -347,6 +349,14 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }
     if (msg?.type !== 'voxel:state') return;
     state = (msg.state ?? msg) as State;
+    // 视角决定 HUD 形态：
+    //   俯视 = 指挥官，底部要有建造/规划/研究那排菜单
+    //   玩家 = 自己下去干活，那一排反而挡视线
+    // 标记挂在 .shell 上而不是 body——UI 在 Shadow DOM 里，
+    // 样式规则只认作用域内的选择器，用 body 会被校验直接拒掉。
+    const viewMode = state.camera?.mode ?? 'god';
+    const shell = shadow.querySelector('.shell') as HTMLElement | null;
+    if (shell && shell.dataset.viewMode !== viewMode) shell.dataset.viewMode = viewMode;
     if (state.tool) { currentTool = state.tool; showTool(currentTool); }
     get('status').textContent = state.status ?? '选择一项规划，让居民开始工作';
     get('cell').textContent = Array.isArray(state.hoverCell) ? `[ ${state.hoverCell.join(', ')} ]` : '';

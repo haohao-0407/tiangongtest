@@ -10,3 +10,8 @@
 @media(max-width:800px){.brand{min-width:130px}.brand p,.brand-icon{display:none}.topbar{gap:8px;left:10px;right:10px}.top-actions{padding-left:6px}.top-actions button{width:24px}.resource-strip{left:10px;right:10px;gap:4px}.resource{font-size:9px;padding:3px 5px}.colony-sidebar{left:10px;width:142px}.colonist-card{padding:6px;gap:6px}.portrait{flex-basis:24px;width:24px}.objectives{padding:8px}.workspace{left:163px;right:10px}.card-grid,.planning-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{gap:1px;padding:5px}.toolbar button{padding:5px 2px;flex-direction:column;gap:0;font-size:9px}.toolbar button>span{font-size:15px}.bottom-area{max-width:calc(100% - 20px)}.materials{grid-template-columns:repeat(3,minmax(0,1fr))}.inspector,.settings,.help{right:10px;width:250px}.time-controls{gap:2px}.time-controls button{min-width:27px;padding:4px}.clock>span{font-size:9px}}
 
 #import-panel{margin-top:12px}#import-json{width:100%;display:block;margin:6px 0 8px;font-size:10px;line-height:1.5}
+
+/* 玩家视角：底部那排指挥官菜单不再需要，收起来把视野让给世界。
+   判定由 build-ui 写到 .shell[data-view-mode]。
+   注意 UI 跑在 Shadow DOM 里，这里不能用 body 之类的全局选择器。 */
+.shell[data-view-mode="character"] .bottom-area{display:none}
