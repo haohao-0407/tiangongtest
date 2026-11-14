@@ -16,5 +16,19 @@ export default async function nearHint(play) {
   const label = (await play.page.locator('#interact-hint').textContent()) ?? '';
   await play.screenshot('near-hint-on');
 
-  return { beforeView, dist, nearHint: st.nearHint, visible, label: label.trim() };
+  // 往左走三步，应该出圈、提示消失
+  await play.page.keyboard.down('KeyA');
+  await advance(1.4);
+  await play.page.keyboard.up('KeyA');
+  await advance(0.4);
+  const far = (await play.state(READ)).player;
+  const farDist = Number(Math.hypot(far.x - (far.chest[0] + 0.5), far.z - (far.chest[2] + 0.5)).toFixed(2));
+  const farHint = far.nearHint;
+  const farVisible = await play.page.locator('#interact-hint').isVisible();
+
+  return {
+    near: { dist, nearHint: st.nearHint, visible, label: label.trim() },
+    far: { dist: farDist, nearHint: farHint, visible: farVisible },
+    beforeView,
+  };
 }

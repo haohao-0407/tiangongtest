@@ -159,12 +159,15 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       /**
        * 玩家离木箱够不够近。以木箱**中心**为圆心的实际距离，不是格子距离——
        * 按格子算会让判定框偏到格子角上，看着像「离箱还有半格就触发了」。
-       * 半径 1.6：玩家站在相邻格时中心距约 1.5，正好够得着；再远一格就到 2.5，摸不到。
+       * 以箱子所在的**格子**为中心，向周围八个格子扩散一圈。
        */
       const chestNear = () => {
         if (!chestPos) return false;
-        const cx = chestPos[0] + 0.5, cz = chestPos[2] + 0.5;
-        return Math.hypot(player.x - cx, player.z - cz) <= 1.6;
+        // 以箱子所在格为中心的一圈：上下左右 + 斜对角，共八格。
+        // 用格子坐标判而不是浮点圆——玩家不一定踩在格子正中心，
+        // 按浮点算会出现「站在相邻格却够不着」的怪事（实测差 0.08 格）。
+        const pcx = Math.floor(player.x), pcz = Math.floor(player.z);
+        return Math.abs(pcx - chestPos[0]) <= 1 && Math.abs(pcz - chestPos[2]) <= 1;
       };
 
       /** 玩家脚边一格内（格子曼哈顿距离）最近的居民。照 Unity 的 FollowerInteract。 */
