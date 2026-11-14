@@ -69,6 +69,20 @@ export default async function dualViewProbe(play) {
   await play.page.mouse.move(640, 300);
   await advance(0.3);
 
+  // ---- 4c. 走一圈不该嵌进方块 ----
+  // 朝四个方向各走一段，每段结束检查是否被塞进实心方块
+  const dirs = ['KeyW', 'KeyA', 'KeyS', 'KeyD'];
+  const embeddedAt = [];
+  for (const dir of dirs) {
+    await play.page.keyboard.down(dir);
+    await advance(0.8);
+    await play.page.keyboard.up(dir);
+    await advance(0.4);
+    const st = await read();
+    if (st.player.embedded) embeddedAt.push(dir);
+  }
+  assert.deepEqual(embeddedAt, [], `走完四个方向后不该嵌进方块，出问题的方向: ${embeddedAt.join(',') || '无'}`);
+
   // ---- 5. 空格跳跃：离地后 y 会升起来 ----
   const groundY = s2.player.y;
   await play.page.keyboard.press('Space');

@@ -87,8 +87,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
 
       /**
        * 能不能把这个角色放在这里。
-       * 用身体半径往四个方向各探一次，再把脚和头两格都验一遍——
+       * 用身体半径往四个方向各探一次，再把脚到头顶的格子都验一遍——
        * 只看中心格会让人一半嵌进墙里，观感很糟。
+       * 身高 1.8 米占两格（脚 + 头），所以验 fy 和 fy+1。
+       * 不要多验一格——那会让 2 格高的通道过不去。
        */
       const canStand = (x: number, z: number, footY: number): boolean => {
         const fy = Math.floor(footY);
@@ -101,6 +103,27 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           }
         }
         return true;
+      };
+
+      /**
+       * 把人从实心方块里推出来。
+       * 只在竖直方向变化后调用——走下台阶或落地时，水平位置没动过，
+       * 但落点可能正好贴着高台侧面，身体就嵌进去了。
+       * 沿着四个方向各试一小步，取最近能站的那一个。
+       */
+      const depenetrate = (): void => {
+        if (canStand(player.x, player.z, player.y)) return;
+        const step = 0.08;
+        for (let attempt = 1; attempt <= 6; attempt++) {
+          const dist = step * attempt;
+          for (const [dx, dz] of [[dist, 0], [-dist, 0], [0, dist], [0, -dist]] as number[][]) {
+            if (canStand(player.x + dx!, player.z + dz!, player.y)) {
+              player.x += dx!;
+              player.z += dz!;
+              return;
+            }
+          }
+        }
       };
       let publishElapsed = 0, simViewElapsed = 0, lastTerrainRevision = voxels.revision;
       let eye: Point = [0, 0, 0], lastEdit: Record<string, unknown> | null = null;
@@ -183,7 +206,9 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         edits: voxels.editCount, editCount: voxels.editCount, revision: voxels.revision,
         undo: tool.startsWith('sandbox:') && voxels.canUndo, redo: tool.startsWith('sandbox:') && voxels.canRedo, hoverCell: hoverCell ? [...hoverCell] : null,
         status, lastEdit, camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
-        player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing },
+        player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
+          // 给验收用：当前是不是嵌在实心方块里
+          embedded: !canStand(player.x, player.z, player.y) },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth],
       });
       const publish = () => {
@@ -339,6 +364,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 if (player.y > g + 0.05) { player.grounded = false; player.vy = 0; }
                 else player.y = g;
               }
+              // 竖直方向变了之后补一次推出：落点可能贴着高台侧面，不推就嵌进去了
+              depenetrate();
 
               // 相机跟着玩家，不是跟着居民了
               const desired: Point = [player.x, player.y + 1.1, player.z];
