@@ -16,13 +16,14 @@ import { RenderQueue, type AssetHandle } from '@forgeax/engine/types';
 import { assetGuid, guidText, PACKAGE_IDS, SUN_OUTGOING_DIRECTION } from '../shared/asset-refs.ts';
 import { BLOCK, BLOCKS, VoxelWorld } from './model.ts';
 import { buildChunkMesh } from './mesh.ts';
+import { PcgView } from './pcg/view.ts';
 import { ColonySimulation } from '../colony/simulation.ts';
 import { ColonyView } from '../colony/view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
 import { BUILDING_DEFS, type BuildingKind, type ColonyCommand } from '../colony/contracts.ts';
 
 type Point = [number, number, number];
-const PALETTE = [5, 3, 4, 6, 1, 2];
+const PALETTE = [5, 3, 4, 6, 1, 2, 10];
 const CAMERA_SYSTEM = 'voxel-camera';
 const EDIT_SYSTEM = 'voxel-edit';
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
@@ -39,6 +40,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let colonyState = colony.snapshot();
       const colonyView = new ColonyView(world, assets, () => voxels);
       const terrainView = new TerrainPlanView(world, assets, () => voxels);
+      const pcgView = new PcgView(world, assets);
+      colony.setWalkSurfaceSampler((x,z,fallback)=>pcgView.walkHeight(x,z,fallback));
       const entities = new Set<EntityHandle>();
       const chunks = new Map<string, { entity: EntityHandle; handle: AssetHandle<'mesh'> }>();
       const ownedHandles = new Set<number>();
@@ -166,11 +169,11 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             }
           }
         }
-        return false;
+        return pcgView.blocks([cx - PLAYER_HALF, footY + 1e-4, cz - PLAYER_HALF], [cx + PLAYER_HALF, footY + PLAYER_HEIGHT, cz + PLAYER_HALF]);
       };
 
       /** 脚下这片（整个 AABB 覆盖范围）最高的地面高度，取最高才不会踩进旁边的高台。 */
-      const groundUnder = (cx: number, cz: number, fromY: number): number => {
+      const groundUnder = (cx: number, cz: number, fromY: number, maximum = fromY + .25): number => {
         const b = boxCells(cx, cz, fromY);
         const start = Math.min(voxels.height - 1, b.minY);
         let top = 0;
@@ -181,7 +184,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             }
           }
         }
-        return top;
+        return pcgView.supportHeight(cx - PLAYER_HALF, cz - PLAYER_HALF, cx + PLAYER_HALF, cz + PLAYER_HALF, top, maximum);
       };
 
       /**
@@ -196,9 +199,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         for (let i = 0; i < steps; i++) {
           const nx = axis === 0 ? player.x + step : player.x;
           const nz = axis === 1 ? player.z + step : player.z;
-          if (blocked(nx, nz, player.y)) return false;
+          // Walk up actual generated risers/curbs, while ordinary one-cell cliffs still require jumping.
+          const ground = player.grounded ? groundUnder(nx, nz, player.y) : player.y;
+          const raised = ground > player.y + 1e-5 && ground <= player.y + .25001;
+          const footY = raised ? ground : player.y;
+          if (blocked(nx, nz, footY)) return false;
           player.x = nx;
           player.z = nz;
+          if (raised) player.y = footY;
         }
         return true;
       };
@@ -210,7 +218,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         if (cameraSystemAdded) world.removeSystem(Update, CAMERA_SYSTEM).unwrap();
         if (editSystemAdded) world.removeSystem(Update, EDIT_SYSTEM).unwrap();
         world.removeResource('voxel:read');
-        colonyView.dispose(); terrainView.dispose();
+        colonyView.dispose(); terrainView.dispose(); pcgView.dispose();
         for (const entity of entities) world.despawn(entity).unwrap();
         for (const handle of ownedHandles) assets.release(handle).unwrap();
         ownedHandles.clear();
@@ -277,6 +285,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             chunks.set(key, { entity, handle });
           }
         }
+        pcgView.update(voxels, colony.renderState().buildings);
       };
       const read = () => ({
         seed: voxels.seed, selected, mode, tool, crop, colony: colonyState, blocks: voxels.count(), nonAirCount: voxels.count(),
@@ -291,6 +300,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           bagSelected },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth], worldSize: [voxels.width, voxels.height, voxels.depth],
         terrain: { target: terrainTarget, size: terrainSize, shape: terrainShape, sample: terrainSample, preview: { ...terrainPreview }, minHeight: 1, maxHeight: voxels.height - 2 }, buildHeight,
+        pcg: pcgView.read(),
       });
       const publish = () => {
         const state = read();
@@ -345,7 +355,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         const nextColony = new ColonySimulation(nextWorld);
         if (parsed?.version === 2) nextColony.load(parsed.colony);
         voxels = nextWorld; colony = nextColony; colonyState = colony.snapshot();
-        terrainView.clear();
+        colony.setWalkSurfaceSampler((x,z,fallback)=>pcgView.walkHeight(x,z,fallback));
+        terrainView.clear(); pcgView.clear();
         cancelStroke(); terrainTarget = clamp(terrainTarget, 1, voxels.height - 2); buildHeight = null; viewMode = 'god'; followId = null;
         for (const entry of chunks.values()) { world.despawn(entry.entity).unwrap(); entities.delete(entry.entity); release(entry.handle); }
         chunks.clear();
@@ -420,7 +431,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           if (c.action === 'reseed' && typeof c.seed === 'string' && c.seed.trim()) {
             cancelStroke(); buildHeight = null;
             voxels = new VoxelWorld(c.seed.trim().slice(0, 80)); colony = new ColonySimulation(voxels); colonyState = colony.snapshot();
-            terrainView.clear();
+            colony.setWalkSurfaceSampler((x,z,fallback)=>pcgView.walkHeight(x,z,fallback));
+            terrainView.clear(); pcgView.clear();
             viewMode = 'god'; followId = null; terrainTarget = clamp(terrainTarget, 1, voxels.height - 2);
             for (const entry of chunks.values()) { world.despawn(entry.entity).unwrap(); entities.delete(entry.entity); release(entry.handle); } chunks.clear();
             player.x = voxels.width / 2; player.z = voxels.depth / 2; player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z)); player.grounded = true; player.vy = 0;
@@ -447,10 +459,16 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           const dt = Math.min(world.getResource(Time).delta, 0.1);
           colony.tick(dt); publishElapsed += dt; simViewElapsed += dt;
           if (simViewElapsed >= 0.05) {
-            simViewElapsed = 0; colonyView.update(colony.renderState(), world.getResource(Time).elapsed);
+            simViewElapsed = 0;
+            const renderState = colony.renderState();
+            if (pcgView.update(voxels, renderState.buildings)) refreshState = true;
+            // Ground the displayed residents on the same derived steps used by player collision.
+            colonyView.update({ ...renderState, colonists: renderState.colonists.map(p => ({ ...p,
+              position: [p.position[0], pcgView.walkHeight(p.position[0], p.position[2], p.position[1]), p.position[2]] as Point,
+            })) }, world.getResource(Time).elapsed);
             if (voxels.revision !== lastTerrainRevision) {
               updateChunks(); lastTerrainRevision = voxels.revision;
-              if (player.grounded) player.y = Math.max(1, voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z)));
+              if (player.grounded) player.y = groundUnder(player.x, player.z, Math.max(player.y, voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z))), Infinity);
             }
           }
           if (publishElapsed >= 0.4) {
@@ -625,9 +643,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             const r = m ? viewportToWorld(world, camera, m.x, m.y, size.width, size.height) : undefined;
             const hit = r ? voxels.raycast(Array.from(ray.getOrigin(vec3.create(), r)) as Point, Array.from(ray.getDirection(vec3.create(), r)) as Point, 1200) : null;
             const removing = sandbox && (mode === 'remove' || input.mouse.button(2));
-            const cell = hit ? (sandbox ? (removing ? hit.cell : hit.adjacent) : [hit.cell[0],voxels.terrainHeight(hit.cell[0],hit.cell[2]),hit.cell[2]] as Point) : null;
+            const paving = sandbox && !removing && selected === BLOCK.Road;
+            const roadAllowed = !!hit && hit.normal?.[1] === 1 && !([BLOCK.Air, BLOCK.Water, BLOCK.Wood, BLOCK.Leaves] as readonly number[]).includes(hit.block)
+              && !colonyState.buildings.some(b => hit.cell[0] >= b.x && hit.cell[0] < b.x + b.w && hit.cell[2] >= b.z && hit.cell[2] < b.z + b.d);
+            const cell = hit ? (sandbox ? (removing || paving ? hit.cell : hit.adjacent) : [hit.cell[0],voxels.terrainHeight(hit.cell[0],hit.cell[2]),hit.cell[2]] as Point) : null;
             const point: Point | null = cell ? [...cell] : null;
-            const valid = point !== null && voxels.inBounds(...point) && point[1] > 0 && (!sandbox || removing || voxels.get(...point) === 0 || voxels.get(...point) === 8);
+            const valid = point !== null && voxels.inBounds(...point) && point[1] > 0 && (!sandbox || removing || (paving ? roadAllowed : voxels.get(...point) === 0 || voxels.get(...point) === 8));
             hoverCell = valid ? point : null;
             // Include a final mouse move delivered in the same frame as release.
             if (releasedStroke && stroke) {
@@ -639,7 +660,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               hoverKey = nextKey; refreshState = true;
               const footprint = tool.startsWith('build:') ? BUILDING_DEFS[tool.slice(6) as BuildingKind]?.footprint ?? [1, 1] : tool.startsWith('zone:') ? [3, 3] : [1, 1];
               const [w, d] = footprint;
-              world.set(cursor, Transform, { pos: hoverCell && tool!=='inspect' && tool!=='level' ? [hoverCell[0] + w!/2, (tool.startsWith('build:') ? buildHeight ?? hoverCell[1] : hoverCell[1]) + (sandbox ? .5 : .04), hoverCell[2] + d!/2] : [0, -100, 0],scale:sandbox?[1,1,1]:[w!,.08,d!] }).unwrap();
+              const surfacePreview = paving && !removing;
+              world.set(cursor, Transform, { pos: hoverCell && tool!=='inspect' && tool!=='level' ? [hoverCell[0] + w!/2, (tool.startsWith('build:') ? buildHeight ?? hoverCell[1] : hoverCell[1]) + (surfacePreview ? 1.04 : sandbox ? .5 : .04), hoverCell[2] + d!/2] : [0, -100, 0],scale:surfacePreview?[1,.08,1]:sandbox?[1,1,1]:[w!,.08,d!] }).unwrap();
               world.set(cursor, MeshRenderer, { materials: [removing ? removeMaterial : buildMaterial] }).unwrap();
             }
             if (tool === 'level' && hoverCell) {
@@ -694,14 +716,15 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             }
             if (sandbox && hit && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
               const shouldRemove = input.mouse.justPressed(2) || mode === 'remove';
-              const editCell = shouldRemove ? hit.cell : hit.adjacent;
+              const paintRoad = !shouldRemove && selected === BLOCK.Road;
+              const editCell = shouldRemove || paintRoad ? hit.cell : hit.adjacent;
               if (editCell && voxels.inBounds(...editCell) && editCell[1] > 0) {
                 const block = shouldRemove ? 0 : selected;
-                if (shouldRemove || voxels.get(...editCell) === 0 || voxels.get(...editCell) === 8) {
+                if (shouldRemove || (paintRoad ? roadAllowed : voxels.get(...editCell) === 0 || voxels.get(...editCell) === 8)) {
                   try {
                     if (voxels.edit([{ x: editCell[0], y: editCell[1], z: editCell[2], block }])) {
                       lastEdit = { x: editCell[0], y: editCell[1], z: editCell[2], block, action: shouldRemove ? 'remove' : 'build' };
-                      changed(shouldRemove ? '已拆除方块 · Ctrl + Z 撤销' : `已放置${BLOCKS[selected]!.name} · Ctrl + Z 撤销`);
+                      changed(shouldRemove ? '已拆除方块 · 周边细节已更新 · Ctrl + Z 撤销' : paintRoad ? '已铺设道路 · 人行道与高差台阶自动连接 · Ctrl + Z 撤销' : `已放置${BLOCKS[selected]!.name} · Ctrl + Z 撤销`);
                     }
                   } catch (error) { status = error instanceof Error ? error.message : '此处无法建造'; refreshState = true; }
                 }

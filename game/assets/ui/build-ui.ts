@@ -119,6 +119,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
   const showTool = (tool: string) => {
     const hints: Record<string, string> = { inspect: '查看模式 · 左键选择居民或地块', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树木，居民会领取工作', mine: '采矿规划 · 点击石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
+    if (state?.selected === 10) hints['sandbox:build'] = '铺设道路 · 左键替换地表 · 路沿与台阶随连接自动更新';
+    else if (state?.selected === 6) hints['sandbox:build'] = '砖墙 · 连续墙面叠高两格生成窗框、窗台 · 增删后自动更新';
     get('tool-hint').textContent = tool === 'level'
       ? `等高整地 · 标高 ${state?.terrain?.target ?? 6} · ${state?.terrain?.shape === 'rectangle' ? '左键拖框' : '左键拖涂'} · 松开提交 · Shift 取样`
       : tool.startsWith('build:') ? `建造 ${BUILDING_DEFS[tool.slice(6) as keyof typeof BUILDING_DEFS]?.name ?? ''} · ${state?.buildHeight == null ? '取落点标高' : `地基标高 ${state.buildHeight}`} · 先整平，再施工` : hints[tool] ?? '点击地图执行当前规划';
@@ -295,10 +297,11 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     modes.append(toolButton('▧ 放置方块', 'sandbox:build', 'sandbox-build'), toolButton('⌫ 拆除方块', 'sandbox:remove', 'sandbox-remove'));
     const undo = button('↶', 'undo'), redo = button('↷', 'redo'); undo.id = 'undo'; redo.id = 'redo'; undo.dataset.voxelAction = 'undo'; redo.dataset.voxelAction = 'redo'; undo.disabled = !state?.undo; redo.disabled = !state?.redo; undo.title = '撤销 Ctrl+Z'; redo.title = '重做 Ctrl+Y'; history.append(undo, redo); head.append(modes, history); root.append(head);
     const materials = make('div', 'materials');
-    for (const [index, [id, name, cls]] of ([[5, '木板', 'planks'], [3, '石块', 'stone'], [4, '原木', 'wood'], [6, '砖块', 'brick'], [1, '草地', 'grass'], [2, '泥土', 'dirt']] as const).entries()) {
+    for (const [index, [id, name, cls]] of ([[5, '木板', 'planks'], [3, '石块', 'stone'], [4, '原木', 'wood'], [6, '砖墙', 'brick'], [1, '草地', 'grass'], [2, '泥土', 'dirt'], [10, '道路', 'road']] as const).entries()) {
       const b = button('', `block-${id}`, undefined, 'material'); b.dataset.block = String(id); b.setAttribute('aria-label', name); b.title = `${index + 1} · ${name}`; b.classList.toggle('active', state?.selected === id); b.append(make('span', `cube ${cls}`), make('span', '', name)); materials.append(b);
     }
-    root.append(materials, note(`当前土地 ${state?.edits ?? 0} 格改动 · 1—6 选材 · 左键执行 · 右键拆除`));
+    root.append(materials, note(`当前土地 ${state?.edits ?? 0} 格改动 · 1—7 选材 · 左键执行 · 右键拆除`));
+    root.append(note('连续砖墙叠高两格后，露出的墙面自动生成窗框与窗台。选道路后点击地表铺设；道路两侧生成沿边人行道，相邻道路相差一格高度时生成台阶。增删、撤销与读档都会更新细节。'));
   }
   // ---- 物品右键菜单 ----
   // 照 Unity 的 WarehouseItemMenu：点格子弹出，在这里对单件资源做操作。
@@ -833,7 +836,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   }
 
   // 数字键切快捷栏格子。只在玩家视角接管——
-  // 俯视视角的 1/2/3 是速度、沙盒里 1-6 是选方块，不能抢。
+  // 俯视视角的 1/2/3 是速度、沙盒里 1-7 是选方块，不能抢。
   on(win, 'keydown', ((event: KeyboardEvent) => {
     if (shellEl?.dataset.viewMode !== 'character') return;
     const match = /^Digit([1-9])$/.exec(event.code);

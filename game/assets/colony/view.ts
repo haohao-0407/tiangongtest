@@ -82,6 +82,8 @@ export class ColonyView {
       this.put(`居民/${p.id}`,parts,active);
     }
     for(const b of state.buildings){
+      // Completed walls are composed by the shared semantic voxel renderer.
+      if(b.complete&&b.kind==='wall')continue;
       const w=b.w??1,d=b.d??1,x=b.x+w/2,y=b.y,z=b.z+d/2;
       const parts:Part[]=[];
       const part=(dx:number,dy:number,dz:number,sx:number,sy:number,sz:number,c:string,shadow=true)=>parts.push({p:[x+dx,y+dy,z+dz],s:[sx,sy,sz],c,shadow});

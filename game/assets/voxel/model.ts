@@ -5,9 +5,11 @@ export const WORLD_SIZE = { width: 250, height: 24, depth: 250 } as const;
 export const LEGACY_WORLD_SIZE = { width: 48, height: 24, depth: 48 } as const;
 // Larger chunks keep a 250 × 250 map to 121 terrain draw entities at the default height.
 export const CHUNK_SIZE = 24;
+/** Semantic detail tiles are independent of terrain draw chunks. */
+export const DETAIL_TILE_SIZE = 8;
 export const BLOCK = {
   Air: 0, Grass: 1, Dirt: 2, Stone: 3, Wood: 4,
-  Planks: 5, Brick: 6, Leaves: 7, Water: 8, Sand: 9,
+  Planks: 5, Brick: 6, Leaves: 7, Water: 8, Sand: 9, Road: 10,
 } as const;
 export type BlockId = typeof BLOCK[keyof typeof BLOCK];
 export interface BlockDefinition {
@@ -24,13 +26,16 @@ export const BLOCKS: readonly BlockDefinition[] = [
   { id: 3, name: '石块', color: [0.53, 0.57, 0.56], solid: true, buildable: true },
   { id: 4, name: '原木', color: [0.40, 0.24, 0.12], solid: true, buildable: true },
   { id: 5, name: '木板', color: [0.76, 0.54, 0.29], solid: true, buildable: true },
-  { id: 6, name: '砖块', color: [0.68, 0.35, 0.24], solid: true, buildable: true },
+  { id: 6, name: '砖墙', color: [0.68, 0.35, 0.24], solid: true, buildable: true },
   { id: 7, name: '树叶', color: [0.23, 0.46, 0.20], solid: true, buildable: true },
   { id: 8, name: '河水', color: [0.22, 0.57, 0.66], solid: false, buildable: false },
   { id: 9, name: '沙土', color: [0.83, 0.74, 0.48], solid: true, buildable: true },
+  { id: 10, name: '道路', color: [0.49, 0.51, 0.49], solid: true, buildable: true },
 ];
 export interface BlockEdit { x: number; y: number; z: number; block: number }
 export interface ChunkCoord { x: number; y: number; z: number }
+export interface DetailTileCoord { x: number; z: number }
+export interface PcgDirtyTiles { reset: boolean; tiles: DetailTileCoord[] }
 export interface VoxelHit {
   cell: Vec3;
   normal: Vec3 | null;
@@ -73,7 +78,7 @@ function validSeed(seed: unknown): asserts seed is string {
   }
 }
 function validBlock(block: number): block is BlockId {
-  return Number.isInteger(block) && block >= BLOCK.Air && block <= BLOCK.Sand;
+  return Number.isInteger(block) && block >= BLOCK.Air && block <= BLOCK.Road;
 }
 function validSize(size: WorldSize): void {
   if (!size || ![size.width, size.height, size.depth].every(Number.isInteger)
@@ -99,6 +104,9 @@ export class VoxelWorld {
   private past: Change[][] = [];
   private future: Change[][] = [];
   private dirty = new Set<string>();
+  private detailCells = new Map<string, Set<number>>();
+  private pcgDirty = new Set<string>();
+  private pcgReset = true;
   private _seed = '';
   private _revision = 0;
   private _generatorVersion: 1 | 2 = 2;
@@ -150,6 +158,66 @@ export class VoxelWorld {
   count(block?: number): number {
     return block === undefined ? this.blocks.length - this.blockCounts[BLOCK.Air]! : this.blockCounts[block] ?? 0;
   }
+  /** Sparse source nodes only: natural stone never becomes an architectural wall. */
+  getDetailTiles(): DetailTileCoord[] {
+    return this.detailTileCoordinates(this.detailCells.keys());
+  }
+  /** Query a detail tile and its dependency halo without scanning the terrain volume. */
+  getDetailCellsForTile(tileX: number, tileZ: number, padding = 2): BlockEdit[] {
+    if (![tileX, tileZ, padding].every(Number.isInteger) || padding < 0) throw new RangeError('细节区域参数不正确。');
+    const minX = Math.max(0, tileX * DETAIL_TILE_SIZE - padding);
+    const minZ = Math.max(0, tileZ * DETAIL_TILE_SIZE - padding);
+    const maxX = Math.min(this.width, (tileX + 1) * DETAIL_TILE_SIZE + padding);
+    const maxZ = Math.min(this.depth, (tileZ + 1) * DETAIL_TILE_SIZE + padding);
+    const result: BlockEdit[] = [];
+    for (let tz = Math.floor(minZ / DETAIL_TILE_SIZE); tz < Math.ceil(maxZ / DETAIL_TILE_SIZE); tz++) {
+      for (let tx = Math.floor(minX / DETAIL_TILE_SIZE); tx < Math.ceil(maxX / DETAIL_TILE_SIZE); tx++) {
+        const cells = this.detailCells.get(`${tx},${tz}`);
+        if (!cells) continue;
+        for (const index of cells) {
+          const [x, y, z] = this.coordinates(index);
+          if (x >= minX && x < maxX && z >= minZ && z < maxZ) result.push({ x, y, z, block: this.blocks[index]! });
+        }
+      }
+    }
+    return result.sort((a, b) => a.z - b.z || a.x - b.x || a.y - b.y);
+  }
+  /** Independent consumer: terrain rendering cannot swallow structural detail updates. */
+  consumePcgDirtyTiles(): PcgDirtyTiles {
+    const reset = this.pcgReset;
+    const tiles = reset ? this.getDetailTiles() : this.detailTileCoordinates(this.pcgDirty);
+    this.pcgDirty.clear();
+    this.pcgReset = false;
+    return { reset, tiles };
+  }
+  private detailTileCoordinates(keys: Iterable<string>): DetailTileCoord[] {
+    return Array.from(keys, key => {
+      const [x, z] = key.split(',').map(Number);
+      return { x: x!, z: z! };
+    }).sort((a, b) => a.z - b.z || a.x - b.x);
+  }
+  private indexDetailCell(index: number, block: number): void {
+    const [x, , z] = this.coordinates(index);
+    const key = `${Math.floor(x / DETAIL_TILE_SIZE)},${Math.floor(z / DETAIL_TILE_SIZE)}`;
+    if (block === BLOCK.Brick || block === BLOCK.Road) {
+      let bucket = this.detailCells.get(key);
+      if (!bucket) { bucket = new Set<number>(); this.detailCells.set(key, bucket); }
+      bucket.add(index);
+    } else {
+      const bucket = this.detailCells.get(key);
+      if (bucket) { bucket.delete(index); if (bucket.size === 0) this.detailCells.delete(key); }
+    }
+  }
+  private markPcgCellDirty(x: number, z: number): void {
+    if (this.pcgReset) return;
+    // Neighbouring natural cells may hide windows or change sidewalk support too.
+    const radius = 2;
+    for (let tz = Math.floor(Math.max(0, z - radius) / DETAIL_TILE_SIZE); tz <= Math.floor(Math.min(this.depth - 1, z + radius) / DETAIL_TILE_SIZE); tz++) {
+      for (let tx = Math.floor(Math.max(0, x - radius) / DETAIL_TILE_SIZE); tx <= Math.floor(Math.min(this.width - 1, x + radius) / DETAIL_TILE_SIZE); tx++) {
+        this.pcgDirty.add(`${tx},${tz}`);
+      }
+    }
+  }
   set(x: number, y: number, z: number, block: number): boolean { return this.edit([{ x, y, z, block }]); }
   /** Validate every edit before applying any. Repeated cells coalesce into one change. */
   edit(edits: readonly BlockEdit[]): boolean {
@@ -193,9 +261,12 @@ export class VoxelWorld {
       this.blockCounts[this.blocks[change.index]!]!--;
       this.blockCounts[block]!++;
       this.blocks[change.index] = block;
+      this.indexDetailCell(change.index, block);
       if (block === this.baseline[change.index]) this.changes.delete(change.index);
       else this.changes.set(change.index, block);
-      this.markCellDirty(...this.coordinates(change.index));
+      const position = this.coordinates(change.index);
+      this.markCellDirty(...position);
+      this.markPcgCellDirty(position[0], position[2]);
     }
     this._revision++;
   }
@@ -215,6 +286,8 @@ export class VoxelWorld {
     if (z % CHUNK_SIZE === CHUNK_SIZE - 1) this.markChunk(cx, cy, cz + 1);
   }
   markAllDirty(): void {
+    this.pcgReset = true;
+    this.pcgDirty.clear();
     for (let y = 0; y < this.height / CHUNK_SIZE; y++)
       for (let z = 0; z < this.depth / CHUNK_SIZE; z++)
         for (let x = 0; x < this.width / CHUNK_SIZE; x++) this.markChunk(x, y, z);
@@ -250,7 +323,12 @@ export class VoxelWorld {
   }
   private recount(): void {
     this.blockCounts.fill(0);
-    for (const block of this.blocks) this.blockCounts[block]!++;
+    this.detailCells.clear();
+    for (let index = 0; index < this.blocks.length; index++) {
+      const block = this.blocks[index]!;
+      this.blockCounts[block]!++;
+      if (block === BLOCK.Brick || block === BLOCK.Road) this.indexDetailCell(index, block);
+    }
   }
   /** Do not change: v1 saves reconstruct their baseline using these exact coordinates and rules. */
   private generateLegacy(): void {
@@ -404,6 +482,7 @@ export class VoxelWorld {
     this._blocks = other._blocks;
     this.baseline = other.baseline;
     this.blockCounts = other.blockCounts;
+    this.detailCells = other.detailCells;
     this.changes = other.changes;
     this.past.length = this.future.length = 0;
     this.dirty.clear();

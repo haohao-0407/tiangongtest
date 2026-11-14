@@ -32,6 +32,9 @@ type SavedState = {
 
 /** All quantities and work reservations have one owner; no runtime/browser API is needed. */
 export class ColonySimulation {
+  private walkSurface: ((x:number,z:number,fallback:number)=>number) | undefined;
+  /** Source graph/pathfinding stay coarse; derived treads determine actual motion height. */
+  setWalkSurfaceSampler(sampler:(x:number,z:number,fallback:number)=>number):void {this.walkSurface=sampler;}
   private s: SavedState;
   private ground:Float32Array;
   private earthwork=new Map<number,Earthwork>();
@@ -386,7 +389,9 @@ export class ColonySimulation {
     if(!work||this.terrainBlocker(work.x,work.z,work.target)){this.removeJob(job,false);return false;}
     const h=this.world.terrainHeight(work.x,work.z);
     if(h===work.target){this.removeJob(job,false);return false;}
-    if(Math.abs(c.position[1]-h)>1.01||Math.abs(Math.floor(c.position[0])-work.x)+Math.abs(Math.floor(c.position[2])-work.z)!==1){this.releasePerson(c);return false;}
+    const standX=Math.floor(c.position[0]),standZ=Math.floor(c.position[2]);
+    // Work reach uses the same coarse ground as terraformStand; decorative treads only raise feet.
+    if(Math.abs(this.groundY(standX,standZ)-h)>1.01||Math.abs(standX-work.x)+Math.abs(standZ-work.z)!==1){this.releasePerson(c);return false;}
     const occupiers=this.s.colonists.filter(p=>Math.floor(p.position[0])===work.x&&Math.floor(p.position[2])===work.z);
     if(occupiers.length){
       for(const p of occupiers){
@@ -562,9 +567,13 @@ export class ColonySimulation {
     while(remaining>0&&c.path.length){
       const next=c.path[0]!,x=Math.floor(next[0]),z=Math.floor(next[2]);
       if(!this.walkable(x,z)||Math.abs(next[1]-this.groundY(x,z))>.1){this.releasePerson(c);c.retryAt=this.s.time+1;return false;}
-      const distance=Math.hypot(...next.map((v,i)=>v-c.position[i]!));
-      if(distance<=remaining+1e-9){c.position=[...next];c.path.shift();remaining-=distance;this.s.metrics.distanceWalked+=distance;}
+      const nextHeight=this.walkSurface?.(next[0],next[2],next[1])??next[1];
+      const currentSurface=this.walkSurface?.(c.position[0],c.position[2],NaN);
+      const detailed=Number.isFinite(currentSurface)||nextHeight!==next[1];
+      const distance=detailed?horizontalDistance(c.position,next):Math.hypot(...next.map((v,i)=>v-c.position[i]!));
+      if(distance<=remaining+1e-9){c.position=[next[0],nextHeight,next[2]];c.path.shift();remaining-=distance;this.s.metrics.distanceWalked+=distance;}
       else{for(let i=0;i<3;i++)c.position[i]!+=(next[i]!-c.position[i]!)/distance*remaining;this.s.metrics.distanceWalked+=remaining;remaining=0;}
+      if(this.walkSurface)c.position[1]=this.walkSurface(c.position[0],c.position[2],c.position[1]);
     }
     return c.path.length===0;
   }

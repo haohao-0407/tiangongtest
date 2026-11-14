@@ -1,6 +1,6 @@
 import { createMeshBuilder } from '@forgeax/engine/geometry';
 import type { MeshAsset } from '@forgeax/engine/types';
-import { BLOCKS, CHUNK_SIZE } from './model.ts';
+import { BLOCK, BLOCKS, CHUNK_SIZE } from './model.ts';
 
 export interface ChunkCoordinate { x: number; y: number; z: number }
 interface VoxelSource {
@@ -29,7 +29,8 @@ export function buildChunkMesh(world: VoxelSource, chunk: ChunkCoordinate): Mesh
     for (let z = z0; z < Math.min(z0 + CHUNK_SIZE, world.depth); z++) {
       for (let x = x0; x < Math.min(x0 + CHUNK_SIZE, world.width); x++) {
         const block = world.get(x, y, z);
-        if (block === 0) continue;
+        // The detail layer replaces these complete source volumes, including window recesses.
+        if (block === 0 || block === BLOCK.Brick || block === BLOCK.Road) continue;
         const variant = 0.94 + (((x * 73856093) ^ (z * 19349663) ^ (y * 83492791)) >>> 0) % 11 / 100;
         for (const face of FACES) {
           const neighbor = world.get(x + face.n[0], y + face.n[1], z + face.n[2]);
