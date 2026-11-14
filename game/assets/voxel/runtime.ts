@@ -46,8 +46,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let unregister: (() => void) | undefined;
       let receive: (event: MessageEvent) => void = () => {};
       let selected = 5, mode: 'build' | 'remove' = 'build', uiHover = false;
-      // 右键拖动平移的方向是否反转（设置面板里切）
-      let invertPan = false;
+      // 右键拖动平移：水平和垂直各自可反转，灵敏度可调（都在暂停 → 设置里）
+      let invertPanX = false, invertPanY = true, panSensitivity = 0.009;
       let tool = 'inspect';
       let crop: 'rice' | 'corn' = 'rice';
       let status = '和平殖民地 · 规划家园，照顾每一位居民';
@@ -278,7 +278,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           }
           if (c.action === 'focus' && typeof c.id === 'string') {const pawn=colonyState.colonists.find(p=>p.id===c.id);if(pawn){target=[...pawn.position];target[1]-=1;}}
           if (c.action === 'hover') uiHover = c.value === true;
-          if (c.action === 'setting' && c.key === 'invertPan') { invertPan = c.value === true; refreshState = true; }
+          if (c.action === 'setting') {
+            if (c.key === 'invertPanX') invertPanX = c.value === true;
+            if (c.key === 'invertPanY') invertPanY = c.value === true;
+            if (c.key === 'panSensitivity') panSensitivity = Number(c.value) || 0.009;
+            refreshState = true;
+          }
           if (c.action === 'undo' && tool.startsWith('sandbox:') && voxels.undo()) changed('已撤销上一步');
           if (c.action === 'redo' && tool.startsWith('sandbox:') && voxels.redo()) changed('已重做上一步');
           if (c.action === 'reseed' && typeof c.seed === 'string' && c.seed.trim()) {
@@ -420,12 +425,11 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 // 右键按住拖动 = 平移镜头，和 Unity 那边手感一致。
                 // 拉得越远，同样的像素位移扫过的地面越多，所以系数带上 distance。
                 if (input.mouse.button(2)) {
-                  const k2 = distance * 0.0018 * (invertPan ? -1 : 1);
+                  const k2 = distance * panSensitivity;
                   const rx = Math.cos(yaw), rz = -Math.sin(yaw);
                   const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
-                  // 上下方向默认取反：鼠标往上推，地面往下走（拖动更自然）。
-                  // 左右的符号保持不变，整体反转交给设置里的开关。
-                  const mx = input.mouse.movementDelta.x * k2, mz = -input.mouse.movementDelta.y * k2;
+                  const mx = input.mouse.movementDelta.x * k2 * (invertPanX ? -1 : 1);
+                  const mz = input.mouse.movementDelta.y * k2 * (invertPanY ? -1 : 1);
                   target[0] = clamp(target[0] - rx * mx - fx * mz, 0, voxels.width);
                   target[2] = clamp(target[2] - rz * mx - fz * mz, 0, voxels.depth);
                 }

@@ -488,13 +488,11 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   releases.push(() => win.removeEventListener('keydown', onEscape as EventListener, true));
 
   on(get('pause-settings'), 'click', () => {
-    // 弹暂停层里的「设置」就是右上角那个齿轮，复用同一块面板
-    setPaused(false);
-    hideSidePanels();
-    get('workspace').hidden = true;
-    panel = '';
-    get('settings').hidden = false;
+    // 暂停 → 设置 是同一套流程里的两页，不跳去右上角那个「世界与存档」
+    if (optionsLayer) optionsLayer.hidden = false;
   });
+  const backBtn = get('options-back');
+  if (backBtn) on(backBtn, 'click', () => { if (optionsLayer) optionsLayer.hidden = true; });
   on(get('pause-quit'), 'click', () => {
     // 浏览器只允许脚本自己开的窗口调用 close()，普通标签页会被忽略
     win.close();
@@ -513,15 +511,21 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   doc.addEventListener('contextmenu', blockCanvasMenu, true);
   releases.push(() => doc.removeEventListener('contextmenu', blockCanvasMenu, true));
 
-  // 镜头拖动方向反转开关，状态交给引擎那边判断
-  const invertBtn = get('invert-pan');
-  let panInverted = false;
-  if (invertBtn) {
-    on(invertBtn, 'click', () => {
-      panInverted = !panInverted;
-      invertBtn.textContent = `右键拖动：${panInverted ? '反向' : '跟随鼠标'}`;
-      send('setting', { key: 'invertPan', value: panInverted });
-    });
+  // ---- 暂停里的设置页 ----
+  const optionsLayer = get('game-options');
+  const optInvertX = get<HTMLInputElement>('opt-invert-x');
+  const optInvertY = get<HTMLInputElement>('opt-invert-y');
+  const optSens = get<HTMLInputElement>('opt-sensitivity');
+  const optSensValue = get('opt-sensitivity-value');
+  if (optInvertX) on(optInvertX, 'change', () => send('setting', { key: 'invertPanX', value: optInvertX.checked }));
+  if (optInvertY) on(optInvertY, 'change', () => send('setting', { key: 'invertPanY', value: optInvertY.checked }));
+  if (optSens) {
+    const pushSens = () => {
+      const value = Number(optSens.value) / 1000;
+      optSensValue.textContent = value.toFixed(3);
+      send('setting', { key: 'panSensitivity', value });
+    };
+    on(optSens, 'input', pushSens);
   }
 
   // 数字键切快捷栏格子。只在玩家视角接管——

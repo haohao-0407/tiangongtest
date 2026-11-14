@@ -49,3 +49,15 @@
 /* 设置里的开关按钮 */
 .setting-toggle{display:block;width:100%;margin-top:6px;padding:7px 10px;font-size:11px;text-align:left;color:#4a5a42;background:#eef3e4;border:1px solid #c3d0b2;border-radius:6px}
 .setting-toggle:hover{background:#e0eace;border-color:#aebf93}
+
+/* 暂停里的设置页：深色面板，条目横排，和暂停卡片同一套视觉。 */
+.options-card{min-width:300px;padding:22px 26px 18px}
+.options-card h2{margin-bottom:18px}
+.opt-row{display:flex;align-items:center;gap:9px;margin:7px 0;padding:7px 10px;background:#26302b;border:1px solid #3a4b3a;border-radius:4px;font-size:11px;color:#dcd9c3;cursor:pointer}
+.opt-row input[type="checkbox"]{width:12px;height:12px;margin:0;cursor:pointer}
+.opt-row span{flex:1}
+.opt-row.opt-slider{gap:10px;cursor:default}
+.opt-row input[type="range"]{flex:1;height:3px;margin:0;cursor:pointer}
+.opt-row #opt-sensitivity-value{flex:none;min-width:34px;text-align:right;color:#a9b79a;font-size:10px}
+.options-card #options-back{margin-top:12px;padding:8px 10px;font-size:11px;color:#e6e3cd;background:#2f3d31;border:1px solid #4a5c48;border-radius:4px;cursor:pointer;width:100%}
+.options-card #options-back:hover{background:#3a4b3a}

@@ -219,15 +219,30 @@ export default async function dualViewProbe(play) {
   const resumed = await read();
   assert.ok(resumed.colony.speed > 0, `恢复后速度应大于 0，实际 ${resumed.colony.speed}`);
 
-  // 暂停层里的「设置」复用右上角那块面板
+  // 暂停 → 设置 是独立的一页，不是右上角那个「世界与存档」
   await play.page.keyboard.press('Escape');
   await advance(0.4);
+  assert.equal(await pauseLayer.isVisible(), true, '再次 ESC 应弹暂停层');
   await play.page.locator('#pause-settings').click();
   await advance(0.4);
-  assert.equal(await play.page.locator('#settings').isVisible(), true, '暂停层「设置」应打开世界与存档面板');
-  assert.equal(await pauseLayer.isVisible(), false, '打开设置后暂停层应收起');
-  await play.page.locator('#settings-close').click();
-  await advance(0.3);
+  const optionsLayer = play.page.locator('#game-options');
+  assert.equal(await optionsLayer.isVisible(), true, '「设置」应打开独立设置页');
+  assert.equal(await play.page.locator('#settings').isVisible(), false, '不该串到世界与存档');
+  await play.screenshot('pause-options');
+
+  // 三个控件都在
+  assert.equal(await play.page.locator('#opt-invert-x').count(), 1, '应有「反转水平拖动」');
+  assert.equal(await play.page.locator('#opt-invert-y').count(), 1, '应有「反转垂直拖动」');
+  assert.equal(await play.page.locator('#opt-sensitivity').count(), 1, '应有「拖拽灵敏度」');
+
+  // 返回回到暂停层，再把暂停层也收掉，否则它会盖住画布吃掉鼠标事件
+  await play.page.locator('#options-back').click();
+  await advance(0.4);
+  assert.equal(await optionsLayer.isVisible(), false, '「返回」应收起设置页');
+  assert.equal(await pauseLayer.isVisible(), true, '返回后应回到暂停层');
+  await play.page.keyboard.press('Escape');
+  await advance(0.4);
+  assert.equal(await pauseLayer.isVisible(), false, '再按 ESC 应关掉暂停层');
 
   // ---- 13. 右键不该弹出浏览器菜单 ----
   // 直接派发 contextmenu 到 canvas，检查是否被 preventDefault

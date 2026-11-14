@@ -7,6 +7,15 @@
       <button id="pause-quit">退出游戏</button>
     </div>
   </div>
+  <div id="game-options" class="pause-overlay" data-interactive hidden>
+    <div class="pause-card options-card">
+      <h2>设置</h2>
+      <label class="opt-row"><input type="checkbox" id="opt-invert-x"><span>反转水平拖动</span></label>
+      <label class="opt-row"><input type="checkbox" id="opt-invert-y" checked><span>反转垂直拖动</span></label>
+      <div class="opt-row opt-slider"><span>拖拽灵敏度</span><input type="range" id="opt-sensitivity" min="1" max="30" step="1" value="9"><span id="opt-sensitivity-value">0.009</span></div>
+      <button id="options-back">返回</button>
+    </div>
+  </div>
 
   <header class="topbar panel" data-interactive>
     <div class="brand"><span class="brand-icon">▧</span><div><h1>森屿</h1><p>和平家园 · COLONY HOMESTEAD</p></div></div>
@@ -21,7 +30,7 @@
     <div class="panel-heading"><h2>世界与存档</h2><button id="settings-close" class="close" aria-label="关闭设置">×</button></div>
     <label for="seed">世界种子 <span>同一种子 · 同一片土地</span></label><div class="seed-row"><input id="seed" value="森屿-042" maxlength="80" spellcheck="false" aria-label="世界种子"><button id="generate">生成</button></div>
     <p id="generate-hint" class="muted">生成新世界会重置居民与当前规划。</p>
-    <div class="detail-section"><h3>镜头</h3><button id="invert-pan" class="setting-toggle">右键拖动：跟随鼠标</button></div><div class="button-grid"><button id="save">保存家园</button><button id="load">读取本机</button><button id="export">导出 JSON</button><button id="import">导入 JSON</button></div>
+    <div class="button-grid"><button id="save">保存家园</button><button id="load">读取本机</button><button id="export">导出 JSON</button><button id="import">导入 JSON</button></div>
     <div id="import-panel" hidden><label for="import-json">粘贴家园 JSON 存档</label><textarea id="import-json" rows="5" spellcheck="false" placeholder="打开导出的 JSON 文件，复制内容到这里。" aria-label="JSON 存档内容"></textarea><div class="button-grid"><button id="import-confirm">确认导入</button><button id="import-cancel">取消</button></div></div><p id="save-status" class="save-status" role="status">本机自动保存 · 无需登录</p><p class="muted">保存土地、居民、工作与研究进度。导出文件可供备份，或复制其内容在另一台电脑载入。</p>
   </aside>
   <aside id="help" class="help panel" data-interactive hidden>
