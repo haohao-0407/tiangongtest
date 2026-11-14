@@ -379,9 +379,22 @@ export default async function dualViewProbe(play) {
   await play.page.locator('[data-menu="inspect"]').click();
   await advance(0.3);
 
-  // 切到玩家视角：快捷栏应该显示刚才拿到手上的那件东西
-  await play.page.keyboard.press('KeyR');
-  await advance(0.9);
+  // 切到玩家视角：快捷栏应该显示刚才拿到手上的那件东西。
+  // 先把可能挡着的浮层都关掉——暂停层是全屏的，开着会吃掉键盘事件，
+  // 表现出来就是「没按 R」。
+  for (let i = 0; i < 3; i++) {
+    const blocking = (await play.page.locator('#game-options').isVisible())
+      || (await play.page.locator('#pause-menu').isVisible());
+    if (!blocking) break;
+    await play.page.keyboard.press('Escape');
+    await advance(0.35);
+  }
+  // 点一下画布把焦点从按钮上拿回来，再按 R
+  await play.page.mouse.click(640, 300);
+  await advance(0.3);
+  await tapR();
+  await advance(0.5);
+  assert.equal((await read()).camera.mode, 'character', '按 R 应切到玩家视角');
   const hotbarSlots = await play.page.locator('#hotbar .hotbar-slot:not(.empty)').count();
   assert.ok(hotbarSlots >= 1, `玩家视角快捷栏应显示背包内容，实际 ${hotbarSlots} 格有东西`);
   const hotbarState = await read();
@@ -392,6 +405,12 @@ export default async function dualViewProbe(play) {
     bagNow[selNow],
     `选中格 ${selNow} 应该有东西；背包现状 ${JSON.stringify(bagNow.filter(Boolean))}，标题「${selectedName}」`,
   );
+  // 右上角三条：血量 / 体力 / 金币
+  assert.equal(await play.page.locator('#vitals').isVisible(), true, '玩家视角应显示血量 HUD');
+  assert.equal(await play.page.locator('#vital-health').count(), 1, '应有血条');
+  assert.equal(await play.page.locator('#vital-stamina').count(), 1, '应有体力条');
+  const goldText = (await play.page.locator('#vital-gold').textContent()) ?? '';
+  assert.ok(/^\d+$/.test(goldText.trim()), `金币应显示数字，实际「${goldText}」`);
   await play.screenshot('hotbar-bag');
   await play.page.keyboard.press('KeyR');
   await advance(0.6);

@@ -19,6 +19,7 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
     embedded: boolean; parts: number;
     bag: ({ resource: string; count: number } | null)[];
     bagSelected: number;
+    vitals?: { health: number; maxHealth: number; stamina: number; maxStamina: number; gold: number };
   } };
 type SaveIntent = 'auto' | 'manual' | 'export';
 const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人' };
@@ -498,6 +499,19 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     root.append(list);
   }
 
+  /** 右上角三条数值：血量、体力、金币。照 Unity 的 VitalsUI。 */
+  function renderVitals() {
+    const v = state?.player?.vitals;
+    if (!v) return;
+    const pct = (n: number, max: number) => `${Math.max(0, Math.min(100, max > 0 ? (n / max) * 100 : 0))}%`;
+    const hp = get('vital-health');
+    const sp = get('vital-stamina');
+    const gold = get('vital-gold');
+    if (hp) hp.style.width = pct(v.health, v.maxHealth);
+    if (sp) sp.style.width = pct(v.stamina, v.maxStamina);
+    if (gold) gold.textContent = String(Math.floor(v.gold));
+  }
+
   /**
    * 玩家快捷栏。照 Unity 的 HotbarUI：九格显示背包前九格，数字键或点击切换。
    * 上方显示当前选中的物品名；右键格子把东西放回共享池。
@@ -733,6 +747,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     latestStamp = JSON.stringify([state.seed, state.revision, state.edits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.colonists.map(p => [p.id, p.priorities, p.schedule])]]);
     if (c) renderColony(c); else renderPanel();
     if (c) renderHotbar(c);
+    renderVitals();
     syncTerrainControls();
     if (!booted) {
       booted = true; lastSavedStamp = latestStamp; lastSavedSim = c?.time ?? 0;

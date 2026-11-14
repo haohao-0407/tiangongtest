@@ -61,6 +61,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       const bag: BagSlot[] = Array.from({ length: 9 }, () => null);
       let bagSelected = 0;
 
+      // 玩家三条基础数值，照 Unity 的 PlayerVitals。
+      // 血的用途等战斗系统上了再接；体力先给跳跃扣费，金币直接映射银币存量。
+      const vitals = { health: 100, maxHealth: 100, stamina: 100, maxStamina: 100 };
+
       /** 从共享池扣一份进背包，返回是否真的拿到了。 */
       const takeToBag = (resource: string, amount = 1): boolean => {
         const pool = (colonyState.resources as Record<string, number>)[resource] ?? 0;
@@ -297,7 +301,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           embedded: blocked(player.x, player.z, player.y),
           parts: colonyView.playerEntityCount,
           bag: bag.map((slot) => (slot ? { resource: slot.resource, count: slot.count } : null)),
-          bagSelected },
+          bagSelected,
+          vitals: { ...vitals, gold: Math.floor((colonyState.resources as Record<string, number>).silver ?? 0) } },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth], worldSize: [voxels.width, voxels.height, voxels.depth],
         terrain: { target: terrainTarget, size: terrainSize, shape: terrainShape, sample: terrainSample, preview: { ...terrainPreview }, minHeight: 1, maxHeight: voxels.height - 2 }, buildHeight,
         pcg: pcgView.read(),
@@ -536,9 +541,11 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }
 
               // 空格在角色视角归跳跃；俯视视角仍然留给暂停
-              if (k.justPressedCode('Space') && player.grounded) {
+              if (k.justPressedCode('Space') && player.grounded && vitals.stamina >= 8) {
+                vitals.stamina -= 8;
                 player.vy = Math.sqrt(-2 * PLAYER_GRAVITY * PLAYER_JUMP);
                 player.grounded = false;
+                refreshState = true;
               }
 
               if (!player.grounded) {
