@@ -10,7 +10,8 @@ export default async function nearHint(play) {
   await advance(1.0);
 
   const st = (await play.state(READ)).player;
-  const dist = Math.abs(Math.floor(st.x) - st.chest[0]) + Math.abs(Math.floor(st.z) - st.chest[2]);
+  // 实际中心距：木箱画在格子中心，判定也是按这个半径来的
+  const dist = Number(Math.hypot(st.x - (st.chest[0] + 0.5), st.z - (st.chest[2] + 0.5)).toFixed(2));
   const visible = await play.page.locator('#interact-hint').isVisible();
   const label = (await play.page.locator('#interact-hint').textContent()) ?? '';
   await play.screenshot('near-hint-on');

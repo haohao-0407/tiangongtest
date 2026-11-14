@@ -203,7 +203,9 @@ export class ColonyView {
     this.chestAt=pos;
     for(const e of this.chestEntities)this.world.despawn(e).unwrap();
     this.chestEntities=[];
-    const [x,y,z]=pos;
+    const [gx,gy,gz]=pos;
+    // 画在格子中心，和判定用的圆心对齐
+    const x=gx+0.5, y=gy, z=gz+0.5;
     // 箱体 + 盖子 + 正面的锁扣，凑成一个能认出来的箱子
     const parts:Part[]=[
       {p:[x,y+.28,z],s:[.86,.56,.72],c:'wood'},

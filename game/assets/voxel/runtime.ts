@@ -156,12 +156,15 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       };
       player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z));
 
-      /** 玩家离木箱够不够近。照 Unity 的 StorageInteract：格子曼哈顿距离 <= 1。 */
+      /**
+       * 玩家离木箱够不够近。以木箱**中心**为圆心的实际距离，不是格子距离——
+       * 按格子算会让判定框偏到格子角上，看着像「离箱还有半格就触发了」。
+       * 半径 1.6：玩家站在相邻格时中心距约 1.5，正好够得着；再远一格就到 2.5，摸不到。
+       */
       const chestNear = () => {
         if (!chestPos) return false;
-        const dx = Math.abs(Math.floor(player.x) - chestPos[0]);
-        const dz = Math.abs(Math.floor(player.z) - chestPos[2]);
-        return dx + dz <= 1;
+        const cx = chestPos[0] + 0.5, cz = chestPos[2] + 0.5;
+        return Math.hypot(player.x - cx, player.z - cz) <= 1.6;
       };
 
       /** 玩家脚边一格内（格子曼哈顿距离）最近的居民。照 Unity 的 FollowerInteract。 */
