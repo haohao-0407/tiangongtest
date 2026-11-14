@@ -444,6 +444,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   // 分两级：先关面板，面板都关了才弹出暂停层。
   // 必须在 UI 层监听——鼠标停在面板上时引擎那边被 uiHover 挡掉，收不到 ESC。
   const pauseLayer = get('pause-menu');
+  const optionsLayer = get('game-options');
   let speedBeforePause = 1;
   const setPaused = (paused: boolean) => {
     if (!pauseLayer) return;
@@ -460,6 +461,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const onEscape = (event: KeyboardEvent) => {
     if (event.code !== 'Escape') return;
     try {
+      // 0) 设置页盖在暂停层上面，先退这一层，回到「已暂停」
+      if (optionsLayer && !optionsLayer.hidden) {
+        optionsLayer.hidden = true;
+        event.preventDefault();
+        return;
+      }
       const workspaceOpen = !get('workspace').hidden;
       const sideOpen = !get('settings').hidden || !get('help').hidden || !get('inspector').hidden;
       // 1) 有面板：先关面板
@@ -512,7 +519,6 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   releases.push(() => doc.removeEventListener('contextmenu', blockCanvasMenu, true));
 
   // ---- 暂停里的设置页 ----
-  const optionsLayer = get('game-options');
   const optInvertX = get<HTMLInputElement>('opt-invert-x');
   const optInvertY = get<HTMLInputElement>('opt-invert-y');
   const optSens = get<HTMLInputElement>('opt-sensitivity');
