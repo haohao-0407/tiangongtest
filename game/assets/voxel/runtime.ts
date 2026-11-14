@@ -156,6 +156,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       };
       player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z));
 
+      /** 玩家离木箱够不够近。照 Unity 的 StorageInteract：格子曼哈顿距离 <= 1。 */
+      const chestNear = () => {
+        if (!chestPos) return false;
+        const dx = Math.abs(Math.floor(player.x) - chestPos[0]);
+        const dz = Math.abs(Math.floor(player.z) - chestPos[2]);
+        return dx + dz <= 1;
+      };
+
       /** 玩家脚边一格内（格子曼哈顿距离）最近的居民。照 Unity 的 FollowerInteract。 */
       const nearColonist = () => {
         const px = Math.floor(player.x), pz = Math.floor(player.z);
@@ -171,7 +179,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
 
       /** 把木箱摆到玩家旁边两格，高度取那一格的地面。 */
       const placeChest = () => {
-        const cx = Math.floor(player.x) + 2, cz = Math.floor(player.z);
+        const cx = Math.floor(player.x) + 1, cz = Math.floor(player.z);
         chestPos = [cx, voxels.terrainHeight(cx, cz), cz];
         colonyView.setChest(chestPos);
       };
@@ -332,7 +340,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           nearColonist: viewMode === 'character' ? (nearColonist()?.id ?? null) : null,
           // 靠近提示用：贴着箱子还是贴着人
           nearHint: viewMode !== 'character' ? null
-            : (chestPos && Math.floor(player.x) === chestPos[0] && Math.floor(player.z) === chestPos[2]) ? 'chest'
+            : chestNear() ? 'chest'
             : nearColonist() ? 'follower' : null },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth], worldSize: [voxels.width, voxels.height, voxels.depth],
         terrain: { target: terrainTarget, size: terrainSize, shape: terrainShape, sample: terrainSample, preview: { ...terrainPreview }, minHeight: 1, maxHeight: voxels.height - 2 }, buildHeight,
@@ -736,8 +744,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               if(input.mouse.justPressed(2)){
                 // 角色视角下贴着东西右键 = 打开它。箱子优先于随从（箱子不会自己走开）。
                 // 俯视视角不接这个键，那里右键是拖镜头和取消工具。
-                const chestHere = viewMode === 'character' && chestPos
-                  && x === chestPos[0] && z === chestPos[2];
+                const chestHere = viewMode === 'character' && chestNear();
                 const near = viewMode === 'character' ? nearColonist() : null;
                 if (chestHere) { port?.postMessage({ type: 'voxel:openChest' }); status = '打开木箱'; }
                 else if (near) { port?.postMessage({ type: 'voxel:openFollower', id: near.id }); status = '打开随从'; }

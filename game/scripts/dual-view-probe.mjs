@@ -467,6 +467,20 @@ export default async function dualViewProbe(play) {
   assert.ok('nearColonist' in (await read()).player, '投影里应有 nearColonist 字段');
   assert.ok('nearHint' in (await read()).player, '投影里应有 nearHint 字段（靠近提示用）');
   assert.equal(await play.page.locator('#interact-hint').count(), 1, '应有靠近提示条');
+  // 提示要跟着距离走：站在箱子旁边就必须出，走远了就必须收
+  const hintState = await read();
+  const chestCell = hintState.player.chest;
+  const distToChest = Math.abs(Math.floor(hintState.player.x) - chestCell[0])
+    + Math.abs(Math.floor(hintState.player.z) - chestCell[2]);
+  const hintVisible = await play.page.locator('#interact-hint').isVisible();
+  if (distToChest <= 1) {
+    assert.equal(hintState.player.nearHint, 'chest', `贴着箱子时提示类型应为 chest，实际 ${hintState.player.nearHint}`);
+    assert.equal(hintVisible, true, `距离 ${distToChest} 格时应显示提示`);
+    await play.screenshot('near-hint');
+  } else {
+    assert.equal(hintState.player.nearHint, null, `距离 ${distToChest} 格时不该有提示`);
+    assert.equal(hintVisible, false, `距离 ${distToChest} 格时提示应隐藏`);
+  }
   const cid = (await read()).colony.colonists[0].id;
   await play.page.evaluate((id) => window.__wbOpenFollower(id), cid);
   await advance(0.6);
