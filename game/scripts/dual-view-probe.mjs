@@ -98,7 +98,26 @@ export default async function dualViewProbe(play) {
   const shownInGod = await toolbar.isVisible();
   assert.equal(shownInGod, true, '俯视视角下底部菜单应重新出现');
 
-  // ---- 10. 竖排新面板能打开 ----
+  // ---- 10. 快捷栏只在玩家视角出现 ----
+  await tapV();
+  const hotbar = play.page.locator('#hotbar');
+  assert.equal(await hotbar.isVisible(), true, '玩家视角下快捷栏应可见');
+  const slotCount = await play.page.locator('#hotbar .hotbar-slot').count();
+  assert.equal(slotCount, 9, `快捷栏应有 9 格，实际 ${slotCount}`);
+
+  // 数字键切选中格（UI 在 Shadow DOM 里，只能用 locator 自带的求值，不能用 page.evaluate）
+  await play.page.keyboard.press('Digit4');
+  await advance(0.3);
+  const activeIndex = await play.page
+    .locator('#hotbar .hotbar-slot')
+    .evaluateAll((slots) => slots.findIndex((slot) => slot.classList.contains('active')));
+  assert.equal(activeIndex, 3, `按 4 应选中第 4 格，实际索引 ${activeIndex}`);
+
+  await tapV();
+  await advance(0.3);
+  assert.equal(await hotbar.isVisible(), false, '俯视视角下快捷栏应隐藏');
+
+  // ---- 11. 竖排新面板能打开 ----
   for (const [menu, title] of [['warehouse', '仓库'], ['follower', '随从']]) {
     await play.page.locator(`[data-menu="${menu}"]`).click();
     await advance(0.5);
@@ -116,6 +135,6 @@ export default async function dualViewProbe(play) {
     walkedMeters: Number(walked.toFixed(2)),
     cameraToPlayer: Number(camToPlayer.toFixed(2)),
     jumpRise: Number((s3.player.y - groundY).toFixed(2)),
-    checks: 11,
+    checks: 14,
   };
 }

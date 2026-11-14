@@ -31,6 +31,10 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   };
   const on = (node: EventTarget, type: string, fn: EventListener) => { node.addEventListener(type, fn); releases.push(() => node.removeEventListener(type, fn)); };
   let state: State | undefined, panel = '', currentTool = 'inspect', selectedResident: string | null = null;
+  // 视角标记挂在 .shell 上（UI 在 Shadow DOM 里，不能用 body）
+  let shellEl: HTMLElement | null = null;
+  // 快捷栏选中的格子，只在玩家视角有意义
+  let hotbarIndex = 0;
   let booted = false, disposed = false, lastWorldSeed = '', confirmUntil = 0, lastCardsStamp = '', lastPanelStamp = '', lastInspectorStamp = '';
   let pendingSave: SaveIntent | null = null, queuedSave: SaveIntent | null = null;
   let lastSaveTime = -Infinity, lastSavedSim = 0, lastSavedStamp = '', latestStamp = '', savingStamp = '', savingSim = 0;
@@ -249,6 +253,25 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     root.append(list);
   }
 
+  /** 玩家快捷栏。九格对应九类资源，数字键或点击切换选中。 */
+  function renderHotbar(c: ColonySnapshot) {
+    const bar = get('hotbar');
+    if (!bar) return;
+    const counts = RESOURCE_TYPES.map((r) => Math.floor(c.resources[r]));
+    const signature = `${hotbarIndex}|${counts.join(',')}`;
+    if (bar.dataset.signature === signature) return;
+    bar.dataset.signature = signature;
+    clear(bar);
+    RESOURCE_TYPES.forEach((r, index) => {
+      const slot = make('div', `hotbar-slot${index === hotbarIndex ? ' active' : ''}${counts[index]! <= 0 ? ' empty' : ''}`);
+      slot.append(make('span', 'hotbar-key', String(index + 1)));
+      slot.append(make('span', '', RESOURCE_ICONS[r]));
+      slot.append(make('span', 'hotbar-count', String(counts[index])));
+      slot.addEventListener('click', () => { hotbarIndex = index; renderHotbar(c); });
+      bar.append(slot);
+    });
+  }
+
   function renderPanel(force = false) {
     if (!panel || !state) return;
     const c = state.colony;
@@ -400,8 +423,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     // 标记挂在 .shell 上而不是 body——UI 在 Shadow DOM 里，
     // 样式规则只认作用域内的选择器，用 body 会被校验直接拒掉。
     const viewMode = state.camera?.mode ?? 'god';
-    const shell = shadow.querySelector('.shell') as HTMLElement | null;
-    if (shell && shell.dataset.viewMode !== viewMode) shell.dataset.viewMode = viewMode;
+    shellEl = shadow.querySelector('.shell') as HTMLElement | null;
+    if (shellEl && shellEl.dataset.viewMode !== viewMode) shellEl.dataset.viewMode = viewMode;
     if (state.tool) { currentTool = state.tool; showTool(currentTool); }
     get('status').textContent = state.status ?? '选择一项规划，让居民开始工作';
     get('cell').textContent = Array.isArray(state.hoverCell) ? `[ ${state.hoverCell.join(', ')} ]` : '';
@@ -409,12 +432,25 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const c = state.colony;
     latestStamp = JSON.stringify([state.seed, state.revision, state.edits, c && [c.speed, c.buildings.map(b => [b.id, b.complete]), c.zones, c.bills, c.research.active, c.colonists.map(p => [p.id, p.priorities, p.schedule])]]);
     if (c) renderColony(c); else renderPanel();
+    if (c) renderHotbar(c);
     if (!booted) {
       booted = true; lastSavedStamp = latestStamp; lastSavedSim = c?.time ?? 0;
       const data = readSave(false); if (data) requestLoad(data, '正在恢复上次的家园…');
     }
   };
   if (port) { on(port, 'message', message); port.start?.(); send('sync'); } else saySave('引擎通信不可用');
+
+  // 数字键切快捷栏格子。只在玩家视角接管——
+  // 俯视视角的 1/2/3 是速度、沙盒里 1-6 是选方块，不能抢。
+  on(win, 'keydown', ((event: KeyboardEvent) => {
+    if (shellEl?.dataset.viewMode !== 'character') return;
+    const match = /^Digit([1-9])$/.exec(event.code);
+    if (!match) return;
+    const next = Number(match[1]) - 1;
+    if (next === hotbarIndex) return;
+    hotbarIndex = next;
+    if (state?.colony) renderHotbar(state.colony);
+  }) as EventListener);
   const timer = win.setInterval(() => {
     if (!booted) { send('sync'); return; }
     if (pendingLoadAt) { if (Date.now() - pendingLoadAt > 10000) { pendingLoadAt = 0; saySave('未收到载入确认，请查看底部提示'); } else return; }
