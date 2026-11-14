@@ -50,6 +50,25 @@ export default async function dualViewProbe(play) {
   );
   assert.ok(camToPlayer < 2.5, `相机注视点应贴着玩家，实测间距 ${camToPlayer.toFixed(2)}`);
 
+  // ---- 4b. 鼠标停在 HUD 上不该冻住角色 ----
+  // 快捷栏在屏幕底部居中，把指针挪上去模拟"边走边划到 HUD"
+  const beforeHover = { x: s2.player.x, z: s2.player.z };
+  await play.page.mouse.move(640, 688);
+  await advance(0.4);
+  await play.page.keyboard.down('KeyW');
+  await advance(1.0);
+  await play.page.keyboard.up('KeyW');
+  await advance(0.5);
+  const sHover = await read();
+  const movedWhileHover = flat(sHover.player, beforeHover);
+  assert.ok(
+    movedWhileHover > 1.0,
+    `鼠标停在快捷栏上时角色仍应能走，实测位移 ${movedWhileHover.toFixed(2)}`,
+  );
+  // 挪回画面中央，避免影响后续步骤
+  await play.page.mouse.move(640, 300);
+  await advance(0.3);
+
   // ---- 5. 空格跳跃：离地后 y 会升起来 ----
   const groundY = s2.player.y;
   await play.page.keyboard.press('Space');

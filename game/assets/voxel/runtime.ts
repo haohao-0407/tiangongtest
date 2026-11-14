@@ -269,7 +269,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             world.set(sunEntity,DirectionalLight,{intensity:0.45+day*2.75}).unwrap();
             world.set(ambientEntity,Skylight,{intensity:0.38+day*0.47}).unwrap();
           }
-          if (input && !uiHover) {
+          // 注意：外层不再用 !uiHover 包住整块。
+          // 鼠标停在 HUD 上只该屏蔽「鼠标操作」，键盘走照常——
+          // 否则玩家一边按 W 一边把鼠标划过快捷栏，人就会莫名其妙停住。
+          if (input) {
             const k = input.keyboard;
             const dx = Number(k.downCode('KeyD') || k.downCode('ArrowRight')) - Number(k.downCode('KeyA') || k.downCode('ArrowLeft'));
             const dz = Number(k.downCode('KeyS') || k.downCode('ArrowDown')) - Number(k.downCode('KeyW') || k.downCode('ArrowUp'));
@@ -345,23 +348,27 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               target[2] += (desired[2] - target[2]) * t;
 
               yaw += (Number(k.downCode('KeyE')) - Number(k.downCode('KeyQ'))) * dt * 1.2;
-              if (input.mouse.button(1)) {
-                yaw -= input.mouse.movementDelta.x * 0.005;
-                pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.15, 1.2);
+              if (!uiHover) {
+                if (input.mouse.button(1)) {
+                  yaw -= input.mouse.movementDelta.x * 0.005;
+                  pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.15, 1.2);
+                }
+                distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 5, 40);
               }
-              distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 5, 40);
             } else {
               // 俯视视角：原来的自由平移 + 环绕 + 缩放
               const speed = distance * 0.32 * dt;
               target[0] = clamp(target[0] + (Math.cos(yaw) * dx + Math.sin(yaw) * dz) * speed, 0, voxels.width);
               target[2] = clamp(target[2] + (-Math.sin(yaw) * dx + Math.cos(yaw) * dz) * speed, 0, voxels.depth);
               yaw += (Number(k.downCode('KeyE')) - Number(k.downCode('KeyQ'))) * dt * 1.2;
-              if (input.mouse.button(1)) {
-                yaw -= input.mouse.movementDelta.x * 0.005;
-                pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.35, 1.25);
+              if (!uiHover) {
+                if (input.mouse.button(1)) {
+                  yaw -= input.mouse.movementDelta.x * 0.005;
+                  pitch = clamp(pitch + input.mouse.movementDelta.y * 0.004, 0.35, 1.25);
+                }
+                // Engine wheelDelta is a signed notch accumulator, not DOM pixel deltaY.
+                distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 15, 100);
               }
-              // Engine wheelDelta is a signed notch accumulator, not DOM pixel deltaY.
-              distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 15, 100);
             }
 
             if (k.justPressedCode('KeyF')) home();
