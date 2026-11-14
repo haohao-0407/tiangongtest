@@ -208,6 +208,50 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }
     root.append(materials, note(`当前土地 ${state?.edits ?? 0} 格改动 · 1—6 选材 · 左键执行 · 右键拆除`));
   }
+  // ---- 物品右键菜单 ----
+  // 照 Unity 的 WarehouseItemMenu：点格子弹出，在这里对单件资源做操作。
+  // Unity 那边三项是「选中 / 获取 / 聚焦」，天工只有全局资源池、没有背包，
+  // 「获取」没有对应物，所以这里只留能真正起作用的两个。
+  let whSelected = '', pendingItem: string | null = null;
+  const itemMenu = get('item-menu');
+  const itemMenuTitle = get('item-menu-title');
+  const closeItemMenu = () => { if (itemMenu) itemMenu.hidden = true; };
+  const openItemMenu = (kind: string, clientX: number, clientY: number) => {
+    if (!itemMenu) return;
+    pendingItem = kind;
+    if (itemMenuTitle) itemMenuTitle.textContent = RESOURCE_NAMES[kind as Resource];
+    itemMenu.hidden = false;
+    const rect = shellEl?.getBoundingClientRect();
+    const x = Math.min(clientX - (rect?.left ?? 0), (rect?.width ?? 0) - 126);
+    const y = Math.min(clientY - (rect?.top ?? 0), (rect?.height ?? 0) - 120);
+    itemMenu.style.left = `${Math.max(4, x)}px`;
+    itemMenu.style.top = `${Math.max(4, y)}px`;
+  };
+  if (itemMenu) {
+    on(itemMenu, 'click', (event) => {
+      const btn = (event.target as HTMLElement | null)?.closest?.('[data-item-action]') as HTMLElement | null;
+      if (!btn?.dataset.itemAction || !pendingItem) return;
+      const action = btn.dataset.itemAction;
+      const kind = pendingItem;
+      closeItemMenu();
+      if (action === 'select') {
+        whSelected = whSelected === kind ? '' : kind;
+        renderPanel(true);
+      } else if (action === 'focus') {
+        // 天工没有容器，聚焦的目标改成「产出这种东西的建筑」
+        send('focus', { resource: kind });
+      }
+    });
+  }
+  const closeItemMenuOnDown = (event: MouseEvent) => {
+    if (!itemMenu || itemMenu.hidden) return;
+    const inside = event.composedPath().some(
+      (node) => (node as HTMLElement)?.classList?.contains?.('item-menu'),
+    );
+    if (!inside) closeItemMenu();
+  };
+  doc.addEventListener('mousedown', closeItemMenuOnDown, true);
+
   /** 仓库：格子式面板，照 Unity 那边搬过来的。搜索 / 升降序 / 分类 / 网格。 */
   let whQuery = '', whDesc = false, whCategory = 'all', whMenuOpen = false;
   // 面板每次重建都会重挂 document 监听，旧的先摘掉，别越堆越多
@@ -260,7 +304,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const items = RESOURCE_TYPES
         .filter((r) => whCategory === 'all' || CATEGORY_OF[r] === whCategory)
         .filter((r) => !whQuery || RESOURCE_NAMES[r].includes(whQuery))
-        .map((r) => ({ name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
+        .map((r) => ({ kind: r as string, name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
         // 照 Unity 的 ChestWindow：按显示名的字典序排，不是按数量。
         // 同名（理论上不会）才拿数量兜底，保证顺序稳定、不会每帧跳。
         .sort((a, b) => {
@@ -274,12 +318,18 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const slots = Math.max(28, Math.ceil(items.length / 7) * 7);
       for (let i = 0; i < slots; i++) {
         const item = items[i];
-        const cell = make('div', `wh-cell${item ? '' : ' empty'}`);
+        const cell = make('div', `wh-cell${item ? '' : ' empty'}${item && item.kind === whSelected ? ' selected' : ''}`);
         if (item) {
           cell.title = `${item.name} · ${item.count}`;
           cell.append(make('span', 'wh-icon', item.icon));
           if (item.count > 0) cell.append(make('span', 'wh-count', String(item.count)));
           cell.append(make('span', 'wh-label', item.name));
+          cell.dataset.item = item.kind;
+          cell.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openItemMenu(item.kind, event.clientX, event.clientY);
+          });
         }
         grid.append(cell);
       }

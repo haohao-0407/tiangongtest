@@ -48,6 +48,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let selected = 5, mode: 'build' | 'remove' = 'build', uiHover = false;
       // 右键拖动平移：水平和垂直各自可反转，灵敏度可调（都在暂停 → 设置里）
       let invertPanX = false, invertPanY = false, panSensitivity = 0.009;
+      // 仓库里右键「聚焦」时，相机要飞过去的点
+      let focusTarget: Point | null = null;
+      // 哪些建筑产出哪种资源。查不到就说明这种东西只能靠采集，没有可聚焦的点。
+      const PRODUCER_OF: Record<string, string> = { food: 'farm', meal: 'stove', medicine: 'medicalBed' };
       let tool = 'inspect';
       let crop: 'rice' | 'corn' = 'rice';
       let status = '和平殖民地 · 规划家园，照顾每一位居民';
@@ -278,6 +282,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           }
           if (c.action === 'focus' && typeof c.id === 'string') {const pawn=colonyState.colonists.find(p=>p.id===c.id);if(pawn){target=[...pawn.position];target[1]-=1;}}
           if (c.action === 'hover') uiHover = c.value === true;
+          if (c.action === 'focus') {
+            const kind = String(c.resource || '');
+            const want = PRODUCER_OF[kind];
+            const site = want ? colonyState.buildings.find((b) => b.kind === want) : undefined;
+            if (site) { focusTarget = [site.x + 0.5, site.y + 1, site.z + 0.5]; status = '镜头已对准产出地'; }
+            else status = '没有产出它的建筑，只能去地图上采集';
+            refreshState = true;
+          }
           if (c.action === 'setting') {
             if (c.key === 'invertPanX') invertPanX = c.value === true;
             if (c.key === 'invertPanY') invertPanY = c.value === true;
@@ -412,6 +424,13 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 distance = clamp(distance * Math.exp(clamp(input.mouse.wheelDelta, -3, 3) * 0.12), 5, 40);
               }
             } else {
+              // 聚焦飞行：有目标就先飞过去，路上不响应拖动
+              if (focusTarget) {
+                const t = 1 - Math.exp(-7 * dt);
+                target[0] += (focusTarget[0] - target[0]) * t;
+                target[2] += (focusTarget[2] - target[2]) * t;
+                if (Math.hypot(focusTarget[0] - target[0], focusTarget[2] - target[2]) < 0.05) focusTarget = null;
+              }
               // 俯视视角：原来的自由平移 + 环绕 + 缩放
               const speed = distance * 0.32 * dt;
               target[0] = clamp(target[0] + (Math.cos(yaw) * dx + Math.sin(yaw) * dz) * speed, 0, voxels.width);

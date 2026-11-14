@@ -87,3 +87,12 @@
 .wh-cat-option{padding:7px 11px;font-size:11px;text-align:left;color:#45523c;background:transparent;border:0;border-radius:3px;cursor:pointer;white-space:nowrap}
 .wh-cat-option:hover{background:#e0eace}
 .wh-cat-option.active{color:#2f4a2a;font-weight:600;background:#dbe6cc}
+
+/* 仓库格子右键菜单：深色小卡，和暂停卡片同一套。 */
+.item-menu{position:absolute;min-width:112px;padding:5px;display:flex;flex-direction:column;gap:2px;z-index:35;background:#1d2620;border:2px solid #3a4b3a;border-radius:6px;box-shadow:0 8px 22px #0d150f55}
+.item-menu[hidden]{display:none}
+.item-menu-title{padding:5px 10px 7px;font-size:10px;color:#93a487;border-bottom:1px solid #33422f;margin-bottom:3px}
+.item-menu button{padding:7px 10px;text-align:left;font-size:11px;color:#dcd9c3;background:transparent;border:1px solid transparent;border-radius:4px;cursor:pointer}
+.item-menu button:hover{background:#2f3d31;border-color:#4a5c48}
+.item-menu button[disabled]{color:#6d7a66;cursor:not-allowed}
+.item-menu button[disabled]:hover{background:transparent;border-color:transparent}

@@ -312,6 +312,25 @@ export default async function dualViewProbe(play) {
   assert.notEqual(orderBefore, orderAfter, '点升降序按钮文案应切换');
 
   // 分类下拉：先清掉搜索词，再切到「方块」——应该只剩建材那几类
+  // ---- 物品右键菜单 ----
+  const itemMenu = play.page.locator('#item-menu');
+  await play.page.locator('#workspace .wh-search').fill('');
+  await advance(0.3);
+  assert.equal(await itemMenu.isVisible(), false, '平时不该显示物品菜单');
+
+  await play.page.locator('#workspace .wh-cell[data-item]').first().click({ button: 'right' });
+  await advance(0.4);
+  assert.equal(await itemMenu.isVisible(), true, '右键格子应弹出物品菜单');
+  assert.equal(await play.page.locator('#item-menu [data-item-action="select"]').count(), 1, '菜单应有「选中」');
+  assert.equal(await play.page.locator('#item-menu [data-item-action="focus"]').count(), 1, '菜单应有「聚焦」');
+  await play.screenshot('item-menu');
+
+  // 选中：格子要留下高亮
+  await play.page.locator('#item-menu [data-item-action="select"]').click();
+  await advance(0.5);
+  assert.equal(await itemMenu.isVisible(), false, '选完应收起菜单');
+  assert.equal(await play.page.locator('#workspace .wh-cell.selected').count(), 1, '选中后应有一个格子高亮');
+
   await play.page.locator('#workspace .wh-search').fill('');
   await advance(0.3);
   await play.page.locator('#workspace .wh-cat-trigger').click();
