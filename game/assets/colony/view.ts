@@ -143,16 +143,21 @@ export class ColonyView {
   updatePlayer(p:{x:number;y:number;z:number;facing:number;moving:boolean;grounded:boolean},time:number){
     const [x,y,z]=[p.x,p.y,p.z];
     const swing=p.moving?Math.sin(time*11)*.09:0;
-    const fx=Math.sin(p.facing),fz=Math.cos(p.facing);
+    // 整个人绕 Y 轴转：先在「朝 +Z」的局部坐标里摆好，再按 facing 旋到世界。
+    // 之前只挪眼睛的位置，身体还是固定朝向，看着像块不动的砖。
+    const cos=Math.cos(p.facing),sin=Math.sin(p.facing);
+    const rot=(lx:number,ly:number,lz:number):V3=>[x+lx*cos+lz*sin,y+ly,z-lx*sin+lz*cos];
     const parts:Part[]=[
-      {p:[x-.13,y+.22+swing,z],s:[.18,.44,.24],c:'dark'},{p:[x+.13,y+.22-swing,z],s:[.18,.44,.24],c:'dark'},
-      {p:[x,y+.69,z],s:[.52,.55,.32],c:'playerBody'},
-      {p:[x,y+1.12,z],s:[.4,.4,.37],c:'skin'},
-      {p:[x,y+1.34,z],s:[.43,.12,.4],c:'playerHair'},
-      {p:[x-.1+fx*.13,y+1.14,z+fz*.13],s:[.05,.055,.028],c:'black'},
-      {p:[x+.1+fx*.13,y+1.14,z+fz*.13],s:[.05,.055,.028],c:'black'},
-      {p:[x-.33,y+.65-swing,z],s:[.13,.43,.19],c:'skin'},{p:[x+.33,y+.65+swing,z],s:[.13,.43,.19],c:'skin'},
-      {p:[x,y+1.9,z],s:[.22,.22,.22],c:'playerMark',shadow:false},
+      {p:rot(-.13,.22+swing,0),s:[.18,.44,.24],c:'dark'},   // 左腿
+      {p:rot(.13,.22-swing,0),s:[.18,.44,.24],c:'dark'},    // 右腿
+      {p:rot(0,.69,0),s:[.32,.55,.52],c:'playerBody'},      // 躯干（前后厚、左右窄）
+      {p:rot(0,1.12,0),s:[.4,.4,.37],c:'skin'},             // 头
+      {p:rot(0,1.34,0),s:[.43,.12,.4],c:'playerHair'},      // 头发
+      {p:rot(-.1,1.14,.19),s:[.05,.055,.028],c:'black'},    // 左眼
+      {p:rot(.1,1.14,.19),s:[.05,.055,.028],c:'black'},     // 右眼
+      {p:rot(-.33,.65-swing,0),s:[.19,.43,.19],c:'skin'},   // 左臂
+      {p:rot(.33,.65+swing,0),s:[.19,.43,.19],c:'skin'},    // 右臂
+      {p:[x,y+1.9,z],s:[.22,.22,.22],c:'playerMark',shadow:false},  // 头顶标记不跟着转
     ];
     if(p.grounded)parts.push({p:[x,y+.025,z],s:[.72,.03,.72],c:'playerMark',shadow:false});
 

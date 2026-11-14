@@ -75,6 +75,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       const PLAYER_HEIGHT = 1.8;  // 身高
       const MOVE_STEP = 0.05;     // 每步 5 厘米，够细，撞墙误差不超过这个数
       const PLAYER_SPEED = 4.5;   // 米/秒
+      const TURN_SPEED = 14;      // 转身平滑系数，和 Unity 的 PlayerController 一致
       const PLAYER_JUMP = 1.1;    // 能跳多高
       const PLAYER_GRAVITY = -26; // 重力加速度
       const player = {
@@ -349,7 +350,13 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
 
               if (len > 1e-4) {
                 mx /= len; mz /= len;
-                player.facing = Math.atan2(mx, mz);
+                // 平滑转向，帧率无关：t = 1 - exp(-k*dt)，和 Unity 那边同一个公式。
+                // 角度要按最短路径插值——直接线性插值会在 ±π 附近绕一大圈。
+                const want = Math.atan2(mx, mz);
+                const t = 1 - Math.exp(-TURN_SPEED * dt);
+                let diff = ((want - player.facing + Math.PI) % (Math.PI * 2)) - Math.PI;
+                if (diff < -Math.PI) diff += Math.PI * 2;
+                player.facing += diff * t;
                 player.moving = true;
 
                 // 分轴推进：先 X 再 Z。

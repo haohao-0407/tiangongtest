@@ -99,6 +99,27 @@ export default async function dualViewProbe(play) {
   }
   assert.deepEqual(diagonalEmbedded, [], `斜向走不该穿模，出问题的方向: ${diagonalEmbedded.join(',') || '无'}`);
 
+  // ---- 4e. 转向是平滑的，不是瞬移 ----
+  // 停下后朝向应该稳定不动
+  await advance(0.4);
+  const facingIdle1 = (await read()).player.facing;
+  await advance(0.6);
+  const facingIdle2 = (await read()).player.facing;
+  assert.ok(
+    Math.abs(facingIdle2 - facingIdle1) < 0.02,
+    `停下时朝向不该自己变，实测变化 ${Math.abs(facingIdle2 - facingIdle1).toFixed(3)}`,
+  );
+
+  // 换个方向起步，朝向应该跟着变过来
+  await play.page.keyboard.down('KeyA');
+  await advance(1.2);
+  await play.page.keyboard.up('KeyA');
+  await advance(0.5);
+  const facingEnd = (await read()).player.facing;
+
+  const totalTurn = Math.abs(((facingEnd - facingIdle2 + Math.PI) % (Math.PI * 2)) - Math.PI);
+  assert.ok(totalTurn > 0.4, `转身幅度应该够明显，实测 ${totalTurn.toFixed(2)} 弧度`);
+
   // ---- 5. 空格跳跃：离地后 y 会升起来 ----
   const groundY = s2.player.y;
   await play.page.keyboard.press('Space');
