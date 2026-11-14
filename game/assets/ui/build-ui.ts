@@ -12,7 +12,7 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
   /** 相机状态。mode 决定哪些 HUD 该出现：指挥官视角要菜单，玩家视角不要。 */
   camera?: { mode?: 'god' | 'character'; followId?: string | null } };
 type SaveIntent = 'auto' | 'manual' | 'export';
-const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地' };
+const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人' };
 const BUILD_ICONS: Record<string, string> = { bed: '▱', table: '▤', stove: '♨', workbench: '⚒', researchDesk: '◇', solar: '☀', battery: '▥', cooler: '❄', medicalBed: '+', wall: '▧', door: '▯', floor: '▦' };
 const RESOURCE_ICONS: Record<Resource, string> = { wood: '▰', stone: '◆', steel: '▱', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙' };
 const int = (value: number) => Math.floor(Number.isFinite(value) ? value : 0);
@@ -204,6 +204,51 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }
     root.append(materials, note(`当前土地 ${state?.edits ?? 0} 格改动 · 1—6 选材 · 左键执行 · 右键拆除`));
   }
+  /** 仓库：把九类资源的存量、用途和地面散落物摆在一张表里。 */
+  function renderWarehouse(c: ColonySnapshot, root: HTMLElement) {
+    root.append(note('这里只统计已经入库的资源。散在地上的物资要先由居民搬回来才算数。'));
+    const list = make('div', 'row-list');
+    const hints: Record<Resource, string> = {
+      wood: '建造与制作', stone: '墙体与炉灶', steel: '工具与电力设备', food: '直接吃，或加工成熟食',
+      meal: '吃了心情更好', medicine: '治疗疾病', cloth: '床铺与医护床', silver: '贸易结算', components: '高级设备零件',
+    };
+    for (const r of RESOURCE_TYPES) {
+      const row = make('div', 'production-row'), main = make('div', 'row-main');
+      main.append(make('strong', '', `${RESOURCE_ICONS[r]} ${RESOURCE_NAMES[r]}`), make('p', '', hints[r]));
+      row.append(main, make('span', 'need-value', String(int(c.resources[r]))));
+      list.append(row);
+    }
+    root.append(list);
+
+    const loose = c.items.filter((item) => item.amount > 0);
+    const section = make('div', 'detail-section');
+    section.append(make('h3', '', '散落在外'));
+    section.append(make('p', 'muted', loose.length
+      ? `共 ${loose.length} 堆物资还在地上，居民会陆续搬回仓储。`
+      : '地面干净，没有待搬运的物资。'));
+    root.append(section);
+  }
+
+  /** 随从：居民的概览页。姓名、在干什么、三项关键需求，点进去看完整档案。 */
+  function renderFollower(c: ColonySnapshot, root: HTMLElement) {
+    root.append(note('跟着你一起生活的人。点名字可以打开完整档案，也能在工作页调他们的优先级。'));
+    const list = make('div', 'row-list');
+    for (const p of c.colonists) {
+      const row = make('div', 'production-row'), main = make('div', 'row-main');
+      main.append(
+        make('strong', '', p.name),
+        make('p', '', `${p.task || '待命'} · ${SCHEDULES[p.schedule]}${p.disease > 0 ? ' · 身体不适' : ''}`),
+      );
+      const meters = make('div', 'row-actions');
+      for (const [label, value] of [['饱食', p.hunger], ['精力', p.rest], ['心情', p.mood]] as [string, number][]) {
+        meters.append(make('span', '', `${label} ${percent(value)}%`));
+      }
+      row.append(main, meters);
+      list.append(row);
+    }
+    root.append(list);
+  }
+
   function renderPanel(force = false) {
     if (!panel || !state) return;
     const c = state.colony;
@@ -214,7 +259,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const root = get('panel-content'), scrollTop = root.scrollTop; clear(root);
     if (panel === 'sandbox') { renderSandbox(root); root.scrollTop = scrollTop; return; }
     if (!c) { root.append(empty('正在等待居民与世界数据…')); return; }
-    ({ build: renderBuild, plan: renderPlan, work: renderWork, production: renderProduction, research: renderResearch, trade: renderTrade, logs: renderLogs } as Record<string, (c: ColonySnapshot, root: HTMLElement) => void>)[panel]?.(c, root);
+    ({ build: renderBuild, plan: renderPlan, work: renderWork, production: renderProduction, research: renderResearch, trade: renderTrade, logs: renderLogs, warehouse: renderWarehouse, follower: renderFollower } as Record<string, (c: ColonySnapshot, root: HTMLElement) => void>)[panel]?.(c, root);
     root.scrollTop = scrollTop;
   }
   function renderInspector(c: ColonySnapshot, force = false) {

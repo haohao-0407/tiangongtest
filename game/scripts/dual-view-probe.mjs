@@ -98,11 +98,24 @@ export default async function dualViewProbe(play) {
   const shownInGod = await toolbar.isVisible();
   assert.equal(shownInGod, true, '俯视视角下底部菜单应重新出现');
 
+  // ---- 10. 竖排新面板能打开 ----
+  for (const [menu, title] of [['warehouse', '仓库'], ['follower', '随从']]) {
+    await play.page.locator(`[data-menu="${menu}"]`).click();
+    await advance(0.5);
+    const visible = await play.page.locator('#workspace').isVisible();
+    assert.equal(visible, true, `点「${title}」应打开工作区面板`);
+    const heading = (await play.page.locator('#panel-title').textContent()) ?? '';
+    assert.ok(heading.length > 0, `「${title}」面板应有标题，实际为空`);
+    await play.screenshot(`panel-${menu}`);
+    await play.page.locator('[data-menu="inspect"]').click();
+    await advance(0.3);
+  }
+
   return {
     spawn,
     walkedMeters: Number(walked.toFixed(2)),
     cameraToPlayer: Number(camToPlayer.toFixed(2)),
     jumpRise: Number((s3.player.y - groundY).toFixed(2)),
-    checks: 9,
+    checks: 11,
   };
 }
