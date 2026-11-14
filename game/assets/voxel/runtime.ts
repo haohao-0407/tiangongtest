@@ -65,65 +65,80 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       // 玩家就是玩家，不是第四个居民。位置只活在表现层。
       // 碰撞不挂物理引擎，和 Unity 那边一个思路——直接查体素，
       // 规则可预测，也不会出现"人贴着墙缝钻过去"。
-      const PLAYER_RADIUS = 0.32;
-      const PLAYER_SPEED = 4.5;        // 米/秒
-      const PLAYER_JUMP = 1.1;         // 能跳多高
-      const PLAYER_GRAVITY = -26;      // 重力加速度
+      // 角色碰撞：AABB 包围盒 + 分轴扫掠，和 Unity 的 CharacterController 一个路数。
+      // 之前用「四个探点 + 硬推」，三样毛病都出在那儿：
+      //   探点各偏 0.32 米 → 撞墙停在半米外，看着像空气墙
+      //   只探轴对齐四向 → 斜着能挤过对角缝
+      //   推出一次跳半米 → 看起来像瞬移
+      // 换成真实包围盒后，撞墙时位置会被压到方块表面，斜走靠分轴自然滑墙。
+      const PLAYER_HALF = 0.28;   // 半宽（体宽 0.56，比方块窄一点，过 1 格门不别扭）
+      const PLAYER_HEIGHT = 1.8;  // 身高
+      const MOVE_STEP = 0.05;     // 每步 5 厘米，够细，撞墙误差不超过这个数
+      const PLAYER_SPEED = 4.5;   // 米/秒
+      const PLAYER_JUMP = 1.1;    // 能跳多高
+      const PLAYER_GRAVITY = -26; // 重力加速度
       const player = {
         x: voxels.width / 2, z: voxels.depth / 2,
         y: 0, vy: 0, grounded: true, facing: 0, moving: false,
       };
       player.y = voxels.surfaceHeight(Math.floor(player.x), Math.floor(player.z)) + 1;
 
-      /** 脚下这一列，从 fromY 往下找第一个实心方块，返回可以站的脚底高度。 */
-      const groundHeight = (x: number, z: number, fromY: number): number => {
-        const gx = Math.floor(x), gz = Math.floor(z);
-        const start = Math.min(voxels.height - 1, Math.floor(fromY));
-        for (let y = start; y >= 0; y--) {
-          if (voxels.get(gx, y, gz) !== BLOCK.Air) return y + 1;
-        }
-        return 0;
-      };
+      /** AABB 覆盖到的格子范围，四个方向都用这个，别再用中心格近似。 */
+      const boxCells = (cx: number, cz: number, footY: number) => ({
+        minX: Math.floor(cx - PLAYER_HALF),
+        maxX: Math.floor(cx + PLAYER_HALF - 1e-6),
+        minZ: Math.floor(cz - PLAYER_HALF),
+        maxZ: Math.floor(cz + PLAYER_HALF - 1e-6),
+        minY: Math.floor(footY + 1e-4),
+        maxY: Math.floor(footY + PLAYER_HEIGHT - 1e-6),
+      });
 
-      /**
-       * 能不能把这个角色放在这里。
-       * 用身体半径往四个方向各探一次，再把脚到头顶的格子都验一遍——
-       * 只看中心格会让人一半嵌进墙里，观感很糟。
-       * 身高 1.8 米占两格（脚 + 头），所以验 fy 和 fy+1。
-       * 不要多验一格——那会让 2 格高的通道过不去。
-       */
-      const canStand = (x: number, z: number, footY: number): boolean => {
-        const fy = Math.floor(footY);
-        const probes: number[][] = [[x + PLAYER_RADIUS, z], [x - PLAYER_RADIUS, z], [x, z + PLAYER_RADIUS], [x, z - PLAYER_RADIUS]];
-        for (const [px, pz] of probes) {
-          const gx = Math.floor(px!), gz = Math.floor(pz!);
-          for (let dy = 0; dy <= 1; dy++) {
-            if (!voxels.inBounds(gx, fy + dy, gz)) return false;
-            if (voxels.get(gx, fy + dy, gz) !== BLOCK.Air) return false;
-          }
-        }
-        return true;
-      };
-
-      /**
-       * 把人从实心方块里推出来。
-       * 只在竖直方向变化后调用——走下台阶或落地时，水平位置没动过，
-       * 但落点可能正好贴着高台侧面，身体就嵌进去了。
-       * 沿着四个方向各试一小步，取最近能站的那一个。
-       */
-      const depenetrate = (): void => {
-        if (canStand(player.x, player.z, player.y)) return;
-        const step = 0.08;
-        for (let attempt = 1; attempt <= 6; attempt++) {
-          const dist = step * attempt;
-          for (const [dx, dz] of [[dist, 0], [-dist, 0], [0, dist], [0, -dist]] as number[][]) {
-            if (canStand(player.x + dx!, player.z + dz!, player.y)) {
-              player.x += dx!;
-              player.z += dz!;
-              return;
+      /** 这个位置会不会和实心方块撞上。整盒遍历，斜向自然也覆盖到了。 */
+      const blocked = (cx: number, cz: number, footY: number): boolean => {
+        const b = boxCells(cx, cz, footY);
+        for (let x = b.minX; x <= b.maxX; x++) {
+          for (let y = b.minY; y <= b.maxY; y++) {
+            for (let z = b.minZ; z <= b.maxZ; z++) {
+              if (!voxels.inBounds(x, y, z)) return true;
+              if (voxels.get(x, y, z) !== BLOCK.Air) return true;
             }
           }
         }
+        return false;
+      };
+
+      /** 脚下这片（整个 AABB 覆盖范围）最高的地面高度，取最高才不会踩进旁边的高台。 */
+      const groundUnder = (cx: number, cz: number, fromY: number): number => {
+        const b = boxCells(cx, cz, fromY);
+        const start = Math.min(voxels.height - 1, b.minY);
+        let top = 0;
+        for (let x = b.minX; x <= b.maxX; x++) {
+          for (let z = b.minZ; z <= b.maxZ; z++) {
+            for (let y = start; y >= 0; y--) {
+              if (voxels.get(x, y, z) !== BLOCK.Air) { if (y + 1 > top) top = y + 1; break; }
+            }
+          }
+        }
+        return top;
+      };
+
+      /**
+       * 沿单轴推进，一小步一小步走，撞上就停在最后那个合法位置。
+       * 分轴调用（先 X 再 Z）等于自动获得贴墙滑行：
+       * 斜着撞墙时 X 被挡住，Z 还能继续走，人就顺着墙滑过去了。
+       */
+      const sweep = (axis: 0 | 1, delta: number): boolean => {
+        if (Math.abs(delta) < 1e-6) return true;
+        const steps = Math.max(1, Math.ceil(Math.abs(delta) / MOVE_STEP));
+        const step = delta / steps;
+        for (let i = 0; i < steps; i++) {
+          const nx = axis === 0 ? player.x + step : player.x;
+          const nz = axis === 1 ? player.z + step : player.z;
+          if (blocked(nx, nz, player.y)) return false;
+          player.x = nx;
+          player.z = nz;
+        }
+        return true;
       };
       let publishElapsed = 0, simViewElapsed = 0, lastTerrainRevision = voxels.revision;
       let eye: Point = [0, 0, 0], lastEdit: Record<string, unknown> | null = null;
@@ -208,7 +223,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         status, lastEdit, camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
         player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
           // 给验收用：当前是不是嵌在实心方块里
-          embedded: !canStand(player.x, player.z, player.y) },
+          embedded: blocked(player.x, player.z, player.y) },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth],
       });
       const publish = () => {
@@ -337,12 +352,11 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 player.facing = Math.atan2(mx, mz);
                 player.moving = true;
 
+                // 分轴推进：先 X 再 Z。
+                // 斜着撞墙时 X 被挡、Z 照走，位置会被压到方块表面而不是停在半米外。
                 const step = PLAYER_SPEED * dt;
-                const nx = player.x + mx * step, nz = player.z + mz * step;
-                if (canStand(nx, nz, player.y)) { player.x = nx; player.z = nz; }
-                // 贴墙滑：分轴各试一次，不然贴着墙会整个人卡死
-                else if (canStand(nx, player.z, player.y)) player.x = nx;
-                else if (canStand(player.x, nz, player.y)) player.z = nz;
+                sweep(0, mx * step);
+                sweep(1, mz * step);
               } else {
                 player.moving = false;
               }
@@ -355,17 +369,16 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
 
               if (!player.grounded) {
                 player.vy += PLAYER_GRAVITY * dt;
-                player.y += player.vy * dt;
-                const g = groundHeight(player.x, player.z, player.y + 0.2);
-                if (player.y <= g) { player.y = g; player.vy = 0; player.grounded = true; }
+                const ny = player.y + player.vy * dt;
+                const g = groundUnder(player.x, player.z, player.y + 0.1);
+                if (ny <= g) { player.y = g; player.vy = 0; player.grounded = true; }
+                else player.y = ny;
               } else {
                 // 走出台沿：脚下空了就开始掉
-                const g = groundHeight(player.x, player.z, player.y + 0.2);
+                const g = groundUnder(player.x, player.z, player.y + 0.1);
                 if (player.y > g + 0.05) { player.grounded = false; player.vy = 0; }
                 else player.y = g;
               }
-              // 竖直方向变了之后补一次推出：落点可能贴着高台侧面，不推就嵌进去了
-              depenetrate();
 
               // 相机跟着玩家，不是跟着居民了
               const desired: Point = [player.x, player.y + 1.1, player.z];

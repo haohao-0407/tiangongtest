@@ -83,6 +83,22 @@ export default async function dualViewProbe(play) {
   }
   assert.deepEqual(embeddedAt, [], `走完四个方向后不该嵌进方块，出问题的方向: ${embeddedAt.join(',') || '无'}`);
 
+  // ---- 4d. 斜向走也不该穿模 ----
+  // 同时按两个方向键，走的是对角；旧实现只探轴对齐四向，这里最容易漏
+  const diagonals = [['KeyW', 'KeyD'], ['KeyS', 'KeyA'], ['KeyW', 'KeyA'], ['KeyS', 'KeyD']];
+  const diagonalEmbedded = [];
+  for (const [a, b] of diagonals) {
+    await play.page.keyboard.down(a);
+    await play.page.keyboard.down(b);
+    await advance(0.9);
+    await play.page.keyboard.up(a);
+    await play.page.keyboard.up(b);
+    await advance(0.4);
+    const st = await read();
+    if (st.player.embedded) diagonalEmbedded.push(`${a}+${b}`);
+  }
+  assert.deepEqual(diagonalEmbedded, [], `斜向走不该穿模，出问题的方向: ${diagonalEmbedded.join(',') || '无'}`);
+
   // ---- 5. 空格跳跃：离地后 y 会升起来 ----
   const groundY = s2.player.y;
   await play.page.keyboard.press('Space');
