@@ -96,3 +96,7 @@
 .item-menu button:hover{background:#2f3d31;border-color:#4a5c48}
 .item-menu button[disabled]{color:#6d7a66;cursor:not-allowed}
 .item-menu button[disabled]:hover{background:transparent;border-color:transparent}
+
+/* 快捷栏上方的选中物品名，照 Unity 那套。 */
+.hotbar-name{display:none;position:absolute;left:50%;bottom:74px;transform:translateX(-50%);font-size:11px;color:#f0ead6;text-shadow:0 1px 3px #00000099;pointer-events:none;letter-spacing:.06em;z-index:21}
+.shell[data-view-mode="character"] .hotbar-name{display:block}

@@ -48,6 +48,53 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let selected = 5, mode: 'build' | 'remove' = 'build', uiHover = false;
       // 右键拖动平移：水平和垂直各自可反转，灵敏度可调（都在暂停 → 设置里）
       let invertPanX = false, invertPanY = false, panSensitivity = 0.009;
+      // ---- 玩家背包（快捷栏） ----
+      // 照 Unity 的 PlayerInventory + HotbarUI：固定 9 格，数字键 1~9 切换。
+      // 天工的资源原本全在共享池里，这里是「从池子拿到手上」——
+      // 拿走的会从池子扣掉，放回去再加回池子，总量守恒。
+      type BagSlot = { resource: string; count: number } | null;
+      const bag: BagSlot[] = Array.from({ length: 9 }, () => null);
+      let bagSelected = 0;
+
+      /** 从共享池扣一份进背包，返回是否真的拿到了。 */
+      const takeToBag = (resource: string, amount = 1): boolean => {
+        const pool = (colonyState.resources as Record<string, number>)[resource] ?? 0;
+        if (pool < amount) return false;
+        let left = amount;
+        // 先叠到已有的同种格子
+        for (const slot of bag) {
+          if (left <= 0) break;
+          if (!slot || slot.resource !== resource) continue;
+          const room = 99 - slot.count;
+          const put = Math.min(room, left);
+          slot.count += put;
+          left -= put;
+        }
+        // 再开空格
+        for (let i = 0; i < bag.length && left > 0; i++) {
+          if (bag[i]) continue;
+          const put = Math.min(99, left);
+          bag[i] = { resource, count: put };
+          left -= put;
+        }
+        const taken = amount - left;
+        if (taken <= 0) return false;
+        (colonyState.resources as Record<string, number>)[resource] = pool - taken;
+        // 拿到手就自动选中它所在的格子，省得玩家再去找
+        const at = bag.findIndex((slot) => slot && slot.resource === resource);
+        if (at >= 0) bagSelected = at;
+        return true;
+      };
+
+      /** 把某一格放回共享池。 */
+      const dropFromBag = (index: number): void => {
+        const slot = bag[index];
+        if (!slot) return;
+        const pool = (colonyState.resources as Record<string, number>)[slot.resource] ?? 0;
+        (colonyState.resources as Record<string, number>)[slot.resource] = pool + slot.count;
+        bag[index] = null;
+      };
+
       // 仓库里右键「聚焦」时，相机要飞过去的点
       let focusTarget: Point | null = null;
       // 哪些建筑产出哪种资源。查不到就说明这种东西只能靠采集，没有可聚焦的点。
@@ -231,7 +278,9 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
           // 给验收用：当前是不是嵌在实心方块里
           embedded: blocked(player.x, player.z, player.y),
-          parts: colonyView.playerEntityCount },
+          parts: colonyView.playerEntityCount,
+          bag: bag.map((slot) => (slot ? { resource: slot.resource, count: slot.count } : null)),
+          bagSelected },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth],
       });
       const publish = () => {
@@ -282,6 +331,20 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           }
           if (c.action === 'focus' && typeof c.id === 'string') {const pawn=colonyState.colonists.find(p=>p.id===c.id);if(pawn){target=[...pawn.position];target[1]-=1;}}
           if (c.action === 'hover') uiHover = c.value === true;
+          if (c.action === 'take') {
+            const ok = takeToBag(String(c.resource || ''), Number(c.amount) || 1);
+            status = ok ? '拿到手上了' : '背包放不下，或者仓库里没有了';
+            refreshState = true;
+          }
+          if (c.action === 'drop') {
+            dropFromBag(Number(c.slot) || 0);
+            status = '放回仓库了';
+            refreshState = true;
+          }
+          if (c.action === 'bagSelect') {
+            bagSelected = Math.max(0, Math.min(8, Number(c.index) || 0));
+            refreshState = true;
+          }
           if (c.action === 'focus') {
             const kind = String(c.resource || '');
             const want = PRODUCER_OF[kind];

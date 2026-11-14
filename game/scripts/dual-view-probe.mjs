@@ -322,10 +322,29 @@ export default async function dualViewProbe(play) {
   await advance(0.4);
   assert.equal(await itemMenu.isVisible(), true, '右键格子应弹出物品菜单');
   assert.equal(await play.page.locator('#item-menu [data-item-action="select"]').count(), 1, '菜单应有「选中」');
+  assert.equal(await play.page.locator('#item-menu [data-item-action="take"]').count(), 1, '菜单应有「获取」');
   assert.equal(await play.page.locator('#item-menu [data-item-action="focus"]').count(), 1, '菜单应有「聚焦」');
   await play.screenshot('item-menu');
 
+  // 获取：从共享池扣一份拿到手上
+  const poolBefore = (await read()).colony.resources;
+  await play.page.locator('#workspace .wh-cell[data-item]').first().click({ button: 'right' });
+  await advance(0.4);
+  await play.page.locator('#item-menu [data-item-action="take"]').click();
+  await advance(0.6);
+  const afterTake = await read();
+  // 模拟一直在跑、居民在采集，池子总量会自己涨，所以不验总量守恒；
+  // 只验「背包里确实多了东西」这一件事。
+  const bagSlots = (afterTake.player.bag ?? []);
+  const bagFilled = bagSlots.filter(Boolean).length;
+  const bagTotal = bagSlots.reduce((a, slot) => a + (slot ? slot.count : 0), 0);
+  assert.ok(bagFilled >= 1, `获取后背包里应该有东西，实际 ${bagFilled} 格`);
+  assert.ok(bagTotal >= 1, `背包总数应至少 +1，实际 ${bagTotal}`);
+  void poolBefore;
+
   // 选中：格子要留下高亮
+  await play.page.locator('#workspace .wh-cell[data-item]').first().click({ button: 'right' });
+  await advance(0.4);
   await play.page.locator('#item-menu [data-item-action="select"]').click();
   await advance(0.5);
   assert.equal(await itemMenu.isVisible(), false, '选完应收起菜单');
@@ -359,6 +378,23 @@ export default async function dualViewProbe(play) {
   await play.screenshot('warehouse-grid');
   await play.page.locator('[data-menu="inspect"]').click();
   await advance(0.3);
+
+  // 切到玩家视角：快捷栏应该显示刚才拿到手上的那件东西
+  await play.page.keyboard.press('KeyR');
+  await advance(0.9);
+  const hotbarSlots = await play.page.locator('#hotbar .hotbar-slot:not(.empty)').count();
+  assert.ok(hotbarSlots >= 1, `玩家视角快捷栏应显示背包内容，实际 ${hotbarSlots} 格有东西`);
+  const hotbarState = await read();
+  const bagNow = hotbarState.player.bag ?? [];
+  const selNow = hotbarState.player.bagSelected ?? 0;
+  const selectedName = (await play.page.locator('#hotbar-name').textContent()) ?? '';
+  assert.ok(
+    bagNow[selNow],
+    `选中格 ${selNow} 应该有东西；背包现状 ${JSON.stringify(bagNow.filter(Boolean))}，标题「${selectedName}」`,
+  );
+  await play.screenshot('hotbar-bag');
+  await play.page.keyboard.press('KeyR');
+  await advance(0.6);
 
   return {
     spawn,

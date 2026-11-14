@@ -10,7 +10,14 @@ const MANUAL_KEY = 'homestead.colony.v2.manual';
 const LEGACY_KEY = 'homestead.voxel.v1';
 type State = { seed: string; selected: number; mode: string; tool?: string; crop?: string; edits: number; undo: boolean; redo: boolean; hoverCell?: unknown; status?: string; revision?: number; colony?: ColonySnapshot;
   /** 相机状态。mode 决定哪些 HUD 该出现：指挥官视角要菜单，玩家视角不要。 */
-  camera?: { mode?: 'god' | 'character'; followId?: string | null } };
+  camera?: { mode?: 'god' | 'character'; followId?: string | null };
+  /** 玩家角色。位置只活在表现层，不进殖民地模拟。 */
+  player?: {
+    x: number; y: number; z: number; grounded: boolean; moving: boolean; facing: number;
+    embedded: boolean; parts: number;
+    bag: ({ resource: string; count: number } | null)[];
+    bagSelected: number;
+  } };
 type SaveIntent = 'auto' | 'manual' | 'export';
 const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人' };
 const BUILD_ICONS: Record<string, string> = { bed: '▱', table: '▤', stove: '♨', workbench: '⚒', researchDesk: '◇', solar: '☀', battery: '▥', cooler: '❄', medicalBed: '+', wall: '▧', door: '▯', floor: '▦' };
@@ -34,7 +41,6 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   // 视角标记挂在 .shell 上（UI 在 Shadow DOM 里，不能用 body）
   let shellEl: HTMLElement | null = null;
   // 快捷栏选中的格子，只在玩家视角有意义
-  let hotbarIndex = 0;
   let booted = false, disposed = false, lastWorldSeed = '', confirmUntil = 0, lastCardsStamp = '', lastPanelStamp = '', lastInspectorStamp = '';
   let pendingSave: SaveIntent | null = null, queuedSave: SaveIntent | null = null;
   let lastSaveTime = -Infinity, lastSavedSim = 0, lastSavedStamp = '', latestStamp = '', savingStamp = '', savingSim = 0;
@@ -237,6 +243,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       if (action === 'select') {
         whSelected = whSelected === kind ? '' : kind;
         renderPanel(true);
+      } else if (action === 'take') {
+        // 照 Unity 的 OnTake：从共享池扣一份拿到手上
+        send('take', { resource: kind, amount: 1 });
       } else if (action === 'focus') {
         // 天工没有容器，聚焦的目标改成「产出这种东西的建筑」
         send('focus', { resource: kind });
@@ -400,23 +409,46 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     root.append(list);
   }
 
-  /** 玩家快捷栏。九格对应九类资源，数字键或点击切换选中。 */
+  /**
+   * 玩家快捷栏。照 Unity 的 HotbarUI：九格显示背包前九格，数字键或点击切换。
+   * 上方显示当前选中的物品名；右键格子把东西放回共享池。
+   */
   function renderHotbar(c: ColonySnapshot) {
     const bar = get('hotbar');
     if (!bar) return;
-    const counts = RESOURCE_TYPES.map((r) => Math.floor(c.resources[r]));
-    const signature = `${hotbarIndex}|${counts.join(',')}`;
+    // 背包挂在顶层的 player 上，不在 colony 快照里
+    const player = state?.player;
+    const bag = player?.bag ?? [];
+    const selected = player?.bagSelected ?? 0;
+    const signature = `${selected}|${bag.map((b: { resource: string; count: number } | null) => (b ? `${b.resource}:${b.count}` : '-')).join(',')}`;
     if (bar.dataset.signature === signature) return;
     bar.dataset.signature = signature;
     clear(bar);
-    RESOURCE_TYPES.forEach((r, index) => {
-      const slot = make('div', `hotbar-slot${index === hotbarIndex ? ' active' : ''}${counts[index]! <= 0 ? ' empty' : ''}`);
-      slot.append(make('span', 'hotbar-key', String(index + 1)));
-      slot.append(make('span', '', RESOURCE_ICONS[r]));
-      slot.append(make('span', 'hotbar-count', String(counts[index])));
-      slot.addEventListener('click', () => { hotbarIndex = index; renderHotbar(c); });
+
+    for (let i = 0; i < 9; i++) {
+      const item = bag[i] ?? null;
+      const slot = make('div', `hotbar-slot${i === selected ? ' active' : ''}${item ? '' : ' empty'}`);
+      slot.append(make('span', 'hotbar-key', String(i + 1)));
+      if (item) {
+        const res = item.resource as Resource;
+        slot.append(make('span', '', RESOURCE_ICONS[res] ?? '·'));
+        slot.append(make('span', 'hotbar-count', String(item.count)));
+        slot.title = `${RESOURCE_NAMES[res] ?? item.resource} · ${item.count}（右键放回仓库）`;
+        slot.addEventListener('contextmenu', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          send('drop', { slot: i });
+        });
+      }
+      slot.addEventListener('click', () => send('bagSelect', { index: i }));
       bar.append(slot);
-    });
+    }
+
+    const nameEl = get('hotbar-name');
+    if (nameEl) {
+      const cur = bag[selected];
+      nameEl.textContent = cur ? (RESOURCE_NAMES[cur.resource as Resource] ?? '') : '';
+    }
   }
 
   function renderPanel(force = false) {
@@ -695,9 +727,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const match = /^Digit([1-9])$/.exec(event.code);
     if (!match) return;
     const next = Number(match[1]) - 1;
-    if (next === hotbarIndex) return;
-    hotbarIndex = next;
-    if (state?.colony) renderHotbar(state.colony);
+    if (next === (state?.player?.bagSelected ?? 0)) return;
+    // 选中态归引擎管，UI 只发指令——这样背包和快捷栏永远是同一份真相
+    send('bagSelect', { index: next });
   }) as EventListener);
   const timer = win.setInterval(() => {
     if (!booted) { send('sync'); return; }
