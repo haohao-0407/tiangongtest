@@ -457,7 +457,7 @@ export class ColonySimulation {
     this.s.buildings.splice(this.s.buildings.indexOf(b),1);
     for(const plan of this.s.terrainPlans)if(plan.buildingId===b.id)this.terrainCellViews.delete(plan.id);
     this.s.terrainPlans=this.s.terrainPlans.filter(p=>p.buildingId!==b.id);this.terrainIndexDirty=true;
-    const recovered:Partial<Resources>={};for(const r of RESOURCE_TYPES){const amount=Math.floor((BUILDING_DEFS[b.kind].cost[r]??0)*.5);if(amount)recovered[r]=amount;}
+    const recovered:Partial<Resources>={};for(const r of RESOURCE_TYPES){const amount=Math.floor((BUILDING_DEFS[b.kind].cost[r]??0)*2);if(amount)recovered[r]=amount;}
     this.give(recovered);this.invalidateBuildingNavigation();this.updatePower(0);this.refreshJobs();
     this.event('info',`已整体拆除${BUILDING_DEFS[b.kind].name}，回收一半建材。`);
     return{ok:true,id:b.id,message:'已整体拆除，回收 50% 建材（各项向下取整）'};
