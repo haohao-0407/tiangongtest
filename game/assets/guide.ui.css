@@ -42,6 +42,11 @@
 @media(max-height:650px){.terrain-toolbar{top:107px;max-height:calc(100% - 214px);padding:10px}.terrain-controls{gap:6px;margin-bottom:9px}.terrain-fields{gap:7px}}
 @media(max-width:800px){.terrain-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.terrain-toolbar{right:10px;width:260px;max-width:calc(100% - 20px)}.foundation-controls{gap:10px}.terrain-plan-list .production-row{gap:7px}}
 
+/* 物体操作复用同一旋转控件；收起建造面板后保留可触摸的旋转入口。 */
+.building-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;padding:9px 11px;background:#e9efdf;border:1px solid #d5dfc4;border-radius:8px}.building-summary{display:flex;flex-direction:column;gap:3px;min-width:0}.building-summary strong{font-size:11px}.building-summary span{font-size:10px;color:#75876b}.building-controls button{min-height:36px;flex:0 0 auto;font-size:11px}.building-tool-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.building-tool-actions button{min-height:36px;font-size:11px}.build-toolbar{position:absolute;right:16px;top:122px;width:300px;max-width:calc(100% - 32px);padding:10px}.build-toolbar .building-controls{margin:0;flex-wrap:wrap;background:transparent;padding:0;border:0}.building-inspector{font-size:11px}.building-dimensions{line-height:1.8;margin-bottom:7px}.door-state{padding:9px 10px;margin:8px 0;color:#496b49;background:#e9efdf;border-radius:7px;line-height:1.6}.building-inspector-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.building-inspector-actions button{min-height:38px;flex:1;font-size:11px;white-space:nowrap}.shell[data-view-mode="character"] .build-toolbar{display:none}
+@media(max-height:650px){.build-toolbar{top:107px}.building-controls{padding:7px 9px;margin-bottom:8px}.building-tool-actions{margin-bottom:9px}}
+@media(max-width:800px){.build-toolbar{right:10px;width:260px;max-width:calc(100% - 20px)}.building-controls{flex-wrap:wrap;gap:8px}.building-tool-actions{gap:6px}}
+
 /* ESC 暂停层：仿 Unity 那个深色居中小卡片，全屏压暗。 */
 .pause-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(16,26,18,.52);z-index:30}
 .pause-overlay[hidden]{display:none}

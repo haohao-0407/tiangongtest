@@ -20,7 +20,7 @@ import { PcgView } from './pcg/view.ts';
 import { ColonySimulation } from '../colony/simulation.ts';
 import { ColonyView } from '../colony/view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
-import { BUILDING_DEFS, type BuildingKind, type ColonyCommand, type ChestView } from '../colony/contracts.ts';
+import { BUILDING_DEFS, type BuildingKind, type ColonyCommand, type ChestView } from '../colony/contracts.ts';import { buildingDimensions, type BuildingPart } from '../colony/buildings.ts'; import { raycastBuilding, buildingProtectingVoxel, findPlayerSpawn } from '../colony/interaction.ts';
 
 type Point = [number, number, number];
 const PALETTE = [5, 3, 4, 6, 1, 2, 10];
@@ -62,6 +62,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       // 哪些建筑产出哪种资源。查不到就说明这种东西只能靠采集，没有可聚焦的点。
       const PRODUCER_OF: Record<string, string> = { food: 'farm', meal: 'stove', medicine: 'medicalBed' };
       let tool = 'inspect';
+      let buildRotation = 0, selectedBuildingId: string | null = null;
+      let hoverBuildingId: string | null = null, hoverBuildingPart: BuildingPart | null = null;
       let terrainTarget = 6, terrainSize = 3, terrainShape: 'brush' | 'rectangle' = 'brush', terrainSample = false;
       let buildHeight: number | null = null;
       let terrainPreview = { cells: 0, cut: 0, fill: 0 };
@@ -104,6 +106,9 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         y: 0, vy: 0, grounded: true, facing: 0, moving: false,
       };
       player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z));
+      const connectPlayerOccupancy = () => colony.setExternalOccupancySampler((x,y,z,w,h,d) =>
+        player.x + PLAYER_HALF > x && player.x - PLAYER_HALF < x+w && player.z + PLAYER_HALF > z && player.z - PLAYER_HALF < z+d && player.y + PLAYER_HEIGHT > y && player.y < y+h);
+      connectPlayerOccupancy();
 
       const chestPosition = (chest: ChestView): Point => [chest.x, voxels.terrainHeight(chest.x, chest.z), chest.z];
       const syncChests = () => colonyView.updateChests(colonyState.chests.map(chest => ({ id: chest.id, pos: chestPosition(chest) })));
@@ -153,6 +158,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             for (let z = b.minZ; z <= b.maxZ; z++) {
               if (!voxels.inBounds(x, y, z)) return true;
               if (voxels.get(x, y, z) !== BLOCK.Air) return true;
+              if (colony.blocksVoxel(x, y, z)) return true;
             }
           }
         }
@@ -167,7 +173,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         for (let x = b.minX; x <= b.maxX; x++) {
           for (let z = b.minZ; z <= b.maxZ; z++) {
             for (let y = start; y >= 0; y--) {
-              if (voxels.get(x, y, z) !== BLOCK.Air) { if (y + 1 > top) top = y + 1; break; }
+              if (voxels.get(x, y, z) !== BLOCK.Air || colony.blocksVoxel(x,y,z)) { if (y + 1 > top) top = y + 1; break; }
             }
           }
         }
@@ -278,7 +284,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         seed: voxels.seed, selected, mode, tool, crop, colony: colonyState, blocks: voxels.count(), nonAirCount: voxels.count(),
         edits: voxels.editCount, editCount: voxels.editCount, revision: voxels.revision,
         undo: tool.startsWith('sandbox:') && voxels.canUndo, redo: tool.startsWith('sandbox:') && voxels.canRedo, hoverCell: hoverCell ? [...hoverCell] : null,
-        status, lastEdit, camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
+        status, lastEdit, buildRotation, selectedBuildingId, hoverBuildingId, hoverBuildingPart: hoverBuildingPart ? {...hoverBuildingPart} : null,
+        camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
         player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
           // 给验收用：当前是不是嵌在实心方块里
           embedded: blocked(player.x, player.z, player.y),
@@ -304,6 +311,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         refreshState = false;
       };
       const changed = (message: string) => { status = message; updateChunks(); refreshState = true; };
+      const editHistory = (redo:boolean) => {
+        const allow = (edits: readonly {x:number;y:number;z:number}[]) => {
+          const valid=edits.every(e=>!buildingProtectingVoxel(colonyState.buildings,e.x,e.y,e.z));
+          if(!valid){status='此操作会改变设施占用格或地基，请先整体拆除设施';refreshState=true;}
+          return valid;
+        };
+        if(redo?voxels.redo(allow):voxels.undo(allow))changed(redo?'已重做上一步':'已撤销上一步');
+      };
       const home = () => {
         // 玩家视角回位 = 站回自己背后；俯视视角才是回地图中心
         if (viewMode === 'character') {
@@ -319,7 +334,15 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       const execute = (command: ColonyCommand) => {
         const result = colony.command(command); status = result.message; colonyState = colony.snapshot(); refreshState = true;
         if (result.ok && command.action === 'place-chest') syncChests();
+        if (selectedBuildingId && !colonyState.buildings.some(b=>b.id===selectedBuildingId)) selectedBuildingId = null;
+        if (command.action === 'select') selectedBuildingId = null;
+        hoverKey = '';
         return result;
+      };
+      const rotateBuild = () => {
+        if (!tool.startsWith('build:')) return;
+        buildRotation = (buildRotation + 1) % 4; hoverKey = ''; previewKey = '';
+        status = `朝向 ${['北','东','南','西'][buildRotation]} · 点击放置，R 继续旋转`; refreshState = true;
       };
       const cancelStroke = () => { stroke = null; terrainView.clearPreview(); previewKey = ''; terrainPreview = { cells: 0, cut: 0, fill: 0 }; };
       const finishStroke = () => {
@@ -350,14 +373,17 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         const nextWorld = VoxelWorld.deserialize(parsed?.version === 2 ? parsed.voxel : text);
         const nextColony = new ColonySimulation(nextWorld);
         if (parsed?.version === 2) nextColony.load(parsed.colony);
+        const nextSpawn=findPlayerSpawn(nextWorld,(x,y,z)=>nextColony.blocksVoxel(x,y,z));
+        if(!nextSpawn)throw new Error('存档中没有可供玩家安全站立的空间，未载入。');
         voxels = nextWorld; colony = nextColony; colonyState = colony.snapshot();
         syncChests();
+        connectPlayerOccupancy(); selectedBuildingId = null; hoverBuildingId = null; hoverBuildingPart = null; buildRotation = 0;
         colony.setWalkSurfaceSampler((x,z,fallback)=>pcgView.walkHeight(x,z,fallback));
         terrainView.clear(); pcgView.clear();
         cancelStroke(); terrainTarget = clamp(terrainTarget, 1, voxels.height - 2); buildHeight = null; viewMode = 'god'; followId = null;
         for (const entry of chunks.values()) { world.despawn(entry.entity).unwrap(); entities.delete(entry.entity); release(entry.handle); }
         chunks.clear();
-        player.x = voxels.width / 2; player.z = voxels.depth / 2; player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z)); player.grounded = true; player.vy = 0;
+        [player.x,player.y,player.z]=nextSpawn; player.grounded = true; player.vy = 0;
         lastTerrainRevision = -1; lastEdit = null; tool = 'inspect'; crop = 'rice'; home(); changed('已恢复地图、居民、任务和生产进度');
         godReturn = { target: [...target], yaw, pitch, distance };
         port?.postMessage({ type: 'voxel:loaded', data: JSON.stringify({ version: 2, voxel: voxels.serialize(), colony: colony.serialize() }) });
@@ -372,8 +398,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             cancelStroke(); terrainSample = false;
             tool = c.value; hoverKey = '';
             if(tool.startsWith('sandbox:')) {mode = tool.endsWith('remove')?'remove':'build';execute({action:'speed',value:0});status='沙盒编辑 · 已暂停居民模拟，材料无限';}
-            else status = tool==='inspect'?'点击居民查看需求与工作':tool==='place-chest'?'点击空地放置木箱':tool.startsWith('build:')?'安放建筑蓝图 · 先整平地基，再施工':tool==='level'?'等高整地 · 拖动规划，松开下达蓝图 · Shift 点击取样':tool.startsWith('zone:')?'点击地面规划 3 × 3 区域':'点击地面下达工作订单';
+            else status = tool==='inspect'?'点击居民或设施查看详情':tool==='place-chest'?'点击空地放置木箱':tool.startsWith('build:')?'安放建筑蓝图 · R 旋转 · 先整平地基，再施工':tool==='demolish'?'点击任一部分拆除整座设施 · 完工设施回收一半材料':tool==='interact'?'点击门的任一部分开关门':tool==='level'?'等高整地 · 拖动规划，松开下达蓝图 · Shift 点击取样':tool.startsWith('zone:')?'点击地面规划 3 × 3 区域':'点击地面下达工作订单';
           }
+          if (c.action === 'rotateBuild') rotateBuild();
+          if (c.action === 'clearSelection') { execute({action:'select'}); selectedBuildingId=null; }
           if (c.action === 'terrain-settings') {
             if (c.target !== undefined && (!Number.isInteger(c.target) || c.target < 1 || c.target > voxels.height - 2)) throw new Error(`目标高度为 1–${voxels.height - 2}`);
             if (c.size !== undefined && (!Number.isInteger(c.size) || c.size < 1 || c.size > 25)) throw new Error('笔刷宽度为 1–25 格；大范围可用框选');
@@ -425,11 +453,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             if (c.key === 'panSensitivity') panSensitivity = Number(c.value) || 0.009;
             refreshState = true;
           }
-          if (c.action === 'undo' && tool.startsWith('sandbox:') && voxels.undo()) changed('已撤销上一步');
-          if (c.action === 'redo' && tool.startsWith('sandbox:') && voxels.redo()) changed('已重做上一步');
+          if (c.action === 'undo' && tool.startsWith('sandbox:')) editHistory(false);
+          if (c.action === 'redo' && tool.startsWith('sandbox:')) editHistory(true);
           if (c.action === 'reseed' && typeof c.seed === 'string' && c.seed.trim()) {
             cancelStroke(); buildHeight = null;
             voxels = new VoxelWorld(c.seed.trim().slice(0, 80)); colony = new ColonySimulation(voxels); colonyState = colony.snapshot();
+            connectPlayerOccupancy(); selectedBuildingId = null; hoverBuildingId = null; hoverBuildingPart = null; buildRotation = 0;
             colony.setWalkSurfaceSampler((x,z,fallback)=>pcgView.walkHeight(x,z,fallback));
             terrainView.clear(); pcgView.clear();
             viewMode = 'god'; followId = null; terrainTarget = clamp(terrainTarget, 1, voxels.height - 2);
@@ -469,7 +498,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             const renderState = colony.renderState();
             if (pcgView.update(voxels, renderState.buildings)) refreshState = true;
             // Ground the displayed residents on the same derived steps used by player collision.
-            colonyView.update({ ...renderState, colonists: renderState.colonists.map(p => ({ ...p,
+            const previewKind=tool.startsWith('build:')?tool.slice(6) as BuildingKind:null;
+            const buildPreview=previewKind&&BUILDING_DEFS[previewKind]&&hoverCell&&!uiHover?{
+              id:'placement-preview',kind:previewKind,x:hoverCell[0],y:buildHeight??hoverCell[1],z:hoverCell[2],
+              ...buildingDimensions(previewKind,buildRotation),rotation:buildRotation,doorOpen:false,complete:true,progress:0,
+            }:null;
+            colonyView.update({ ...renderState, selectedBuildingId, buildPreview, colonists: renderState.colonists.map(p => ({ ...p,
               position: [p.position[0], pcgView.walkHeight(p.position[0], p.position[2], p.position[1]), p.position[2]] as Point,
             })) }, world.getResource(Time).elapsed);
             if (voxels.revision !== lastTerrainRevision) {
@@ -493,7 +527,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             const dz = Number(k.downCode('KeyS') || k.downCode('ArrowDown')) - Number(k.downCode('KeyW') || k.downCode('ArrowUp'));
 
             // ---- R 切换视角 ----
-            if (k.justPressedCode('KeyR')) {
+            if (k.justPressedCode('KeyR') && tool.startsWith('build:')) rotateBuild();
+            else if (k.justPressedCode('KeyR')) {
               if (viewMode === 'god') {
                 // 先存俯视构图，切回来才能原样还原
                 godReturn = { target: [...target] as Point, yaw, pitch, distance };
@@ -642,8 +677,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           if (input && !uiHover) {
             const k = input.keyboard, ctrl = k.downCode('ControlLeft') || k.downCode('ControlRight') || k.downCode('MetaLeft') || k.downCode('MetaRight');
             const sandbox = tool.startsWith('sandbox:');
-            if (sandbox && ctrl && k.justPressedCode('KeyZ')) { if (voxels.undo()) changed('已撤销上一步'); }
-            else if (sandbox && ctrl && k.justPressedCode('KeyY')) { if (voxels.redo()) changed('已重做上一步'); }
+            if (sandbox && ctrl && k.justPressedCode('KeyZ')) editHistory(false);
+            else if (sandbox && ctrl && k.justPressedCode('KeyY')) editHistory(true);
             if(sandbox) PALETTE.forEach((block, index) => { if (k.justPressedCode(`Digit${index + 1}`)) { selected = block; mode = 'build'; tool='sandbox:build'; refreshState = true; } });
             else {if(k.justPressedCode('Digit1'))execute({action:'speed',value:1});if(k.justPressedCode('Digit2'))execute({action:'speed',value:3});if(k.justPressedCode('Digit3'))execute({action:'speed',value:6});}
             if (k.justPressedCode('KeyB')) { if(sandbox){mode='build';tool='sandbox:build';}else tool='build:wall';refreshState=true; }
@@ -651,11 +686,15 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             const m = input.mouse.position;
             const r = m ? viewportToWorld(world, camera, m.x, m.y, size.width, size.height) : undefined;
             const hit = r ? voxels.raycast(Array.from(ray.getOrigin(vec3.create(), r)) as Point, Array.from(ray.getDirection(vec3.create(), r)) as Point, 1200) : null;
+            const objectHit = r ? raycastBuilding(colonyState.buildings, Array.from(ray.getOrigin(vec3.create(),r)) as Point, Array.from(ray.getDirection(vec3.create(),r)) as Point, hit?.distance ?? 1200) : null;
+            if(hoverBuildingId!==(objectHit?.building.id??null)||hoverBuildingPart?.role!==objectHit?.part.role)refreshState=true;
+            hoverBuildingId=objectHit?.building.id??null; hoverBuildingPart=objectHit?.part??null;
             const removing = sandbox && (mode === 'remove' || input.mouse.button(2));
             const paving = sandbox && !removing && selected === BLOCK.Road;
             const roadAllowed = !!hit && hit.normal?.[1] === 1 && !([BLOCK.Air, BLOCK.Water, BLOCK.Wood, BLOCK.Leaves] as readonly number[]).includes(hit.block)
               && !colonyState.buildings.some(b => hit.cell[0] >= b.x && hit.cell[0] < b.x + b.w && hit.cell[2] >= b.z && hit.cell[2] < b.z + b.d);
-            const cell = hit ? (sandbox ? (removing || paving ? hit.cell : hit.adjacent) : [hit.cell[0],voxels.terrainHeight(hit.cell[0],hit.cell[2]),hit.cell[2]] as Point) : null;
+            const objectTarget=objectHit && (sandbox || ['inspect','interact','demolish','cancel'].includes(tool));
+            const cell = objectTarget ? [objectHit.part.x,objectHit.part.y,objectHit.part.z] as Point : hit ? (sandbox ? (removing || paving ? hit.cell : hit.adjacent) : [hit.cell[0],voxels.terrainHeight(hit.cell[0],hit.cell[2]),hit.cell[2]] as Point) : null;
             const point: Point | null = cell ? [...cell] : null;
             const valid = point !== null && voxels.inBounds(...point) && point[1] > 0 && (!sandbox || removing || (paving ? roadAllowed : voxels.get(...point) === 0 || voxels.get(...point) === 8));
             hoverCell = valid ? point : null;
@@ -664,14 +703,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               if (hoverCell) extendStroke(hoverCell[0], hoverCell[2]);
               finishStroke();
             }
-            const nextKey = `${hoverCell?.join(',') ?? ''}:${removing}:${selected}:${tool}`;
+            const nextKey = `${hoverCell?.join(',') ?? ''}:${removing}:${selected}:${tool}:${buildRotation}:${hoverBuildingId}`;
             if (nextKey !== hoverKey) {
               hoverKey = nextKey; refreshState = true;
-              const footprint = tool.startsWith('build:') ? BUILDING_DEFS[tool.slice(6) as BuildingKind]?.footprint ?? [1, 1] : tool.startsWith('zone:') ? [3, 3] : [1, 1];
-              const [w, d] = footprint;
+              const {w,d} = tool.startsWith('build:') ? buildingDimensions(tool.slice(6) as BuildingKind,buildRotation) : tool.startsWith('zone:') ? {w:3,d:3} : {w:1,d:1};
               const surfacePreview = paving && !removing;
-              world.set(cursor, Transform, { pos: hoverCell && tool!=='inspect' && tool!=='level' ? [hoverCell[0] + w!/2, (tool.startsWith('build:') ? buildHeight ?? hoverCell[1] : hoverCell[1]) + (surfacePreview ? 1.04 : sandbox ? .5 : .04), hoverCell[2] + d!/2] : [0, -100, 0],scale:surfacePreview?[1,.08,1]:sandbox?[1,1,1]:[w!,.08,d!] }).unwrap();
-              world.set(cursor, MeshRenderer, { materials: [removing ? removeMaterial : buildMaterial] }).unwrap();
+              const highlighted=objectTarget?objectHit.building:null;
+              world.set(cursor, Transform, { pos: highlighted?[highlighted.x+highlighted.w/2,highlighted.y+.025,highlighted.z+highlighted.d/2]:hoverCell && tool!=='inspect' && tool!=='level' ? [hoverCell[0] + w/2, (tool.startsWith('build:') ? buildHeight ?? hoverCell[1] : hoverCell[1]) + (surfacePreview ? 1.04 : sandbox ? .5 : .04), hoverCell[2] + d/2] : [0, -100, 0],scale:highlighted?[highlighted.w+.04,.05,highlighted.d+.04]:surfacePreview?[1,.08,1]:sandbox?[1,1,1]:[w,.08,d] }).unwrap();
+              world.set(cursor, MeshRenderer, { materials: [removing||tool==='demolish' ? removeMaterial : buildMaterial] }).unwrap();
             }
             if (tool === 'level' && hoverCell) {
               const [x, y, z] = hoverCell;
@@ -686,14 +725,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             }
             if ((tool === 'level' || tool.startsWith('build:')) && hoverCell) {
               const [x, , z] = hoverCell, height = stroke?.target ?? (tool === 'level' ? terrainTarget : buildHeight ?? hoverCell[1]);
-              const key = `${tool}:${voxels.revision}:${x}:${z}:${height}:${terrainSize}:${terrainShape}:${stroke?.cells.size ?? 0}:${stroke?.start.join(',') ?? ''}`;
+              const key = `${tool}:${buildRotation}:${voxels.revision}:${x}:${z}:${height}:${terrainSize}:${terrainShape}:${stroke?.cells.size ?? 0}:${stroke?.start.join(',') ?? ''}`;
               if (key !== previewKey) {
                 previewKey = key;
                 const cells = stroke ? new Map(stroke.cells) : new Map<number, [number, number]>();
                 if (!stroke) {
                   if (tool === 'level') putBrush(cells, x, z, terrainShape === 'rectangle' ? 1 : terrainSize);
                   else {
-                    const [w, d] = BUILDING_DEFS[tool.slice(6) as BuildingKind]?.footprint ?? [1, 1];
+                    const {w,d} = buildingDimensions(tool.slice(6) as BuildingKind,buildRotation);
                     for (let zz = z; zz < Math.min(z + d, voxels.depth); zz++) for (let xx = x; xx < Math.min(x + w, voxels.width); xx++) cells.set(xx + zz * voxels.width, [xx, zz]);
                   }
                 }
@@ -702,8 +741,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 terrainView.preview([...cells.values()], height, key); refreshState = true;
               }
             } else if (!stroke) { terrainView.clearPreview(); previewKey = ''; }
-            if (!sandbox && tool !== 'level' && hit && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
-              const x=hit.cell[0],z=hit.cell[2];
+            if (!sandbox && tool !== 'level' && (hit||objectHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
+              const x=objectTarget?objectHit.part.x:hit!.cell[0],z=objectTarget?objectHit.part.z:hit!.cell[2];
               if(input.mouse.justPressed(2)){
                 // 角色视角下贴着东西右键 = 打开它。箱子优先于随从（箱子不会自己走开）。
                 // 俯视视角不接这个键，那里右键是拖镜头和取消工具。
@@ -716,11 +755,16 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }
 
               else if(tool==='place-chest')execute({action:'place-chest',x,z});
-              else if(tool.startsWith('build:'))execute({action:'build',kind:tool.slice(6),x,z,target:buildHeight ?? voxels.terrainHeight(x,z)});
+              else if(tool.startsWith('build:'))execute({action:'build',kind:tool.slice(6),x,z,target:buildHeight ?? voxels.terrainHeight(x,z),rotation:buildRotation});
               else if(tool.startsWith('zone:'))execute({action:'designate',kind:tool.slice(5),x,z,w:3,d:3,crop});
               else if(['chop','mine','harvest'].includes(tool))execute({action:'designate',kind:tool,x,z});
+              else if(tool==='demolish'||tool==='interact'){
+                const b=objectHit?.building;
+                if(b){selectedBuildingId=b.id;execute({action:tool==='demolish'?'demolish':'toggleDoor',id:b.id});}
+                else{status=tool==='demolish'?'此处没有可拆除的设施':'点击门的任一部分开关门';refreshState=true;}
+              }
               else if(tool==='cancel'){
-                const b=colonyState.buildings.find(b=>x>=b.x&&x<b.x+b.w&&z>=b.z&&z<b.z+b.d&&!b.complete);
+                const b=objectHit&&!objectHit.building.complete?objectHit.building:undefined;
                 const plan=colonyState.terrainPlans.find(p=>p.state!=='completed'&&p.cells.some(([xx,zz])=>xx===x&&zz===z));
                 const job=colonyState.jobs.find(j=>j.x===x&&j.z===z);
                 const zone=colonyState.zones.find(q=>x>=q.x&&x<q.x+q.w&&z>=q.z&&z<q.z+q.d);
@@ -728,17 +772,23 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }else{
                 const o=r?Array.from(ray.getOrigin(vec3.create(),r))as Point:[0,0,0]as Point;
                 const d=r?Array.from(ray.getDirection(vec3.create(),r))as Point:[0,0,0]as Point;
-                const picks=colonyState.colonists.map(p=>{const v=[p.position[0]-o[0],p.position[1]+.8-o[1],p.position[2]-o[2]];const t=v[0]!*d[0]+v[1]!*d[1]+v[2]!*d[2];return{p,t,dist:Math.hypot(v[0]!-d[0]*t,v[1]!-d[1]*t,v[2]!-d[2]*t)};}).filter(q=>q.t>0&&q.dist<.8).sort((a,b)=>a.t-b.t);
+                const picks=colonyState.colonists.map(p=>{const v=[p.position[0]-o[0],p.position[1]+.8-o[1],p.position[2]-o[2]];const t=v[0]!*d[0]+v[1]!*d[1]+v[2]!*d[2];return{p,t,dist:Math.hypot(v[0]!-d[0]*t,v[1]!-d[1]*t,v[2]!-d[2]*t)};}).filter(q=>q.t>0&&q.t<(hit?.distance??1200)&&q.dist<.8).sort((a,b)=>a.t-b.t);
                 const pawn=picks[0]?.p??colonyState.colonists.find(p=>Math.hypot(p.position[0]-(x+.5),p.position[2]-(z+.5))<1.1);
-                if(pawn)execute({action:'select',colonistId:pawn.id});
-                else{const b=colonyState.buildings.find(b=>x>=b.x&&x<b.x+b.w&&z>=b.z&&z<b.z+b.d);status=b?`${BUILDING_DEFS[b.kind as BuildingKind].name} · ${b.complete?'已建成':b.phase==='preparingTerrain'?'准备地基':`施工 ${Math.round(b.progress*100)}%`}${b.blockedReason?` · ${b.blockedReason}`:''}`:`地块 [${x}, ${z}] · 地面标高 ${voxels.terrainHeight(x,z)}`;refreshState=true;}
+                if(pawn&&(!objectHit||(picks[0]?.t??Infinity)<objectHit.distance))execute({action:'select',colonistId:pawn.id});
+                else{const b=objectHit?.building;execute({action:'select'});selectedBuildingId=b?.id??null;status=b?`${BUILDING_DEFS[b.kind as BuildingKind].name} · ${b.complete?'已建成':b.phase==='preparingTerrain'?'准备地基':`施工 ${Math.round(b.progress*100)}%`}${b.kind==='door'?b.doorOpen?' · 开启':' · 关闭':''}${b.blockedReason?` · ${b.blockedReason}`:''}`:`地块 [${x}, ${z}] · 地面标高 ${voxels.terrainHeight(x,z)}`;refreshState=true;}
               }
             }
-            if (sandbox && hit && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
+            if (sandbox && (hit||objectHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
               const shouldRemove = input.mouse.justPressed(2) || mode === 'remove';
               const paintRoad = !shouldRemove && selected === BLOCK.Road;
-              const editCell = shouldRemove || paintRoad ? hit.cell : hit.adjacent;
-              if (editCell && voxels.inBounds(...editCell) && editCell[1] > 0) {
+              const editCell = hit?(shouldRemove || paintRoad ? hit.cell : hit.adjacent):null;
+              const protectedBuilding=editCell?buildingProtectingVoxel(colonyState.buildings,...editCell):undefined;
+              if(objectHit){
+                selectedBuildingId=objectHit.building.id;
+                if(shouldRemove)execute({action:'demolish',id:objectHit.building.id});
+                else{status='设施占用此处，请先整体拆除或选择其他位置';refreshState=true;}
+              } else if(protectedBuilding){status='此格属于设施或它的地基，请先整体拆除设施';refreshState=true;}
+              else if (editCell && voxels.inBounds(...editCell) && editCell[1] > 0) {
                 const block = shouldRemove ? 0 : selected;
                 if (shouldRemove || (paintRoad ? roadAllowed : voxels.get(...editCell) === 0 || voxels.get(...editCell) === 8)) {
                   try {
@@ -751,7 +801,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }
             }
           } else if (hoverCell) {
-            hoverCell = null; hoverKey = ''; if(!stroke){terrainView.clearPreview();previewKey='';} world.set(cursor, Transform, { pos: [0, -100, 0] }).unwrap(); refreshState = true;
+            hoverCell = null; hoverBuildingId=null;hoverBuildingPart=null;hoverKey = ''; if(!stroke){terrainView.clearPreview();previewKey='';} world.set(cursor, Transform, { pos: [0, -100, 0] }).unwrap(); refreshState = true;
           }
           // Releasing over a panel commits only the area already painted on the map.
           if (releasedStroke && stroke) finishStroke();

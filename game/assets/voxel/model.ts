@@ -241,14 +241,18 @@ export class VoxelWorld {
     this.future.length = 0;
     return true;
   }
-  undo(): boolean {
+  undo(allow?: (edits: readonly BlockEdit[]) => boolean): boolean {
+    const pending = this.past.at(-1);
+    if (pending && allow && !allow(pending.map(c => {const [x,y,z]=this.coordinates(c.index);return{x,y,z,block:c.before};}))) return false;
     const transaction = this.past.pop();
     if (!transaction) return false;
     this.apply(transaction, true);
     this.future.push(transaction);
     return true;
   }
-  redo(): boolean {
+  redo(allow?: (edits: readonly BlockEdit[]) => boolean): boolean {
+    const pending = this.future.at(-1);
+    if (pending && allow && !allow(pending.map(c => {const [x,y,z]=this.coordinates(c.index);return{x,y,z,block:c.after};}))) return false;
     const transaction = this.future.pop();
     if (!transaction) return false;
     this.apply(transaction, false);

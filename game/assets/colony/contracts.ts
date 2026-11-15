@@ -19,7 +19,8 @@ export const JOB_TYPES = ['terraform','construct','grow','harvest','haul','cook'
 export type JobType = typeof JOB_TYPES[number];
 export const JOB_NAMES: Record<JobType,string> = {terraform:'整地',construct:'建造',grow:'种植',harvest:'收获',haul:'搬运',cook:'烹饪',chop:'伐木',mine:'采矿',research:'研究',doctor:'医疗',craft:'制作'};
 export type BuildingKind = 'bed'|'table'|'stove'|'workbench'|'researchDesk'|'solar'|'battery'|'cooler'|'medicalBed'|'wall'|'door'|'floor';
-export interface BuildingDefinition { id: BuildingKind; name: string; description: string; cost: Partial<Resources>; work: number; research?: string; power: number; blocking: boolean; color: [number,number,number]; footprint?:[number,number] }
+export type BuildingRotation = 0|1|2|3;
+export interface BuildingDefinition { id: BuildingKind; name: string; description: string; cost: Partial<Resources>; work: number; research?: string; power: number; blocking: boolean; color: [number,number,number]; footprint?:[number,number]; height?:number }
 export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
   bed:{id:'bed',name:'木床',description:'为居民提供安稳睡眠。',cost:{wood:12,cloth:3},work:18,power:0,blocking:true,color:[0.60,0.42,0.23],footprint:[1,2]},
   table:{id:'table',name:'餐桌',description:'就餐与休闲，改善心情。',cost:{wood:15},work:16,power:0,blocking:true,color:[0.64,0.44,0.23]},
@@ -29,9 +30,9 @@ export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
   solar:{id:'solar',name:'太阳能板',description:'晴天白昼发电，阴雨天减产。',cost:{steel:22,components:2},work:36,research:'electricity',power:-120,blocking:true,color:[0.19,0.35,0.55]},
   battery:{id:'battery',name:'蓄电池',description:'保存白天余电，在夜间供电。',cost:{steel:16,components:2},work:30,research:'electricity',power:0,blocking:true,color:[0.40,0.47,0.29]},
   cooler:{id:'cooler',name:'冷藏机',description:'消耗 45 W，减少仓储食品腐坏。',cost:{steel:18,components:3},work:35,research:'refrigeration',power:45,blocking:true,color:[0.59,0.72,0.73]},
-  medicalBed:{id:'medicalBed',name:'医护床',description:'病人休养并接受医护治疗。',cost:{wood:18,cloth:8,steel:6},work:30,research:'medicine',power:0,blocking:true,color:[0.80,0.85,0.79]},
-  wall:{id:'wall',name:'石墙',description:'阻挡通行，围合室内房间。',cost:{stone:5},work:9,power:0,blocking:true,color:[0.61,0.63,0.57]},
-  door:{id:'door',name:'木门',description:'居民可以通行，也能围合房间。',cost:{wood:8},work:12,power:0,blocking:false,color:[0.54,0.36,0.20]},
+  medicalBed:{id:'medicalBed',name:'医护床',description:'病人休养并接受医护治疗。',cost:{wood:18,cloth:8,steel:6},work:30,research:'medicine',power:0,blocking:true,color:[0.80,0.85,0.79],footprint:[1,2]},
+  wall:{id:'wall',name:'石墙',description:'阻挡通行，围合室内房间。',cost:{stone:5},work:9,power:0,blocking:true,color:[0.61,0.63,0.57],height:2},
+  door:{id:'door',name:'木门',description:'上下两格组成一扇门。打开通行，关闭围合房间。',cost:{wood:8},work:12,power:0,blocking:true,color:[0.54,0.36,0.20],height:2},
   floor:{id:'floor',name:'木地板',description:'可通行，提升封闭房间舒适度。',cost:{wood:3},work:5,power:0,blocking:false,color:[0.70,0.52,0.31]},
 };
 export interface ResearchDefinition {id:string;name:string;description:string;work:number;requires?:string;unlocks:string[]}
@@ -45,10 +46,10 @@ export const RESEARCH_DEFS: Record<string,ResearchDefinition> = {
 export const SCHEDULES = {balanced:'均衡作息',day:'日班',night:'夜班',rest:'休养'} as const;
 export type Schedule = keyof typeof SCHEDULES;
 export type CropKind = 'rice'|'corn';
-export interface ColonyCommand {action:string;value?:unknown;kind?:string;x?:number;z?:number;w?:number;d?:number;cells?:[number,number][];id?:string;colonistId?:string;job?:string;resource?:string;amount?:number;buy?:boolean;target?:number;crop?:string}
+export interface ColonyCommand {action:string;value?:unknown;kind?:string;x?:number;y?:number;z?:number;rotation?:number;w?:number;d?:number;cells?:[number,number][];id?:string;colonistId?:string;job?:string;resource?:string;amount?:number;buy?:boolean;target?:number;crop?:string}
 export interface CommandResult {ok:boolean;message:string;id?:string}
 export interface ColonistView {id:string;name:string;traits:string[];skills:Record<JobType,number>;priorities:Record<JobType,number>;schedule:Schedule;position:Position;health:number;hunger:number;rest:number;recreation:number;mood:number;disease:number;task:string;jobId:string|null;color:Position;carrying:Partial<Resources>;bag:InventorySlot[];comfort:number}
-export interface BuildingView {id:string;kind:BuildingKind;x:number;y:number;z:number;w:number;d:number;phase:'preparingTerrain'|'readyToBuild'|'constructing'|'completed';terrainPlanId?:string;blockedReason?:string;complete:boolean;progress:number;reserved:Partial<Resources>;powered:boolean;comfort:number;roomId:number|null}
+export interface BuildingView {id:string;kind:BuildingKind;x:number;y:number;z:number;w:number;h:number;d:number;rotation:BuildingRotation;doorOpen?:boolean;phase:'preparingTerrain'|'readyToBuild'|'constructing'|'completed';terrainPlanId?:string;blockedReason?:string;complete:boolean;progress:number;reserved:Partial<Resources>;powered:boolean;comfort:number;roomId:number|null}
 export interface TerrainPlanView {id:string;target:number;cells:[number,number][];remainingCut:number;remainingFill:number;progress:number;state:'queued'|'working'|'blocked'|'completed';blockedReason?:string;buildingId?:string}
 export interface ZoneView {id:string;kind:'farm'|'stockpile';x:number;y:number;z:number;w:number;d:number;crop:CropKind}
 export interface CropView {id:string;kind:CropKind;x:number;y:number;z:number;growth:number;planted:boolean}

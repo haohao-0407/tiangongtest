@@ -66,11 +66,26 @@ export default async function sandboxPlaythrough(play) {
     const [width, height, depth] = state.dimensions;
     assert.ok(state.nonAirCount < width * height * depth);
     assert.ok(state.chunks <= Math.ceil(width / 24) * Math.ceil(depth / 24), 'All terrain meshes fit the current 24-cell chunks, including partial edges.');
-    assert.equal(await play.page.locator('[data-block]').count(), 6);
+    const materialButtons = await play.page.locator('[data-block]').evaluateAll(buttons =>
+      buttons.map(button => button.getAttribute('data-testid')).sort());
+    assert.deepEqual(materialButtons, [...PALETTE.map(material => `block-${material.block}`), 'block-10'].sort(),
+      'The sandbox exposes the six ordinary block materials and the road tool.');
     assert.equal(state.colony.speed, 0, 'Sandbox entry pauses autonomous simulation.');
     await capture('sandbox-01-procedural-terrain-and-materials');
     await closePanel();
     return state;
+  });
+
+  await play.step('road-shortcut-selects-paving-and-restores-block-selection', async () => {
+    const before = await read();
+    const originalIndex = PALETTE.findIndex(material => material.block === before.selected);
+    assert.ok(originalIndex >= 0, 'The initial selection is an ordinary block material.');
+    await play.keyboard.press('Digit7');
+    const road = await wait(s => s.selected === 10 && s.tool === 'sandbox:build');
+    assert.equal(road.colony.speed, 0);
+    assert.equal(road.edits, before.edits, 'Selecting the road tool does not change terrain.');
+    await play.keyboard.press(`Digit${originalIndex + 1}`);
+    await wait(s => s.selected === before.selected && s.tool === 'sandbox:build');
   });
 
   const first = await play.step('preview-and-left-click-build', async () => {
@@ -204,5 +219,5 @@ export default async function sandboxPlaythrough(play) {
     return { seed: restored.seed, edits: restored.edits, blockCount: restored.nonAirCount };
   });
 
-  return { requirements: ['procedural-terrain', 'sandbox-pauses-colony', 'build-preview', 'left-build', 'right-remove', 'undo-redo', 'six-materials', 'camera-pan-orbit-zoom', 'seed-regeneration', 'v2-autosave-reload'], materials: materials.map(m => m.block), saved };
+  return { requirements: ['procedural-terrain', 'sandbox-pauses-colony', 'build-preview', 'left-build', 'right-remove', 'undo-redo', 'six-block-materials', 'road-shortcut-selection', 'camera-pan-orbit-zoom', 'seed-regeneration', 'v2-autosave-reload'], materials: materials.map(m => m.block), saved };
 }

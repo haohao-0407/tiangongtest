@@ -33,7 +33,7 @@ git push -u origin feature/xxx
 
 ## 1. 仓库是什么
 
-天工引擎 0.4.19 的 TypeScript 工程，**共享仓库**（多人 + 多个 AI 同时在用）。
+天工引擎 0.5.0 的 TypeScript 工程，**共享仓库**（多人 + 多个 AI 同时在用）。
 
 ```
 tiangongtest\
@@ -147,10 +147,13 @@ git push -u origin feature/<分支名>
 |:--|:--|:--|
 | Node.js | ≥ 22.13 | 启动器实际读取版本；可用系统安装或 WorkBuddy 自带版本 |
 | pnpm | 由 `packageManager` 字段决定（当前 12.15.0） | 启动器通过 Corepack 选择准确版本；没有 Corepack 时用 npm 安装到本仓库，不做全局安装 |
-| SDK | `@forgeax/engine@0.4.19` | 从 npm 装，**版本必须严格对齐**（`frozenLockfile: true`） |
+| 引擎依赖 | `@forgeax/engine@0.5.0` | 从 npm 装，**版本必须严格对齐**（`frozenLockfile: true`） |
+| 配套 SDK 工具 | `.launcher/forgeax-sdk-0.5.0/` | 本机安装，不提交 Git；与引擎保持同一版本 |
 | 启动数据目录 | 本仓库 `.launcher/` | 默认存放日志、临时文件、Corepack 和 pnpm 缓存；已有 `COREPACK_HOME` 设置会保留 |
 
 `game/.npmrc` 使用相对路径 `../.launcher/pnpm-store` 和 `../.launcher/npm-cache`，使手动安装与启动器使用相同缓存位置。首次准备工具或下载依赖需要联网。
+
+启动器从 `game/package.json` 自动选择 pnpm 并校验引擎，CLI 从项目已安装的引擎包定位，不依赖固定 SDK 盘符路径。当前 ForgeAX MCP 插件 `0.4.2` 仍要求引擎 `0.4.8`，不会用于 `0.5.0` 的验收；检查、构建与浏览器验收使用项目的准确版本官方 CLI。升级本身不代表验证通过，结果另记在 `game/docs/validation.md`。
 
 ### 启动脚本怎么找 node
 
@@ -181,7 +184,7 @@ $s = [System.IO.File]::ReadAllText($p, [System.Text.Encoding]::UTF8)
 
 ### 游戏会话与启动窗口
 
-当前安装的 ForgeAX 0.4.19 会创建独立后台服务。正常 Windows 环境下，启动命令退出不代表游戏停止；沙箱或其他进程管理环境可能另行回收子进程。
+此前在 ForgeAX 0.4.19 上确认过：引擎会创建独立后台服务，正常 Windows 环境下，启动命令退出不代表游戏停止；沙箱或其他进程管理环境可能另行回收子进程。升级后应以当前版本的 `dev status` 确认会话状态。
 
 用户双击 `启动游戏.bat` 启动即可。正常会话会复用，失败或浏览器已断开的等待会话会恢复；不要在每次启动前无条件 `dev stop`。显式停止使用 `.\Start-Game.ps1 -Stop`，强制重启使用 `-Restart`。
 

@@ -192,6 +192,7 @@ describe('inventory reservation, work and walking',()=>{
   it('water and complete walls block routes rather than teleport residents',()=>{
     const{sim,world}=setup();onlyJob(sim,'construct');
     const pos=freeCell(sim,world);const save=raw(sim);
+    const ground=[];for(let z=pos.z-1;z<=pos.z+1;z++)for(let x=pos.x-1;x<=pos.x+1;x++)for(let y=1;y<world.height;y++)ground.push({x,y,z,block:y<5?BLOCK.Dirt:y===5?BLOCK.Grass:BLOCK.Air});world.edit(ground);
     // This isolated fixture encloses the blueprint with actual completed walls.
     for(const[dx,dz]of[[1,0],[-1,0],[0,1],[0,-1]])save.buildings.push({id:`test-wall-${dx}-${dz}`,kind:'wall',x:pos.x+dx!,y:6,z:pos.z+dz!,complete:true,progress:1,reserved:{},powered:false,comfort:0,roomId:null});
     sim.load(save);const order=sim.command({action:'build',kind:'floor',...pos});expect(order.ok).toBe(true);
@@ -208,7 +209,12 @@ describe('resident needs and civilian production',()=>{
   });
   it('falls back to a reachable stockpile when the dining table is enclosed',()=>{
     const{sim}=setup();onlyJob(sim,'construct');
-    for(const[x,z]of[[27,26],[29,26],[28,25],[28,27]])expect(sim.command({action:'build',kind:'wall',x,z}).ok).toBe(true);
+    // Full-size starter beds now extend into this enclosure's north wall.
+    for(const[x,z]of[[27,26],[29,26],[28,25],[28,27]]){
+      const existing=sim.snapshot().buildings.find(b=>x>=b.x&&x<b.x+b.w&&z>=b.z&&z<b.z+b.d);
+      if(existing)expect(sim.command({action:'demolish',id:existing.id}).ok).toBe(true);
+      expect(sim.command({action:'build',kind:'wall',x,z}).ok).toBe(true);
+    }
     run(sim,65);expect(sim.snapshot().buildings.filter(b=>b.kind==='wall'&&b.complete)).toHaveLength(4);
     for(const c of sim.snapshot().colonists)for(const j of JOB_TYPES)sim.command({action:'priority',colonistId:c.id,job:j,value:0});
     const before=sim.snapshot().resources.meal;run(sim,500);
@@ -269,8 +275,9 @@ describe('research, shelter, electricity and constrained trade',()=>{
     expect(sim.snapshot().research.completed).toContain('electricity');expect(sim.snapshot().research.progress.electricity).toBe(110);
     expect(sim.command({action:'build',kind:'solar',...pos}).ok).toBe(true);
   });
-  it('enclosed walls and a passable door create a small comfortable room',()=>{
-    const{sim}=setup(),data=raw(sim);data.buildings=[];
+  it('enclosed walls and a closed door create a small comfortable room',()=>{
+    const{sim,world}=setup(),data=raw(sim);data.buildings=[];
+    const ground=[];for(let z=20;z<=24;z++)for(let x=20;x<=24;x++)for(let y=1;y<world.height;y++)ground.push({x,y,z,block:y<5?BLOCK.Dirt:y===5?BLOCK.Grass:BLOCK.Air});world.edit(ground);
     for(let z=20;z<=24;z++)for(let x=20;x<=24;x++)if(x===20||x===24||z===20||z===24)data.buildings.push({id:`wall-${x}-${z}`,kind:x===22&&z===24?'door':'wall',x,y:6,z,complete:true,progress:1,reserved:{},powered:false,comfort:0,roomId:null});
     data.jobs=data.jobs.filter((j:any)=>!['cook','craft'].includes(j.type));data.colonists.forEach((c:any)=>{c.jobId=null;c.path=[];});
     sim.load(data);const room=sim.snapshot().rooms[0]!;expect(room.enclosed).toBe(true);expect(room.cells).toHaveLength(9);expect(room.comfort).toBeGreaterThan(0);

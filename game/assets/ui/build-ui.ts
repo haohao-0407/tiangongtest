@@ -5,12 +5,13 @@ import {
   RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, inventorySpace,
   type ColonyCommand, type ColonySnapshot, type ColonistView, type InventoryLocation, type InventorySlot, type ItemStack, type Resource,
 } from '../colony/contracts.ts';
+import { buildingDimensions } from '../colony/buildings.ts';
 
 const SAVE_KEY = 'homestead.colony.v2';
 const MANUAL_KEY = 'homestead.colony.v2.manual';
 const LEGACY_KEY = 'homestead.voxel.v1';
 type State = { seed: string; selected: number; mode: string; tool?: string; crop?: string; edits: number; undo: boolean; redo: boolean; hoverCell?: unknown; status?: string; revision?: number; colony?: ColonySnapshot;
-  worldSize?: [number, number, number]; buildHeight?: number | null;
+  worldSize?: [number, number, number]; buildHeight?: number | null; buildRotation?: number; selectedBuildingId?: string | null;
   terrain?: { target: number; size: number; shape: 'brush' | 'rectangle'; sample: boolean; minHeight: number; maxHeight: number; preview?: { cells: number; cut: number; fill: number } };
   /** 相机状态。mode 决定哪些 HUD 该出现：指挥官视角要菜单，玩家视角不要。 */
   camera?: { mode?: 'god' | 'character'; followId?: string | null };
@@ -42,14 +43,14 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const el = doc.createElement(tag); el.className = className; if (text !== undefined) el.textContent = text; return el;
   };
   const on = (node: EventTarget, type: string, fn: EventListener) => { node.addEventListener(type, fn); releases.push(() => node.removeEventListener(type, fn)); };
-  let state: State | undefined, panel = '', currentTool = 'inspect', selectedResident: string | null = null;
+  let state: State | undefined, panel = '', currentTool = 'inspect', selectedResident: string | null = null, selectedBuilding: string | null = null;
   // 视角标记挂在 .shell 上（UI 在 Shadow DOM 里，不能用 body）
   let shellEl: HTMLElement | null = null;
   // 快捷栏选中的格子，只在玩家视角有意义
   let booted = false, disposed = false, lastWorldSeed = '', confirmUntil = 0, lastCardsStamp = '', lastPanelStamp = '', lastInspectorStamp = '';
   let pendingSave: SaveIntent | null = null, queuedSave: SaveIntent | null = null;
   let lastSaveTime = -Infinity, lastSavedSim = 0, lastSavedStamp = '', latestStamp = '', savingStamp = '', savingSim = 0;
-  let lastSelectedFromWorld: string | null = null, pendingLoadAt = 0;
+  let lastSelectedFromWorld: string | null = null, lastSelectedBuilding: string | null = null, pendingLoadAt = 0;
   const send = (action: string, data: Record<string, unknown> = {}) => port?.postMessage({ type: 'voxel:command', action, ...data });
   const colonyCommand = (command: ColonyCommand) => send('colony', { command });
   const saySave = (text: string) => { get('save-status').textContent = text; get('quick-save').textContent = text; };
@@ -86,6 +87,24 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const terrainInstructions = make('p', 'panel-note', '拖动左键规划，松开提交；Shift + 点击取样。填挖由居民逐步完成。');
   terrainFields.append(terrainHeight.label, terrainSize.label, terrainShapeLabel, sampleHeight);
   terrainControls.append(terrainFields, terrainPreview, terrainInstructions);
+  const buildControls = make('div', 'building-controls');
+  const buildOrientation = make('strong'); buildOrientation.dataset.testid = 'build-orientation';
+  const buildFootprint = make('span'); buildFootprint.dataset.testid = 'build-footprint';
+  const rotateBuild = button('↻ 旋转 90° · R', 'build-rotate'); rotateBuild.dataset.voxelAction = 'rotateBuild';
+  const buildSummary = make('div', 'building-summary'); buildSummary.append(buildOrientation, buildFootprint);
+  buildControls.append(buildSummary, rotateBuild);
+  const orientationText = (rotation = 0) => `${rotation * 90}°`;
+  function syncBuildControls() {
+    const kind = currentTool.startsWith('build:') ? currentTool.slice(6) as keyof typeof BUILDING_DEFS : null;
+    const def = kind ? BUILDING_DEFS[kind] : undefined, rotation = state?.buildRotation ?? 0;
+    const dimensions = def ? buildingDimensions(def.id, rotation) : null;
+    buildOrientation.textContent = `${def?.name ?? '建筑'} · 朝向 ${orientationText(rotation)}`;
+    buildFootprint.textContent = dimensions ? `占地 ${dimensions.w} × ${dimensions.d} 格 · 高 ${dimensions.h} 格` : '选择建筑后可旋转放置';
+    rotateBuild.disabled = !def;
+    const floating = get('build-toolbar'), inBuild = panel === 'build' && !get('workspace').hidden;
+    floating.hidden = inBuild || !def || (state?.camera?.mode ?? 'god') !== 'god' || !!panel || !get('settings').hidden || !get('help').hidden || !get('inspector').hidden;
+    if (!inBuild && !floating.hidden && buildControls.parentElement !== floating) floating.append(buildControls);
+  }
   const buildingPhase = (phase?: string) => ({ preparingTerrain: '整平地基', readyToBuild: '等待施工', constructing: '正在施工', completed: '已完工' }[phase ?? ''] ?? '等待施工');
   function syncTerrainControls() {
     const t = state?.terrain, active = shadow.activeElement;
@@ -106,6 +125,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const inPlan = panel === 'plan' && !get('workspace').hidden;
     floating.hidden = inPlan || currentTool !== 'level' || (state?.camera?.mode ?? 'god') !== 'god' || !!panel || !get('settings').hidden || !get('help').hidden || !get('inspector').hidden;
     if (!inPlan && !floating.hidden && terrainControls.parentElement !== floating) floating.append(terrainControls);
+    syncBuildControls();
   }
   const syncHover = () => {
     const active = shadow.activeElement?.tagName;
@@ -121,12 +141,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   on(shadow, 'contextmenu', e => e.preventDefault());
 
   const showTool = (tool: string) => {
-    const hints: Record<string, string> = { inspect: '查看模式 · 左键选择居民或地块', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树木，居民会领取工作', mine: '采矿规划 · 点击石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
+    const hints: Record<string, string> = { inspect: '查看模式 · 点击居民或物体任一部分查看详情', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '整体拆除 · 点击物体任一部分 · 完工设施回收 50% 建材', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树木，居民会领取工作', mine: '采矿规划 · 点击石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
     if (state?.selected === 10) hints['sandbox:build'] = '铺设道路 · 左键替换地表 · 路沿与台阶随连接自动更新';
     else if (state?.selected === 6) hints['sandbox:build'] = '砖墙 · 连续墙面叠高两格生成窗框、窗台 · 增删后自动更新';
     get('tool-hint').textContent = tool === 'level'
       ? `等高整地 · 标高 ${state?.terrain?.target ?? 6} · ${state?.terrain?.shape === 'rectangle' ? '左键拖框' : '左键拖涂'} · 松开提交 · Shift 取样`
-      : tool.startsWith('build:') ? `建造 ${BUILDING_DEFS[tool.slice(6) as keyof typeof BUILDING_DEFS]?.name ?? ''} · ${state?.buildHeight == null ? '取落点标高' : `地基标高 ${state.buildHeight}`} · 先整平，再施工` : hints[tool] ?? '点击地图执行当前规划';
+      : tool.startsWith('build:') ? `建造 ${BUILDING_DEFS[tool.slice(6) as keyof typeof BUILDING_DEFS]?.name ?? ''} · R 旋转 ${orientationText(state?.buildRotation)} · ${state?.buildHeight == null ? '取落点标高' : `地基标高 ${state.buildHeight}`} · 先整平，再施工` : hints[tool] ?? '点击地图执行当前规划';
     syncTerrainControls();
   };
   const chooseTool = (tool: string) => {
@@ -134,8 +154,10 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     lastPanelStamp = ''; renderPanel(true);
   };
   const hideSidePanels = () => { get('settings').hidden = true; get('help').hidden = true; get('inspector').hidden = true; };
+  const clearSelection = () => { selectedResident = null; selectedBuilding = null; send('clearSelection'); };
   const openPanel = (next: string, toggle = true) => {
     cancelInventoryDrag?.();
+    if (!get('inspector').hidden) clearSelection();
     hideSidePanels(); panel = toggle && panel === next ? '' : next;
     get('panel-content').scrollTop = 0;
     if (next === 'inspect') { panel = ''; chooseTool('inspect'); }
@@ -146,7 +168,11 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   };
 
   function renderBuild(c: ColonySnapshot, root: HTMLElement) {
-    root.append(note('建筑可以先放在不平地面上：自动规划足迹内的填挖，先整平，再领取材料施工。已建建筑或通路受阻时会等待。'));
+    root.append(note('点击选择建筑，用 R 或旋转按钮调整朝向。床头床尾、门的上下部分作为整体放置；先整平地基，再由居民施工。'));
+    root.append(buildControls); syncBuildControls();
+    const actions = make('div', 'building-tool-actions');
+    actions.append(toolButton('⌖ 查看物体', 'inspect', 'tool-inspect'), toolButton('↔ 开关门', 'interact', 'tool-interact'), toolButton('⌫ 整体拆除', 'demolish', 'tool-demolish', 'danger'));
+    root.append(actions);
     const foundation = make('div', 'foundation-controls'), autoLabel = make('label', 'foundation-auto'), auto = make('input');
     auto.type = 'checkbox'; auto.id = 'build-height-auto'; auto.dataset.testid = 'build-height-auto'; auto.checked = state?.buildHeight == null;
     autoLabel.append(auto, make('span', '', '采用落点地面标高'));
@@ -159,8 +185,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const short = Object.entries(def.cost).some(([r, amount]) => c.resources[r as Resource] < (amount ?? 0));
       const b = toolButton('', `build:${def.id}`, `build-${def.id}`, 'build-card'); b.disabled = locked;
       const title = make('span', 'card-title'); title.append(make('span', 'card-icon', BUILD_ICONS[def.id] ?? '▧'), make('span', '', def.name));
-      const footprint = def.footprint ?? [1, 1];
-      b.append(title, make('span', 'card-description', `${footprint[0]} × ${footprint[1]} 格 · ${def.description}`), make('span', 'card-cost', costText(def.cost)));
+      const dimensions = buildingDimensions(def.id, state?.buildRotation ?? 0);
+      b.append(title, make('span', 'card-description', `${dimensions.w} × ${dimensions.d} 格 · 高 ${dimensions.h} 格 · ${def.description}`), make('span', 'card-cost', costText(def.cost)));
       if (locked) b.append(make('span', 'card-lock', `需研究：${RESEARCH_DEFS[def.research!]?.name ?? def.research}`));
       else if (short) b.append(make('span', 'card-lock', '可先规划 · 施工前等待材料'));
       grid.append(b);
@@ -193,6 +219,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       ['zone:farm', '农田', '种植、照料与收获食物。', 'tool-zone-farm'], ['zone:stockpile', '仓储', '搬运散落物资，集中保管。', 'tool-zone-stockpile'],
       ['chop', '伐木', '标记树木，获取木材。', 'tool-chop'], ['mine', '采矿', '标记矿石，获取建材。', 'tool-mine'],
       ['harvest', '收获', '标记成熟作物。', 'tool-harvest'], ['cancel', '取消规划', '移除未完成的规划或工作。', 'tool-cancel'],
+      ['interact', '开关门', '点击门的任一部分开关；关闭时阻挡通行。', 'tool-interact'], ['demolish', '整体拆除', '点击物体任一部分，完工设施回收 50% 建材。', 'tool-demolish'],
     ];
     for (const [tool, name, detail, id] of entries) { const b = toolButton('', tool!, id!); b.append(make('strong', '', name), make('span', '', detail)); grid.append(b); }
     root.append(grid);
@@ -873,7 +900,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       : panel === 'followerBag' ? [panel, follower && [follower.id, follower.name, follower.task, follower.jobId,
         Math.round(follower.health), Math.round(follower.rest), follower.bag, follower.carrying]]
       : panel === 'warehouse' ? [panel, c?.resources, c?.items.length, c && warehouseDeliveries(c)]
-      : [panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, state.buildHeight, state.terrain && [state.terrain.target, state.terrain.size, state.terrain.shape, state.terrain.sample], c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, bills: c.bills, trade: c.trade, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete, b.phase, b.blockedReason, percent(b.progress * 100)]), terrainPlans: c.terrainPlans?.map(p => [p.id, p.state, p.remainingCut, p.remainingFill, p.blockedReason]), jobs: c.jobs.map(j => [j.id, j.state, j.label]), zones: c.zones.length, time: Math.floor(c.time) }]);
+      : [panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, state.buildHeight, state.buildRotation, state.terrain && [state.terrain.target, state.terrain.size, state.terrain.shape, state.terrain.sample], c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, bills: c.bills, trade: c.trade, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete, b.phase, b.blockedReason, b.rotation, b.doorOpen, percent(b.progress * 100)]), terrainPlans: c.terrainPlans?.map(p => [p.id, p.state, p.remainingCut, p.remainingFill, p.blockedReason]), jobs: c.jobs.map(j => [j.id, j.state, j.label]), zones: c.zones.length, time: Math.floor(c.time) }]);
     if (!force && stamp === lastPanelStamp) return;
     lastPanelStamp = stamp;
     // 随从面板的标题是那个人的名字，不是栏目名
@@ -885,12 +912,43 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     ({ build: renderBuild, plan: renderPlan, work: renderWork, production: renderProduction, research: renderResearch, trade: renderTrade, logs: renderLogs, warehouse: renderWarehouse, follower: renderFollower, chest: renderChest, followerBag: renderFollowerBag } as Record<string, (c: ColonySnapshot, root: HTMLElement) => void>)[panel]?.(c, root);
     root.scrollTop = scrollTop;
   }
+  function renderBuildingInspector(c: ColonySnapshot, force = false) {
+    const b = c.buildings.find(building => building.id === selectedBuilding);
+    if (!b) { selectedBuilding = null; get('inspector').hidden = true; return; }
+    const stamp = JSON.stringify(['building', b]);
+    if (!force && stamp === lastInspectorStamp) return;
+    lastInspectorStamp = stamp;
+    get('inspector-kicker').textContent = '整体设施';
+    get('resident-name').textContent = BUILDING_DEFS[b.kind].name;
+    const root = clear(get('resident-content')), details = make('div', 'building-inspector');
+    details.dataset.testid = 'building-inspector'; details.dataset.buildingId = b.id;
+    details.append(make('div', 'resident-activity', `${buildingPhase(b.phase)}${b.complete ? '' : ` · ${percent(b.progress * 100)}%`}`));
+    const measurements = make('p', 'building-dimensions', `占地 ${b.w} × ${b.d} 格 · 高 ${b.h} 格 · 朝向 ${orientationText(b.rotation)}`);
+    measurements.dataset.testid = 'building-dimensions'; details.append(measurements);
+    details.append(make('p', 'panel-note', `位置 [${b.x}, ${b.y}, ${b.z}] · 点击任一部分都选中整个物体。`));
+    if (b.kind === 'bed' || b.kind === 'medicalBed') details.append(note('床头与床尾共用一座设施，整体建造、使用和拆除。'));
+    if (b.blockedReason) details.append(make('p', 'thought bad', b.blockedReason));
+    const actions = make('div', 'building-inspector-actions');
+    if (b.kind === 'door') {
+      const doorState = make('p', 'door-state', b.complete ? (b.doorOpen ? '门已打开 · 可以通行 · 房间向外开放' : '门已关闭 · 阻挡通行 · 可围合房间') : '施工完成后可以开关门');
+      doorState.dataset.testid = 'building-door-state'; details.append(doorState);
+      const toggle = button(b.doorOpen ? '关闭门' : '打开门', 'building-toggle-door', { action: 'toggleDoor', id: b.id }, 'primary');
+      toggle.disabled = !b.complete; actions.append(toggle);
+      details.append(note('上下两格同步开关。门口有人时不能关门。'));
+    }
+    actions.append(button(b.complete ? '拆除整座设施' : '取消整座蓝图', 'building-demolish', { action: 'demolish', id: b.id }, 'danger'));
+    details.append(actions, note(b.complete ? '拆除立即移除整个物体，回收各项建材的 50%（向下取整）。' : '取消返还尚未使用的预约建材，已经完成的整地保留。'));
+    root.append(details);
+  }
   function renderInspector(c: ColonySnapshot, force = false) {
+    if (get('inspector').hidden) return;
+    if (selectedBuilding) { renderBuildingInspector(c, force); return; }
     if (!selectedResident || get('inspector').hidden) return;
     const p = c.colonists.find(person => person.id === selectedResident); if (!p) return;
     const stamp = JSON.stringify([p.id, p.task, p.traits, p.schedule, p.skills, ...[p.health, p.hunger, p.rest, p.recreation, p.mood, p.disease, p.comfort].map(Math.floor)]);
     if (!force && stamp === lastInspectorStamp) return; lastInspectorStamp = stamp;
     const scrollTop = get('inspector').scrollTop;
+    get('inspector-kicker').textContent = '居民档案';
     get('resident-name').textContent = p.name; const root = clear(get('resident-content'));
     root.append(make('div', 'resident-activity', `${p.task || '待命'} · ${SCHEDULES[p.schedule]}`));
     const traits = make('div', 'resident-traits'); for (const trait of p.traits) traits.append(make('span', 'tag', trait)); root.append(traits);
@@ -933,13 +991,24 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       [`为 ${c.colonists.length} 位居民准备床铺`, c.buildings.filter(b => b.complete && (b.kind === 'bed' || b.kind === 'medicalBed')).length >= c.colonists.length], ['建好炉灶，储备熟食', c.buildings.some(b => b.kind === 'stove' && b.complete) && c.resources.meal >= 6],
     ];
     const goalRoot = clear(get('goal-list')); for (const [text, done] of goals) { const row = make('div', `goal${done ? ' done' : ''}`); row.append(make('span', 'goal-mark', done ? '✓' : '○'), make('span', '', text)); goalRoot.append(row); }
+    const buildingId = state?.selectedBuildingId ?? null;
+    if (buildingId !== lastSelectedBuilding) {
+      lastSelectedBuilding = buildingId;
+      if (buildingId) {
+        selectedBuilding = buildingId; selectedResident = null; panel = ''; get('workspace').hidden = true;
+        hideSidePanels(); get('inspector').hidden = false; lastInspectorStamp = '';
+      } else if (selectedBuilding) {
+        selectedBuilding = null; get('inspector').hidden = true;
+      }
+    }
+    if (!c.selectedColonistId) lastSelectedFromWorld = null;
     if (c.selectedColonistId && c.selectedColonistId !== lastSelectedFromWorld) {
       lastSelectedFromWorld = c.selectedColonistId;
       // 只在没开别的面板时才切到档案。
       // 之前这里无条件关面板，用户正在看仓库时会被凭空顶掉——
       // 每 0.4 秒的投影刷新都会跑一次这段，看着就像「面板自己关了」。
       if (!panel && get('workspace').hidden) {
-        selectedResident = c.selectedColonistId;
+        selectedResident = c.selectedColonistId; selectedBuilding = null;
         hideSidePanels();
         get('inspector').hidden = false;
       }
@@ -996,15 +1065,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (b.dataset.voxelAction) { send(b.dataset.voxelAction); return; }
     if (b.dataset.terrainAction === 'sample') { chooseTool('level'); send('terrain-sample'); return; }
     if (b.dataset.command) {
-      if (b.dataset.resident) { selectedResident = b.dataset.resident; panel = ''; get('workspace').hidden = true; hideSidePanels(); get('inspector').hidden = false; chooseTool('inspect'); if (state?.colony) renderInspector(state.colony, true); }
+      if (b.dataset.resident) { selectedResident = b.dataset.resident; selectedBuilding = null; panel = ''; get('workspace').hidden = true; hideSidePanels(); get('inspector').hidden = false; chooseTool('inspect'); if (state?.colony) renderInspector(state.colony, true); }
       colonyCommand(JSON.parse(b.dataset.command) as ColonyCommand); return;
     }
     switch (b.id) {
       case 'home': send('home'); break;
-      case 'panel-close': cancelInventoryDrag?.(); panel = ''; get('workspace').hidden = true; syncTerrainControls(); syncHover(); break;
-      case 'inspector-close': get('inspector').hidden = true; syncTerrainControls(); syncHover(); break;
-      case 'settings-toggle': { const hidden = !get('settings').hidden; hideSidePanels(); get('workspace').hidden = true; panel = ''; get('settings').hidden = hidden; syncTerrainControls(); break; }
-      case 'help-toggle': { const hidden = !get('help').hidden; hideSidePanels(); get('workspace').hidden = true; panel = ''; get('help').hidden = hidden; syncTerrainControls(); break; }
+      case 'panel-close': cancelInventoryDrag?.(); panel = ''; get('workspace').hidden = true; syncTerrainControls(); syncHover(); break;      case 'inspector-close': get('inspector').hidden = true; clearSelection(); syncTerrainControls(); syncHover(); break;       case 'settings-toggle': { const hidden = !get('settings').hidden; if (!get('inspector').hidden) clearSelection(); hideSidePanels(); get('workspace').hidden = true; panel = ''; get('settings').hidden = hidden; syncTerrainControls(); break; }       case 'help-toggle': { const hidden = !get('help').hidden; if (!get('inspector').hidden) clearSelection(); hideSidePanels(); get('workspace').hidden = true; panel = ''; get('help').hidden = hidden; syncTerrainControls(); break; }
       case 'settings-close': get('settings').hidden = true; syncTerrainControls(); syncHover(); break;
       case 'help-close': get('help').hidden = true; syncTerrainControls(); syncHover(); break;
       case 'save': requestSave('manual'); break;
@@ -1036,7 +1102,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const message = (event: Event) => {
     const msg = (event as MessageEvent).data;
     if (msg?.type === 'voxel:loaded' && typeof msg.data === 'string') {
-      pendingLoadAt = 0; lastSavedSim = 0; lastSavedStamp = ''; lastSaveTime = Date.now(); selectedResident = null; lastSelectedFromWorld = null;
+      pendingLoadAt = 0; lastSavedSim = 0; lastSavedStamp = ''; lastSaveTime = Date.now(); selectedResident = null; selectedBuilding = null; lastSelectedFromWorld = null; lastSelectedBuilding = null;
       get('import-panel').hidden = true; get<HTMLTextAreaElement>('import-json').value = '';
       try { win.localStorage.setItem(SAVE_KEY, msg.data); saySave('家园已载入，自动存档已同步'); } catch { saySave('家园已载入，但本机存储不可用'); }
       return;
@@ -1082,7 +1148,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (state.seed !== lastWorldSeed) { lastWorldSeed = state.seed; get<HTMLInputElement>('seed').value = state.seed; }
     get('world-size').textContent = state.worldSize ? `当前地图 ${state.worldSize[0]} × ${state.worldSize[2]} 格 · 新地图默认 250 × 250` : '新地图默认 250 × 250 格';
     const c = state.colony;
-    latestStamp = JSON.stringify([state.seed, state.revision, state.edits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.playerBag, c.bagSelected, c.chests, c.colonists.map(p => [p.id, p.priorities, p.schedule, p.bag]), warehouseDeliveries(c)]]);
+    latestStamp = JSON.stringify([state.seed, state.revision, state.edits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase, b.rotation, b.doorOpen]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.playerBag, c.bagSelected, c.chests, c.colonists.map(p => [p.id, p.priorities, p.schedule, p.bag]), warehouseDeliveries(c)]]);
     updateItemAmount();
     if (c) renderColony(c); else renderPanel();
     if (c) renderHotbar();
@@ -1136,7 +1202,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         panel = '';
         get('workspace').hidden = true;
         hideSidePanels();
-        selectedResident = null;
+        clearSelection();
+        syncTerrainControls();
         syncHover();
         event.preventDefault();
         return;
