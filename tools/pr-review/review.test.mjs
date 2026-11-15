@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import test from 'node:test';
 import {
   COMMENT_MARKER,
@@ -67,9 +68,60 @@ function githubForPublishing({ sha = headSha, base = baseSha, comments = [] } = 
 
 function githubForCollection({ changes, sources, fork = repository, finalHeadSha = headSha, finalBaseSha = baseSha, finalBaseRef = 'master' }) {
   const reads = [];
+  const objects = new Map();
+  const trees = new Map();
+  const blobEndpoints = new Map();
+  const sha = (value) => createHash('sha1').update(value).digest('hex');
+  const rootFor = (repo, commit) => {
+    const key = `${repo}@${commit}`;
+    if (!trees.has(key)) trees.set(key, { repo, commit, entries: new Map() });
+    return trees.get(key);
+  };
+  rootFor(repository, baseSha);
+  rootFor(repository, mergeBaseSha);
+  rootFor(fork, headSha);
+  for (const [sourceKey, source] of sources) {
+    const match = /^\/repos\/([^/]+\/[^/]+)\/contents\/(.+)\?ref=([^&]+)$/.exec(sourceKey);
+    assert.ok(match, `Invalid test source key: ${sourceKey}`);
+    const [, repo, encodedPath, commit] = match;
+    const path = encodedPath.split('/').map(decodeURIComponent).join('/');
+    const parts = path.split('/');
+    const root = rootFor(repo, commit);
+    let parent = root;
+    for (const part of parts.slice(0, -1)) {
+      if (!parent.entries.has(part)) parent.entries.set(part, { entries: new Map() });
+      parent = parent.entries.get(part);
+    }
+    const content = typeof source === 'string' ? source : source.content;
+    const mode = typeof source === 'string' ? '100644' : source.mode ?? '100644';
+    const blobSha = sha(`blob:${repo}:${commit}:${path}:${content}`);
+    const blobEndpoint = `/repos/${repo}/git/blobs/${blobSha}`;
+    parent.entries.set(parts.at(-1), { content, mode, sha: blobSha });
+    blobEndpoints.set(sourceKey, blobEndpoint);
+    objects.set(blobEndpoint, { sha: blobSha, encoding: 'base64', content: Buffer.from(content).toString('base64'), size: Buffer.byteLength(content) });
+  }
+  const buildTree = (repo, commit, directory, node) => {
+    const treeSha = sha(`tree:${repo}:${commit}:${directory}`);
+    const tree = [];
+    for (const [name, entry] of node.entries) {
+      if (entry.entries) {
+        const childSha = buildTree(repo, commit, directory ? `${directory}/${name}` : name, entry);
+        tree.push({ path: name, mode: '040000', type: 'tree', sha: childSha });
+      } else {
+        tree.push({ path: name, mode: entry.mode, type: entry.mode === '160000' ? 'commit' : 'blob', sha: entry.sha, size: Buffer.byteLength(entry.content) });
+      }
+    }
+    objects.set(`/repos/${repo}/git/trees/${treeSha}`, { sha: treeSha, truncated: false, tree });
+    return treeSha;
+  };
+  for (const root of trees.values()) {
+    const treeSha = buildTree(root.repo, root.commit, '', root);
+    objects.set(`/repos/${root.repo}/git/commits/${root.commit}`, { sha: root.commit, tree: { sha: treeSha } });
+  }
   let prReads = 0;
   return {
     reads,
+    blobEndpoints,
     async request(method, path) {
       assert.equal(method, 'GET');
       if (path === `/repos/${repository}/pulls/${prNumber}`) {
@@ -84,12 +136,12 @@ function githubForCollection({ changes, sources, fork = repository, finalHeadSha
         return { merge_base_commit: { sha: mergeBaseSha } };
       }
       reads.push(path);
-      if (!sources.has(path)) {
+      if (!objects.has(path)) {
         const error = new Error('File not present');
         error.status = 404;
         throw error;
       }
-      return { type: 'file', encoding: 'base64', content: Buffer.from(sources.get(path)).toString('base64') };
+      return objects.get(path);
     },
     async paginate(path) {
       assert.equal(path.split('?')[0], `/repos/${repository}/pulls/${prNumber}/files`);
@@ -257,17 +309,40 @@ test('renamed files use the merge-base before image and fork head, while rules c
   const github = githubForCollection({
     fork,
     changes: [{ filename: 'game/new.ts', previous_filename: 'game/old.ts', status: 'renamed', patch: '@@ -1 +1 @@\n-old\n+new' }],
-    sources: new Map([[oldPath, 'old'], [newPath, 'new'], [rulePath, 'Trusted base conventions']]),
+    sources: new Map([[oldPath, 'old'], [newPath, { mode: '100755', content: 'new' }], [rulePath, 'Trusted base conventions']]),
   });
   const result = await collectReviewInput({ github, repository, prNumber });
   assert.equal(result.files[0].base, 'old');
   assert.equal(result.files[0].head, 'new');
   assert.equal(result.input.pr.headSha, headSha);
   assert.deepEqual(result.input.projectRules, [{ path: 'AGENTS.md', content: 'Trusted base conventions' }]);
-  assert.ok(github.reads.includes(oldPath));
-  assert.ok(github.reads.includes(newPath));
-  assert.ok(github.reads.includes(rulePath));
-  assert.ok(!github.reads.some((path) => path.startsWith(`/repos/${fork}/`) && /AGENTS\.md/.test(path)));
+  assert.ok(github.reads.includes(`/repos/${repository}/git/commits/${mergeBaseSha}`));
+  assert.ok(github.reads.includes(`/repos/${fork}/git/commits/${headSha}`));
+  assert.ok(github.reads.includes(`/repos/${repository}/git/commits/${baseSha}`));
+  assert.ok(github.reads.includes(github.blobEndpoints.get(rulePath)));
+  assert.ok(!github.reads.includes(`/repos/${fork}/git/commits/${baseSha}`));
+  assert.ok(!github.reads.some((path) => path.includes('/contents/')), 'Source collection must not dereference symlinks through the Contents API');
+});
+
+test('symlink diffs never inherit the referenced target file as their source context', async () => {
+  const linkPath = `/repos/${repository}/contents/game/link.ts?ref=${headSha}`;
+  const targetPath = `/repos/${repository}/contents/game/target.ts?ref=${headSha}`;
+  const targetContent = 'export const targetOnly = "unrelated executable code";';
+  const github = githubForCollection({
+    changes: [{ filename: 'game/link.ts', status: 'added', patch: '@@ -0,0 +1 @@\n+target.ts' }],
+    sources: new Map([
+      [linkPath, { mode: '120000', content: 'target.ts' }],
+      [targetPath, targetContent],
+    ]),
+  });
+  const result = await collectReviewInput({ github, repository, prNumber });
+  assert.equal(result.files[0].head, null);
+  assert.equal(result.partial, true);
+  assert.ok(result.input.coverage.truncated.some((item) => item.path === 'game/link.ts' && /symlink|symbolic/i.test(item.reason)));
+  assert.ok(!JSON.stringify(result.input).includes(targetContent));
+  assert.ok(!github.reads.includes(github.blobEndpoints.get(linkPath)));
+  assert.ok(!github.reads.includes(github.blobEndpoints.get(targetPath)));
+  assert.ok(!github.reads.some((path) => path.includes('/contents/')));
 });
 
 test('changes to the PR head, base, or target branch during collection invalidate the mixed snapshot', async (t) => {

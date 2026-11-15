@@ -141,23 +141,49 @@ function clipUtf8(text, maxBytes) {
   return { text: Buffer.from(text, 'utf8').subarray(0, maxBytes).toString('utf8'), truncated: true };
 }
 
-async function readSource(github, repository, path, sha) {
-  let file;
-  try { file = await github.request('GET', endpoint(repository, `contents/${encodePath(path)}?ref=${requireSha(sha)}`)); }
-  catch (error) { if (error.status === 404) return { unavailable: 'not available at this commit' }; throw error; }
-  if (file?.type !== 'file' || file?.encoding !== 'base64' || typeof file.content !== 'string') {
-    return { unavailable: 'binary, symlink, submodule, or file too large for the content API' };
+export function createSourceReader(github) {
+  // Git's mode is authoritative: the Contents API can follow a symlink and label
+  // its target as a file. Read immutable tree entries and blobs instead.
+  const cache = new Map();
+  function get(repository, suffix) {
+    const path = endpoint(repository, suffix);
+    if (!cache.has(path)) cache.set(path, github.request('GET', path));
+    return cache.get(path);
   }
-  const bytes = Buffer.from(file.content.replace(/\s/g, ''), 'base64');
-  if (bytes.includes(0)) return { unavailable: 'binary file' };
-  let content;
-  try { content = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
-  catch { return { unavailable: 'non-UTF-8 file' }; }
-  return { content };
+  return async function readSource(repository, path, sha) {
+    const segments = requirePath(path).split('/');
+    try {
+      const commit = await get(repository, `git/commits/${requireSha(sha)}`);
+      let treeSha = requireSha(commit.tree?.sha);
+      for (let index = 0; index < segments.length; index += 1) {
+        const tree = await get(repository, `git/trees/${treeSha}`);
+        if (tree.truncated) return { unavailable: 'Git tree listing is truncated' };
+        if (!Array.isArray(tree.tree)) throw new ReviewError('GitHub returned an invalid Git tree.');
+        const entry = tree.tree.find(item => item.path === segments[index]);
+        if (!entry) return { unavailable: 'not available at this commit' };
+        if (entry.mode === '120000') return { unavailable: 'symlink content omitted; link targets are not followed' };
+        if (index < segments.length - 1) {
+          if (entry.type !== 'tree' || entry.mode !== '040000') return { unavailable: 'path traverses a non-directory Git entry' };
+          treeSha = requireSha(entry.sha);
+          continue;
+        }
+        if (entry.type !== 'blob' || !['100644', '100755'].includes(entry.mode)) return { unavailable: 'submodule or non-regular Git entry' };
+        if (entry.size > 1024 * 1024) return { unavailable: 'source exceeds the 1 MiB download limit' };
+        const blob = await get(repository, `git/blobs/${requireSha(entry.sha)}`);
+        if (blob?.encoding !== 'base64' || typeof blob.content !== 'string') throw new ReviewError('GitHub returned an invalid Git blob.');
+        const bytes = Buffer.from(blob.content.replace(/\s/g, ''), 'base64');
+        if (bytes.length > 1024 * 1024) return { unavailable: 'source exceeds the 1 MiB download limit' };
+        if (bytes.includes(0)) return { unavailable: 'binary file' };
+        try { return { content: new TextDecoder('utf-8', { fatal: true }).decode(bytes) }; }
+        catch { return { unavailable: 'non-UTF-8 file' }; }
+      }
+    } catch (error) { if (error.status === 404) return { unavailable: 'not available at this commit' }; throw error; }
+  };
 }
 
 export async function collectReviewInput({ github, repository, prNumber }) {
   requireRepository(repository);
+  const readSource = createSourceReader(github);
   if (!Number.isInteger(prNumber) || prNumber < 1) throw new ReviewError('Invalid PR number.');
   const pr = await github.request('GET', endpoint(repository, `pulls/${prNumber}`));
   requireSha(pr.head?.sha); requireSha(pr.base?.sha);
@@ -187,7 +213,7 @@ export async function collectReviewInput({ github, repository, prNumber }) {
     for (const side of ['base', 'head']) {
       if ((side === 'base' && item.status === 'added') || (side === 'head' && item.status === 'removed')) continue;
       if (remaining < 1024) { coverage.truncated.push({ path, reason: `${side} source omitted by context budget` }); continue; }
-      const source = await readSource(github, side === 'base' ? baseRepository : headRepository, side === 'base' ? item.previous_filename ?? path : path, side === 'base' ? mergeBaseSha : pr.head.sha);
+      const source = await readSource(side === 'base' ? baseRepository : headRepository, side === 'base' ? item.previous_filename ?? path : path, side === 'base' ? mergeBaseSha : pr.head.sha);
       if (source.unavailable) { coverage.truncated.push({ path, reason: `${side}: ${source.unavailable}` }); continue; }
       const clipped = clipUtf8(source.content, Math.min(LIMITS.fileBytes, remaining));
       remaining -= Buffer.byteLength(clipped.text);
@@ -200,7 +226,7 @@ export async function collectReviewInput({ github, repository, prNumber }) {
   if (coverage.totalChangedFiles > changed.length) coverage.omitted.push({ path: '(additional changed files)', reason: `${coverage.totalChangedFiles - changed.length} files were not returned by GitHub` });
   const projectRules = [];
   for (const path of ['AGENTS.md', 'game/AGENTS.md', 'game/forge.json', 'game/package.json']) {
-    const source = await readSource(github, baseRepository, path, pr.base.sha);
+    const source = await readSource(baseRepository, path, pr.base.sha);
     if (source.content) projectRules.push({ path, content: clipUtf8(source.content, 20 * 1024).text });
   }
   const current = await github.request('GET', endpoint(repository, `pulls/${prNumber}`));
