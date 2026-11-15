@@ -449,7 +449,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const openItemMenu = (kind: Resource, clientX: number, clientY: number, from: InventoryLocation = { kind: 'warehouse' }, count = 1) => {
     if (!itemMenu) return;
     pendingItem = { stack: { resource: kind, count }, from };
-    if (itemMenuTitle) itemMenuTitle.textContent = RESOURCE_NAMES[kind];
+    if (itemMenuTitle) itemMenuTitle.textContent = nameOf(kind);
     for (const button of itemMenu.querySelectorAll<HTMLElement>('[data-item-action]')) {
       button.hidden = from.kind !== 'warehouse' && button.dataset.itemAction !== 'take';
     }
@@ -502,8 +502,18 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const CATEGORY_OF: Record<string, string> = {
     wood: 'block', stone: 'block', steel: 'block',
     food: 'item', meal: 'item', medicine: 'item', cloth: 'item', silver: 'item', components: 'item',
+    [HAMMER]: 'tool',
   };
-  const CATEGORY_NAMES: Record<string, string> = { all: '全部', block: '方块', item: '非方块' };
+  const CATEGORY_NAMES: Record<string, string> = { all: '全部', block: '方块', item: '非方块', tool: '工具' };
+
+  /**
+   * 显示名和分类的统一入口。
+   * 工具（锤子）不是 Resource，查不到就回退——所有面板必须走这两个函数，
+   * 别直接索引 RESOURCE_NAMES / CATEGORY_OF，否则加个新物品就会崩。
+   */
+  const TOOL_NAMES: Record<string, string> = { [HAMMER]: '锤子' };
+  const nameOf = (resource: string) => TOOL_NAMES[resource] ?? RESOURCE_NAMES[resource as Resource] ?? resource;
+  const categoryOf = (resource: string) => CATEGORY_OF[resource] ?? 'item';
 
   function renderWarehouse(c: ColonySnapshot, root: HTMLElement) {
     const tools = make('div', 'wh-tools');
@@ -617,11 +627,11 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const entries = chest.slots.map((stack, slot) => ({ stack, slot }));
       if (chestSort) entries.sort((a, b) => {
         if (!a.stack || !b.stack) return Number(!a.stack) - Number(!b.stack);
-        return (chestSort === 1 ? 1 : -1) * RESOURCE_NAMES[a.stack.resource].localeCompare(RESOURCE_NAMES[b.stack.resource], 'zh-CN');
+        return (chestSort === 1 ? 1 : -1) * nameOf(a.stack.resource).localeCompare(nameOf(b.stack.resource), 'zh-CN');
       });
       for (const { stack, slot } of entries) {
-        const matched = !stack || (chestCategory === 'all' || CATEGORY_OF[stack.resource] === chestCategory)
-          && RESOURCE_NAMES[stack.resource].includes(chestQuery);
+        const matched = !stack || (chestCategory === 'all' || categoryOf(stack.resource) === chestCategory)
+          && nameOf(stack.resource).includes(chestQuery);
         const cell = make('div', 'chest-cell' + (!stack || !matched ? ' empty' : ''));
         cell.dataset.index = String(slot);
         const location: InventoryLocation = { kind: 'chest', id: chest.id, slot };
@@ -758,8 +768,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     setInventoryTarget(cell, to);
     if (!stack) return;
     cell.dataset.item = stack.resource;
-    cell.title = RESOURCE_NAMES[stack.resource] + ' · ' + stack.count;
-    cell.append(make('span', 'wh-icon', RESOURCE_ICONS[stack.resource]), make('span', 'wh-count', String(stack.count)));
+    cell.title = nameOf(stack.resource) + ' · ' + stack.count;
+    cell.append(make('span', 'wh-icon', iconOf(stack.resource)), make('span', 'wh-count', String(stack.count)));
     cell.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -1235,9 +1245,16 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
   // 验收脚本要能在不开地图的情况下打开木箱面板（面板挂在 port 消息上，
   // 外部没法直接戳）。只暴露这一件事，不碰别的。
-  const hooks = win as unknown as { __wbOpenChest?: () => void; __wbOpenFollower?: (id: string) => void };
+  const hooks = win as unknown as {
+    __wbOpenChest?: () => void;
+    __wbOpenFollower?: (id: string) => void;
+    __wbSend?: (action: string, payload: Record<string, unknown>) => void;
+  };
   hooks.__wbOpenChest = () => { const chest = state?.colony?.chests[0]; if (chest) showChest(chest.id); };
   hooks.__wbOpenFollower = (id: string) => { followerPanelId = id; openPanel('followerBag'); };
+  // 验收要能直接构造想要的背包/木箱状态，省得靠拖拽一步步摆
+  hooks.__wbSend = (action: string, payload: Record<string, unknown>) =>
+    send(action as never, payload as never);
 
   // ---- ESC 暂停层 ----
   // 分两级：先关面板，面板都关了才弹出暂停层。
