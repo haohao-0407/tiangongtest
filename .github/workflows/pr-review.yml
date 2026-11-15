@@ -1,9 +1,9 @@
 name: AI PR Review
 
 on:
-  pull_request_target:
+  pull_request:
     branches: [master]
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
   workflow_dispatch:
     inputs:
       pr_number:
@@ -21,7 +21,11 @@ concurrency:
 
 jobs:
   review:
-    if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (!github.event.pull_request.draft &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -38,18 +42,32 @@ jobs:
         with:
           node-version: '24.15.0'
           package-manager-cache: false
+      - name: Check reviewer is installed on base
+        id: installed
+        shell: bash
+        run: |
+          if [ -f tools/pr-review/review.mjs ]; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::Merge the initial reviewer installation into the base branch before automatic review is available.'
+          fi
       - name: Install locked reviewer dependencies
+        if: steps.installed.outputs.ready == 'true'
         working-directory: tools/pr-review
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify reviewer behavior
+        if: steps.installed.outputs.ready == 'true'
         working-directory: tools/pr-review
         run: npm test
       - name: Review PR or check API access
+        if: steps.installed.outputs.ready == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_REVIEW_MODEL: ${{ vars.OPENAI_REVIEW_MODEL || 'gpt-6-astra' }}
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         shell: bash
         run: |
           if [ -z "$OPENAI_API_KEY" ]; then

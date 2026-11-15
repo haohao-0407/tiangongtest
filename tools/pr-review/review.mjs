@@ -204,14 +204,14 @@ export async function collectReviewInput({ github, repository, prNumber }) {
     if (source.content) projectRules.push({ path, content: clipUtf8(source.content, 20 * 1024).text });
   }
   const current = await github.request('GET', endpoint(repository, `pulls/${prNumber}`));
-  if (current.state !== 'open' || current.draft || current.head?.sha !== pr.head.sha || current.base?.sha !== pr.base.sha) {
+  if (current.state !== 'open' || current.draft || current.head?.sha !== pr.head.sha || current.base?.sha !== pr.base.sha || current.base?.ref !== pr.base.ref) {
     throw new ReviewError('PR head, base, or state changed while collecting review evidence. Retry the latest event.');
   }
   coverage.reviewedFiles = files.length;
   coverage.partial = coverage.omitted.length > 0 || coverage.truncated.length > 0;
   const input = {
     repository,
-    pr: { number: prNumber, title: clipUtf8(pr.title ?? '', 1000).text, body: clipUtf8(pr.body ?? '', 6000).text, baseSha: pr.base.sha, mergeBaseSha, headSha: pr.head.sha },
+    pr: { number: prNumber, title: clipUtf8(pr.title ?? '', 1000).text, body: clipUtf8(pr.body ?? '', 6000).text, baseSha: pr.base.sha, baseRef: pr.base.ref ?? '', mergeBaseSha, headSha: pr.head.sha },
     files, projectRules, coverage,
   };
   return { input, pr, files, partial: coverage.partial };
@@ -299,10 +299,27 @@ export async function runAgent({ client, input, model = 'gpt-6-astra', timeoutMs
 function markdown(text) {
   return String(text).replaceAll('@', '@\u200b').replace(/([\\`*_{}\[\]()#+.!|>~-])/g, '\\$1').replaceAll('&', '&amp;').replaceAll('<', '&lt;');
 }
+export function snapshotMarker({ baseSha, headSha, baseRef = '' }) {
+  requireSha(baseSha); requireSha(headSha);
+  if (typeof baseRef !== 'string' || baseRef.length > 1024 || /[\r\n\0]/.test(baseRef)) throw new ReviewError('Invalid PR target branch.');
+  return `<!-- tiangong-pr-review-snapshot:base=${baseSha};head=${headSha};target=${encodeURIComponent(baseRef)} -->`;
+}
+function isOwnedReview(comment) {
+  return comment.user?.login === 'github-actions[bot]' && comment.user?.type === 'Bot' && typeof comment.body === 'string' && comment.body.startsWith(COMMENT_MARKER);
+}
+export function hasCompletedReview(comments, snapshot) {
+  const marker = snapshotMarker(snapshot);
+  return comments.some(comment => isOwnedReview(comment) && comment.body.split('\n').includes(marker));
+}
+function matchesSnapshot(pr, { baseSha, headSha, baseRef = '' }) {
+  return pr.state === 'open' && !pr.draft && pr.head?.sha === headSha && pr.base?.sha === baseSha && (pr.base?.ref ?? '') === baseRef;
+}
 export function renderComment({ review, input, headSha }) {
   requireSha(headSha);
+  if (input.pr?.headSha && input.pr.headSha !== headSha) throw new ReviewError('Review report and head snapshot do not match.');
+  const marker = snapshotMarker({ baseSha: input.pr?.baseSha, baseRef: input.pr?.baseRef ?? '', headSha });
   const coverage = input.coverage;
-  const rows = [COMMENT_MARKER, '## OpenAI PR 自动审查', '', `提交：\`${headSha}\``, '', markdown(review.summary), ''];
+  const rows = [COMMENT_MARKER, marker, '## OpenAI PR 自动审查', '', `基准：\`${input.pr.baseSha}\``, `提交：\`${headSha}\``, '', markdown(review.summary), ''];
   if (!review.findings.length) rows.push('在已审查的材料中未发现有充分依据的 P1/P2 问题。', '');
   for (const finding of review.findings) {
     const url = `https://github.com/${requireRepository(input.repository)}/blob/${headSha}/${encodePath(finding.path)}#L${finding.line}`;
@@ -321,15 +338,17 @@ export function renderComment({ review, input, headSha }) {
   return body;
 }
 
-export async function publishReview({ github, repository, prNumber, headSha, body }) {
-  requireRepository(repository); requireSha(headSha);
-  if (!Number.isInteger(prNumber) || prNumber < 1 || typeof body !== 'string' || !body.startsWith(COMMENT_MARKER)) throw new ReviewError('Invalid review publication request.');
+export async function publishReview({ github, repository, prNumber, baseSha, headSha, baseRef = '', body }) {
+  requireRepository(repository);
+  const snapshot = { baseSha, headSha, baseRef };
+  const marker = snapshotMarker(snapshot);
+  if (!Number.isInteger(prNumber) || prNumber < 1 || typeof body !== 'string' || !body.startsWith(COMMENT_MARKER) || !body.split('\n').includes(marker)) throw new ReviewError('Invalid review publication request or snapshot marker.');
   const current = await github.request('GET', endpoint(repository, `pulls/${prNumber}`));
-  if (current.state !== 'open' || current.draft || current.head?.sha !== headSha) return { published: false, reason: 'stale-head-or-closed' };
+  if (!matchesSnapshot(current, snapshot)) return { published: false, reason: 'stale-snapshot-or-closed' };
   const comments = await github.paginate(endpoint(repository, `issues/${prNumber}/comments`));
-  const existing = comments.find(comment => comment.user?.login === 'github-actions[bot]' && comment.user?.type === 'Bot' && typeof comment.body === 'string' && comment.body.startsWith(COMMENT_MARKER));
+  const existing = comments.find(isOwnedReview);
   const latest = await github.request('GET', endpoint(repository, `pulls/${prNumber}`));
-  if (latest.state !== 'open' || latest.draft || latest.head?.sha !== headSha) return { published: false, reason: 'stale-head-or-closed' };
+  if (!matchesSnapshot(latest, snapshot)) return { published: false, reason: 'stale-snapshot-or-closed' };
   if (existing) {
     if (!Number.isSafeInteger(existing.id) || existing.id < 1) throw new ReviewError('Invalid existing review comment ID.');
     await github.request('PATCH', endpoint(repository, `issues/comments/${existing.id}`), { body });
@@ -368,10 +387,10 @@ export async function main(args = process.argv.slice(2), env = process.env) {
   const collected = await collectReviewInput({ github, repository, prNumber });
   if (collected.skipped) { console.log(`Review skipped: ${collected.reason}.`); return; }
   if (env.EXPECTED_HEAD_SHA && collected.pr.head.sha !== env.EXPECTED_HEAD_SHA) { console.log('Review skipped: this event has been superseded.'); return; }
+  const snapshot = { baseSha: collected.pr.base.sha, baseRef: collected.pr.base.ref ?? '', headSha: collected.pr.head.sha };
   if (!args.includes('--dry-run') && env.FORCE_REVIEW !== 'true') {
     const comments = await github.paginate(endpoint(repository, `issues/${prNumber}/comments`));
-    const alreadyReviewed = comments.some(comment => comment.user?.login === 'github-actions[bot]' && comment.user?.type === 'Bot' && typeof comment.body === 'string' && comment.body.startsWith(COMMENT_MARKER) && comment.body.includes(`提交：\`${collected.pr.head.sha}\``));
-    if (alreadyReviewed) { console.log('Review skipped: this head already has a completed bot review.'); return; }
+    if (hasCompletedReview(comments, snapshot)) { console.log('Review skipped: this base/head snapshot already has a completed bot review.'); return; }
   }
   let review;
   if (!collected.files.length) review = { summary: '此次变更没有可供审查的文本材料，请人工检查覆盖范围限制。', findings: [] };
@@ -383,8 +402,8 @@ export async function main(args = process.argv.slice(2), env = process.env) {
   await writeFile(outputPath, body, 'utf8');
   console.log(`Review completed: ${review.findings.length} finding(s); ${collected.partial ? 'partial' : 'full text'} coverage. Report saved.`);
   if (args.includes('--dry-run')) { console.log('Dry run: no GitHub comment was published.'); return; }
-  const outcome = await publishReview({ github, repository, prNumber, headSha: collected.pr.head.sha, body });
-  console.log(outcome.published ? `PR review comment ${outcome.reason}.` : 'Publication skipped: PR head or state changed.');
+  const outcome = await publishReview({ github, repository, prNumber, ...snapshot, body });
+  console.log(outcome.published ? `PR review comment ${outcome.reason}.` : 'Publication skipped: PR base, head, target branch, or state changed.');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

@@ -4,6 +4,7 @@ import {
   COMMENT_MARKER,
   collectReviewInput,
   createGitHubClient,
+  hasCompletedReview,
   parseAddedLines,
   publishReview,
   renderComment,
@@ -15,6 +16,7 @@ const repository = 'example/colony';
 const prNumber = 17;
 const headSha = 'a'.repeat(40);
 const baseSha = 'b'.repeat(40);
+const baseRef = 'master';
 const mergeBaseSha = 'e'.repeat(40);
 const review = { summary: 'No actionable defects found.', findings: [] };
 const files = [{
@@ -28,7 +30,7 @@ const files = [{
 function reviewInput(coverage = {}) {
   return {
     repository,
-    pr: { number: prNumber, title: 'Fix saving', body: '', baseSha, headSha },
+    pr: { number: prNumber, title: 'Fix saving', body: '', baseSha, baseRef, headSha },
     files,
     projectRules: [],
     coverage: {
@@ -42,13 +44,13 @@ function reviewInput(coverage = {}) {
   };
 }
 
-function githubForPublishing({ sha = headSha, comments = [] } = {}) {
+function githubForPublishing({ sha = headSha, base = baseSha, comments = [] } = {}) {
   const writes = [];
   return {
     writes,
     async request(method, path, body) {
       if (method === 'GET' && path === `/repos/${repository}/pulls/${prNumber}`) {
-        return { state: 'open', draft: false, head: { sha } };
+        return { state: 'open', draft: false, head: { sha }, base: { sha: base, ref: 'master' } };
       }
       if (['PATCH', 'POST'].includes(method)) {
         writes.push({ method, path, body });
@@ -63,7 +65,7 @@ function githubForPublishing({ sha = headSha, comments = [] } = {}) {
   };
 }
 
-function githubForCollection({ changes, sources, fork = repository, finalHeadSha = headSha, finalBaseSha = baseSha }) {
+function githubForCollection({ changes, sources, fork = repository, finalHeadSha = headSha, finalBaseSha = baseSha, finalBaseRef = 'master' }) {
   const reads = [];
   let prReads = 0;
   return {
@@ -74,7 +76,7 @@ function githubForCollection({ changes, sources, fork = repository, finalHeadSha
         prReads += 1;
         return {
           state: 'open', draft: false, title: 'Review fixture', body: '', changed_files: changes.length,
-          base: { sha: prReads > 1 ? finalBaseSha : baseSha, repo: { full_name: repository } },
+          base: { sha: prReads > 1 ? finalBaseSha : baseSha, ref: prReads > 1 ? finalBaseRef : 'master', repo: { full_name: repository } },
           head: { sha: prReads > 1 ? finalHeadSha : headSha, repo: { full_name: fork } },
         };
       }
@@ -268,14 +270,14 @@ test('renamed files use the merge-base before image and fork head, while rules c
   assert.ok(!github.reads.some((path) => path.startsWith(`/repos/${fork}/`) && /AGENTS\.md/.test(path)));
 });
 
-test('changes to the PR head or base during collection invalidate the mixed snapshot', async (t) => {
-  for (const changedRevision of ['head', 'base']) {
+test('changes to the PR head, base, or target branch during collection invalidate the mixed snapshot', async (t) => {
+  for (const changedRevision of ['head', 'base', 'target']) {
     await t.test(changedRevision, async () => {
       const sourcePath = `/repos/${repository}/contents/game/new.ts?ref=${headSha}`;
       const github = githubForCollection({
         changes: [{ filename: 'game/new.ts', status: 'added', patch: '@@ -0,0 +1 @@\n+new' }],
         sources: new Map([[sourcePath, 'new']]),
-        ...(changedRevision === 'head' ? { finalHeadSha: 'c'.repeat(40) } : { finalBaseSha: 'd'.repeat(40) }),
+        ...(changedRevision === 'head' ? { finalHeadSha: 'c'.repeat(40) } : changedRevision === 'base' ? { finalBaseSha: 'd'.repeat(40) } : { finalBaseRef: 'release' }),
       });
       await assert.rejects(collectReviewInput({ github, repository, prNumber }), /changed|stale|supersed/i);
     });
@@ -318,7 +320,8 @@ test('comments disclose omitted and truncated review scope', () => {
 
 test('a review of a stale PR commit never publishes', async () => {
   const github = githubForPublishing({ sha: 'c'.repeat(40) });
-  const result = await publishReview({ github, repository, prNumber, headSha, body: `${COMMENT_MARKER}\nReview body` });
+  const body = renderComment({ review, input: reviewInput(), headSha });
+  const result = await publishReview({ github, repository, prNumber, headSha, baseSha, baseRef, body });
   assert.equal(result.published, false);
   assert.equal(github.writes.length, 0);
 });
@@ -335,9 +338,64 @@ test('a PR updated while comments are being read is checked again before publish
     }
     return response;
   };
-  const result = await publishReview({ github, repository, prNumber, headSha, body: `${COMMENT_MARKER}\nReview body` });
+  const body = renderComment({ review, input: reviewInput(), headSha });
+  const result = await publishReview({ github, repository, prNumber, headSha, baseSha, baseRef, body });
   assert.equal(result.published, false);
   assert.ok(headReads >= 2);
+  assert.equal(github.writes.length, 0);
+});
+
+test('a base revision changed during model work prevents publication even when the PR head is unchanged', async () => {
+  const github = githubForPublishing({ base: 'c'.repeat(40) });
+  const body = renderComment({ review, input: reviewInput(), headSha });
+  const result = await publishReview({ github, repository, prNumber, headSha, baseSha, baseRef, body });
+  assert.equal(result.published, false);
+  assert.equal(github.writes.length, 0);
+});
+
+test('a base revision changed while reading comments is rechecked before publication', async () => {
+  const github = githubForPublishing();
+  const request = github.request;
+  let snapshotReads = 0;
+  github.request = async (method, path, body) => {
+    const response = await request(method, path, body);
+    if (method === 'GET') {
+      snapshotReads += 1;
+      if (snapshotReads > 1) response.base.sha = 'd'.repeat(40);
+    }
+    return response;
+  };
+  const body = renderComment({ review, input: reviewInput(), headSha });
+  const result = await publishReview({ github, repository, prNumber, headSha, baseSha, baseRef, body });
+  assert.equal(result.published, false);
+  assert.ok(snapshotReads >= 2);
+  assert.equal(github.writes.length, 0);
+});
+
+test('deduplication requires a bot review of both current head and base revisions', () => {
+  const user = { login: 'github-actions[bot]', type: 'Bot' };
+  const snapshot = { headSha, baseSha, baseRef };
+  const currentBody = renderComment({ review, input: reviewInput(), headSha });
+  const oldInput = reviewInput();
+  oldInput.pr.baseSha = 'c'.repeat(40);
+  const staleBody = renderComment({ review, input: oldInput, headSha });
+  assert.equal(hasCompletedReview([{ user, body: currentBody }], snapshot), true);
+  assert.equal(hasCompletedReview([{ user, body: staleBody }], snapshot), false);
+  assert.equal(hasCompletedReview([{ user, body: `${COMMENT_MARKER}\n提交：\`${headSha}\`` }], snapshot), false);
+  assert.equal(hasCompletedReview([{ user: { login: 'contributor', type: 'User' }, body: currentBody }], snapshot), false);
+  const targetedInput = reviewInput();
+  targetedInput.pr.baseRef = 'master';
+  const targetedBody = renderComment({ review, input: targetedInput, headSha });
+  assert.equal(hasCompletedReview([{ user, body: targetedBody }], { ...snapshot, baseRef: 'master' }), true);
+  assert.equal(hasCompletedReview([{ user, body: targetedBody }], { ...snapshot, baseRef: 'release' }), false);
+});
+
+test('publication rejects a report whose snapshot does not match the requested revisions', async () => {
+  const github = githubForPublishing();
+  const input = reviewInput();
+  input.pr.baseSha = 'c'.repeat(40);
+  const body = renderComment({ review, input, headSha });
+  await assert.rejects(publishReview({ github, repository, prNumber, headSha, baseSha, baseRef, body }));
   assert.equal(github.writes.length, 0);
 });
 
@@ -348,7 +406,8 @@ test('sticky comments update only the GitHub Actions bot comment, not a human ma
       { id: 101, body: `${COMMENT_MARKER}\nBot text`, user: { login: 'github-actions[bot]', type: 'Bot' } },
     ],
   });
-  const result = await publishReview({ github, repository, prNumber, headSha, body: `${COMMENT_MARKER}\nNew review` });
+  const body = renderComment({ review, input: reviewInput(), headSha });
+  const result = await publishReview({ github, repository, prNumber, headSha, baseSha, baseRef, body });
   assert.equal(result.published, true);
   assert.equal(github.writes.length, 1);
   assert.equal(github.writes[0].method, 'PATCH');
@@ -359,7 +418,8 @@ test('a marker in a human comment results in a new bot comment', async () => {
   const github = githubForPublishing({
     comments: [{ id: 100, body: COMMENT_MARKER, user: { login: 'github-actions[bot]', type: 'User' } }],
   });
-  await publishReview({ github, repository, prNumber, headSha, body: COMMENT_MARKER });
+  const body = renderComment({ review, input: reviewInput(), headSha });
+  await publishReview({ github, repository, prNumber, headSha, baseSha, baseRef, body });
   assert.equal(github.writes.length, 1);
   assert.equal(github.writes[0].method, 'POST');
   assert.equal(github.writes[0].path, `/repos/${repository}/issues/${prNumber}/comments`);
