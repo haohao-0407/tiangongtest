@@ -102,10 +102,11 @@ describe('earthwork blueprints and foundation dependencies',()=>{
     const order=sim.command({action:'build',kind:'bed',x:20,z:20,target:7});expect(order.ok).toBe(true);const before=sim.serialize(),bad:any=sim.serialize();
     bad.terrainPlans[0].buildingId='missing';expect(()=>sim.load(bad)).toThrow();expect(sim.serialize()).toEqual(before);
   });
-  it('cancels automatic tree clearing with its last terrain consumer',()=>{
+  it('does not misidentify placed wood as a natural tree during terrain clearance',()=>{
     const{world,sim}=setup();world.edit([{x:20,y:6,z:20,block:BLOCK.Wood},{x:20,y:7,z:20,block:BLOCK.Wood}]);
     const order=sim.command({action:'level',target:6,x:20,z:20});expect(order.ok).toBe(true);
-    expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.x===20&&j.z===20)).toBe(true);
+    expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.x===20&&j.z===20)).toBe(false);
+    expect(plan(sim,order.id!).blockedReason).toContain('地面障碍');
     sim.command({action:'cancel',id:order.id});expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.x===20&&j.z===20)).toBe(false);
     expect(world.get(20,6,20)).toBe(BLOCK.Wood);
   });

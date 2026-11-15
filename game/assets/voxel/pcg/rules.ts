@@ -10,6 +10,7 @@ export interface PcgSource {
   readonly width: number; readonly height: number; readonly depth: number;
   readonly revision?: number;
   get(x: number, y: number, z: number): number;
+  treeAtVoxel?(x: number, y: number, z: number): unknown;
   terrainHeight?(x: number, z: number): number;
   getDetailTiles?(): { x: number; z: number }[];
   getDetailCellsForTile?(tileX: number, tileZ: number, padding?: number): PcgCell[];
@@ -82,13 +83,13 @@ function roadRecipe(source: PcgSource, buildings: readonly PcgBuilding[], cell: 
     const [dx, dz] = dir, other = column(source, x + dx, z + dz);
     if (other.block === ROAD && other.y === y + 1 && !occupiedByBuilding(buildings, x, z)) {
       let clear = true;
-      for (let yy = h; yy < h + 2; yy++) if (source.get(x, yy, z) !== AIR) clear = false;
+      for (let yy = h; yy < h + 2; yy++) if (source.get(x, yy, z) !== AIR || source.treeAtVoxel?.(x, yy, z)) clear = false;
       if (clear && !stairDirection) stairDirection = dir;
     }
     // Shared Road–Road boundaries never receive an internal curb, including junctions.
     if (other.block === ROAD || !inside(source, x + dx, z + dz)) continue;
     if ([AIR, WATER, WOOD, LEAVES, BRICK].includes(other.block) || Math.abs(other.y - y) > 1
-      || occupiedByBuilding(buildings, x + dx, z + dz)) continue;
+      || occupiedByBuilding(buildings, x + dx, z + dz) || source.treeAtVoxel?.(x + dx, other.y + 1, z + dz)) continue;
     const sh = Math.max(h, other.y + 1) + 2 / 16;
     let sm: PcgPoint, sx: PcgPoint, cm: PcgPoint, cx: PcgPoint;
     if (dx) {

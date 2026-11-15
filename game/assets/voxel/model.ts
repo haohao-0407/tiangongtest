@@ -1,4 +1,5 @@
 import type { FacadeLayout, FacadeWindowState } from './pcg/facade.ts';
+import {treeBounds,treeCells,type TreeInstance} from './trees.ts';
 
 /** Engine-independent world state. Coordinates are integer cells, with Y pointing up. */
 export type Vec3 = [number, number, number];
@@ -46,7 +47,8 @@ export interface VoxelHit {
   distance: number;
 }
 interface Change { index: number; before: number; after: number }
-interface EditTransaction { changes: Change[]; facadeBefore: FacadeLayout; facadeAfter: FacadeLayout }
+interface TreeChange { id:string; before:TreeInstance|null; after:TreeInstance|null }
+interface EditTransaction { changes: Change[]; treeChanges:TreeChange[]; facadeBefore: FacadeLayout; facadeAfter: FacadeLayout }
 interface SavedWorld {
   version: 1;
   generatorVersion: 1 | 2;
@@ -54,6 +56,8 @@ interface SavedWorld {
   size: [number, number, number];
   edits: [number, number][];
   facadeLayout?: FacadeLayout;
+  treeVersion?: 1;
+  trees?: TreeInstance[];
 }
 const HISTORY_LIMIT = 200;
 const MAX_WORLD_VOLUME = 16_777_216;
@@ -151,13 +155,76 @@ export class VoxelWorld {
   private _seed = '';
   private _revision = 0;
   private _generatorVersion: 1 | 2 = 2;
+  private treeMap=new Map<string,TreeInstance>();
+  private treeBaseline=new Map<string,TreeInstance>();
+  private legacyVegetation=new Map<number,BlockId>();
+  private treeVoxels=new Map<number,Set<string>>();
+  private treeSolidVoxels=new Map<number,Set<string>>();
+  private treeColumns=new Map<number,Set<string>>();
+  private treeRoots=new Map<number,string>();
+  private treeDiffs=new Set<string>();
+  private treeList:readonly TreeInstance[]|null=null;
+  private _treeRevision=0;
 
   constructor(seed = '森屿-042', size: WorldSize = WORLD_SIZE) { this.regenerate(seed, size, 2); }
   get seed(): string { return this._seed; }
   get revision(): number { return this._revision; }
   get generatorVersion(): 1 | 2 { return this._generatorVersion; }
-  /** Number of cells differing from the generated map; also suitable for save status. */
-  get editCount(): number { return this.changes.size; }
+  /** Number of changed raw cells and natural tree identities; also suitable for save status. */
+  get editCount(): number { return this.changes.size+this.treeDiffs.size; }
+  get treeRevision():number {return this._treeRevision;}
+  getTrees():readonly TreeInstance[] {
+    return this.treeList??=Object.freeze([...this.treeMap.values()].sort((a,b)=>a.id.localeCompare(b.id)));
+  }
+  getTree(id:string):TreeInstance|undefined {return this.treeMap.get(id);}
+  treesAtVoxel(x:number,y:number,z:number):readonly TreeInstance[] {
+    if(!this.inBounds(x,y,z))return[];
+    return [...this.treeVoxels.get(this.index(x,y,z))??[]].map(id=>this.treeMap.get(id)!).sort((a,b)=>a.id.localeCompare(b.id));
+  }
+  treeAtVoxel(x:number,y:number,z:number):TreeInstance|undefined {return this.treesAtVoxel(x,y,z)[0];}
+  treeAtColumn(x:number,z:number):TreeInstance|undefined {
+    if(!this.inBounds(x,0,z))return undefined;const id=this.treeRoots.get(x+z*this.width);return id?this.treeMap.get(id):undefined;
+  }
+  treesInColumn(x:number,z:number):readonly TreeInstance[] {
+    if(!this.inBounds(x,0,z))return[];
+    return [...this.treeColumns.get(x+z*this.width)??[]].map(id=>this.treeMap.get(id)!).sort((a,b)=>a.id.localeCompare(b.id));
+  }
+  treeBlocksVoxel(x:number,y:number,z:number):boolean {return this.inBounds(x,y,z)&&!!this.treeSolidVoxels.get(this.index(x,y,z))?.size;}
+  private indexTree(tree:TreeInstance,add:boolean):void {
+    const change=(index:Map<number,Set<string>>,key:number)=>{
+      if(add){let ids=index.get(key);if(!ids){ids=new Set();index.set(key,ids);}ids.add(tree.id);}
+      else{const ids=index.get(key);ids?.delete(tree.id);if(ids?.size===0)index.delete(key);}
+    };
+    const columns=new Set<number>();
+    for(const c of treeCells(tree))if(this.inBounds(c.x,c.y,c.z)){
+      change(this.treeVoxels,this.index(c.x,c.y,c.z));if(c.role!=='crown')change(this.treeSolidVoxels,this.index(c.x,c.y,c.z));
+      columns.add(c.x+c.z*this.width);this.markPcgCellDirty(c.x,c.z);
+    }
+    for(const key of columns)change(this.treeColumns,key);
+    if(add){this.treeMap.set(tree.id,tree);this.treeRoots.set(tree.x+tree.z*this.width,tree.id);}
+    else{this.treeMap.delete(tree.id);this.treeRoots.delete(tree.x+tree.z*this.width);}
+    const initial=this.treeBaseline.get(tree.id),current=add?tree:undefined;
+    if(JSON.stringify(initial)===JSON.stringify(current))this.treeDiffs.delete(tree.id);else this.treeDiffs.add(tree.id);
+    this.treeList=null;
+  }
+  private replaceTrees(trees:readonly TreeInstance[]):void {
+    this.treeMap.clear();this.treeVoxels.clear();this.treeSolidVoxels.clear();this.treeColumns.clear();this.treeRoots.clear();this.treeList=null;this.treeDiffs.clear();
+    for(const tree of trees)this.indexTree(Object.freeze({...tree}),true);
+    for(const id of this.treeBaseline.keys())if(!this.treeMap.has(id))this.treeDiffs.add(id);
+    this._treeRevision++;
+  }
+  removeTree(id:string,options:{recordHistory?:boolean}={}):boolean {
+    const tree=this.treeMap.get(id);if(!tree)return false;
+    this.settleFacadeEdit();
+    const transaction:EditTransaction={changes:[],treeChanges:[{id,before:tree,after:null}],facadeBefore:this.facadeLayout,facadeAfter:this.facadeLayout};
+    this.applyTreeChanges(transaction.treeChanges,false);this._revision++;
+    if(options.recordHistory===false){
+      // A resident's harvested wood cannot be duplicated by undoing an earlier sandbox edit.
+      this.past=this.past.filter(t=>!t.treeChanges.some(c=>c.id===id));this.future=this.future.filter(t=>!t.treeChanges.some(c=>c.id===id));
+      this.pendingFacade=null;
+    }else this.recordTransaction(transaction);
+    return true;
+  }
   get canUndo(): boolean { return this.past.length > 0; }
   get canRedo(): boolean { return this.future.length > 0; }
   get undoCount(): number { return this.past.length; }
@@ -284,40 +351,88 @@ export class VoxelWorld {
       if (!validBlock(edit.block)) throw new RangeError('未知的方块类型。');
       final.set(this.index(edit.x, edit.y, edit.z), edit.block);
     }
+    const removed=new Map<string,TreeInstance>();
+    for(const[index,block]of final){
+      const[x,y,z]=this.coordinates(index);
+      if(block===BLOCK.Air)for(const tree of this.treesAtVoxel(x,y,z))removed.set(tree.id,tree);
+      const root=this.treeAtColumn(x,z);
+      if(root&&y===root.y-1&&(!BLOCKS[block]?.solid||block===BLOCK.Wood||block===BLOCK.Leaves))removed.set(root.id,root);
+    }
+    for(const[index,block]of final)if(block!==BLOCK.Air){
+      const[x,y,z]=this.coordinates(index);
+      if(this.treesAtVoxel(x,y,z).some(tree=>!removed.has(tree.id)))throw new RangeError('树木占用此处，请先整体移除树木。');
+    }
     const changes: Change[] = [];
     for (const [index, after] of final) {
       const before = this.blocks[index];
       if (before !== after) changes.push({ index, before, after });
     }
-    if (changes.length === 0) return false;
+    if (changes.length === 0&&removed.size===0) return false;
     this.settleFacadeEdit();
-    const transaction: EditTransaction = { changes, facadeBefore: this.facadeLayout, facadeAfter: this.facadeLayout };
+    const transaction: EditTransaction = { changes,treeChanges:[...removed.values()].map(tree=>({id:tree.id,before:tree,after:null})), facadeBefore: this.facadeLayout, facadeAfter: this.facadeLayout };
     this.apply(changes, false);
+    this.applyTreeChanges(transaction.treeChanges,false);
+    this.recordTransaction(transaction);
+    return true;
+  }
+  private recordTransaction(transaction:EditTransaction):void {
     this.pendingFacade = transaction;
     this.past.push(transaction);
     if (this.past.length > HISTORY_LIMIT) this.past.shift();
     this.future.length = 0;
+  }
+  private applyTreeChanges(changes:readonly TreeChange[],reverse:boolean):void {
+    if(!changes.length)return;
+    for(const change of changes){
+      const current=this.treeMap.get(change.id);if(current)this.indexTree(current,false);
+      const next=reverse?change.before:change.after;if(next)this.indexTree(next,true);
+    }
+    this._treeRevision++;
+  }
+  private restoredTrees(transaction:EditTransaction,reverse:boolean):TreeInstance[] {
+    return transaction.treeChanges.flatMap(change=>{const tree=reverse?change.before:change.after;return tree?[tree]:[];});
+  }
+  private treeHasObstacle(tree:TreeInstance,get:(x:number,y:number,z:number)=>number=(x,y,z)=>this.get(x,y,z)):boolean {
+    return treeCells(tree).some(c=>{
+      if(c.role==='crown')return false;
+      const block=get(c.x,c.y,c.z);
+      // A native hillside may touch a branch. Subsequent construction must never be hidden in the model.
+      return block!==BLOCK.Air&&(c.role==='trunk'||block!==this.baseline[this.index(c.x,c.y,c.z)]);
+    });
+  }
+  private canRestoreTrees(transaction:EditTransaction,reverse:boolean):boolean {
+    const changed=new Map(transaction.changes.map(c=>[c.index,reverse?c.before:c.after]));
+    const get=(x:number,y:number,z:number)=>changed.get(this.index(x,y,z))??this.get(x,y,z);
+    for(const tree of this.restoredTrees(transaction,reverse)){
+      const under=get(tree.x,tree.y-1,tree.z);
+      if(!BLOCKS[under]?.solid||under===BLOCK.Wood||under===BLOCK.Leaves)return false;
+      if(this.treeHasObstacle(tree,get))return false;
+    }
     return true;
   }
-  undo(allow?: (edits: readonly BlockEdit[]) => boolean): boolean {
+  undo(allow?: (edits: readonly BlockEdit[]) => boolean,allowTrees?:(trees:readonly TreeInstance[])=>boolean): boolean {
     const pending = this.past.at(-1);
     if (pending && allow && !allow(pending.changes.map(c => {const [x,y,z]=this.coordinates(c.index);return{x,y,z,block:c.before};}))) return false;
+    if(pending&&(!this.canRestoreTrees(pending,true)||allowTrees&&!allowTrees(this.restoredTrees(pending,true))))return false;
     this.settleFacadeEdit();
     const transaction = this.past.pop();
     if (!transaction) return false;
     this.apply(transaction.changes, true);
+    this.applyTreeChanges(transaction.treeChanges,true);
     this.facadeLayout = applyFacadeDelta(this.facadeLayout, transaction.facadeAfter, transaction.facadeBefore);
     this.pendingFacade = null;
     this.future.push(transaction);
     return true;
   }
-  redo(allow?: (edits: readonly BlockEdit[]) => boolean): boolean {
+  redo(allow?: (edits: readonly BlockEdit[]) => boolean,allowTrees?:(trees:readonly TreeInstance[])=>boolean): boolean {
     const pending = this.future.at(-1);
     if (pending && allow && !allow(pending.changes.map(c => {const [x,y,z]=this.coordinates(c.index);return{x,y,z,block:c.after};}))) return false;
+    if(pending&&(!this.canRestoreTrees(pending,false)||allowTrees&&!allowTrees(this.restoredTrees(pending,false))))return false;
     this.settleFacadeEdit();
     const transaction = this.future.pop();
     if (!transaction) return false;
     this.apply(transaction.changes, false);
+    this.applyTreeChanges(transaction.treeChanges,false);
     this.facadeLayout = applyFacadeDelta(this.facadeLayout, transaction.facadeBefore, transaction.facadeAfter);
     this.pendingFacade = null;
     this.past.push(transaction);
@@ -379,8 +494,14 @@ export class VoxelWorld {
     this._blocks = new Uint8Array(this.width * this.height * this.depth);
     this._seed = seed;
     this._generatorVersion = generatorVersion;
+    this.treeBaseline.clear();this.legacyVegetation.clear();
     if (generatorVersion === 1) this.generateLegacy();
     else this.generate();
+    // Preserve the exact old generator's vegetation mask for legacy saves, but never mesh it as loose terrain voxels.
+    for(let index=0;index<this.blocks.length;index++)if(this.blocks[index]===BLOCK.Wood||this.blocks[index]===BLOCK.Leaves){
+      this.legacyVegetation.set(index,this.blocks[index] as BlockId);this.blocks[index]=BLOCK.Air;
+    }
+    this.replaceTrees([...this.treeBaseline.values()]);
     this.baseline = this.blocks.slice();
     this.recount();
     this.changes.clear();
@@ -389,6 +510,11 @@ export class VoxelWorld {
     this.dirty.clear();
     this.markAllDirty();
     this._revision++;
+  }
+  private generatedTree(x:number,y:number,z:number,trunkHeight:number,seed:number):void {
+    const tree:TreeInstance=Object.freeze({id:`tree:${x}:${z}`,x,y,z,trunkHeight,crownRadius:2,
+      variant:Math.min(2,Math.floor(hash01(x,z,seed^0x781ab)*3)),rotation:Math.min(3,Math.floor(hash01(x,z,seed^0x4f3c2)*4)) as 0|1|2|3});
+    this.treeBaseline.set(tree.id,tree);
   }
   private recount(): void {
     this.blockCounts.fill(0);
@@ -438,6 +564,7 @@ export class VoxelWorld {
         const ground = this.surfaceHeight(tx, tz);
         if (this.get(tx, ground, tz) !== BLOCK.Grass || ground + 6 >= this.height) continue;
         const trunk = 3 + (hash01(tx, tz, seed ^ 0x34212) > 0.5 ? 1 : 0);
+        this.generatedTree(tx,ground+1,tz,trunk,seed);
         for (let y = ground + 1; y <= ground + trunk; y++) put(tx, y, tz, BLOCK.Wood);
         for (let dy = -1; dy <= 2; dy++) {
           const radius = dy === 2 ? 1 : 2;
@@ -494,6 +621,7 @@ export class VoxelWorld {
         const ground = this.surfaceHeight(tx, tz);
         if (this.get(tx, ground, tz) !== BLOCK.Grass || ground + 6 >= this.height) continue;
         const trunk = 3 + (hash01(tx, tz, seed ^ 0x34212) > 0.5 ? 1 : 0);
+        this.generatedTree(tx,ground+1,tz,trunk,seed);
         for (let y = ground + 1; y <= ground + trunk; y++) put(tx, y, tz, BLOCK.Wood);
         for (let dy = -1; dy <= 2; dy++) {
           const radius = dy === 2 ? 1 : 2;
@@ -513,8 +641,30 @@ export class VoxelWorld {
       size: [this.width, this.height, this.depth],
       edits: [...this.changes].sort((a, b) => a[0] - b[0]),
       facadeLayout: this.getFacadeLayout(),
+      treeVersion:1,trees:this.getTrees().map(tree=>({...tree})),
     };
     return JSON.stringify(snapshot);
+  }
+  private readTrees(value:unknown):TreeInstance[] {
+    if(!Array.isArray(value)||value.length>this.width*this.depth)throw new RangeError('树木物体列表不正确。');
+    const ids=new Set<string>(),roots=new Set<number>();
+    return value.map((row:unknown)=>{
+      if(!row||typeof row!=='object')throw new RangeError('树木物体数据不正确。');
+      const t=row as TreeInstance;
+      if(typeof t.id!=='string'||t.id.length<1||t.id.length>120||ids.has(t.id)
+        ||![t.x,t.y,t.z,t.trunkHeight,t.crownRadius,t.variant,t.rotation].every(Number.isInteger)
+        ||!this.inBounds(t.x,t.y,t.z)||t.y<1||t.trunkHeight<3||t.trunkHeight>8
+        ||t.crownRadius<1||t.crownRadius>3||t.variant<0||t.variant>2||t.rotation<0||t.rotation>3)
+        throw new RangeError('树木标识、尺寸或朝向不正确。');
+      const bounds=treeBounds(t),root=t.x+t.z*this.width;
+      if(roots.has(root)||bounds.min.some(v=>v<0)||bounds.max[0]>this.width||bounds.max[1]>this.height||bounds.max[2]>this.depth)
+        throw new RangeError('树木根部重叠或整体超出地图范围。');
+      const support=this.get(t.x,t.y-1,t.z);
+      if(!BLOCKS[support]?.solid||support===BLOCK.Wood||support===BLOCK.Leaves||this.treeHasObstacle(t))
+        throw new RangeError('树木根部没有支撑或树干体积有障碍。');
+      ids.add(t.id);roots.add(root);
+      return Object.freeze({id:t.id,x:t.x,y:t.y,z:t.z,trunkHeight:t.trunkHeight,crownRadius:t.crownRadius,variant:t.variant,rotation:t.rotation});
+    });
   }
   static deserialize(json: string): VoxelWorld {
     if (typeof json !== 'string' || json.length > MAX_WORLD_VOLUME * 24 + 1024) throw new RangeError('存档大小不正确。');
@@ -538,10 +688,24 @@ export class VoxelWorld {
     }
     const world = new VoxelWorld(data.seed, size);
     if (data.generatorVersion === 1) world.regenerate(data.seed, size, 1);
+    const legacy=data.treeVersion===undefined&&data.trees===undefined;
+    if(!legacy&&(data.treeVersion!==1||!Array.isArray(data.trees)))throw new RangeError('树木物体存档版本或格式不正确。');
+    // Old saves store sparse edits relative to terrain with generated trees still baked into its cells.
+    if(legacy)for(const[index,block]of world.legacyVegetation)world.blocks[index]=block;
     for (const [index, block] of data.edits) {
       world.blocks[index] = block;
-      if (block !== world.baseline[index]) world.changes.set(index, block);
     }
+    if(legacy){
+      const alive=[...world.treeBaseline.values()].filter(tree=>{
+        for(let y=tree.y;y<tree.y+tree.trunkHeight;y++)if(world.get(tree.x,y,tree.z)!==BLOCK.Wood)return false;
+        const support=world.get(tree.x,tree.y-1,tree.z);return BLOCKS[support]?.solid&&support!==BLOCK.Wood&&support!==BLOCK.Leaves;
+      });
+      // Remove only generated vegetation; explicit edits to other materials and hand-placed wood outside it remain terrain.
+      for(const[index,generated]of world.legacyVegetation)if(world.blocks[index]===generated)world.blocks[index]=BLOCK.Air;
+      world.replaceTrees(alive.filter(tree=>!world.treeHasObstacle(tree)));
+    }else world.replaceTrees(world.readTrees(data.trees));
+    world.changes.clear();
+    for(let index=0;index<world.blocks.length;index++)if(world.blocks[index]!==world.baseline[index])world.changes.set(index,world.blocks[index]!);
     world.recount();
     world.facadeLayout = facadeLayout;
     return world;
@@ -557,6 +721,8 @@ export class VoxelWorld {
     this.blockCounts = other.blockCounts;
     this.detailCells = other.detailCells;
     this.changes = other.changes;
+    this.treeBaseline=other.treeBaseline;this.legacyVegetation=other.legacyVegetation;
+    this.replaceTrees(other.getTrees());
     this.facadeLayout = other.facadeLayout; this.pendingFacade = null;
     this.past.length = this.future.length = 0;
     this.dirty.clear();

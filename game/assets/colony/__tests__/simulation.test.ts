@@ -255,8 +255,8 @@ describe('resident needs and civilian production',()=>{
     expect(after.resources.medicine).toBeLessThan(before.resources.medicine);expect(after.colonists[0]!.health).toBeGreaterThan(before.colonists[0]!.health);
   });
   it('extracts resources only after completing a tree or mining job',()=>{
-    const{sim,world}=setup();onlyJob(sim,'chop');let tree:{x:number;z:number}|undefined;
-    for(let z=16;z<38&&!tree;z++)for(let x=18;x<40;x++)if(Array.from({length:22},(_,y)=>world.get(x,y+1,z)).includes(BLOCK.Wood)){tree={x,z};break;}
+    const{sim,world}=setup();onlyJob(sim,'chop');
+    const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40);
     expect(tree).toBeDefined();const initialWood=sim.snapshot().resources.wood;
     expect(sim.command({action:'designate',kind:'chop',...tree}).ok).toBe(true);run(sim,90);
     expect(sim.snapshot().resources.wood).toBe(initialWood);expect(sim.snapshot().items.filter(i=>i.resource==='wood').reduce((n,i)=>n+i.amount,0)).toBeGreaterThan(12);

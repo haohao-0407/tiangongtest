@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 import { BLOCK, BLOCKS, CHUNK_SIZE, WORLD_SIZE, VoxelWorld, raycast } from '../model.ts';
+import { legacyTreeCells } from '../trees.ts';
 
 const smallWorld = (seed = '森屿-042') => new VoxelWorld(seed, { width: 48, height: 24, depth: 48 });
 
@@ -28,9 +29,11 @@ describe('deterministic terrain', () => {
     const a = smallWorld('valley-42'), b = smallWorld('valley-42'), c = smallWorld('valley-43');
     expect(a.blocks).toEqual(b.blocks);
     expect(a.blocks).not.toEqual(c.blocks);
-    for (const block of [BLOCK.Grass, BLOCK.Dirt, BLOCK.Stone, BLOCK.Water, BLOCK.Wood, BLOCK.Leaves, BLOCK.Sand]) {
+    for (const block of [BLOCK.Grass, BLOCK.Dirt, BLOCK.Stone, BLOCK.Water, BLOCK.Sand]) {
       expect(a.count(block)).toBeGreaterThan(0);
     }
+    expect(a.getTrees()).toEqual(b.getTrees());
+    expect(a.getTrees().length).toBeGreaterThan(0);
     expect(a.surfaceHeight(27, 27)).toBe(5);
     expect(a.surfaceHeight(25, 25)).toBe(5);
     expect(a.count()).toBeLessThan(a.blocks.length);
@@ -137,13 +140,18 @@ describe('save snapshots', () => {
   it('restores the exact legacy generator baseline and edits before a new-game reset', () => {
     const legacy = { version: 1, generatorVersion: 1, seed: '森屿-042', size: [48, 24, 48], edits: [] as number[][] };
     const restored = VoxelWorld.deserialize(JSON.stringify(legacy));
-    expect(createHash('sha256').update(restored.blocks).digest('hex')).toBe('cbf17c27b09f3a075c26acec96191df81d74a0436a5507de61e7656966053103');
-    expect(restored.count()).toBe(19757);
+    const originalVoxels = restored.blocks.slice(), terrainCount = restored.count();
+    for (const tree of [...restored.getTrees()].sort((a, b) => a.z - b.z || a.x - b.x)) for (const cell of legacyTreeCells(tree)) {
+      const index = restored.index(cell.x, cell.y, cell.z);
+      if (cell.role === 'trunk' || originalVoxels[index] === BLOCK.Air) originalVoxels[index] = cell.role === 'trunk' ? BLOCK.Wood : BLOCK.Leaves;
+    }
+    expect(createHash('sha256').update(originalVoxels).digest('hex')).toBe('cbf17c27b09f3a075c26acec96191df81d74a0436a5507de61e7656966053103');
+    expect(originalVoxels.filter(block => block !== BLOCK.Air)).toHaveLength(19757);
     expect(restored.generatorVersion).toBe(1);
     legacy.edits = [[27 + 48 * (27 + 48 * 6), BLOCK.Brick]];
     restored.load(JSON.stringify(legacy));
     expect(restored.get(27, 6, 27)).toBe(BLOCK.Brick);
-    expect(restored.count()).toBe(19758);
+    expect(restored.count()).toBe(terrainCount + 1);
     expect(JSON.parse(restored.serialize()).generatorVersion).toBe(1);
     const large = new VoxelWorld();
     large.load(restored.serialize());

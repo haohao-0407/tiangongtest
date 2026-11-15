@@ -6,12 +6,14 @@ import {
   type ColonyCommand, type ColonySnapshot, type ColonistView, type InventoryLocation, type InventorySlot, type ItemStack, type Resource,
 } from '../colony/contracts.ts';
 import { buildingDimensions } from '../colony/buildings.ts';
+import type { TreeInstance } from '../voxel/trees.ts';
 
 const SAVE_KEY = 'homestead.colony.v2';
 const MANUAL_KEY = 'homestead.colony.v2.manual';
 const LEGACY_KEY = 'homestead.voxel.v1';
 type State = { seed: string; selected: number; mode: string; tool?: string; crop?: string; edits: number; undo: boolean; redo: boolean; hoverCell?: unknown; status?: string; revision?: number; colony?: ColonySnapshot;
   worldSize?: [number, number, number]; buildHeight?: number | null; buildRotation?: number; selectedBuildingId?: string | null;
+  trees?: TreeInstance[]; selectedTreeId?: string | null;
   terrain?: { target: number; size: number; shape: 'brush' | 'rectangle'; sample: boolean; minHeight: number; maxHeight: number; preview?: { cells: number; cut: number; fill: number } };
   /** 相机状态。mode 决定哪些 HUD 该出现：指挥官视角要菜单，玩家视角不要。 */
   camera?: { mode?: 'god' | 'character'; followId?: string | null };
@@ -44,6 +46,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   };
   const on = (node: EventTarget, type: string, fn: EventListener) => { node.addEventListener(type, fn); releases.push(() => node.removeEventListener(type, fn)); };
   let state: State | undefined, panel = '', currentTool = 'inspect', selectedResident: string | null = null, selectedBuilding: string | null = null;
+  let selectedTree: string | null = null, lastSelectedTree: string | null = null;
   // 视角标记挂在 .shell 上（UI 在 Shadow DOM 里，不能用 body）
   let shellEl: HTMLElement | null = null;
   // 快捷栏选中的格子，只在玩家视角有意义
@@ -141,7 +144,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   on(shadow, 'contextmenu', e => e.preventDefault());
 
   const showTool = (tool: string) => {
-    const hints: Record<string, string> = { inspect: '查看模式 · 点击居民或物体任一部分查看详情', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '整体拆除 · 点击物体任一部分 · 完工设施回收 50% 建材', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树木，居民会领取工作', mine: '采矿规划 · 点击石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
+    const hints: Record<string, string> = { inspect: '查看模式 · 点击居民或物体任一部分查看详情', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '整体拆除 · 点击物体任一部分 · 完工设施回收 50% 建材', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树干或树冠，安排整棵砍伐', mine: '采矿规划 · 点击石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
     if (state?.selected === 10) hints['sandbox:build'] = '铺设道路 · 左键替换地表 · 路沿与台阶随连接自动更新';
     else if (state?.selected === 6) hints['sandbox:build'] = '砖墙 · 三格起宽、两格高自动排窗组 · 留空作入口 · 增删保留有效窗位';
     get('tool-hint').textContent = tool === 'level'
@@ -154,7 +157,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     lastPanelStamp = ''; renderPanel(true);
   };
   const hideSidePanels = () => { get('settings').hidden = true; get('help').hidden = true; get('inspector').hidden = true; };
-  const clearSelection = () => { selectedResident = null; selectedBuilding = null; send('clearSelection'); };
+  const clearSelection = () => { selectedResident = null; selectedBuilding = null; selectedTree = null; send('clearSelection'); };
   const showWorldSettings = (open: boolean) => {
     if (!get('inspector').hidden) clearSelection();
     hideSidePanels(); get('workspace').hidden = true; panel = '';
@@ -222,7 +225,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const entries = [
       ['level', '等高整地', '涂抹或框选，将选区填挖到同一标高。', 'tool-level'],
       ['zone:farm', '农田', '种植、照料与收获食物。', 'tool-zone-farm'], ['zone:stockpile', '仓储', '搬运散落物资，集中保管。', 'tool-zone-stockpile'],
-      ['chop', '伐木', '标记树木，获取木材。', 'tool-chop'], ['mine', '采矿', '标记矿石，获取建材。', 'tool-mine'],
+      ['chop', '伐木', '点击任一部分，整棵砍伐获取木材。', 'tool-chop'], ['mine', '采矿', '标记矿石，获取建材。', 'tool-mine'],
       ['harvest', '收获', '标记成熟作物。', 'tool-harvest'], ['cancel', '取消规划', '移除未完成的规划或工作。', 'tool-cancel'],
       ['interact', '开关门', '点击门的任一部分开关；关闭时阻挡通行。', 'tool-interact'], ['demolish', '整体拆除', '点击物体任一部分，完工设施回收 50% 建材。', 'tool-demolish'],
     ];
@@ -945,8 +948,28 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     details.append(actions, note(b.complete ? '拆除立即移除整个物体，回收各项建材的 50%（向下取整）。' : '取消返还尚未使用的预约建材，已经完成的整地保留。'));
     root.append(details);
   }
+  function renderTreeInspector(c: ColonySnapshot, force = false) {
+    const tree = state?.trees?.find(t => t.id === selectedTree);
+    if (!tree) { selectedTree = null; get('inspector').hidden = true; return; }
+    const job = c.jobs.find(j => j.type === 'chop' && j.targetId === tree.id);
+    const stamp = JSON.stringify(['tree', tree, job?.id, job?.progress]);
+    if (!force && stamp === lastInspectorStamp) return;
+    lastInspectorStamp = stamp;
+    get('inspector-kicker').textContent = '自然物体'; get('resident-name').textContent = '整棵树木';
+    const root = clear(get('resident-content')), details = make('div', 'building-inspector');
+    details.dataset.testid = 'tree-inspector'; details.dataset.treeId = tree.id;
+    details.append(make('div', 'resident-activity', job ? `已安排伐木 · ${Math.round(job.progress / Math.max(1, job.work) * 100)}%` : '生长中的树木'));
+    details.append(make('p', 'building-dimensions', `高 ${tree.trunkHeight + 2} 格 · 树干位置 [${tree.x}, ${tree.y}, ${tree.z}]`));
+    details.append(note('树干、分枝与树冠属于同一个物体。点击任一部分都选中整棵树。'));
+    const actions = make('div', 'building-inspector-actions');
+    if (job) actions.append(button('取消伐木', 'tree-cancel-chop', { action: 'cancel', id: job.id }));
+    else actions.append(button('安排整棵伐木', 'tree-chop', { action: 'designate', kind: 'chop', id: tree.id }, 'primary'));
+    details.append(actions, note(`居民会走到树干旁砍伐，完成后整棵移除，产出 ${tree.trunkHeight * 6} 木材。相邻树木保持独立。`));
+    root.append(details);
+  }
   function renderInspector(c: ColonySnapshot, force = false) {
     if (get('inspector').hidden) return;
+    if (selectedTree) { renderTreeInspector(c, force); return; }
     if (selectedBuilding) { renderBuildingInspector(c, force); return; }
     if (!selectedResident || get('inspector').hidden) return;
     const p = c.colonists.find(person => person.id === selectedResident); if (!p) return;
@@ -1000,11 +1023,19 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (buildingId !== lastSelectedBuilding) {
       lastSelectedBuilding = buildingId;
       if (buildingId) {
-        selectedBuilding = buildingId; selectedResident = null; panel = ''; get('workspace').hidden = true;
+        selectedBuilding = buildingId; selectedResident = null; selectedTree = null; panel = ''; get('workspace').hidden = true;
         hideSidePanels(); get('inspector').hidden = false; lastInspectorStamp = '';
       } else if (selectedBuilding) {
         selectedBuilding = null; get('inspector').hidden = true;
       }
+    }
+    const treeId = state?.selectedTreeId ?? null;
+    if (treeId !== lastSelectedTree) {
+      lastSelectedTree = treeId;
+      if (treeId) {
+        selectedTree = treeId; selectedResident = null; selectedBuilding = null; panel = ''; get('workspace').hidden = true;
+        hideSidePanels(); get('inspector').hidden = false; lastInspectorStamp = '';
+      } else if (selectedTree) { selectedTree = null; get('inspector').hidden = true; }
     }
     if (!c.selectedColonistId) lastSelectedFromWorld = null;
     if (c.selectedColonistId && c.selectedColonistId !== lastSelectedFromWorld) {
@@ -1013,7 +1044,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       // 之前这里无条件关面板，用户正在看仓库时会被凭空顶掉——
       // 每 0.4 秒的投影刷新都会跑一次这段，看着就像「面板自己关了」。
       if (!panel && get('workspace').hidden) {
-        selectedResident = c.selectedColonistId; selectedBuilding = null;
+        selectedResident = c.selectedColonistId; selectedBuilding = null; selectedTree = null;
         hideSidePanels();
         get('inspector').hidden = false;
       }
@@ -1070,7 +1101,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (b.dataset.voxelAction) { send(b.dataset.voxelAction); return; }
     if (b.dataset.terrainAction === 'sample') { chooseTool('level'); send('terrain-sample'); return; }
     if (b.dataset.command) {
-      if (b.dataset.resident) { selectedResident = b.dataset.resident; selectedBuilding = null; panel = ''; get('workspace').hidden = true; hideSidePanels(); get('inspector').hidden = false; chooseTool('inspect'); if (state?.colony) renderInspector(state.colony, true); }
+      if (b.dataset.resident) { selectedResident = b.dataset.resident; selectedBuilding = null; selectedTree = null; panel = ''; get('workspace').hidden = true; hideSidePanels(); get('inspector').hidden = false; chooseTool('inspect'); if (state?.colony) renderInspector(state.colony, true); }
       colonyCommand(JSON.parse(b.dataset.command) as ColonyCommand); return;
     }
     switch (b.id) {

@@ -17,6 +17,9 @@ import { assetGuid, guidText, PACKAGE_IDS, SUN_OUTGOING_DIRECTION } from '../sha
 import { BLOCK, BLOCKS, VoxelWorld } from './model.ts';
 import { buildChunkMesh } from './mesh.ts';
 import { PcgView } from './pcg/view.ts';
+import { TreeView } from './tree-view.ts';
+import { treeParts, type TreeInstance } from './trees.ts';
+import { overlaps, raycastTree, treesBlockBox, treeSupportHeight, treeProtectingVoxel } from './tree-interaction.ts';
 import { ColonySimulation } from '../colony/simulation.ts';
 import { ColonyView } from '../colony/view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
@@ -41,6 +44,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       const colonyView = new ColonyView(world, assets, () => voxels);
       const terrainView = new TerrainPlanView(world, assets, () => voxels);
       const pcgView = new PcgView(world, assets);
+      const treeView = new TreeView(world, assets);
       colony.setWalkSurfaceSampler((x,z,fallback)=>pcgView.walkHeight(x,z,fallback));
       const entities = new Set<EntityHandle>();
       const chunks = new Map<string, { entity: EntityHandle; handle: AssetHandle<'mesh'> }>();
@@ -64,6 +68,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let tool = 'inspect';
       let buildRotation = 0, selectedBuildingId: string | null = null;
       let hoverBuildingId: string | null = null, hoverBuildingPart: BuildingPart | null = null;
+      let selectedTreeId: string | null = null, hoverTreeId: string | null = null;
+      let hoverTreePart: 'trunk' | 'branch' | 'crown' | null = null;
       let terrainTarget = 6, terrainSize = 3, terrainShape: 'brush' | 'rectangle' = 'brush', terrainSample = false;
       let buildHeight: number | null = null;
       let terrainPreview = { cells: 0, cut: 0, fill: 0 };
@@ -162,7 +168,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             }
           }
         }
-        return pcgView.blocks([cx - PLAYER_HALF, footY + 1e-4, cz - PLAYER_HALF], [cx + PLAYER_HALF, footY + PLAYER_HEIGHT, cz + PLAYER_HALF]);
+        const min: Point = [cx - PLAYER_HALF, footY + 1e-4, cz - PLAYER_HALF], max: Point = [cx + PLAYER_HALF, footY + PLAYER_HEIGHT, cz + PLAYER_HALF];
+        return treesBlockBox(voxels, min, max) || pcgView.blocks(min, max);
       };
 
       /** 脚下这片（整个 AABB 覆盖范围）最高的地面高度，取最高才不会踩进旁边的高台。 */
@@ -177,6 +184,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             }
           }
         }
+        top = treeSupportHeight(voxels, cx - PLAYER_HALF, cz - PLAYER_HALF, cx + PLAYER_HALF, cz + PLAYER_HALF, top, Math.min(maximum, fromY + .25));
         return pcgView.supportHeight(cx - PLAYER_HALF, cz - PLAYER_HALF, cx + PLAYER_HALF, cz + PLAYER_HALF, top, maximum);
       };
 
@@ -211,7 +219,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         if (cameraSystemAdded) world.removeSystem(Update, CAMERA_SYSTEM).unwrap();
         if (editSystemAdded) world.removeSystem(Update, EDIT_SYSTEM).unwrap();
         world.removeResource('voxel:read');
-        colonyView.dispose(); terrainView.dispose(); pcgView.dispose();
+        colonyView.dispose(); terrainView.dispose(); pcgView.dispose(); treeView.dispose();
         for (const entity of entities) world.despawn(entity).unwrap();
         for (const handle of ownedHandles) assets.release(handle).unwrap();
         ownedHandles.clear();
@@ -279,12 +287,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           }
         }
         pcgView.update(voxels, colony.renderState().buildings);
+        treeView.update(voxels, selectedTreeId);
       };
       const read = () => ({
         seed: voxels.seed, selected, mode, tool, crop, colony: colonyState, blocks: voxels.count(), nonAirCount: voxels.count(),
         edits: voxels.editCount, editCount: voxels.editCount, revision: voxels.revision,
         undo: tool.startsWith('sandbox:') && voxels.canUndo, redo: tool.startsWith('sandbox:') && voxels.canRedo, hoverCell: hoverCell ? [...hoverCell] : null,
         status, lastEdit, buildRotation, selectedBuildingId, hoverBuildingId, hoverBuildingPart: hoverBuildingPart ? {...hoverBuildingPart} : null,
+        selectedTreeId, hoverTreeId, hoverTreePart, trees: voxels.getTrees(), treeModel: treeView.read(),
         camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
         player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
           // 给验收用：当前是不是嵌在实心方块里
@@ -313,11 +323,19 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       const changed = (message: string) => { status = message; updateChunks(); refreshState = true; };
       const editHistory = (redo:boolean) => {
         const allow = (edits: readonly {x:number;y:number;z:number}[]) => {
-          const valid=edits.every(e=>!buildingProtectingVoxel(colonyState.buildings,e.x,e.y,e.z));
+          const valid=edits.every(e=>!buildingProtectingVoxel(colonyState.buildings,e.x,e.y,e.z) && !treeProtectingVoxel(voxels,e.x,e.y,e.z));
           if(!valid){status='此操作会改变设施占用格或地基，请先整体拆除设施';refreshState=true;}
           return valid;
         };
-        if(redo?voxels.redo(allow):voxels.undo(allow))changed(redo?'已重做上一步':'已撤销上一步');
+        const allowTrees = (trees: readonly TreeInstance[]) => {
+          const occupied = trees.some(tree => treeParts(tree).some(part =>
+            colonyState.buildings.some(b => overlaps(part.min, part.max, [b.x,b.y,b.z], [b.x+b.w,b.y+b.h,b.z+b.d])) ||
+            overlaps(part.min, part.max, [player.x-PLAYER_HALF,player.y,player.z-PLAYER_HALF], [player.x+PLAYER_HALF,player.y+PLAYER_HEIGHT,player.z+PLAYER_HALF]) ||
+            colonyState.colonists.some(p=>overlaps(part.min,part.max,[p.position[0]-.28,p.position[1],p.position[2]-.28],[p.position[0]+.28,p.position[1]+1.8,p.position[2]+.28]))));
+          if(occupied){status='树木原位置已被设施或人物占用，暂时无法恢复';refreshState=true;}
+          return !occupied;
+        };
+        if(redo?voxels.redo(allow,allowTrees):voxels.undo(allow,allowTrees))changed(redo?'已重做上一步':'已撤销上一步');
       };
       const home = () => {
         // 玩家视角回位 = 站回自己背后；俯视视角才是回地图中心
@@ -335,7 +353,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         const result = colony.command(command); status = result.message; colonyState = colony.snapshot(); refreshState = true;
         if (result.ok && command.action === 'place-chest') syncChests();
         if (selectedBuildingId && !colonyState.buildings.some(b=>b.id===selectedBuildingId)) selectedBuildingId = null;
-        if (command.action === 'select') selectedBuildingId = null;
+        if (command.action === 'select') { selectedBuildingId = null; selectedTreeId = null; }
         hoverKey = '';
         return result;
       };
@@ -373,11 +391,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         const nextWorld = VoxelWorld.deserialize(parsed?.version === 2 ? parsed.voxel : text);
         const nextColony = new ColonySimulation(nextWorld);
         if (parsed?.version === 2) nextColony.load(parsed.colony);
-        const nextSpawn=findPlayerSpawn(nextWorld,(x,y,z)=>nextColony.blocksVoxel(x,y,z));
+        const nextSpawn=findPlayerSpawn(nextWorld,(x,y,z)=>nextColony.blocksVoxel(x,y,z)||treesBlockBox(nextWorld,[x,y,z],[x+1,y+1,z+1]));
         if(!nextSpawn)throw new Error('存档中没有可供玩家安全站立的空间，未载入。');
         voxels = nextWorld; colony = nextColony; colonyState = colony.snapshot();
         syncChests();
         connectPlayerOccupancy(); selectedBuildingId = null; hoverBuildingId = null; hoverBuildingPart = null; buildRotation = 0;
+        selectedTreeId = null; hoverTreeId = null; hoverTreePart = null;
         colony.setWalkSurfaceSampler((x,z,fallback)=>pcgView.walkHeight(x,z,fallback));
         terrainView.clear(); pcgView.clear();
         cancelStroke(); terrainTarget = clamp(terrainTarget, 1, voxels.height - 2); buildHeight = null; viewMode = 'god'; followId = null;
@@ -459,6 +478,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             cancelStroke(); buildHeight = null;
             voxels = new VoxelWorld(c.seed.trim().slice(0, 80)); colony = new ColonySimulation(voxels); colonyState = colony.snapshot();
             connectPlayerOccupancy(); selectedBuildingId = null; hoverBuildingId = null; hoverBuildingPart = null; buildRotation = 0;
+            selectedTreeId = null; hoverTreeId = null; hoverTreePart = null;
             colony.setWalkSurfaceSampler((x,z,fallback)=>pcgView.walkHeight(x,z,fallback));
             terrainView.clear(); pcgView.clear();
             viewMode = 'god'; followId = null; terrainTarget = clamp(terrainTarget, 1, voxels.height - 2);
@@ -498,6 +518,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           }
           if (simViewElapsed >= 0.05) {
             simViewElapsed = 0;
+            if (selectedTreeId && !voxels.getTree(selectedTreeId)) { selectedTreeId = null; refreshState = true; }
+            treeView.update(voxels, selectedTreeId ?? hoverTreeId);
             const renderState = colony.renderState();
             if (pcgView.update(voxels, renderState.buildings)) refreshState = true;
             // Ground the displayed residents on the same derived steps used by player collision.
@@ -689,7 +711,11 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             const m = input.mouse.position;
             const r = m ? viewportToWorld(world, camera, m.x, m.y, size.width, size.height) : undefined;
             const hit = r ? voxels.raycast(Array.from(ray.getOrigin(vec3.create(), r)) as Point, Array.from(ray.getDirection(vec3.create(), r)) as Point, 1200) : null;
-            const objectHit = r ? raycastBuilding(colonyState.buildings, Array.from(ray.getOrigin(vec3.create(),r)) as Point, Array.from(ray.getDirection(vec3.create(),r)) as Point, hit?.distance ?? 1200) : null;
+            const buildingHit = r ? raycastBuilding(colonyState.buildings, Array.from(ray.getOrigin(vec3.create(),r)) as Point, Array.from(ray.getDirection(vec3.create(),r)) as Point, hit?.distance ?? 1200) : null;
+            const treeHit = r ? raycastTree(voxels.getTrees(), Array.from(ray.getOrigin(vec3.create(),r)) as Point, Array.from(ray.getDirection(vec3.create(),r)) as Point, buildingHit?.distance ?? hit?.distance ?? 1200) : null;
+            const objectHit = treeHit ? null : buildingHit;
+            if (hoverTreeId !== (treeHit?.tree.id ?? null) || hoverTreePart !== (treeHit?.part.role ?? null)) refreshState = true;
+            hoverTreeId = treeHit?.tree.id ?? null; hoverTreePart = treeHit?.part.role ?? null;
             if(hoverBuildingId!==(objectHit?.building.id??null)||hoverBuildingPart?.role!==objectHit?.part.role)refreshState=true;
             hoverBuildingId=objectHit?.building.id??null; hoverBuildingPart=objectHit?.part??null;
             const removing = sandbox && (mode === 'remove' || input.mouse.button(2));
@@ -697,7 +723,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             const roadAllowed = !!hit && hit.normal?.[1] === 1 && !([BLOCK.Air, BLOCK.Water, BLOCK.Wood, BLOCK.Leaves] as readonly number[]).includes(hit.block)
               && !colonyState.buildings.some(b => hit.cell[0] >= b.x && hit.cell[0] < b.x + b.w && hit.cell[2] >= b.z && hit.cell[2] < b.z + b.d);
             const objectTarget=objectHit && (sandbox || ['inspect','interact','demolish','cancel'].includes(tool));
-            const cell = objectTarget ? [objectHit.part.x,objectHit.part.y,objectHit.part.z] as Point : hit ? (sandbox ? (removing || paving ? hit.cell : hit.adjacent) : [hit.cell[0],voxels.terrainHeight(hit.cell[0],hit.cell[2]),hit.cell[2]] as Point) : null;
+            const treeTarget=treeHit && (sandbox || ['inspect','chop','cancel'].includes(tool));
+            const cell = treeTarget ? [treeHit.tree.x,treeHit.tree.y,treeHit.tree.z] as Point : objectTarget ? [objectHit.part.x,objectHit.part.y,objectHit.part.z] as Point : hit ? (sandbox ? (removing || paving ? hit.cell : hit.adjacent) : [hit.cell[0],voxels.terrainHeight(hit.cell[0],hit.cell[2]),hit.cell[2]] as Point) : null;
             const point: Point | null = cell ? [...cell] : null;
             const valid = point !== null && voxels.inBounds(...point) && point[1] > 0 && (!sandbox || removing || (paving ? roadAllowed : voxels.get(...point) === 0 || voxels.get(...point) === 8));
             hoverCell = valid ? point : null;
@@ -706,7 +733,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               if (hoverCell) extendStroke(hoverCell[0], hoverCell[2]);
               finishStroke();
             }
-            const nextKey = `${hoverCell?.join(',') ?? ''}:${removing}:${selected}:${tool}:${buildRotation}:${hoverBuildingId}`;
+            const nextKey = `${hoverCell?.join(',') ?? ''}:${removing}:${selected}:${tool}:${buildRotation}:${hoverBuildingId}:${hoverTreeId}`;
             if (nextKey !== hoverKey) {
               hoverKey = nextKey; refreshState = true;
               const {w,d} = tool.startsWith('build:') ? buildingDimensions(tool.slice(6) as BuildingKind,buildRotation) : tool.startsWith('zone:') ? {w:3,d:3} : {w:1,d:1};
@@ -744,8 +771,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 terrainView.preview([...cells.values()], height, key); refreshState = true;
               }
             } else if (!stroke) { terrainView.clearPreview(); previewKey = ''; }
-            if (!sandbox && tool !== 'level' && (hit||objectHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
-              const x=objectTarget?objectHit.part.x:hit!.cell[0],z=objectTarget?objectHit.part.z:hit!.cell[2];
+            if (!sandbox && tool !== 'level' && (hit||objectHit||treeHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
+              const x=treeTarget?treeHit.tree.x:objectTarget?objectHit.part.x:hit?.cell[0]??treeHit!.tree.x,z=treeTarget?treeHit.tree.z:objectTarget?objectHit.part.z:hit?.cell[2]??treeHit!.tree.z;
               if(input.mouse.justPressed(2)){
                 // 角色视角下贴着东西右键 = 打开它。箱子优先于随从（箱子不会自己走开）。
                 // 俯视视角不接这个键，那里右键是拖镜头和取消工具。
@@ -760,16 +787,17 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               else if(tool==='place-chest')execute({action:'place-chest',x,z});
               else if(tool.startsWith('build:'))execute({action:'build',kind:tool.slice(6),x,z,target:buildHeight ?? voxels.terrainHeight(x,z),rotation:buildRotation});
               else if(tool.startsWith('zone:'))execute({action:'designate',kind:tool.slice(5),x,z,w:3,d:3,crop});
-              else if(['chop','mine','harvest'].includes(tool))execute({action:'designate',kind:tool,x,z});
+              else if(tool==='mine'&&treeHit){status='此处是完整树木，请先使用伐木工具清理';refreshState=true;}
+              else if(['chop','mine','harvest'].includes(tool))execute({action:'designate',kind:tool,x,z,...(tool==='chop'&&treeHit?{id:treeHit.tree.id}: {})});
               else if(tool==='demolish'||tool==='interact'){
                 const b=objectHit?.building;
-                if(b){selectedBuildingId=b.id;execute({action:tool==='demolish'?'demolish':'toggleDoor',id:b.id});}
+                if(b){selectedBuildingId=b.id;selectedTreeId=null;execute({action:tool==='demolish'?'demolish':'toggleDoor',id:b.id});}
                 else{status=tool==='demolish'?'此处没有可拆除的设施':'点击门的任一部分开关门';refreshState=true;}
               }
               else if(tool==='cancel'){
                 const b=objectHit&&!objectHit.building.complete?objectHit.building:undefined;
                 const plan=colonyState.terrainPlans.find(p=>p.state!=='completed'&&p.cells.some(([xx,zz])=>xx===x&&zz===z));
-                const job=colonyState.jobs.find(j=>j.x===x&&j.z===z);
+                const job=colonyState.jobs.find(j=>treeTarget?j.targetId===treeHit.tree.id:j.x===x&&j.z===z);
                 const zone=colonyState.zones.find(q=>x>=q.x&&x<q.x+q.w&&z>=q.z&&z<q.z+q.d);
                 if(b||plan||job||zone)execute({action:'cancel',id:(b??plan??job??zone)!.id});else{status='此处没有可取消的规划';refreshState=true;}
               }else{
@@ -777,20 +805,27 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 const d=r?Array.from(ray.getDirection(vec3.create(),r))as Point:[0,0,0]as Point;
                 const picks=colonyState.colonists.map(p=>{const v=[p.position[0]-o[0],p.position[1]+.8-o[1],p.position[2]-o[2]];const t=v[0]!*d[0]+v[1]!*d[1]+v[2]!*d[2];return{p,t,dist:Math.hypot(v[0]!-d[0]*t,v[1]!-d[1]*t,v[2]!-d[2]*t)};}).filter(q=>q.t>0&&q.t<(hit?.distance??1200)&&q.dist<.8).sort((a,b)=>a.t-b.t);
                 const pawn=picks[0]?.p??colonyState.colonists.find(p=>Math.hypot(p.position[0]-(x+.5),p.position[2]-(z+.5))<1.1);
-                if(pawn&&(!objectHit||(picks[0]?.t??Infinity)<objectHit.distance))execute({action:'select',colonistId:pawn.id});
+                if(pawn&&((!objectHit&&!treeHit)||(picks[0]?.t??Infinity)<Math.min(objectHit?.distance??Infinity,treeHit?.distance??Infinity)))execute({action:'select',colonistId:pawn.id});
+                else if(treeHit){execute({action:'select'});selectedTreeId=treeHit.tree.id;status=`整棵树木 · 树干、分枝与树冠共用一个物体 · 高 ${treeHit.tree.trunkHeight+2} 格`;refreshState=true;}
                 else{const b=objectHit?.building;execute({action:'select'});selectedBuildingId=b?.id??null;status=b?`${BUILDING_DEFS[b.kind as BuildingKind].name} · ${b.complete?'已建成':b.phase==='preparingTerrain'?'准备地基':`施工 ${Math.round(b.progress*100)}%`}${b.kind==='door'?b.doorOpen?' · 开启':' · 关闭':''}${b.blockedReason?` · ${b.blockedReason}`:''}`:`地块 [${x}, ${z}] · 地面标高 ${voxels.terrainHeight(x,z)}`;refreshState=true;}
               }
             }
-            if (sandbox && (hit||objectHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
+            if (sandbox && (hit||objectHit||treeHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
               const shouldRemove = input.mouse.justPressed(2) || mode === 'remove';
               const paintRoad = !shouldRemove && selected === BLOCK.Road;
               const editCell = hit?(shouldRemove || paintRoad ? hit.cell : hit.adjacent):null;
               const protectedBuilding=editCell?buildingProtectingVoxel(colonyState.buildings,...editCell):undefined;
-              if(objectHit){
-                selectedBuildingId=objectHit.building.id;
+              if(treeHit){
+                if(shouldRemove && voxels.removeTree(treeHit.tree.id)){
+                  lastEdit={action:'remove-tree',treeId:treeHit.tree.id,x:treeHit.tree.x,y:treeHit.tree.y,z:treeHit.tree.z};
+                  selectedTreeId=null;colony.tick(0);colonyState=colony.snapshot();changed('已移除整棵树 · Ctrl + Z 恢复 · 沙盒移除不产出木材');
+                }else{status='此处属于整棵树木，请先整体移除或选择其他位置';refreshState=true;}
+              } else if(objectHit){
+                selectedBuildingId=objectHit.building.id;selectedTreeId=null;
                 if(shouldRemove)execute({action:'demolish',id:objectHit.building.id});
                 else{status='设施占用此处，请先整体拆除或选择其他位置';refreshState=true;}
               } else if(protectedBuilding){status='此格属于设施或它的地基，请先整体拆除设施';refreshState=true;}
+              else if(editCell&&treeProtectingVoxel(voxels,...editCell)){status='此格属于树木或树根地基，请先移除整棵树';refreshState=true;}
               else if (editCell && voxels.inBounds(...editCell) && editCell[1] > 0) {
                 const block = shouldRemove ? 0 : selected;
                 if (shouldRemove || (paintRoad ? roadAllowed : voxels.get(...editCell) === 0 || voxels.get(...editCell) === 8)) {
@@ -804,7 +839,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }
             }
           } else if (hoverCell) {
-            hoverCell = null; hoverBuildingId=null;hoverBuildingPart=null;hoverKey = ''; if(!stroke){terrainView.clearPreview();previewKey='';} world.set(cursor, Transform, { pos: [0, -100, 0] }).unwrap(); refreshState = true;
+            hoverCell = null; hoverBuildingId=null;hoverBuildingPart=null;hoverTreeId=null;hoverTreePart=null;hoverKey = ''; if(!stroke){terrainView.clearPreview();previewKey='';} world.set(cursor, Transform, { pos: [0, -100, 0] }).unwrap(); refreshState = true;
           }
           // Releasing over a panel commits only the area already painted on the map.
           if (releasedStroke && stroke) finishStroke();

@@ -1,0 +1,92 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "Layered voxel tree"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "tree.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Unified trunk branches and canopy"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:Unified trunk branches and canopy": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1de45-c53c-7e37-8b22-7c713ee34893",
+          "slotName": "Bark and three foliage greens",
+          "sourceKey": "material:Bark and three foliage greens"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1de45-c53b-71a2-aa04-c242c948c282",
+      "kind": "mesh",
+      "name": "Unified trunk branches and canopy",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:Unified trunk branches and canopy"
+    },
+    {
+      "guid": "01a1de45-c53c-7e37-8b22-7c713ee34893",
+      "kind": "material",
+      "name": "Bark and three foliage greens",
+      "sourceIndex": 0,
+      "sourceKey": "material:Bark and three foliage greens"
+    },
+    {
+      "guid": "01a1de45-c53c-7e37-8b22-7c7278002b07",
+      "kind": "scene",
+      "name": "Senyu tree",
+      "sourceIndex": 0,
+      "sourceKey": "scene:Senyu tree"
+    }
+  ]
+}

@@ -20,7 +20,7 @@ describe('whole-object interaction',()=>{
     expect(buildingProtectingVoxel([bed],22,5,20)).toBeUndefined();
   });
   it('rejects an entire history operation without losing its undo/redo transaction',()=>{
-    const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed:'interaction-test',size:[48,24,48],edits:[]}));
+    const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed:'interaction-test',size:[48,24,48],edits:[],treeVersion:1,trees:[]}));
     world.edit([{x:20,y:15,z:20,block:BLOCK.Planks},{x:21,y:15,z:20,block:BLOCK.Planks}]);
     expect(world.undo(()=>false)).toBe(false);expect(world.undoCount).toBe(1);expect(world.redoCount).toBe(0);
     expect(world.get(21,15,20)).toBe(BLOCK.Planks);expect(world.undo()).toBe(true);
