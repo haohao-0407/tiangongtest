@@ -15,6 +15,10 @@ Dependabot 和外部 fork 的 PR 使用维护者手动触发。有合并冲突�
 
 默认模型为官方 quickstart 的 `gpt-6-astra`，可使用 repository variable `OPENAI_REVIEW_MODEL` 指定当前 OpenAI 项目有权使用的模型。密钥需要 Agents API 和 Responses API 权限；创建密钥不代表项目已具备托管环境访问权限。实际运行会消耗该项目的 API 额度。
 
+思考强度通过 repository variable `OPENAI_REVIEW_REASONING_EFFORT` 设置，支持 `low`、`medium`、`high`、`xhigh`、`max`，未设置或留空时默认为 `high`。入口是仓库 **Settings → Secrets and variables → Actions → Variables → New repository variable**。模型和强度是普通变量；API 密钥仍放在 Secrets。修改强度后，正式 PR 审查与 API smoke 检查都会把该值传给 `agent.reasoning.effort`，运行日志会显示生效的强度。非法值在 API 请求前报错。
+
+强度配置影响下一次实际调用；同一 head/base/目标分支已经完成的审查仍按原规则跳过，修改变量不会自动发起新审查。较高强度通常增加耗时和 token 消耗；现有正式审查超时仍为 8 分钟，smoke 检查为 3 分钟。更换模型时需确保新模型支持选定档位。
+
 本次创建的密钥有效期为 **30 天**。到期前需要轮换本机 `.env.local` 和 GitHub Actions Secret；本程序不会自动新建密钥。
 
 ## 本地命令
@@ -26,6 +30,8 @@ npm --prefix tools/pr-review ci --ignore-scripts --no-audit --no-fund
 npm --prefix tools/pr-review test
 node --env-file=.env.local tools/pr-review/review.mjs --smoke
 ```
+
+本地可在执行命令前设置 `$env:OPENAI_REVIEW_REASONING_EFFORT = 'xhigh'`；不设置时同样默认 `high`。
 
 对真实 PR 的本地预览需要已经配置的 `GITHUB_TOKEN`（不在命令行写令牌）；`--dry-run` 仍然调用付费 OpenAI API，但不发表评论：
 
