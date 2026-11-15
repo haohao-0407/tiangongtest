@@ -1,2 +1,7 @@
 # Local launcher logs, package-manager cache and session state.
 /.launcher/
+
+# Local API credentials must never be committed.
+/.env.local
+/tools/pr-review/node_modules/
+/tools/pr-review/output/

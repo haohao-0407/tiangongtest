@@ -1,0 +1,81 @@
+name: AI PR Review
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Open PR number (leave empty for API smoke check)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# Let a running session clean up normally. Later runs re-read the current PR head.
+concurrency:
+  group: ai-pr-review-${{ github.event.pull_request.number || inputs.pr_number || 'smoke' }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (!github.event.pull_request.draft &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # Secrets must never be used with a checkout of a PR's head or merge commit.
+      - name: Checkout trusted reviewer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24.15.0'
+          package-manager-cache: false
+      - name: Check reviewer is installed on base
+        id: installed
+        shell: bash
+        run: |
+          if [ -f tools/pr-review/review.mjs ]; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::Merge the initial reviewer installation into the base branch before automatic review is available.'
+          fi
+      - name: Install locked reviewer dependencies
+        if: steps.installed.outputs.ready == 'true'
+        working-directory: tools/pr-review
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify reviewer behavior
+        if: steps.installed.outputs.ready == 'true'
+        working-directory: tools/pr-review
+        run: npm test
+      - name: Review PR or check API access
+        if: steps.installed.outputs.ready == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_REVIEW_MODEL: ${{ vars.OPENAI_REVIEW_MODEL || 'gpt-6-astra' }}
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo '::error::Set the repository Actions secret OPENAI_API_KEY before running AI PR Review.'
+            exit 1
+          fi
+          if [ -n "$PR_NUMBER" ]; then
+            node tools/pr-review/review.mjs --output tools/pr-review/output/review.md
+          else
+            node tools/pr-review/review.mjs --smoke
+          fi

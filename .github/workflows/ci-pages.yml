@@ -34,6 +34,11 @@ jobs:
         with:
           node-version: '24.15.0'
           package-manager-cache: false
+      - name: Test PR reviewer
+        working-directory: tools/pr-review
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm test
       - uses: pnpm/action-setup@f53f5227a9e83886ab598c617f3c170fab62f0d3 # v6
         with:
           package_json_file: game/package.json
