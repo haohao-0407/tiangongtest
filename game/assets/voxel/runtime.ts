@@ -773,7 +773,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                   status = `砍伐中 ${Math.round(playerChop.progress * 100)}%${hasAxe ? ' · 木斧' : ''}`;
                   refreshState = true;
                 }
-              } else if (!holding) {
+              } else if (!holding || !inReach) {
+                // 松手、或者目标已经不在准星里（树被自己/随从砍掉了）——进度作废
                 playerChop = null;
               }
             } else {

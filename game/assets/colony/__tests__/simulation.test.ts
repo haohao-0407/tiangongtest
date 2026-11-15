@@ -318,6 +318,32 @@ describe('resident needs and civilian production',()=>{
     expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.targetId===tree.id)).toBe(false);
     expect(sim.playerFellTree(tree.id).ok).toBe(false);
   });
+  it('shows what happens when the player fells a tree a resident is already chopping',()=>{
+    const{sim,world}=setup();onlyJob(sim,'chop');
+    const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40)!;
+    expect(sim.command({action:'designate',kind:'chop',id:tree.id}).ok).toBe(true);
+    // 让随从跑到树旁并砍一会儿，但别砍完整棵
+    run(sim,10);
+    const midway=sim.snapshot();
+    const job=midway.jobs.find(j=>j.type==='chop'&&j.targetId===tree.id)!;
+    expect(job).toBeDefined();
+    expect(job.progress).toBeGreaterThan(0);          // 确实已经砍进去一部分
+    expect(job.progress).toBeLessThan(job.work);      // 但还没砍完
+    const workerId=job.assignedTo;
+
+    // 玩家此刻亲手把树砍倒
+    expect(sim.playerFellTree(tree.id).ok).toBe(true);
+
+    const after=sim.snapshot();
+    // 这棵树的伐木任务被清掉，随从从任务里释放出来
+    expect(after.jobs.some(j=>j.type==='chop'&&j.targetId===tree.id)).toBe(false);
+    const worker=after.colonists.find(c=>c.id===workerId)!;
+    expect(worker.jobId).toBeNull();
+    // 而且没有卡在原地：后续还会被派去干别的（这里只验他没被锁死）
+    run(sim,40);
+    const later=sim.snapshot();
+    expect(later.colonists.find(c=>c.id===workerId)!.jobId !== undefined).toBe(true);
+  });
   it('spends resident stamina on chopping beyond the natural drain',()=>{
     const{sim,world}=setup();onlyJob(sim,'chop');
     const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40)!;
