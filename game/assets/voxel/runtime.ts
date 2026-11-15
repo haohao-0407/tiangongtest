@@ -626,9 +626,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 player.moving = false;
               }
 
-              // 空格在角色视角归跳跃；俯视视角仍然留给暂停
+              // 空格只管跳跃。俯视视角按空格不做任何事——
+              // 之前那里还绑了「暂停」，结果一次按键既跳又暂停，手感是坏的。
               // 跳跃不消耗体力。体力留给后面的采集/战斗，先不在这里扣。
-              if (k.justPressedCode('Space') && player.grounded) {
+              if (k.justPressedCode('Space') && viewMode === 'character' && player.grounded) {
                 player.vy = Math.sqrt(-2 * PLAYER_GRAVITY * PLAYER_JUMP);
                 player.grounded = false;
                 refreshState = true;
@@ -703,8 +704,6 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             }
 
             if (k.justPressedCode('KeyF')) home();
-            // 空格：俯视视角是暂停，玩家视角留给跳跃（上面已处理）
-            if (k.justPressedCode('Space') && viewMode === 'god') execute({action:'speed',value:colonyState.speed===0?1:0});
             if (k.justPressedCode('Escape')) {cancelStroke();terrainSample=false;tool='inspect';refreshState=true;}
             if (dx || dz || input.mouse.button(1) || input.mouse.button(2) || input.mouse.wheelDelta) refreshState = true;
           }

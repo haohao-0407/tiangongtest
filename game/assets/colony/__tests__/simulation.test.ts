@@ -348,7 +348,7 @@ describe('resident needs and civilian production',()=>{
     // 过了 0.5 秒：被玩家捡走
     for(let i=0;i<4;i++)sim.tick(.15,player);
     expect(sim.snapshot().items.some(i=>i.resource==='wood'&&i.amount===5)).toBe(false);
-    expect(sim.snapshot().playerBag.filter(Boolean).some(s=>s.resource==='wood')).toBe(true);
+    expect(sim.snapshot().playerBag.some(slot=>slot?.resource==='wood')).toBe(true);
   });
   it('shows what happens when the player fells a tree a resident is already chopping',()=>{
     const{sim,world}=setup();onlyJob(sim,'chop');

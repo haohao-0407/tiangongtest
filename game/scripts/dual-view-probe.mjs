@@ -483,6 +483,13 @@ export default async function dualViewProbe(play) {
   assert.ok(/^\d+$/.test(goldText.trim()), `金币应显示数字，实际「${goldText}」`);
   await play.screenshot('hotbar-bag');
 
+  assert.equal(bagNow[selNow].resource, takenResource, '应对刚送到的普通物品测试右键');
+  await hotbarSlot(selNow).click({ button: 'right' });
+  const afterHotbarRightClick = await advance(0.5);
+  assert.deepEqual(afterHotbarRightClick.player.bag, bagNow, '快捷栏右键不应转移物品');
+  assert.deepEqual(afterHotbarRightClick.colony.resources, hotbarState.colony.resources, '快捷栏右键不应增加仓库库存');
+  assert.equal(afterHotbarRightClick.status, hotbarState.status, '快捷栏右键不应触发转移提示');
+
   // ---- 木箱：位置在投影里，面板能打开 ----
   const chestState = await read();
   assert.ok(Array.isArray(chestState.player.chest), `投影里应有木箱位置，实际 ${JSON.stringify(chestState.player.chest)}`);

@@ -161,6 +161,10 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   on(shadow, 'focusin', () => send('hover', { value: true }));
   on(shadow, 'focusout', () => win.setTimeout(() => { syncHover(); renderPanel(); }, 0));
   on(shadow, 'contextmenu', e => e.preventDefault());
+  on(get('hotbar'), 'contextmenu', event => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
 
   const showTool = (tool: string) => {
     const hints: Record<string, string> = { inspect: '查看模式 · 点击居民或物体任一部分查看详情', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '整体拆除 · 点击物体任一部分 · 完工设施回收 50% 建材', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树干或树冠，安排整棵砍伐', mine: '采矿规划 · 点击地表钢矿或石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
@@ -965,12 +969,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         const res = item.resource;
         slot.append(make('span', '', iconOf(res)));
         slot.append(make('span', 'hotbar-count', String(item.count)));
-        slot.title = `${nameOf(res)} · ${item.count}（右键放回仓库）`;
-        slot.addEventListener('contextmenu', (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          transferInventory(location, { kind: 'warehouse' }, item);
-        });
+        slot.title = `${nameOf(res)} · ${item.count}`;
         attachInventoryDrag(slot, item, location);
       }
       slot.addEventListener('click', () => { if (!ignoreInventoryClick) send('bagSelect', { index: i }); });
