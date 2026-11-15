@@ -1,7 +1,8 @@
 import { BLOCK, VoxelWorld } from '../voxel/model.ts';
+import {buildingDimensions,buildingParts,buildingBlocksMovement} from './buildings.ts';
 import {
   BUILDING_DEFS, RESEARCH_DEFS, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES,
-  type BuildingKind, type BuildingView, type ColonyCommand, type ColonyEvent,
+  type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
   type ColonySnapshot, type ColonistView, type CommandResult, type CropView,
   type ItemView, type JobType, type JobView, type Position, type Resource,
   type Resources, type RoomView, type Schedule, type ZoneView, type TerrainPlanView,
@@ -15,7 +16,7 @@ const EMPTY_RESOURCES = (): Resources => Object.fromEntries(RESOURCE_TYPES.map((
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
 const horizontalDistance = (a: Position, b: Position) => Math.hypot(a[0] - b[0], a[2] - b[2]);
-type Personal = { kind: 'eat'|'sleep'|'relax'|'wander'|'patient'; elapsed: number; duration: number; reserved: Partial<Resources> };
+type Personal = { kind: 'eat'|'sleep'|'relax'|'wander'|'patient'; elapsed: number; duration: number; reserved: Partial<Resources>; buildingId?:string };
 type Colonist = ColonistView & { path: Position[]; personal: Personal | null; destination: Position | null; retryAt: number };
 type TerrainPlan = TerrainPlanView & {initialWork:number};
 type Earthwork = {x:number;z:number;target:number;height:number;plans:string[];blockedReason?:string};
@@ -35,10 +36,13 @@ export class ColonySimulation {
   private walkSurface: ((x:number,z:number,fallback:number)=>number) | undefined;
   /** Source graph/pathfinding stay coarse; derived treads determine actual motion height. */
   setWalkSurfaceSampler(sampler:(x:number,z:number,fallback:number)=>number):void {this.walkSurface=sampler;}
+  private externalOccupancy:((x:number,y:number,z:number,w:number,h:number,d:number)=>boolean)|undefined;
+  setExternalOccupancySampler(sampler:(x:number,y:number,z:number,w:number,h:number,d:number)=>boolean):void {this.externalOccupancy=sampler;}
   private s: SavedState;
   private ground:Float32Array;
   private earthwork=new Map<number,Earthwork>();
   private buildingAt=new Map<number,BuildingView>();
+  private buildingVoxels=new Map<number,BuildingView>();
   private blockedCells=new Set<number>();
   private pathParents:Int32Array;
   private pathSeen:Uint32Array;
@@ -85,8 +89,9 @@ export class ColonySimulation {
       ['bed', 1, -3], ['bed', 2, -3], ['bed', 3, -3], ['table', 1, -1],
       ['stove', 3, -1], ['workbench', 4, -1], ['researchDesk', 4, 1],
     ] as [BuildingKind, number, number][]) {
-      const p = this.closestOpen(cx + dx, cz + dz, true);
-      if (p) this.s.buildings.push({ id: this.id('building'), kind, x: Math.floor(p[0]), y: p[1], z: Math.floor(p[2]), w:1,d:1,phase:'completed',complete: true, progress: 1, reserved: {}, powered: false, comfort: 0, roomId: null });
+      const p = this.findBuildingPosition(kind,cx+dx,cz+dz,this.s.buildings,0);
+      if (p) this.s.buildings.push({ id: this.id('building'), kind, ...p,...buildingDimensions(kind,0),rotation:0,phase:'completed',complete: true, progress: 1, reserved: {}, powered: false, comfort: 0, roomId: null });
+      this.rebuildBuildings();
     }
     const names = ['林夏', '阿澈', '青禾'];
     names.forEach((name, index) => this.addColonist(name, cx - 1, cz + index - 1, index));
@@ -194,7 +199,9 @@ export class ColonySimulation {
         }
         return {ok:true,message:'居民安排已更新'};
       }
-      if (c.action === 'build') return this.orderBuild(c.kind, c.x, c.z,c.target);
+      if (c.action === 'build') return this.orderBuild(c.kind, c.x, c.z,c.target,c.rotation);
+      if (c.action === 'toggleDoor') return this.toggleDoor(c);
+      if (c.action === 'demolish') return this.demolish(c);
       if (c.action === 'level') return this.orderLevel(c);
       if (c.action === 'designate') return this.designate(c);
       if (c.action === 'cancel') return this.cancel(c.id);
@@ -222,13 +229,35 @@ export class ColonySimulation {
     if (!Number.isInteger(x) || !Number.isInteger(z) || Number(x) < 0 || Number(x) >= this.world.width || Number(z) < 0 || Number(z) >= this.world.depth) throw new Error('位置超出地图范围。');
   }
   private cellKey(x:number,z:number):number{return x+z*this.world.width;}
+  private voxelKey(x:number,y:number,z:number):number{return x+this.world.width*(z+this.world.depth*y);}
+  buildingAtVoxel(x:number,y:number,z:number):BuildingView|undefined {
+    if(![x,y,z].every(Number.isInteger)||!this.world.inBounds(x,y,z))return undefined;
+    return this.buildingVoxels.get(this.voxelKey(x,y,z));
+  }
+  blocksVoxel(x:number,y:number,z:number):boolean {const b=this.buildingAtVoxel(x,y,z);return !!b&&buildingBlocksMovement(b);}
   private footprint(b:Pick<BuildingView,'x'|'z'|'w'|'d'>):[number,number][]{const cells:[number,number][]=[];for(let z=b.z;z<b.z+b.d;z++)for(let x=b.x;x<b.x+b.w;x++)cells.push([x,z]);return cells;}
   private rebuildBuildings():void {
-    this.buildingAt.clear();this.blockedCells.clear();
-    for(const b of this.s.buildings)for(const[x,z]of this.footprint(b)){
-      this.buildingAt.set(this.cellKey(x,z),b);
-      if(b.complete&&BUILDING_DEFS[b.kind].blocking)this.blockedCells.add(this.cellKey(x,z));
+    this.buildingAt.clear();this.buildingVoxels.clear();this.blockedCells.clear();
+    for(const b of this.s.buildings){
+      for(const part of buildingParts(b))this.buildingVoxels.set(this.voxelKey(part.x,part.y,part.z),b);
+      for(const[x,z]of this.footprint(b)){
+        this.buildingAt.set(this.cellKey(x,z),b);
+        if(buildingBlocksMovement(b))this.blockedCells.add(this.cellKey(x,z));
+      }
     }
+  }
+  private findBuildingPosition(kind:BuildingKind,x:number,z:number,others:BuildingView[],rotation:BuildingRotation,target?:number,crops:CropView[]=this.s.crops):{x:number;y:number;z:number}|null {
+    const {w,h,d}=buildingDimensions(kind,rotation);
+    for(let radius=0;radius<12;radius++)for(let dz=-radius;dz<=radius;dz++)for(let dx=-radius;dx<=radius;dx++){
+      if(Math.max(Math.abs(dx),Math.abs(dz))!==radius)continue;
+      const xx=x+dx,zz=z+dz,y=target??this.world.terrainHeight(xx,zz);
+      if(xx<0||zz<0||xx+w>this.world.width||zz+d>this.world.depth||y<1||y+h>this.world.height)continue;
+      if(others.some(b=>xx<b.x+b.w&&xx+w>b.x&&zz<b.z+b.d&&zz+d>b.z))continue;
+      const cells=this.footprint({x:xx,z:zz,w,d});
+      if(cells.some(([cx,cz])=>this.world.terrainHeight(cx,cz)!==y||crops.some(p=>p.x===cx&&p.z===cz)))continue;
+      if(buildingParts({kind,x:xx,y,z:zz,rotation}).some(p=>this.world.get(p.x,p.y,p.z)!==BLOCK.Air))continue;
+      return{x:xx,y,z:zz};
+    }return null;
   }
   private validTarget(target:unknown):asserts target is number{if(!Number.isInteger(target)||Number(target)<1||Number(target)>this.world.height-2)throw new Error(`目标标高须为 1–${this.world.height-2} 的整数。`);}
   private orderLevel(c:ColonyCommand):CommandResult {
@@ -252,22 +281,59 @@ export class ColonySimulation {
     const plan:TerrainPlan={id:this.id('terrain'),target,cells,initialWork,remainingCut:0,remainingFill:0,progress:0,state:'queued',...(buildingId?{buildingId}:{})};
     this.s.terrainPlans.push(plan);this.terrainIndexDirty=true;this.refreshTerrainPlans();return plan;
   }
-  private orderBuild(kind: string|undefined, x: number|undefined, z: number|undefined,target?:number): CommandResult {
+  private orderBuild(kind: string|undefined, x: number|undefined, z: number|undefined,target?:number,rotation:number=0): CommandResult {
     this.validCell(x,z); const zz = z!;
     if (!kind || !(kind in BUILDING_DEFS)) throw new Error('未知建筑。');
+    if(!Number.isInteger(rotation)||rotation<0||rotation>3)throw new Error('建筑朝向必须为 0、1、2、3。');
     const def = BUILDING_DEFS[kind as BuildingKind];
     if (def.research && !this.s.research.completed.includes(def.research)) throw new Error(`需要研究：${RESEARCH_DEFS[def.research]!.name}`);
-    const [w,d]=def.footprint??[1,1],y=target??this.world.terrainHeight(x,zz);this.validTarget(y);
-    if(x+w>this.world.width||zz+d>this.world.depth)throw new Error('建筑占地超出地图范围。');
+    const {w,h,d}=buildingDimensions(def.id,rotation),y=target??this.world.terrainHeight(x,zz);this.validTarget(y);
+    if(x+w>this.world.width||zz+d>this.world.depth||y+h>this.world.height)throw new Error('建筑整体超出地图范围。');
     const cells=this.footprint({x,z:zz,w,d});this.rebuildBuildings();
     if(cells.some(([xx,z])=>this.buildingAt.has(this.cellKey(xx,z))))throw new Error('建筑占地内已有建筑或蓝图。');
     if(cells.some(([xx,z])=>this.s.crops.some(p=>p.x===xx&&p.z===z)))throw new Error('请先取消建筑占地内的农田。');
     for(const[xx,z]of cells){const old=this.earthwork.get(this.cellKey(xx,z));if(old&&old.target!==y)throw new Error('建筑地基与已有整地目标冲突。');}
-    const building: BuildingView = {id:this.id('building'),kind:def.id,x,y,z:zz,w,d,phase:'preparingTerrain',complete:false,progress:0,reserved:{},powered:false,comfort:0,roomId:null};
+    const rotationValue=rotation as BuildingRotation;
+    // Earthwork may cut natural soil/rock; authored voxels cannot disappear to make room for furniture.
+    for(const p of buildingParts({kind:def.id,x,y,z:zz,rotation:rotationValue}))if(![BLOCK.Air,BLOCK.Water,BLOCK.Leaves,BLOCK.Grass,BLOCK.Dirt,BLOCK.Stone,BLOCK.Sand,BLOCK.Wood].includes(this.world.get(p.x,p.y,p.z) as never))throw new Error('物体体积内有方块障碍，请先清理。');
+    const building: BuildingView = {id:this.id('building'),kind:def.id,x,y,z:zz,w,h,d,rotation:rotationValue,...(def.id==='door'?{doorOpen:false}:{}),phase:'preparingTerrain',complete:false,progress:0,reserved:{},powered:false,comfort:0,roomId:null};
     this.s.buildings.push(building);this.rebuildBuildings();
     const plan=this.createLevelPlan(cells,y,building.id);building.terrainPlanId=plan.id;this.refreshJobs();
     this.event('info', `已规划${def.name}，地基整平后再施工。`);
     return {ok:true,message:`${def.name}蓝图已下达`,id:building.id};
+  }
+  private commandBuilding(c:ColonyCommand):BuildingView {
+    const building=c.id?this.s.buildings.find(b=>b.id===c.id):Number.isInteger(c.y)?this.buildingAtVoxel(c.x!,c.y!,c.z!):undefined;
+    if(!building)throw new Error('未找到该位置的完整物体。');return building;
+  }
+  private occupiedByActor(b:BuildingView):boolean {
+    return !!this.externalOccupancy?.(b.x,b.y,b.z,b.w,b.h,b.d)||this.s.colonists.some(p=>p.position[0]+.23>b.x&&p.position[0]-.23<b.x+b.w&&p.position[2]+.23>b.z&&p.position[2]-.23<b.z+b.d&&p.position[1]+1.5>b.y&&p.position[1]<b.y+b.h);
+  }
+  private invalidateBuildingNavigation():void {
+    this.rebuildBuildings();this.navigationDirty=true;this.updateRooms();
+    for(const c of this.s.colonists){
+      if(c.path.some(p=>!this.walkable(Math.floor(p[0]),Math.floor(p[2])))){this.releasePerson(c);c.retryAt=this.s.time;}
+      else if(!c.jobId&&!c.personal)c.retryAt=this.s.time;
+    }
+  }
+  private toggleDoor(c:ColonyCommand):CommandResult {
+    const b=this.commandBuilding(c);
+    if(b.kind!=='door'||!b.complete)throw new Error('只能操作已建成的门。');
+    if(b.doorOpen&&this.occupiedByActor(b))throw new Error('门口有人，请等离开后再关门。');
+    b.doorOpen=!b.doorOpen;this.invalidateBuildingNavigation();this.refreshJobs();
+    return{ok:true,id:b.id,message:b.doorOpen?'门已打开，可以通行':'门已关闭，阻挡通行并围合房间'};
+  }
+  private demolish(c:ColonyCommand):CommandResult {
+    const b=this.commandBuilding(c);if(!b.complete)return this.cancel(b.id);
+    for(const p of this.s.colonists)if(p.personal?.buildingId===b.id||p.personal&&p.destination?.[0]===b.x+.5&&p.destination?.[2]===b.z+.5)this.releasePerson(p);
+    for(const job of [...this.s.jobs])if(job.targetId===b.id||job.type==='research'&&job.x===b.x&&job.z===b.z)this.removeJob(job,true);
+    this.s.buildings.splice(this.s.buildings.indexOf(b),1);
+    for(const plan of this.s.terrainPlans)if(plan.buildingId===b.id)this.terrainCellViews.delete(plan.id);
+    this.s.terrainPlans=this.s.terrainPlans.filter(p=>p.buildingId!==b.id);this.terrainIndexDirty=true;
+    const recovered:Partial<Resources>={};for(const r of RESOURCE_TYPES){const amount=Math.floor((BUILDING_DEFS[b.kind].cost[r]??0)*.5);if(amount)recovered[r]=amount;}
+    this.give(recovered);this.invalidateBuildingNavigation();this.updatePower(0);this.refreshJobs();
+    this.event('info',`已整体拆除${BUILDING_DEFS[b.kind].name}，回收一半建材。`);
+    return{ok:true,id:b.id,message:'已整体拆除，回收 50% 建材（各项向下取整）'};
   }
   private terrainBlocker(x:number,z:number,target:number):string|undefined {
     const building=this.buildingAt.get(this.cellKey(x,z));
@@ -277,6 +343,9 @@ export class ColonySimulation {
     if(this.world.waterSurfaceHeight(x,z)>target)return '目标地面仍有积水，请提高标高';
     for(let y=target;y<Math.min(this.world.height,target+2);y++)if(![BLOCK.Air,BLOCK.Water,BLOCK.Leaves,BLOCK.Grass,BLOCK.Dirt,BLOCK.Stone,BLOCK.Sand].includes(this.world.get(x,y,z) as never))return '等待清理地面障碍';
     return undefined;
+  }
+  private buildingClearance(b:BuildingView):boolean {
+    return buildingParts(b).every(p=>this.world.get(p.x,p.y,p.z)===BLOCK.Air||this.world.get(p.x,p.y,p.z)===BLOCK.Leaves);
   }
   private planReason(id:string,reason:string|undefined,delta:number):void {
     if(!reason)return;let counts=this.terrainReasons.get(id);if(!counts){counts=new Map();this.terrainReasons.set(id,counts);}
@@ -354,9 +423,9 @@ export class ColonySimulation {
     for(const b of this.s.buildings){
       if(b.complete){b.phase='completed';continue;}
       const plan=this.s.terrainPlans.find(p=>p.id===b.terrainPlanId);
-      const ready=this.footprint(b).every(([x,z])=>this.world.terrainHeight(x,z)===b.y&&!this.terrainBlocker(x,z,b.y));
+      const ready=this.footprint(b).every(([x,z])=>this.world.terrainHeight(x,z)===b.y&&!this.terrainBlocker(x,z,b.y))&&this.buildingClearance(b);
       if(!ready||(plan&&plan.state!=='completed')){
-        b.phase='preparingTerrain';b.blockedReason=plan?.blockedReason;
+        b.phase='preparingTerrain';b.blockedReason=plan?.blockedReason??(!this.buildingClearance(b)?'等待清理物体占用空间':undefined);
         for(const j of [...this.s.jobs])if(j.type==='construct'&&j.targetId===b.id)this.removeJob(j,false);
         continue;
       }
@@ -419,7 +488,7 @@ export class ColonySimulation {
       if (this.s.zones.some((zone) => x < zone.x+zone.w && x+w > zone.x && z < zone.z+zone.d && z+d > zone.z)) throw new Error('区域不能相互重叠。');
       const cells: [number,number][]=[];
       for(let zz=z;zz<z+d;zz++)for(let xx=x;xx<x+w;xx++)cells.push([xx,zz]);
-      if(cells.some(([xx,zz])=>!this.walkable(xx,zz)||this.s.buildings.some(b=>b.x===xx&&b.z===zz)))throw new Error('区域包含水面、障碍或建筑，请选择空地。');
+      if(cells.some(([xx,zz])=>!this.walkable(xx,zz)||this.buildingAt.has(this.cellKey(xx,zz))))throw new Error('区域包含水面、障碍或建筑，请选择空地。');
       const zone=this.addZone(c.kind,x,z,w,d,crop); this.refreshJobs();
       return {ok:true,message:c.kind==='farm'?'种植区已规划，居民会播种和收获':'仓储区已规划，居民会搬运落地物资',id:zone.id};
     }
@@ -429,6 +498,7 @@ export class ColonySimulation {
         const trunk=this.treeBase(xx,zz);
         if(trunk>=1 && !this.s.jobs.some(j=>j.type==='chop'&&j.x===xx&&j.z===zz)) {this.addJob('chop',`tree:${xx}:${zz}`,xx,trunk,zz,16,'砍伐树木');added++;}
       } else if(c.kind==='mine') {
+        if(this.buildingAt.has(this.cellKey(xx,zz)))continue;
         const y=this.world.surfaceHeight(xx,zz,false);
         if(y>0 && [BLOCK.Stone,BLOCK.Dirt,BLOCK.Grass,BLOCK.Sand].includes(this.world.get(xx,y,zz) as never)
           && !this.s.jobs.some(j=>j.type==='mine'&&j.x===xx&&j.z===zz)) {this.addJob('mine',`rock:${xx}:${zz}:${y}`,xx,y,zz,19,'开采地表');added++;}
@@ -445,7 +515,7 @@ export class ColonySimulation {
     const zone:ZoneView={id:this.id('zone'),kind,x,y:Math.max(1,this.groundY(x,z)),z,w,d,crop};this.s.zones.push(zone);
     if(kind==='farm')this.terrainIndexDirty=true;
     if(kind==='farm')for(let zz=z;zz<z+d;zz++)for(let xx=x;xx<x+w;xx++) {
-      const y=this.groundY(xx,zz); if(y<0||this.s.buildings.some(b=>b.x===xx&&b.z===zz))continue;
+      const y=this.groundY(xx,zz); if(y<0||this.buildingAt.has(this.cellKey(xx,zz)))continue;
       this.s.crops.push({id:this.id('crop'),kind:crop,x:xx,y,z:zz,growth:0,planted:false});
     }
     return zone;
@@ -458,7 +528,7 @@ export class ColonySimulation {
       for(const job of [...this.s.jobs])if(job.targetId===building.id)this.removeJob(job,true);
       this.s.buildings.splice(this.s.buildings.indexOf(building),1);
       for(const p of this.s.terrainPlans)if(p.buildingId===building.id)this.terrainCellViews.delete(p.id);
-      this.s.terrainPlans=this.s.terrainPlans.filter(p=>p.buildingId!==building.id);this.terrainIndexDirty=true;this.rebuildBuildings();this.refreshJobs();
+      this.s.terrainPlans=this.s.terrainPlans.filter(p=>p.buildingId!==building.id);this.terrainIndexDirty=true;this.invalidateBuildingNavigation();this.refreshJobs();
       return {ok:true,message:'蓝图已取消，未消耗预约材料已退还'};
     }
     const plan=this.s.terrainPlans.find(p=>p.id===id);
@@ -526,7 +596,7 @@ export class ColonySimulation {
     for(let radius=0;radius<12;radius++)for(let dz=-radius;dz<=radius;dz++)for(let dx=-radius;dx<=radius;dx++) {
       if(Math.max(Math.abs(dx),Math.abs(dz))!==radius)continue;
       const xx=Math.floor(x)+dx,zz=Math.floor(z)+dz;
-      if(this.walkable(xx,zz)&&(!avoidBlueprint||!this.s.buildings.some(b=>b.x===xx&&b.z===zz)))return[xx+0.5,this.groundY(xx,zz),zz+0.5];
+      if(this.walkable(xx,zz)&&(!avoidBlueprint||!this.buildingAt.has(this.cellKey(xx,zz))))return[xx+0.5,this.groundY(xx,zz),zz+0.5];
     }return null;
   }
   /** Reusable A* buffers keep local work affordable on a 250×250 map. */
@@ -662,12 +732,12 @@ export class ColonySimulation {
     return hour<6||hour>=23?'sleep':hour>=19&&hour<22?'relax':'anything';
   }
   private personal(c:Colonist,kind:Personal['kind']):boolean {
-    let target:Position|null=null,path:Position[]|null=null,bed=false,reserved:Partial<Resources>={};
+    let target:Position|null=null,path:Position[]|null=null,bed=false,reserved:Partial<Resources>={},buildingId:string|undefined;
     const useBuildings=(kinds:BuildingKind[],excludeOccupied=false):boolean=>{
       const candidates=this.s.buildings.filter(b=>b.complete&&kinds.includes(b.kind)
-        &&(!excludeOccupied||!this.s.colonists.some(p=>p!==c&&p.personal&&(p.personal.kind==='sleep'||p.personal.kind==='patient')&&p.destination?.[0]===b.x+.5&&p.destination?.[2]===b.z+.5)))
+        &&(!excludeOccupied||!this.s.colonists.some(p=>p!==c&&p.personal&&(p.personal.kind==='sleep'||p.personal.kind==='patient')&&(p.personal.buildingId===b.id||p.destination?.[0]===b.x+.5&&p.destination?.[2]===b.z+.5))))
         .sort((a,b)=>Math.hypot(a.x-c.position[0],a.z-c.position[2])-Math.hypot(b.x-c.position[0],b.z-c.position[2]));
-      for(const b of candidates){const pos:Position=[b.x+.5,b.y,b.z+.5],route=this.path(c.position,pos,true);if(route!==null){target=pos;path=route;return true;}}
+      for(const b of candidates){const pos:Position=[b.x+.5,b.y,b.z+.5],route=this.buildingStand(b,c.position);if(route!==null){target=pos;path=route;buildingId=b.id;return true;}}
       return false;
     };
     if(kind==='eat'){
@@ -681,7 +751,7 @@ export class ColonySimulation {
       if(!useBuildings(['table'])){target=this.closestOpen(Math.floor(c.position[0])+2,Math.floor(c.position[2]));if(target)path=this.path(c.position,target);}
     }else{target=this.closestOpen(Math.floor(c.position[0])+(this.random()<.5?-4:4),Math.floor(c.position[2])+(this.random()<.5?-3:3));if(target)path=this.path(c.position,target);}
     if(!target||path===null)return false;
-    this.releasePerson(c);this.take(reserved);c.path=path;c.destination=target;c.personal={kind,elapsed:0,duration:kind==='eat'?4:kind==='wander'?16:kind==='sleep'||kind==='patient'?bed?20:40:20,reserved};
+    this.releasePerson(c);this.take(reserved);c.path=path;c.destination=target;c.personal={kind,elapsed:0,duration:kind==='eat'?4:kind==='wander'?16:kind==='sleep'||kind==='patient'?bed?20:40:20,reserved,...(buildingId?{buildingId}:{})};
     c.task={eat:'前往用餐',sleep:'前往休息',relax:'休闲娱乐',wander:'散步调节心情',patient:'卧床休养'}[kind];return true;
   }
   private updateColonist(c:Colonist,dt:number):void {
@@ -729,7 +799,7 @@ export class ColonySimulation {
     if(!this.move(c,dt)||c.jobId!==job.id)return;
     if(job.type==='construct'){
       const b=this.s.buildings.find(b=>b.id===job.targetId);
-      if(!b||b.phase==='preparingTerrain'||!this.footprint(b).every(([x,z])=>this.world.terrainHeight(x,z)===b.y&&!this.terrainBlocker(x,z,b.y))){this.removeJob(job,false);this.refreshJobs();return;}
+      if(!b||b.phase==='preparingTerrain'||!this.buildingClearance(b)||!this.footprint(b).every(([x,z])=>this.world.terrainHeight(x,z)===b.y&&!this.terrainBlocker(x,z,b.y))){this.removeJob(job,false);this.refreshJobs();return;}
       b.phase='constructing';
     }
     if(job.type==='haul'){this.haul(c,job);return;}
@@ -797,13 +867,14 @@ export class ColonySimulation {
       if(this.finishTerraform(c,job)){c.skills.terraform=Math.min(20,c.skills.terraform+.05);this.s.metrics.jobsCompleted++;c.task='完成一层填挖';}return;
     }else if(job.type==='construct'){
       const b=this.s.buildings.find(b=>b.id===job.targetId);if(b){
-        if(!this.footprint(b).every(([x,z])=>this.world.terrainHeight(x,z)===b.y&&!this.terrainBlocker(x,z,b.y))){this.removeJob(job,false);this.refreshJobs();return;}
-        if(BUILDING_DEFS[b.kind].blocking&&this.s.colonists.some(p=>p.position[0]>=b.x&&p.position[0]<b.x+b.w&&p.position[2]>=b.z&&p.position[2]<b.z+b.d)){
+        if(!this.buildingClearance(b)||!this.footprint(b).every(([x,z])=>this.world.terrainHeight(x,z)===b.y&&!this.terrainBlocker(x,z,b.y))){this.removeJob(job,false);this.refreshJobs();return;}
+        if(BUILDING_DEFS[b.kind].blocking&&this.occupiedByActor(b)){
           b.blockedReason='等待居民离开建筑占地';job.progress=job.work-.25;
-          for(const p of this.s.colonists)if(p!==c&&p.position[0]>=b.x&&p.position[0]<b.x+b.w&&p.position[2]>=b.z&&p.position[2]<b.z+b.d){
+          for(const p of this.s.colonists)if(p!==c&&p.position[0]+.23>b.x&&p.position[0]-.23<b.x+b.w&&p.position[2]+.23>b.z&&p.position[2]-.23<b.z+b.d){
             this.releasePerson(p);const path=this.buildingStand(b,p.position);if(path){p.path=path;p.destination=path.at(-1)??p.position;p.personal={kind:'wander',elapsed:0,duration:1,reserved:{}};}
           }return;
         }
+        const leaves=buildingParts(b).filter(p=>this.world.get(p.x,p.y,p.z)===BLOCK.Leaves);if(leaves.length)this.world.edit(leaves.map(({x,y,z})=>({x,y,z,block:BLOCK.Air})));
         b.complete=true;b.phase='completed';b.progress=1;b.reserved={};this.s.metrics.built++;this.navigationDirty=true;this.rebuildBuildings();this.event('info',`${c.name}完成了${BUILDING_DEFS[b.kind].name}。`);}
     }else if(job.type==='grow'){
       const crop=this.s.crops.find(p=>p.id===job.targetId);if(crop){crop.planted=true;crop.growth=0;}
@@ -828,6 +899,7 @@ export class ColonySimulation {
         this.world.edit(edits);this.refreshGround();this.navigationDirty=true;this.drop('wood',wood*6,job.x,job.z);
       }
     }else if(job.type==='mine'){
+      if(this.buildingAt.has(this.cellKey(job.x,job.z))){this.removeJob(job,true);return;}
       const y=this.world.surfaceHeight(job.x,job.z,false),block=this.world.get(job.x,y,job.z);
       if(y>0&&[BLOCK.Stone,BLOCK.Dirt,BLOCK.Grass,BLOCK.Sand].includes(block as never)){
         this.world.set(job.x,y,job.z,BLOCK.Air);this.refreshGround();this.navigationDirty=true;this.drop('stone',block===BLOCK.Stone?8:3,job.x,job.z);
@@ -840,7 +912,7 @@ export class ColonySimulation {
 
   private updateRooms():void {
     this.navigationDirty=false;this.rooms=[];this.roomAt.fill(-1);
-    const barriers=new Set(this.s.buildings.filter(b=>b.complete&&(b.kind==='wall'||b.kind==='door')).map(b=>b.x+b.z*this.world.width));
+    const barriers=new Set(this.s.buildings.filter(b=>b.complete&&(b.kind==='wall'||b.kind==='door'&&!b.doorOpen)).flatMap(b=>this.footprint(b).map(([x,z])=>this.cellKey(x,z))));
     if(barriers.size<4){for(const b of this.s.buildings){b.roomId=null;b.comfort=0;}return;}
     const visited=new Uint8Array(this.world.width*this.world.depth);
     for(let start=0;start<this.world.width*this.world.depth;start++){
@@ -870,7 +942,11 @@ export class ColonySimulation {
     const capacity=batteries*12000;
     let stored=Math.min(this.s.power.stored,capacity),supplied=Math.min(demand,generation);
     if(generation>demand)stored=Math.min(capacity,stored+(generation-demand)*dt*.85);
-    else{const draw=Math.min(stored,(demand-generation)*dt);stored-=draw;supplied+=draw/dt;}
+    else{
+      // A paused topology change updates availability without consuming stored energy or time.
+      const draw=Math.min(stored,(demand-generation)*dt);stored-=draw;
+      supplied+=dt>0?draw/dt:stored>0?demand-generation:0;
+    }
     for(const b of this.s.buildings)b.powered=b.complete&&(BUILDING_DEFS[b.kind].power<=0||supplied>=demand-.001);
     this.s.power={generation,demand,stored,capacity,supplied,coldStorage:coolers.length>0&&supplied>=demand-.001};
   }
@@ -919,9 +995,13 @@ export class ColonySimulation {
     const fail=():never=>{throw new Error('殖民地存档数据不完整、损坏或版本不兼容。');};
     if(!data||typeof data!=='object')fail();
     const s=copy(data) as SavedState;
-    // v1 saves predating earthwork retain their original single-cell facilities.
+    // Legacy objects are upgraded together, on the private copy, before any live state changes.
     s.terrainPlans??=[];
-    if(Array.isArray(s.buildings))for(const b of s.buildings)if(b&&typeof b==='object'){b.w??=1;b.d??=1;b.phase??=b.complete?'completed':'readyToBuild';}
+    const legacyBuildings=new Set<string>();
+    if(Array.isArray(s.buildings))for(const b of s.buildings)if(b&&typeof b==='object'){
+      if(b.rotation===undefined&&b.h===undefined){legacyBuildings.add(b.id);b.rotation=0;b.h=BUILDING_DEFS[b.kind]?.height??1;if(b.kind==='door')b.doorOpen??=false;}
+      b.w??=1;b.d??=1;b.phase??=b.complete?'completed':'readyToBuild';
+    }
     if(Array.isArray(s.colonists))for(const c of s.colonists)if(c&&typeof c==='object'){if(c.skills)c.skills.terraform??=c.skills.construct??2;if(c.priorities)c.priorities.terraform??=c.priorities.construct??3;}
     const finite=(n:unknown,min=0,max=1e9)=>typeof n==='number'&&Number.isFinite(n)&&n>=min&&n<=max;
     const integer=(n:unknown,min=0,max=1e9)=>finite(n,min,max)&&Number.isInteger(n);
@@ -941,13 +1021,33 @@ export class ColonySimulation {
         ||!['health','hunger','rest','recreation','mood','disease','comfort'].every(k=>finite(c[k as keyof Colonist],0,100))||!text(c.task)||!resources(c.carrying,true)
         ||!list(c.path,area)||!c.path.every(position)||c.destination!==null&&!position(c.destination)||!finite(c.retryAt)||!c.skills||!c.priorities
         ||!JOB_TYPES.every(j=>finite(c.skills[j],0,20)&&integer(c.priorities[j],0,4))||c.jobId!==null&&!jobIds.has(c.jobId))fail();
-      if(c.personal&&(!['eat','sleep','relax','wander','patient'].includes(c.personal.kind)||!finite(c.personal.elapsed)||!finite(c.personal.duration,0,1000)||!resources(c.personal.reserved,true)))fail();
+      if(c.personal&&(!['eat','sleep','relax','wander','patient'].includes(c.personal.kind)||!finite(c.personal.elapsed)||!finite(c.personal.duration,0,1000)||!resources(c.personal.reserved,true)||c.personal.buildingId!==undefined&&!buildingIds.has(c.personal.buildingId)))fail();
       for(let i=1;i<c.path.length;i++)if(horizontalDistance(c.path[i-1]!,c.path[i]!)>1.01||Math.abs(c.path[i-1]![1]-c.path[i]![1])>1.01)fail();
+    }
+    for(const b of s.buildings){
+      if(!location(b)||!integer(b.y,1,this.world.height-1)||!(b.kind in BUILDING_DEFS)||typeof b.complete!=='boolean'||!finite(b.progress,0,1)||!resources(b.reserved,true)||typeof b.powered!=='boolean'||!finite(b.comfort,0,100)||b.roomId!==null&&!integer(b.roomId,0,area)||!integer(b.w,1,this.world.width)||!integer(b.d,1,this.world.depth)||!integer(b.h,1,this.world.height)||!integer(b.rotation,0,3)||b.x+b.w>this.world.width||b.z+b.d>this.world.depth||b.y+b.h>this.world.height||!['preparingTerrain','readyToBuild','constructing','completed'].includes(b.phase)||b.terrainPlanId!==undefined&&!planIds.has(b.terrainPlanId)||b.blockedReason!==undefined&&!text(b.blockedReason)||b.kind==='door'&&typeof b.doorOpen!=='boolean'||b.kind!=='door'&&b.doorOpen!==undefined)fail();
+      if(b.complete&&(b.phase!=='completed'||b.progress!==1||Object.keys(b.reserved).length)||!b.complete&&b.phase==='completed')fail();
+    }
+    const originalOccupied=new Set<string>();
+    for(const b of s.buildings)for(const[x,z]of this.footprint(b)){const key=`${x},${z}`;if(originalOccupied.has(key))fail();originalOccupied.add(key);}
+    for(const b of s.buildings)if(legacyBuildings.has(b.id)){
+      const dimensions=buildingDimensions(b.kind,b.rotation);
+      if(b.w===dimensions.w&&b.d===dimensions.d&&b.h===dimensions.h&&(!b.complete||buildingParts(b).every(p=>this.world.get(p.x,p.y,p.z)===BLOCK.Air)))continue;
+      const oldX=b.x,oldZ=b.z,position=this.findBuildingPosition(b.kind,b.x,b.z,s.buildings.filter(other=>other!==b),b.rotation,b.y,s.crops);
+      if(!position)throw new Error(`旧存档中的${BUILDING_DEFS[b.kind].name}没有安全的完整占地，加载已取消；请先在旧版清理附近空间。`);
+      Object.assign(b,position,dimensions);
+      for(const plan of s.terrainPlans)if(plan.buildingId===b.id){plan.cells=this.footprint(b);plan.initialWork=plan.cells.reduce((n,[x,z])=>n+Math.abs(this.world.terrainHeight(x,z)-b.y),0);}
+      for(const job of s.jobs)if(job.targetId===b.id||job.type==='research'&&job.x===oldX&&job.z===oldZ){job.x=b.x;job.y=b.y;job.z=b.z;if(job.assignedTo){const c=s.colonists.find(c=>c.id===job.assignedTo);if(c){c.jobId=null;c.path=[];c.destination=null;c.retryAt=0;}job.assignedTo=null;job.state='queued';}}
+      for(const c of s.colonists)if(c.personal&&(c.personal.buildingId===b.id||c.destination?.[0]===oldX+.5&&c.destination?.[2]===oldZ+.5)){
+        for(const r of RESOURCE_TYPES)s.resources[r]+=c.personal.reserved[r]??0;c.personal=null;c.destination=null;c.path=[];c.retryAt=0;
+      }
     }
     const occupied=new Set<string>();
     for(const b of s.buildings){
-      if(!location(b)||!(b.kind in BUILDING_DEFS)||typeof b.complete!=='boolean'||!finite(b.progress,0,1)||!resources(b.reserved,true)||typeof b.powered!=='boolean'||!finite(b.comfort,0,100)||b.roomId!==null&&!integer(b.roomId,0,area)||!integer(b.w,1,this.world.width)||!integer(b.d,1,this.world.depth)||b.x+b.w>this.world.width||b.z+b.d>this.world.depth||!['preparingTerrain','readyToBuild','constructing','completed'].includes(b.phase)||b.terrainPlanId!==undefined&&!planIds.has(b.terrainPlanId)||b.blockedReason!==undefined&&!text(b.blockedReason))fail();
-      for(const[x,z]of this.footprint(b)){const key=`${x},${z}`;if(occupied.has(key))fail();occupied.add(key);}if(b.complete&&Object.keys(b.reserved).length)fail();
+      const dimensions=buildingDimensions(b.kind,b.rotation);
+      if(b.w!==dimensions.w||b.d!==dimensions.d||b.h!==dimensions.h)fail();
+      if(b.complete&&buildingParts(b).some(p=>this.world.get(p.x,p.y,p.z)!==BLOCK.Air))fail();
+      for(const p of buildingParts(b)){const key=`${p.x},${p.y},${p.z}`;if(occupied.has(key))fail();occupied.add(key);}
     }
     for(const z of s.zones)if(!location(z)||!['farm','stockpile'].includes(z.kind)||!integer(z.w,1,this.world.width)||!integer(z.d,1,this.world.depth)||z.x+z.w>this.world.width||z.z+z.d>this.world.depth||!['rice','corn'].includes(z.crop))fail();
     const targets=new Map<number,number>();

@@ -9,13 +9,15 @@ import type { VoxelWorld } from '../voxel/model.ts';
 type V3=[number,number,number];
 type Part={p:V3;s:V3;c:string;shadow?:boolean};
 type RenderPawn={id:string;name:string;position:V3;health:number;task?:string;job?:string;carrying?:Partial<Record<string,number>>};
-type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;complete:boolean;progress:number;powered?:boolean;phase?:string};
+type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;h?:number;rotation?:number;doorOpen?:boolean;complete:boolean;progress:number;powered?:boolean;phase?:string};
 export type ColonyRenderState={
   colonists:RenderPawn[]; buildings:RenderBuilding[];
   zones:{id:string;kind:string;x:number;z:number;w:number;d:number}[];
   crops:{id?:string;x:number;y:number;z:number;growth:number;kind?:string;planted?:boolean}[];
   items:{id:string;resource:string;amount:number;x:number;y:number;z:number}[];
   selectedColonistId?:string|null;
+  selectedBuildingId?:string|null;
+  buildPreview?:RenderBuilding|null;
   /** 玩家角色。不属于殖民地模拟，只在这里画出来。 */
   player?:{x:number;y:number;z:number;facing:number;moving:boolean;grounded:boolean};
 };
@@ -81,19 +83,33 @@ export class ColonyView {
       if(p.health<80)parts.push({p:[x,y+1.65,z],s:[.65*Math.max(.05,p.health/100),.07,.07],c:p.health>35?'health':'bad',shadow:false});
       this.put(`居民/${p.id}`,parts,active);
     }
-    for(const b of state.buildings){
+    for(const b of state.buildPreview?[...state.buildings,state.buildPreview]:state.buildings){
       // Completed walls are composed by the shared semantic voxel renderer.
-      if(b.complete&&b.kind==='wall')continue;
-      const w=b.w??1,d=b.d??1,x=b.x+w/2,y=b.y,z=b.z+d/2;
+      if(b.complete&&b.kind==='wall'&&b.id!=='placement-preview')continue;
+      const w=b.w??1,d=b.d??1,h=b.h??1,x=b.x+w/2,y=b.y,z=b.z+d/2;
+      const rotation=b.rotation??0,ghost=b.id==='placement-preview';
       const parts:Part[]=[];
-      const part=(dx:number,dy:number,dz:number,sx:number,sy:number,sz:number,c:string,shadow=true)=>parts.push({p:[x+dx,y+dy,z+dz],s:[sx,sy,sz],c,shadow});
-      if(!b.complete){part(0,.45,0,w-.14,.9,d-.14,'blueprint',false);part(0,.02,0,w-.02,.035,d-.02,b.phase==='preparingTerrain'?'selected':'zoneStock',false);part(0,1.02,0,w*.8*Math.max(.02,Math.min(1,b.progress)),.06,.07,'light',false);}
+      const part=(dx:number,dy:number,dz:number,sx:number,sy:number,sz:number,c:string,shadow=true)=>{
+        const rx=rotation===1?-dz:rotation===2?-dx:rotation===3?dz:dx;
+        const rz=rotation===1?dx:rotation===2?-dz:rotation===3?-dx:dz;
+        parts.push({p:[x+rx,y+dy,z+rz],s:rotation%2?[sz,sy,sx]:[sx,sy,sz],c:ghost?'blueprint':c,shadow:ghost?false:shadow});
+      };
+      if(!b.complete&&!ghost){
+        // Blueprint bounds are already in world orientation.
+        parts.push({p:[x,y+h/2,z],s:[w-.14,h-.1,d-.14],c:'blueprint',shadow:false});
+        parts.push({p:[x,y+.02,z],s:[w-.02,.035,d-.02],c:b.phase==='preparingTerrain'?'selected':'zoneStock',shadow:false});
+        parts.push({p:[x,y+h+.02,z],s:[w*.8*Math.max(.02,Math.min(1,b.progress)),.06,.07],c:'light',shadow:false});
+      }
       else switch(b.kind){
         case 'wall':part(0,.9,0,1,1.8,1,'stone');part(0,1.84,0,1.03,.08,1.03,'cream');break;
-        case 'door':part(-.41,.9,0,.18,1.8,.35,'wood');part(.41,.9,0,.18,1.8,.35,'wood');part(0,1.72,0,1,.18,.35,'wood');break;
+        case 'door':
+          part(-.44,.96,-.39,.12,1.92,.2,'wood');part(.44,.96,-.39,.12,1.92,.2,'wood');part(0,1.94,-.39,1,.12,.2,'wood');
+          if(b.doorOpen){part(-.39,.93,0,.1,1.8,.78,'wood');part(-.46,.92,.26,.07,.1,.08,'gold');}
+          else{part(0,.93,-.39,.78,1.8,.1,'wood');part(0,.5,-.455,.68,.08,.035,'dark');part(0,1.45,-.455,.68,.08,.035,'dark');part(.26,.92,-.49,.08,.1,.08,'gold');}
+          break;
         case 'floor':part(0,.025,0,.98,.05,.98,'wood');break;
         case 'bed':case 'hospital':case 'hospitalBed':case 'medicalBed':
-          part(0,.22,0,.8,.36,1.4,'wood');part(0,.44,.15,.76,.12,1.03,b.kind==='bed'?'blanket':'white');part(0,.49,-.49,.63,.17,.28,'white');part(0,.5,-.73,.88,.8,.1,'wood');break;
+          part(0,.22,0,.86,.36,1.84,'wood');part(0,.44,.22,.82,.12,1.35,b.kind==='bed'?'blanket':'white');part(0,.49,-.62,.67,.17,.4,'white');part(0,.5,-.91,.94,.8,.1,'wood');part(0,.27,.91,.94,.48,.1,'wood');break;
         case 'table':case 'bench':case 'workbench':case 'research':case 'researchBench':case 'researchDesk':
           for(const dx of[-.35,.35])for(const dz of[-.3,.3])part(dx,.35,dz,.1,.7,.1,'wood');
           part(0,.75,0,1.15,.15,.9,'wood');
@@ -106,7 +122,8 @@ export class ColonyView {
         default:part(0,.4,0,.8,.8,.8,'wood');break;
       }
       if(b.complete&&['solar','battery','cooler'].includes(b.kind))part(.26,.7,.47,.08,.08,.025,b.powered?'green':'bad',false);
-      this.put(`设施/${b.id}`,parts,active,`${b.kind}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}`);
+      if(state.selectedBuildingId===b.id)parts.push({p:[x,y+.025,z],s:[w+.04,.045,d+.04],c:'selected',shadow:false});
+      this.put(`设施/${b.id}`,parts,active,`${b.kind}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
     }
     for(const zone of state.zones){
       const parts:Part[]=[];

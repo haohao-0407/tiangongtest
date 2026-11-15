@@ -187,7 +187,7 @@ For this historical whole-package strict-policy scope, known map/image inputs fa
 Produce a concise Markdown report; no additional JSON is required:
 
 ```markdown
-# ForgeaX procedural asset review
+# ForgeAX procedural asset review
 
 - Object / revision / delivery scope:
 - Required type / actual interface type:

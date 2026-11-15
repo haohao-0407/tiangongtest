@@ -64,6 +64,7 @@ Generation baseline commit: `11d914eddf3c0c6db8ce64fd48dd39638addc02e`
 | Skylight IBL | opt-in |
 | Cubemap Skybox | opt-in |
 | Analytic Sky | opt-in |
+| Physical Sky Background | opt-in |
 | Environment generation/LKG | built-in |
 | Scene Fog | opt-in |
 | Volumetric Fog | opt-in |
@@ -79,13 +80,14 @@ Generation baseline commit: `11d914eddf3c0c6db8ce64fd48dd39638addc02e`
 | BarrelDistortion | opt-in |
 | MSAA | opt-in |
 | TAA | opt-in |
+| Temporal super resolution | opt-in |
 | TAAU dynamic resolution | opt-in |
 | Camera Depth of Field | opt-in |
 | TAA history reset | built-in |
 | TAAU GPU-driven coverage | built-in |
 | TAA inspection/recovery | built-in |
 | Motion Blur | opt-in |
-| HDRP SSAO | test-experimental |
+| AO forward/deferred path probe | test-experimental |
 | Auto exposure | opt-in |
 | 3D LUT color grading | opt-in |
 | Single MaterialAsset path | built-in |
@@ -142,6 +144,7 @@ Generation baseline commit: `11d914eddf3c0c6db8ce64fd48dd39638addc02e`
 | AnimationGraph | built-in |
 | Code-driven animation blending | opt-in |
 | Morph/BlendShape GPU deformation | opt-in |
+| Native Terrain | opt-in |
 | Sprite | built-in |
 | Sprite Atlas | built-in |
 | Sprite Instances | built-in |
@@ -158,6 +161,7 @@ Generation baseline commit: `11d914eddf3c0c6db8ce64fd48dd39638addc02e`
 | Spec-aligned RHI | built-in |
 | Opaque GPU handles | built-in |
 | RHI capability model | built-in |
+| Depth texture load admission | built-in |
 | Browser WebGPU backend | built-in |
 | WebGPU CPU diagnostics | development |
 | wgpu WASM backend | built-in |
@@ -234,6 +238,7 @@ Generation baseline commit: `11d914eddf3c0c6db8ce64fd48dd39638addc02e`
 | One-credit Worker frame pacing | opt-in |
 | Execution report | built-in |
 | Load progress and timeline | built-in |
+| Project startup presentation | opt-in |
 | Explicit Worker World rebuild | opt-in |
 | Surface handoff | built-in |
 | Draw source routing | built-in |
@@ -426,3 +431,8 @@ Generation baseline commit: `11d914eddf3c0c6db8ce64fd48dd39638addc02e`
 | Verified Candidate / Promotion | build-time |
 | Concurrent focused npm publish | build-time |
 | Maintenance CLI | development |
+| ECS numeric memory services | opt-in |
+| Editable mesh modeling kernel | build-time |
+| Modeling drawings and step replay | build-time |
+| Standard parallax displacement | opt-in |
+| Automatic Mesh LOD generation | build-time |

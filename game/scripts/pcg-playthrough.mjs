@@ -7,6 +7,8 @@ import assert from 'node:assert/strict';
 const READ = 'voxel.world';
 const SAVE_KEY = 'homestead.colony.v2';
 const SEED = '森屿-PCG结构验收-16';
+// Keep the road on the same raised platform, clear of the initial beds at z=15..16.
+const ROAD_Z = 14;
 const dot = (a, b) => a.reduce((s, n, i) => s + n * b[i], 0);
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const unit = a => a.map(n => n / Math.hypot(...a));
@@ -150,7 +152,7 @@ export default async function pcgPlaythrough(play) {
     await wait(s => s.selected === 10);
     for (let x = 11; x <= 23; x++) {
       const y = x >= 18 ? 5 : 4;
-      await place([x, y, 15], y + 1, 10);
+      await place([x, y, ROAD_Z], y + 1, 10);
     }
     const state = await wait(s => s.pcg.sidewalks > 0 && s.pcg.stairs > 0);
     await settled();
@@ -164,12 +166,12 @@ export default async function pcgPlaythrough(play) {
 
   await play.step('road-junction-and-source-deletion-rebuild-boundaries', async () => {
     const original = features(await read());
-    for (const z of [16, 17]) await place([14, 4, z], 5, 10);
+    for (const z of [ROAD_Z + 1, ROAD_Z + 2]) await place([14, 4, z], 5, 10);
     const junction = await settled();
     assert.notEqual(features(junction), original, 'A new branch must rederive road boundaries.');
     await capture('pcg-08-t-junction-continuous-sidewalk');
     const intact = features(junction);
-    await remove([16, 4, 15], 5);
+    await remove([16, 4, ROAD_Z], 5);
     const gap = await settled();
     assert.notEqual(features(gap), intact, 'Deleting the x=16 source node must invalidate road details on the tile boundary.');
     assert.equal(gap.pcg.windows, wall.windows, 'Road edits must preserve unrelated wall windows.');
@@ -202,8 +204,8 @@ export default async function pcgPlaythrough(play) {
     await closeUi();
     await play.keyboard.press('KeyR');
     await wait(s => s.camera.mode === 'character');
-    const low = await walkTo(16.5, 15.5);
-    const high = await walkTo(19.5, 15.5);
+    const low = await walkTo(16.5, ROAD_Z + .5);
+    const high = await walkTo(19.5, ROAD_Z + .5);
     assert.ok(high.player.y - low.player.y > .65, `Generated stairs must bridge the real height difference: ${low.player.y} -> ${high.player.y}`);
     assert.equal(high.player.grounded, true);
     await capture('pcg-10-player-on-upper-road-after-stairs');
@@ -223,8 +225,8 @@ export default async function pcgPlaythrough(play) {
     await history('Control+KeyZ', s => s.pcg.windows === standing.pcg.windows && s.pcg.stairs === standing.pcg.stairs);
     await play.keyboard.press('KeyR');
     await wait(s => s.camera.mode === 'character');
-    await walkTo(20.5, 15.5);
-    const returned = await walkTo(19.5, 15.5);
+    await walkTo(20.5, ROAD_Z + .5);
+    const returned = await walkTo(19.5, ROAD_Z + .5);
     assert.ok(Math.abs(returned.player.y - standing.player.y) < 1 / 32);
     await capture('pcg-10b-player-surface-survives-unrelated-edit');
     await play.keyboard.press('KeyR');

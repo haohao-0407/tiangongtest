@@ -97,7 +97,7 @@ describe('earthwork blueprints and foundation dependencies',()=>{
   it('validates saved plan dependencies atomically and supplies legacy terraform defaults',()=>{
     const{sim}=setup();const legacy:any=sim.serialize();delete legacy.terrainPlans;
     for(const c of legacy.colonists){delete c.skills.terraform;delete c.priorities.terraform;}
-    for(const b of legacy.buildings){delete b.w;delete b.d;delete b.phase;}
+    for(const b of legacy.buildings){delete b.w;delete b.d;delete b.h;delete b.rotation;delete b.doorOpen;delete b.phase;}
     sim.load(legacy);expect(sim.snapshot().colonists.every(c=>Number.isFinite(c.skills.terraform))).toBe(true);
     const order=sim.command({action:'build',kind:'bed',x:20,z:20,target:7});expect(order.ok).toBe(true);const before=sim.serialize(),bad:any=sim.serialize();
     bad.terrainPlans[0].buildingId='missing';expect(()=>sim.load(bad)).toThrow();expect(sim.serialize()).toEqual(before);
