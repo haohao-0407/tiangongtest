@@ -55,3 +55,4 @@
 | [game/README.md](game/README.md) | 游戏玩法说明 |
 | [game/docs/](game/docs/) | 设计文档（实现细节、范围、验收） |
 | [game/AGENTS.md](game/AGENTS.md) | 天工引擎官方**开发规范**（怎么写代码），由 SDK 提供 |
+| [tools/pr-review/README.md](tools/pr-review/README.md) | OpenAI 自动 PR 审查 agent：配置、运行与覆盖范围 |
