@@ -5,6 +5,7 @@ import { Materials, MeshFilter, MeshRenderer, ShadowParticipation } from '@forge
 import { Name, Transform } from '@forgeax/engine/scene';
 import { RenderQueue, type AssetHandle } from '@forgeax/engine/types';
 import type { VoxelWorld } from '../voxel/model.ts';
+import { BUILDING_DEFS, type BuildingKind } from './contracts.ts';
 
 type V3=[number,number,number];
 type Part={p:V3;s:V3;c:string;shadow?:boolean};
@@ -119,7 +120,16 @@ export class ColonyView {
         case 'solar':case 'solarPanel':part(0,.4,0,.18,.8,.18,'steel');part(0,.88,0,1.45,.11,1.25,'dark');part(0,.96,0,1.33,.04,1.13,'blue');part(0,.99,0,.035,.015,1.13,'steel');part(0,.99,0,1.33,.015,.035,'steel');break;
         case 'battery':part(0,.45,0,.7,.9,.7,'dark');part(0,.5,.36,.45,.55,.035,'green');part(-.18,.95,0,.12,.1,.15,'gold');part(.18,.95,0,.12,.1,.15,'steel');break;
         case 'cooler':case 'fridge':case 'freezer':part(0,.65,0,.85,1.3,.85,'white');part(0,.75,.44,.71,.95,.04,'blanket');part(.26,.75,.49,.06,.35,.04,'steel');break;
-        default:part(0,.4,0,.8,.8,.8,'wood');break;
+        default:{
+          // 占位符：飞书「模型」往下那批建筑还没建模，先按 BUILDING_DEFS 里的颜色画个方块。
+          // 以后接真模型只需要在 switch 里补 case，这段不用动。
+          const def=BUILDING_DEFS[b.kind as BuildingKind];
+          const hex=def?`#${def.color.map(v=>Math.round(v*255).toString(16).padStart(2,'0')).join('')}`:'#8a8a8a';
+          const hh=def?.height??0.9;
+          part(0,hh/2,0,w*.82,hh,d*.82,hex);
+          part(0,hh+.03,0,w*.88,.06,d*.88,'cream',false);
+          break;
+        }
       }
       if(b.complete&&['solar','battery','cooler'].includes(b.kind))part(.26,.7,.47,.08,.08,.025,b.powered?'green':'bad',false);
       if(state.selectedBuildingId===b.id)parts.push({p:[x,y+.025,z],s:[w+.04,.045,d+.04],c:'selected',shadow:false});

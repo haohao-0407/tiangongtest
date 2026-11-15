@@ -29,7 +29,19 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
   } };
 type SaveIntent = 'auto' | 'manual' | 'export';
 const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人', chest: '木箱', followerBag: '随从' };
-const BUILD_ICONS: Record<string, string> = { bed: '▱', table: '▤', stove: '♨', workbench: '⚒', researchDesk: '◇', solar: '☀', battery: '▥', cooler: '❄', medicalBed: '+', wall: '▧', door: '▯', floor: '▦' };
+const BUILD_ICONS: Record<string, string> = {
+  bed: '▱', table: '▤', stove: '♨', workbench: '⚒', researchDesk: '◇', solar: '☀', battery: '▥', cooler: '❄', medicalBed: '+', wall: '▧', door: '▯', floor: '▦',
+  // 结构
+  woodWall: '▧', brickWall: '▨', stoneDoor: '▯', autoDoor: '⊞', fence: '╫',
+  // 家具
+  bedroll: '▭', doubleBed: '▬', chair: 'ᑎ', stool: '⊓', shelf: '▤', planter: '❦', painting: '▣', sculpture: '♜', vase: '⌂',
+  campfire: '🔥', torch: '🕯', floorLamp: '💡', chandelier: '✦',
+  // 生产
+  campStove: '♨', stoneCutter: '◧', forgery: '⚒', fabricator: '⚙', tailorBench: '✂', pickleBarrel: '◍', brewBarrel: '◉', cheesePress: '◎',
+  advancedResearchDesk: '◈', artBench: '✎',
+  // 农业
+  hydroponics: '❋', sprinkler: '☂', greenhouseWall: '▢', scarecrow: 'ᛉ', compostBin: '♻',
+};
 const RESOURCE_ICONS: Record<Resource, string> = {
   wood: '▰', stone: '◆', steel: '▱', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙',
   // 农作物
@@ -196,8 +208,27 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const height = numberField('地基标高', 'build-height', state?.buildHeight ?? state?.terrain?.target ?? 6);
     height.input.min = String(state?.terrain?.minHeight ?? 1); height.input.max = String(state?.terrain?.maxHeight ?? 22); height.input.disabled = auto.checked;
     foundation.append(autoLabel, height.label); root.append(foundation);
-    const grid = make('div', 'card-grid');
+    // 45 种建筑挤一屏太乱，按类别分组。类别来自 BUILDING_DEFS 的 category 字段，
+    // 没写的算「核心」——那是我最早做的 12 种。
+    const GROUP_ORDER: { key: string; label: string }[] = [
+      { key: 'core', label: '核心' },
+      { key: 'structure', label: '结构' },
+      { key: 'furniture', label: '家具' },
+      { key: 'production', label: '生产' },
+      { key: 'agriculture', label: '农业' },
+    ];
+    const grouped = new Map<string, typeof BUILDING_DEFS[keyof typeof BUILDING_DEFS][]>();
     for (const def of Object.values(BUILDING_DEFS)) {
+      const key = (def as { category?: string }).category ?? 'core';
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)!.push(def);
+    }
+    for (const group of GROUP_ORDER) {
+      const defs = grouped.get(group.key);
+      if (!defs?.length) continue;
+      root.append(make('h4', 'build-group-title', group.label));
+      const grid = make('div', 'card-grid');
+    for (const def of defs) {
       const locked = !!def.research && !c.research.completed.includes(def.research);
       const short = Object.entries(def.cost).some(([r, amount]) => c.resources[r as Resource] < (amount ?? 0));
       const b = toolButton('', `build:${def.id}`, `build-${def.id}`, 'build-card'); b.disabled = locked;
@@ -208,11 +239,14 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       else if (short) b.append(make('span', 'card-lock', '可先规划 · 施工前等待材料'));
       grid.append(b);
     }
-    const chest = toolButton('', 'place-chest', 'build-chest', 'build-card');
-    chest.append(make('span', 'card-title', '木箱'), make('span', 'card-description', `1 × 1 格 · 独立储物 · ${CHEST_SLOTS} 格`),
-      make('span', 'card-cost', costText({ wood: CHEST_WOOD_COST })));
-    grid.append(chest);
-    root.append(grid);
+      if (group.key === 'core') {
+        const chest = toolButton('', 'place-chest', 'build-chest', 'build-card');
+        chest.append(make('span', 'card-title', '木箱'), make('span', 'card-description', `1 × 1 格 · 独立储物 · ${CHEST_SLOTS} 格`),
+          make('span', 'card-cost', costText({ wood: CHEST_WOOD_COST })));
+        grid.append(chest);
+      }
+      root.append(grid);
+    }
     const pending = c.buildings.filter(b => !b.complete);
     if (pending.length) {
       const section = make('div', 'detail-section'); section.append(make('h3', '', `待建建筑 · ${pending.length}`));
