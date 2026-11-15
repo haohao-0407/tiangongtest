@@ -70,8 +70,8 @@ describe('PCG renderer cache and derived collisions', () => {
 
   it('preserves full colony wall collision behind windows and clears it on demolition', () => {
     const { source, view, liveEntities } = fixture();
-    const wall = { id: 'wall-1', kind: 'wall', x: 7, y: 3, z: 7, complete: true, w: 1, d: 1 };
-    view.update(source, [wall]);
+    const walls = [6, 7, 8].map(x => ({ id: `wall-${x}`, kind: 'wall', x, y: 3, z: 7, complete: true, w: 1, d: 1 }));
+    view.update(source, walls);
     expect(view.read().windows).toBeGreaterThan(0);
     expect(view.blocks([7.3, 3.6, 7.3], [7.7, 4.7, 7.7])).toBe(true);
     expect(view.blocks([7.3, 3.3, 8.1], [7.7, 4.7, 8.2])).toBe(true); // Protruding sill.

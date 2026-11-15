@@ -142,7 +142,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const showTool = (tool: string) => {
     const hints: Record<string, string> = { inspect: '查看模式 · 点击居民或物体任一部分查看详情', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '整体拆除 · 点击物体任一部分 · 完工设施回收 50% 建材', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树木，居民会领取工作', mine: '采矿规划 · 点击石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
     if (state?.selected === 10) hints['sandbox:build'] = '铺设道路 · 左键替换地表 · 路沿与台阶随连接自动更新';
-    else if (state?.selected === 6) hints['sandbox:build'] = '砖墙 · 连续墙面叠高两格生成窗框、窗台 · 增删后自动更新';
+    else if (state?.selected === 6) hints['sandbox:build'] = '砖墙 · 三格起宽、两格高自动排窗组 · 留空作入口 · 增删保留有效窗位';
     get('tool-hint').textContent = tool === 'level'
       ? `等高整地 · 标高 ${state?.terrain?.target ?? 6} · ${state?.terrain?.shape === 'rectangle' ? '左键拖框' : '左键拖涂'} · 松开提交 · Shift 取样`
       : tool.startsWith('build:') ? `建造 ${BUILDING_DEFS[tool.slice(6) as keyof typeof BUILDING_DEFS]?.name ?? ''} · R 旋转 ${orientationText(state?.buildRotation)} · ${state?.buildHeight == null ? '取落点标高' : `地基标高 ${state.buildHeight}`} · 先整平，再施工` : hints[tool] ?? '点击地图执行当前规划';
@@ -154,6 +154,11 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   };
   const hideSidePanels = () => { get('settings').hidden = true; get('help').hidden = true; get('inspector').hidden = true; };
   const clearSelection = () => { selectedResident = null; selectedBuilding = null; send('clearSelection'); };
+  const showWorldSettings = (open: boolean) => {
+    if (!get('inspector').hidden) clearSelection();
+    hideSidePanels(); get('workspace').hidden = true; panel = '';
+    get('settings').hidden = !open; syncTerrainControls(); syncHover();
+  };
   const openPanel = (next: string) => {
     if (!get('inspector').hidden) clearSelection();
     hideSidePanels(); panel = panel === next ? '' : next;
@@ -330,7 +335,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const b = button('', `block-${id}`, undefined, 'material'); b.dataset.block = String(id); b.setAttribute('aria-label', name); b.title = `${index + 1} · ${name}`; b.classList.toggle('active', state?.selected === id); b.append(make('span', `cube ${cls}`), make('span', '', name)); materials.append(b);
     }
     root.append(materials, note(`当前土地 ${state?.edits ?? 0} 格改动 · 1—7 选材 · 左键执行 · 右键拆除`));
-    root.append(note('连续砖墙叠高两格后，露出的墙面自动生成窗框与窗台。选道路后点击地表铺设；道路两侧生成沿边人行道，相邻道路相差一格高度时生成台阶。增删、撤销与读档都会更新细节。'));
+    root.append(note('连续砖墙至少三格宽、两格高时，整面墙自动安排跨格联窗与共用窗台；留空或放门的位置会避让。扩建优先保留有效窗位，撤销与读档恢复相同布局。道路点击地表铺设，两侧人行道及一格高差台阶随连接更新。'));
   }
   /**
    * 分类下拉。仓库和木箱共用同一个实现。
@@ -1000,7 +1005,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       case 'home': send('home'); break;
       case 'panel-close': panel = ''; get('workspace').hidden = true; syncTerrainControls(); syncHover(); break;
       case 'inspector-close': get('inspector').hidden = true; clearSelection(); syncTerrainControls(); syncHover(); break;
-      case 'settings-toggle': { const hidden = !get('settings').hidden; if (!get('inspector').hidden) clearSelection(); hideSidePanels(); get('workspace').hidden = true; panel = ''; get('settings').hidden = hidden; syncTerrainControls(); break; }
+      case 'settings-toggle': showWorldSettings(!!get('settings').hidden); break;
       case 'help-toggle': { const hidden = !get('help').hidden; if (!get('inspector').hidden) clearSelection(); hideSidePanels(); get('workspace').hidden = true; panel = ''; get('help').hidden = hidden; syncTerrainControls(); break; }
       case 'settings-close': get('settings').hidden = true; syncTerrainControls(); syncHover(); break;
       case 'help-close': get('help').hidden = true; syncTerrainControls(); syncHover(); break;
@@ -1139,6 +1144,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   on(get('pause-settings'), 'click', () => {
     // 暂停 → 设置 是同一套流程里的两页，不跳去右上角那个「世界与存档」
     if (optionsLayer) optionsLayer.hidden = false;
+  });
+  on(get('options-world'), 'click', () => {
+    optionsLayer.hidden = true; setPaused(false); showWorldSettings(true);
   });
   const backBtn = get('options-back');
   if (backBtn) on(backBtn, 'click', () => { if (optionsLayer) optionsLayer.hidden = true; });

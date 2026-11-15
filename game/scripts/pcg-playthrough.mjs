@@ -15,6 +15,8 @@ const unit = a => a.map(n => n / Math.hypot(...a));
 const sameCell = (a, b) => Array.isArray(a) && a.length === 3 && a.every((n, i) => n === b[i]);
 const counts = s => ({ windows: s.pcg.windows, sills: s.pcg.sills, sidewalks: s.pcg.sidewalks, stairs: s.pcg.stairs });
 const features = s => JSON.stringify((s.pcg.features ?? []).map(f => ({ id: f.id, kind: f.kind, anchor: f.anchor, min: f.min, max: f.max })).sort((a, b) => String(a.id).localeCompare(String(b.id))));
+const groups = s => structuredClone(s.pcg.layout.groups).sort((a, b) => a.id.localeCompare(b.id));
+const layout = s => JSON.stringify(groups(s));
 
 export function createTerrainFixture() {
   const width = 32, height = 24, depth = 32, edits = [];
@@ -36,13 +38,23 @@ export default async function pcgPlaythrough(play) {
   const advance = seconds => play.advance(seconds, { read: READ, stepSeconds: 0.05 });
   const control = id => play.page.locator(`[data-testid="${id}"]`);
   const capture = async name => assert.equal((await play.screenshot(name)).rendered, true, `${name}: native game pixels must be visible`);
-  const settled = async () => wait(s => s.pcg && (s.pcg.pendingTiles === undefined || s.pcg.pendingTiles === 0));
+  const settled = async () => wait(s => s.pcg?.layout?.version === 2 && s.pcg.pendingTiles === 0);
   const closeUi = async () => {
     for (const id of ['panel-close', 'inspector-close', 'help-close', 'settings-close']) {
       const button = play.page.locator(`#${id}`);
       if (await button.isVisible()) await button.click();
     }
     await play.mouse.move([0.5, 0.46]);
+  };
+  const openWorldSettings = async () => {
+    await closeUi();
+    if ((await read()).tool !== 'inspect') {
+      await play.keyboard.press('Escape'); await wait(s => s.tool === 'inspect');
+    }
+    await play.keyboard.press('Escape');
+    await play.page.locator('#pause-settings').click();
+    await play.page.locator('#options-world').click();
+    await play.page.locator('#settings').waitFor({ state: 'visible' });
   };
   const sandbox = async block => {
     if (!(await control('sandbox-build').isVisible())) await control('menu-sandbox').click();
@@ -102,8 +114,7 @@ export default async function pcgPlaythrough(play) {
 
   await play.step('import-undecorated-terrain-through-player-ui', async () => {
     await wait(s => s.colony?.colonists?.length === 3 && s.pcg);
-    await closeUi();
-    await play.page.locator('#settings-toggle').click();
+    await openWorldSettings();
     await play.page.locator('#import').click();
     await play.page.locator('#import-json').fill(createTerrainFixture());
     await play.page.locator('#import-confirm').click();
@@ -126,24 +137,34 @@ export default async function pcgPlaythrough(play) {
     await play.keyboard.press('Digit4');
     await wait(s => s.selected === 6 && s.tool === 'sandbox:build');
     for (const y of [5, 6]) for (let x = 12; x <= 20; x++) await place([x, y, 11], y, 6);
-    const state = await wait(s => s.pcg.windows > 0 && s.pcg.sills > 0);
-    await settled();
+    await wait(s => s.pcg.windows > 0 && s.pcg.sills > 0);
+    const state = await settled();
     assert.ok(state.pcg.tiles >= 2, 'The wall crosses the x=16 detail tile boundary.');
     assert.ok(state.pcg.triangles > 0);
+    assert.ok(groups(state).some(g => g.axis === 'x' && g.plane === 11 && g.u1 - g.u0 >= 1.5),
+      'The wall must produce a real cross-cell window group.');
     await capture('pcg-02-automatic-window-frames');
     await capture('pcg-03-extruded-window-sills');
-    return counts(await read());
+    return { ...counts(state), layout: layout(state), features: features(state) };
   });
 
   await play.step('wall-source-removal-updates-across-tile-boundary-and-undo-redo', async () => {
-    await remove([16, 6, 11], 7);
-    const removed = await wait(s => s.pcg.windows < wall.windows && s.pcg.sills < wall.sills);
+    // A tile boundary may now fall on a wall pier. Pick actual window support
+    // from the public facade layout instead of assuming one window per cell.
+    const target = groups(await read()).filter(g => g.axis === 'x' && g.plane === 11 && g.u1 - g.u0 >= 1.5)
+      .sort((a, b) => Math.abs((a.u0 + a.u1) / 2 - 16) - Math.abs((b.u0 + b.u1) / 2 - 16))[0];
+    assert.ok(target, 'The wall must expose a cross-cell group to exercise support removal.');
+    await remove([Math.floor((target.u0 + target.u1) / 2), 6, 11], 7);
+    const removed = await settled();
+    assert.ok(!groups(removed).some(g => g.id === target.id), 'Removing window support must remove that whole group.');
+    assert.ok(!removed.pcg.features.some(f => f.id === target.id || f.groupId === target.id),
+      'The removed group must leave no window or continuous sill features.');
     await capture('pcg-04-wall-source-deletion-cleans-details');
-    const afterRemoval = counts(removed);
-    await history('Control+KeyZ', s => s.pcg.windows === wall.windows && s.pcg.sills === wall.sills);
+    const removedLayout = layout(removed), removedFeatures = features(removed);
+    await history('Control+KeyZ', s => layout(s) === wall.layout && features(s) === wall.features);
     await capture('pcg-05-window-restored-by-undo');
-    await history('Control+KeyY', s => s.pcg.windows === afterRemoval.windows && s.pcg.sills === afterRemoval.sills);
-    await history('Control+KeyZ', s => s.pcg.windows === wall.windows && s.pcg.sills === wall.sills);
+    await history('Control+KeyY', s => layout(s) === removedLayout && features(s) === removedFeatures);
+    await history('Control+KeyZ', s => layout(s) === wall.layout && features(s) === wall.features);
   });
 
   const roads = await play.step('mouse-pave-road-with-two-sidewalks-and-height-steps', async () => {
@@ -204,6 +225,10 @@ export default async function pcgPlaythrough(play) {
     await closeUi();
     await play.keyboard.press('KeyR');
     await wait(s => s.camera.mode === 'character');
+    // Use the actual safe spawn and approach along the clear north corridor,
+    // before turning onto the low road; the center chest is east of spawn.
+    const start = await read();
+    await walkTo(start.player.x, ROAD_Z + .5);
     const low = await walkTo(16.5, ROAD_Z + .5);
     const high = await walkTo(19.5, ROAD_Z + .5);
     assert.ok(high.player.y - low.player.y > .65, `Generated stairs must bridge the real height difference: ${low.player.y} -> ${high.player.y}`);
@@ -234,15 +259,15 @@ export default async function pcgPlaythrough(play) {
   });
 
   const saved = await play.step('save-reload-reconstructs-structural-details', async () => {
-    const before = await settled(), expected = counts(before), expectedFeatures = features(before);
-    await closeUi();
-    await play.page.locator('#settings-toggle').click();
+    const before = await settled(), expected = counts(before), expectedFeatures = features(before), expectedLayout = layout(before);
+    await openWorldSettings();
     await play.page.locator('#save').click();
     await play.page.waitForFunction(({ key, seed }) => {
       try {
         const save = JSON.parse(localStorage.getItem(key) ?? 'null');
         const voxel = JSON.parse(save.voxel);
-        return save.version === 2 && voxel.seed === seed && voxel.edits.some(([, block]) => block === 10) && voxel.edits.some(([, block]) => block === 6);
+        return save.version === 2 && voxel.seed === seed && voxel.facadeLayout?.version === 2 && voxel.facadeLayout.groups.length > 0 &&
+          voxel.edits.some(([, block]) => block === 10) && voxel.edits.some(([, block]) => block === 6);
       } catch { return false; }
     }, { key: SAVE_KEY, seed: SEED }, { timeout: 12_000 });
     const snapshot = await play.page.evaluate(key => localStorage.getItem(key), SAVE_KEY);
@@ -252,6 +277,7 @@ export default async function pcgPlaythrough(play) {
     await settled();
     const restored = await read();
     assert.deepEqual(counts(restored), expected);
+    assert.equal(layout(restored), expectedLayout, 'The saved window group locations must survive loading exactly.');
     assert.equal(features(restored), expectedFeatures, 'The same source nodes must deterministically reconstruct the same features after loading.');
     await sandbox(10);
     assert.equal((await read()).undo, false, 'Restoring a save must start a fresh transaction history.');
@@ -264,6 +290,6 @@ export default async function pcgPlaythrough(play) {
     return { seed: SEED, dimensions: restored.dimensions, ...expected };
   });
 
-  return { requirements: ['node-driven-window-frames', 'extruded-window-sills', 'road-sidewalk-boundaries', 'one-cell-height-stairs',
+  return { requirements: ['cross-cell-window-groups', 'continuous-window-sills', 'road-sidewalk-boundaries', 'one-cell-height-stairs',
     'source-edit-add-remove', 'cross-tile-updates', 'undo-redo', 'real-player-stair-traversal', 'player-surface-after-unrelated-edit', 'save-reload-determinism'], saved };
 }

@@ -532,7 +532,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             lastEdit = null; lastTerrainRevision = -1; tool = 'inspect'; crop = 'rice'; home(); changed('新的和平殖民地已生成');
             godReturn = { target: [...target], yaw, pitch, distance };
           }
-          if (c.action === 'save') port?.postMessage({ type: 'voxel:save', data: JSON.stringify({version:2,voxel:voxels.serialize(),colony:colony.serialize()}) });
+          if (c.action === 'save') {
+            pcgView.update(voxels, colony.renderState().buildings);
+            port?.postMessage({ type: 'voxel:save', data: JSON.stringify({version:2,voxel:voxels.serialize(),colony:colony.serialize()}) });
+          }
           if (c.action === 'load' && typeof c.data === 'string') loadSave(c.data);
           if (c.action === 'home') home();
           if (c.action === 'status' && typeof c.value === 'string') status = c.value.slice(0, 120);

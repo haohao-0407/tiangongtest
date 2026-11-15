@@ -1,3 +1,5 @@
+import type { FacadeLayout, FacadeWindowState } from './pcg/facade.ts';
+
 /** Engine-independent world state. Coordinates are integer cells, with Y pointing up. */
 export type Vec3 = [number, number, number];
 export interface WorldSize { width: number; height: number; depth: number }
@@ -44,16 +46,52 @@ export interface VoxelHit {
   distance: number;
 }
 interface Change { index: number; before: number; after: number }
+interface EditTransaction { changes: Change[]; facadeBefore: FacadeLayout; facadeAfter: FacadeLayout }
 interface SavedWorld {
   version: 1;
   generatorVersion: 1 | 2;
   seed: string;
   size: [number, number, number];
   edits: [number, number][];
+  facadeLayout?: FacadeLayout;
 }
 const HISTORY_LIMIT = 200;
 const MAX_WORLD_VOLUME = 16_777_216;
 const WATER_LEVEL = 4;
+const emptyFacadeLayout = (): FacadeLayout => ({ version: 2, groups: [] });
+const copyFacadeLayout = (layout: FacadeLayout): FacadeLayout => ({ version: 2, groups: layout.groups.map(g => ({ ...g })) });
+
+/** Revert only this edit's window changes, preserving later independent colony construction. */
+function applyFacadeDelta(current: FacadeLayout, from: FacadeLayout, to: FacadeLayout): FacadeLayout {
+  const before = new Map(from.groups.map(g => [g.id, g])), after = new Map(to.groups.map(g => [g.id, g]));
+  const changed = new Set([...before.keys(), ...after.keys()].filter(id => JSON.stringify(before.get(id)) !== JSON.stringify(after.get(id))));
+  return { version: 2, groups: [...current.groups.filter(g => !changed.has(g.id)), ...to.groups.filter(g => changed.has(g.id))]
+    .sort((a, b) => a.id.localeCompare(b.id)) };
+}
+
+/** Layout hints are save data, never trusted geometry; the planner rechecks support and clearance. */
+function readFacadeLayout(value: unknown, size: WorldSize): FacadeLayout {
+  if (value === undefined) return emptyFacadeLayout();
+  if (!value || typeof value !== 'object') throw new RangeError('窗组布局格式不正确。');
+  const data = value as Partial<FacadeLayout>;
+  if (data.version !== 2 || !Array.isArray(data.groups) || data.groups.length > Math.min(100000, size.width * size.height * size.depth))
+    throw new RangeError('不支持此窗组布局版本或布局过大。');
+  const seen = new Set<string>();
+  const groups = data.groups.map((g: FacadeWindowState) => {
+    if (!g || typeof g.id !== 'string' || g.id.length < 1 || g.id.length > 200 || seen.has(g.id)
+      || (g.axis !== 'x' && g.axis !== 'z')) throw new RangeError('窗组标识不正确。');
+    const values = [g.plane, g.base, g.lower, g.upper, g.u0, g.u1];
+    const width = g.axis === 'x' ? size.width : size.depth, depth = g.axis === 'x' ? size.depth : size.width;
+    if (!values.every(v => Number.isFinite(v) && Number.isInteger(v * 16))
+      || !Number.isInteger(g.plane) || g.plane < 0 || g.plane >= depth || g.base < 0
+      || g.lower < g.base || g.upper <= g.lower || g.upper > size.height + 1
+      || g.u0 < 0 || g.u1 > width || g.u1 - g.u0 < 1.5
+      || !Number.isInteger(g.panes) || g.panes < 1 || g.panes > 8) throw new RangeError('窗组尺寸不正确。');
+    seen.add(g.id);
+    return { id: g.id, axis: g.axis, plane: g.plane, base: g.base, lower: g.lower, upper: g.upper, u0: g.u0, u1: g.u1, panes: g.panes };
+  });
+  return { version: 2, groups };
+}
 
 function seedHash(seed: string): number {
   let hash = 2166136261;
@@ -101,8 +139,11 @@ export class VoxelWorld {
   private baseline = new Uint8Array(0);
   private blockCounts = new Uint32Array(BLOCKS.length);
   private changes = new Map<number, number>();
-  private past: Change[][] = [];
-  private future: Change[][] = [];
+  private past: EditTransaction[] = [];
+  private future: EditTransaction[] = [];
+  private facadeLayout: FacadeLayout = emptyFacadeLayout();
+  private pendingFacade: EditTransaction | null = null;
+  private facadeResolver: (() => FacadeLayout) | null = null;
   private dirty = new Set<string>();
   private detailCells = new Map<string, Set<number>>();
   private pcgDirty = new Set<string>();
@@ -121,6 +162,20 @@ export class VoxelWorld {
   get canRedo(): boolean { return this.future.length > 0; }
   get undoCount(): number { return this.past.length; }
   get redoCount(): number { return this.future.length; }
+  getFacadeLayout(): FacadeLayout { return copyFacadeLayout(this.facadeLayout); }
+  /** The view supplies pure planning, so batched edits can settle history without rebuilding meshes. */
+  setFacadeResolver(resolver: (() => FacadeLayout) | null): void { this.facadeResolver = resolver; }
+  private settleFacadeEdit(): void {
+    if (this.pendingFacade && this.facadeResolver) this.setFacadeLayout(this.facadeResolver());
+  }
+  /** Commit the derived placement parameters into the same source edit, without adding an undo step. */
+  setFacadeLayout(layout: FacadeLayout): void {
+    this.facadeLayout = readFacadeLayout(layout, this.size);
+    if (this.pendingFacade) {
+      this.pendingFacade.facadeAfter = this.facadeLayout;
+      this.pendingFacade = null;
+    }
+  }
   inBounds(x: number, y: number, z: number): boolean {
     return Number.isInteger(x) && Number.isInteger(y) && Number.isInteger(z)
       && x >= 0 && x < this.width && y >= 0 && y < this.height && z >= 0 && z < this.depth;
@@ -229,13 +284,16 @@ export class VoxelWorld {
       if (!validBlock(edit.block)) throw new RangeError('未知的方块类型。');
       final.set(this.index(edit.x, edit.y, edit.z), edit.block);
     }
-    const transaction: Change[] = [];
+    const changes: Change[] = [];
     for (const [index, after] of final) {
       const before = this.blocks[index];
-      if (before !== after) transaction.push({ index, before, after });
+      if (before !== after) changes.push({ index, before, after });
     }
-    if (transaction.length === 0) return false;
-    this.apply(transaction, false);
+    if (changes.length === 0) return false;
+    this.settleFacadeEdit();
+    const transaction: EditTransaction = { changes, facadeBefore: this.facadeLayout, facadeAfter: this.facadeLayout };
+    this.apply(changes, false);
+    this.pendingFacade = transaction;
     this.past.push(transaction);
     if (this.past.length > HISTORY_LIMIT) this.past.shift();
     this.future.length = 0;
@@ -243,19 +301,25 @@ export class VoxelWorld {
   }
   undo(allow?: (edits: readonly BlockEdit[]) => boolean): boolean {
     const pending = this.past.at(-1);
-    if (pending && allow && !allow(pending.map(c => {const [x,y,z]=this.coordinates(c.index);return{x,y,z,block:c.before};}))) return false;
+    if (pending && allow && !allow(pending.changes.map(c => {const [x,y,z]=this.coordinates(c.index);return{x,y,z,block:c.before};}))) return false;
+    this.settleFacadeEdit();
     const transaction = this.past.pop();
     if (!transaction) return false;
-    this.apply(transaction, true);
+    this.apply(transaction.changes, true);
+    this.facadeLayout = applyFacadeDelta(this.facadeLayout, transaction.facadeAfter, transaction.facadeBefore);
+    this.pendingFacade = null;
     this.future.push(transaction);
     return true;
   }
   redo(allow?: (edits: readonly BlockEdit[]) => boolean): boolean {
     const pending = this.future.at(-1);
-    if (pending && allow && !allow(pending.map(c => {const [x,y,z]=this.coordinates(c.index);return{x,y,z,block:c.after};}))) return false;
+    if (pending && allow && !allow(pending.changes.map(c => {const [x,y,z]=this.coordinates(c.index);return{x,y,z,block:c.after};}))) return false;
+    this.settleFacadeEdit();
     const transaction = this.future.pop();
     if (!transaction) return false;
-    this.apply(transaction, false);
+    this.apply(transaction.changes, false);
+    this.facadeLayout = applyFacadeDelta(this.facadeLayout, transaction.facadeBefore, transaction.facadeAfter);
+    this.pendingFacade = null;
     this.past.push(transaction);
     return true;
   }
@@ -321,6 +385,7 @@ export class VoxelWorld {
     this.recount();
     this.changes.clear();
     this.past.length = this.future.length = 0;
+    this.facadeLayout = emptyFacadeLayout(); this.pendingFacade = null;
     this.dirty.clear();
     this.markAllDirty();
     this._revision++;
@@ -442,10 +507,12 @@ export class VoxelWorld {
     }
   }
   serialize(): string {
+    this.settleFacadeEdit();
     const snapshot: SavedWorld = {
       version: 1, generatorVersion: this.generatorVersion, seed: this.seed,
       size: [this.width, this.height, this.depth],
       edits: [...this.changes].sort((a, b) => a[0] - b[0]),
+      facadeLayout: this.getFacadeLayout(),
     };
     return JSON.stringify(snapshot);
   }
@@ -461,6 +528,7 @@ export class VoxelWorld {
     validSize(size);
     if (data.generatorVersion === 1 && (size.width !== 48 || size.height !== 24 || size.depth !== 48)) throw new RangeError('旧版地图尺寸不匹配。');
     const volume = size.width * size.height * size.depth;
+    const facadeLayout = readFacadeLayout(data.facadeLayout, size);
     if (!Array.isArray(data.edits) || data.edits.length > volume) throw new RangeError('存档方块数据不正确。');
     const seen = new Set<number>();
     for (const row of data.edits) {
@@ -475,6 +543,7 @@ export class VoxelWorld {
       if (block !== world.baseline[index]) world.changes.set(index, block);
     }
     world.recount();
+    world.facadeLayout = facadeLayout;
     return world;
   }
   /** Parse and validate first, then replace; invalid saves never destroy the live map. */
@@ -488,6 +557,7 @@ export class VoxelWorld {
     this.blockCounts = other.blockCounts;
     this.detailCells = other.detailCells;
     this.changes = other.changes;
+    this.facadeLayout = other.facadeLayout; this.pendingFacade = null;
     this.past.length = this.future.length = 0;
     this.dirty.clear();
     this.markAllDirty();

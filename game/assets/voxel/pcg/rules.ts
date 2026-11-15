@@ -1,7 +1,8 @@
 import { MicroVolume, meshMicroVolume, type PcgMeshData, type PcgPoint } from './geometry.ts';
+import { planFacades, type FacadeGroup, type FacadeLayout, type FacadePlan } from './facade.ts';
 
 export const PCG_TILE_SIZE = 8;
-export const PCG_VERSION = 1;
+export const PCG_VERSION = 2;
 const AIR = 0, BRICK = 6, ROAD = 10, WATER = 8, WOOD = 4, LEAVES = 7;
 const WALL_HEIGHT = 29 / 16;
 export interface PcgCell { x: number; y: number; z: number; block: number }
@@ -10,13 +11,16 @@ export interface PcgSource {
   readonly revision?: number;
   get(x: number, y: number, z: number): number;
   terrainHeight?(x: number, z: number): number;
+  getDetailTiles?(): { x: number; z: number }[];
   getDetailCellsForTile?(tileX: number, tileZ: number, padding?: number): PcgCell[];
+  getFacadeLayout?(): FacadeLayout;
 }
 export interface PcgBuilding { id: string; kind: string; x: number; y: number; z: number; complete: boolean; w?: number; d?: number }
 export type PcgFeatureKind = 'wall' | 'road' | 'window' | 'sill' | 'sidewalk' | 'stairs';
 export interface PcgFeature {
   id: string; kind: PcgFeatureKind; anchor: PcgPoint;
   min: PcgPoint; max: PcgPoint; dependencies: PcgPoint[];
+  groupId?: string; facadeId?: string; panes?: number;
 }
 export interface PcgWalkSurface {
   id: string; kind: 'road' | 'sidewalk' | 'stairs'; min: PcgPoint; max: PcgPoint; top: number;
@@ -54,8 +58,8 @@ function column(source: PcgSource, x: number, z: number): Column {
 const occupiedByBuilding = (buildings: readonly PcgBuilding[], x: number, z: number) => buildings.some(b =>
   x >= b.x && x < b.x + (b.w ?? 1) && z >= b.z && z < b.z + (b.d ?? 1));
 const intersects = (a: { min: PcgPoint; max: PcgPoint }, min: PcgPoint, max: PcgPoint) => a.max[0] > min[0] && a.min[0] < max[0] && a.max[1] > min[1] && a.min[1] < max[1] && a.max[2] > min[2] && a.min[2] < max[2];
-function feature(recipe: Recipe, kind: PcgFeatureKind, id: string, anchor: PcgPoint, min: PcgPoint, max: PcgPoint, dependencies: PcgPoint[] = [anchor]): void {
-  recipe.features.push({ kind, id, anchor, min, max, dependencies });
+function feature(recipe: Recipe, kind: PcgFeatureKind, id: string, anchor: PcgPoint, min: PcgPoint, max: PcgPoint, dependencies: PcgPoint[] = [anchor], detail?: Pick<PcgFeature, 'groupId' | 'facadeId' | 'panes'>): void {
+  recipe.features.push({ kind, id, anchor, min, max, dependencies, ...detail });
 }
 function surface(recipe: Recipe, kind: PcgWalkSurface['kind'], id: string, min: PcgPoint, max: PcgPoint, material: number): void {
   recipe.trim.push({ min, max, material }); recipe.walkSurfaces.push({ id, kind, min, max, top: max[1] });
@@ -117,59 +121,53 @@ function roadRecipe(source: PcgSource, buildings: readonly PcgBuilding[], cell: 
   }
 }
 
-function wallRecipe(source: PcgSource, buildings: readonly PcgBuilding[], wall: WallColumn, recipe: Recipe): void {
+function wallBodyRecipe(source: PcgSource, wall: WallColumn, recipe: Recipe): void {
   const { x, y, z, height, id, colony } = wall;
-  const wallAt = (xx: number, yy: number, zz: number): boolean => source.get(xx, yy, zz) === BRICK || buildings.some(b => b.complete && b.kind === 'wall' && xx === b.x && zz === b.z && yy >= b.y && yy < b.y + WALL_HEIGHT);
-  const clearAt = (xx: number, yy: number, zz: number): boolean => source.get(xx, yy, zz) === AIR && !buildings.some(b => b.complete && b.kind !== 'floor' && xx >= b.x && xx < b.x + (b.w ?? 1) && zz >= b.z && zz < b.z + (b.d ?? 1) && yy >= b.y && yy < b.y + 2);
   if (colony) {
     recipe.bases.push({ min: [x, y, z], max: [x + 1, y + height, z + 1], material: 12 });
     feature(recipe, 'wall', id, [x, y, z], [x, y, z], [x + 1, y + height, z + 1]);
-  }
-  // Each two-cell vertical bay owns one window; incomplete bays become ordinary solid wall.
-  const rows = colony ? 1 : Math.floor(height / 2);
-  for (let row = 0; row < rows; row++) {
-    const base = y + row * 2, bayHeight = colony ? height : 2;
-    const lower = base + 6 / 16, upper = base + Math.min(bayHeight - 4 / 16, 25 / 16);
-    if (upper - lower < .5) continue;
-    for (const [dx, dz] of DIRS) {
-      // Thickness and corners remain solid. Only long exposed planar facades receive windows.
-      if (wallAt(x + dx, base, z + dz) || wallAt(x - dx, base, z - dz)) continue;
-      const tx = dz ? 1 : 0, tz = dx ? 1 : 0;
-      const continuous = wallAt(x + tx, base, z + tz) || wallAt(x - tx, base, z - tz);
-      // An isolated colony wall has the same fixed front/back orientation as its door view.
-      // Do not cut four perpendicular windows through a single structural pier.
-      if (!continuous && (!colony || dx !== 0)) continue;
-      if (!clearAt(x + dx, base, z + dz) || !clearAt(x + dx, Math.floor(upper), z + dz)) continue;
-      const face = dx ? x + (dx > 0 ? 1 : 0) : z + (dz > 0 ? 1 : 0);
-      const wid = `${id}:window:${row}:${dx},${dz}`;
-      const u0 = (dx ? z : x) + 3 / 16, u1 = (dx ? z : x) + 13 / 16;
-      const orient = (umin: number, ymin: number, depthMin: number, umax: number, ymax: number, depthMax: number): Stamp => ({
-        min: dx ? [depthMin, ymin, umin] : [umin, ymin, depthMin],
-        max: dx ? [depthMax, ymax, umax] : [umax, ymax, depthMax], material: 4,
-      });
-      const depth0 = dx ? x : z;
-      const cut = orient(u0, lower, depth0, u1, upper, depth0 + 1);
-      recipe.cuts.push({ ...cut, material: 0 });
-      // A shared opaque blue pane keeps a visual enclosure; gameplay treats the window as blocked.
-      recipe.trim.push({ ...orient(u0, lower, depth0 + 7 / 16, u1, upper, depth0 + 9 / 16), material: 5 });
-      const sign = dx || dz, d0 = sign > 0 ? face - 1 / 16 : face - 2 / 16, d1 = sign > 0 ? face + 2 / 16 : face + 1 / 16;
-      recipe.trim.push(orient(u0 - 1 / 16, lower - 1 / 16, d0, u0 + 1 / 16, upper + 1 / 16, d1));
-      recipe.trim.push(orient(u1 - 1 / 16, lower - 1 / 16, d0, u1 + 1 / 16, upper + 1 / 16, d1));
-      recipe.trim.push(orient(u0, upper - 1 / 16, d0, u1, upper + 1 / 16, d1));
-      recipe.trim.push(orient(u0, lower - 1 / 16, d0, u1, lower + 1 / 16, d1));
-      recipe.trim.push(orient((u0 + u1) / 2 - 1 / 16, lower, d0, (u0 + u1) / 2, upper, d1));
-      recipe.trim.push(orient(u0, lower + 8 / 16, d0, u1, lower + 9 / 16, d1));
-      const sill = orient(u0 - 2 / 16, lower - 2 / 16, sign > 0 ? face - 1 / 16 : face - 4 / 16, u1 + 2 / 16, lower, sign > 0 ? face + 4 / 16 : face + 1 / 16);
-      recipe.trim.push({ ...sill, material: 3 });
-      const deps: PcgPoint[] = [[x, base, z], [x, base + 1, z], [x + dx, base, z + dz], [x + tx, base, z + tz], [x - tx, base, z - tz]];
-      feature(recipe, 'window', wid, [x, base, z], cut.min, cut.max, deps);
-      feature(recipe, 'sill', `${wid}:sill`, [x, base, z], sill.min, sill.max, deps);
-    }
   }
   // A restrained top band is shared across a connected row and disappears when it is extended upward.
   if (colony || source.get(x, y + height, z) !== BRICK) {
     const top = y + height;
     recipe.trim.push({ min: [x, top - 1 / 16, z], max: [x + 1, top + 1 / 16, z + 1], material: colony ? 4 : 3 });
+  }
+}
+
+/** Geometry is subordinate to a whole-facade plan. A group may cross source cells and render tiles. */
+function windowGroupRecipe(group: FacadeGroup, recipe: Recipe): void {
+  const { id, axis, plane, base, lower, upper, u0, u1, panes, faces, dependencies, facadeId } = group;
+  if (!faces.length) return;
+  const orient = (umin: number, ymin: number, dmin: number, umax: number, ymax: number, dmax: number): Stamp => ({
+    min: axis === 'x' ? [umin, ymin, dmin] : [dmin, ymin, umin],
+    max: axis === 'x' ? [umax, ymax, dmax] : [dmax, ymax, umax], material: 4,
+  });
+  const anchor: PcgPoint = axis === 'x' ? [u0, base, plane] : [plane, base, u0];
+  const detail = { groupId: id, facadeId, panes };
+  const cut = orient(u0, lower, plane, u1, upper, plane + 1);
+  recipe.cuts.push({ ...cut, material: 0 });
+  // Front and back share one opening and one glass plane; the source wall remains impassable.
+  recipe.trim.push({ ...orient(u0, lower, plane + 7 / 16, u1, upper, plane + 9 / 16), material: 5 });
+  feature(recipe, 'window', id, anchor, cut.min, cut.max, dependencies, detail);
+  for (const sign of faces) {
+    const face = plane + (sign > 0 ? 1 : 0);
+    const d0 = sign > 0 ? face - 1 / 16 : face - 2 / 16;
+    const d1 = sign > 0 ? face + 2 / 16 : face + 1 / 16;
+    recipe.trim.push(orient(u0 - 1 / 16, lower - 1 / 16, d0, u0 + 1 / 16, upper + 1 / 16, d1));
+    recipe.trim.push(orient(u1 - 1 / 16, lower - 1 / 16, d0, u1 + 1 / 16, upper + 1 / 16, d1));
+    recipe.trim.push(orient(u0, upper - 1 / 16, d0, u1, upper + 1 / 16, d1));
+    recipe.trim.push(orient(u0, lower - 1 / 16, d0, u1, lower + 1 / 16, d1));
+    for (let pane = 1; pane < panes; pane++) {
+      const mullion = Math.round((u0 + (u1 - u0) * pane / panes) * 16) / 16;
+      recipe.trim.push(orient(mullion - 1 / 16, lower, d0, mullion + 1 / 16, upper, d1));
+    }
+    const transom = Math.round((lower + (upper - lower) * .55) * 16) / 16;
+    recipe.trim.push(orient(u0, transom, d0, u1, transom + 1 / 16, d1));
+    // One continuous sill belongs to the whole group, with no end caps at source-cell boundaries.
+    const sill = orient(u0 - 2 / 16, lower - 2 / 16, sign > 0 ? face - 1 / 16 : face - 4 / 16,
+      u1 + 2 / 16, lower, sign > 0 ? face + 4 / 16 : face + 1 / 16);
+    recipe.trim.push({ ...sill, material: 3 });
+    feature(recipe, 'sill', `${id}:sill:${sign}`, anchor, sill.min, sill.max, dependencies, detail);
   }
 }
 
@@ -182,7 +180,7 @@ function cellsForTile(source: PcgSource, tileX: number, tileZ: number): PcgCell[
   return result;
 }
 
-export function buildPcgTile(source: PcgSource, buildings: readonly PcgBuilding[], tileX: number, tileZ: number): PcgTileResult {
+export function buildPcgTile(source: PcgSource, buildings: readonly PcgBuilding[], tileX: number, tileZ: number, facadePlan?: FacadePlan): PcgTileResult {
   const stats = emptyStats(), recipe: Recipe = { bases: [], cuts: [], trim: [], features: [], walkSurfaces: [] };
   const empty = (): PcgTileResult => ({ mesh: null, stats, features: [], walkSurfaces: [] });
   if (!Number.isInteger(tileX) || !Number.isInteger(tileZ) || tileX < 0 || tileZ < 0 || tileX * 8 >= source.width || tileZ * 8 >= source.depth) return empty();
@@ -206,7 +204,14 @@ export function buildPcgTile(source: PcgSource, buildings: readonly PcgBuilding[
   for (const b of buildings) if (b.complete && b.kind === 'wall' && b.x >= min[0] - 2 && b.x < max[0] + 2 && b.z >= min[2] - 2 && b.z < max[2] + 2) {
     wallColumns.set(`building:${b.id}`, { x: b.x, y: b.y, z: b.z, height: WALL_HEIGHT, id: `wall:${b.id}`, colony: true });
   }
-  for (const wall of wallColumns.values()) wallRecipe(source, buildings, wall, recipe);
+  for (const wall of wallColumns.values()) wallBodyRecipe(source, wall, recipe);
+  const plan = facadePlan ?? planFacades(source, buildings, source.getFacadeLayout?.());
+  for (const group of plan.groups) {
+    const bounds = group.axis === 'x'
+      ? { min: [group.u0 - .125, group.lower - .125, group.plane - .25] as PcgPoint, max: [group.u1 + .125, group.upper + .125, group.plane + 1.25] as PcgPoint }
+      : { min: [group.plane - .25, group.lower - .125, group.u0 - .125] as PcgPoint, max: [group.plane + 1.25, group.upper + .125, group.u1 + .125] as PcgPoint };
+    if (intersects(bounds, [min[0] - 1, min[1], min[2] - 1], [max[0] + 1, max[1], max[2] + 1])) windowGroupRecipe(group, recipe);
+  }
   const stamps = [...recipe.bases, ...recipe.cuts, ...recipe.trim];
   if (!stamps.length) return empty();
   // Trim empty space inside the render tile as well: an isolated node must not scan 8³ source cells.
@@ -221,8 +226,10 @@ export function buildPcgTile(source: PcgSource, buildings: readonly PcgBuilding[
     const block = source.get(Math.floor(x), Math.floor(y), Math.floor(z));
     return block !== AIR && block !== WATER && !isDetailSource(block);
   });
-  const features = recipe.features.filter(f => owns(f.anchor[0], f.anchor[2]));
+  // A long sill's far end needs its collision in that tile even if its anchor lies elsewhere.
+  const features = recipe.features.filter(f => intersects(f, min, max));
   for (const f of features) {
+    if (!owns(f.anchor[0], f.anchor[2])) continue;
     if (f.kind === 'window') stats.windows++;
     if (f.kind === 'sill') stats.sills++;
     if (f.kind === 'sidewalk') stats.sidewalks++;

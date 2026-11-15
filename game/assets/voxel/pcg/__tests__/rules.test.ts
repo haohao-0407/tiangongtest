@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MicroVolume, meshMicroVolume, type PcgMeshData } from '../geometry.ts';
 import { buildPcgTile, isDetailSource, samplePcgSurfaceHeight, type PcgBuilding, type PcgSource } from '../rules.ts';
+import type { FacadeGroup, FacadePlan } from '../facade.ts';
 
 class Fixture implements PcgSource {
   width = 24; height = 12; depth = 24; revision = 0;
@@ -45,39 +46,57 @@ describe('microvoxel geometry', () => {
 });
 
 describe('structural wall generation', () => {
-  it('carves real recessed windows across a two-high brick facade while retaining blocked glass semantics', () => {
+  it('carves one shared cross-cell opening and continuous sills across render tiles at 1/16 precision', () => {
     const world = new Fixture();
     for (let x = 6; x <= 9; x++) for (let y = 4; y <= 5; y++) world.set(x, y, 8, 6);
-    const left = buildPcgTile(world, [], 0, 1), right = buildPcgTile(world, [], 1, 1);
-    expect(left.stats.windows).toBe(4); expect(right.stats.windows).toBe(4);
-    expect(left.stats.sills).toBe(4);
+    const group: FacadeGroup = { id: 'wide-window', facadeId: 'wall-z8', axis: 'x', plane: 8, base: 4,
+      lower: 4 + 6 / 16, upper: 5 + 9 / 16, u0: 6.5, u1: 9.5, panes: 3, faces: [-1, 1],
+      dependencies: [6, 7, 8, 9].flatMap(x => [4, 5].map(y => [x, y, 8] as [number, number, number])) };
+    const plan: FacadePlan = { layout: { version: 2, groups: [group] }, groups: [group], patches: [] };
+    const left = buildPcgTile(world, [], 0, 1, plan), right = buildPcgTile(world, [], 1, 1, plan);
+    expect(left.stats.windows + right.stats.windows).toBe(1);
+    expect(left.features.find(f => f.kind === 'window')?.id).toBe('wide-window');
+    expect(right.features.find(f => f.kind === 'window')?.id).toBe('wide-window');
+    expect(left.features.filter(f => f.kind === 'sill')).toHaveLength(2); // One continuous sill on each face.
+    expect(right.features.filter(f => f.kind === 'sill')).toHaveLength(2);
+    expect(right.features.find(f => f.kind === 'sill')?.min[0]).toBe(6.375);
+    expect(right.features.find(f => f.kind === 'sill')?.max[0]).toBe(9.625);
     // A point in a pane sees the interior glass plane, not the original front cube face z=8.
-    expect(nearestFrontZ(left.mesh!, 6.3125, 4.625)).toBeCloseTo(8 + 7 / 16);
+    expect(nearestFrontZ(left.mesh!, 6.8125, 4.625)).toBeCloseTo(8 + 7 / 16);
+    expect(nearestFrontZ(right.mesh!, 9.1875, 4.625)).toBeCloseTo(8 + 7 / 16);
     expect(world.get(6, 4, 8)).toBe(6); // A window remains a wall for coarse movement/raycast authority.
-    expect(left.features.some(f => f.kind === 'sill' && f.min[2] < 8)).toBe(true);
-    for (const value of left.mesh!.position) expect(value * 16).toBe(Math.round(value * 16));
+    const back = buildPcgTile(world, [], 1, 0, plan), backLeft = buildPcgTile(world, [], 0, 0, plan);
+    expect(back.features.some(f => f.kind === 'sill' && f.min[2] < 8)).toBe(true);
+    // Probe every microcolumn of the sill, including both sides of the x=8 render boundary.
+    for (let u = 6.40625; u < 9.625; u += 1 / 16)
+      expect(nearestFrontZ(u < 8 ? backLeft.mesh! : back.mesh!, u, 4.3125)).toBe(7.75);
+    for (const mesh of [left.mesh!, right.mesh!, back.mesh!, backLeft.mesh!])
+      for (const value of mesh.position) expect(value * 16).toBe(Math.round(value * 16));
     for (let i = 0; i < left.mesh!.position.length; i += 3) expect(left.mesh!.position[i]).toBeLessThanOrEqual(8);
     for (let i = 0; i < right.mesh!.position.length; i += 3) expect(right.mesh!.position[i]).toBeGreaterThanOrEqual(8);
   });
   it('removes the dependent window when an upper source voxel is deleted, restores deterministically, and clears removed walls', () => {
     const world = new Fixture();
-    for (const x of [6, 7]) for (const y of [4, 5]) world.set(x, y, 6, 6);
+    for (const x of [5, 6, 7]) for (const y of [4, 5]) world.set(x, y, 6, 6);
     const before = buildPcgTile(world, [], 0, 0);
+    expect(before.stats.windows).toBeGreaterThan(0);
+    expect(before.features.find(f => f.kind === 'window')!.max[0] - before.features.find(f => f.kind === 'window')!.min[0]).toBeGreaterThan(1);
     world.set(6, 5, 6, 0);
-    expect(buildPcgTile(world, [], 0, 0).stats.windows).toBe(before.stats.windows - 2);
+    expect(buildPcgTile(world, [], 0, 0).stats.windows).toBe(0);
     world.set(6, 5, 6, 6);
     expect(buildPcgTile(world, [], 0, 0).mesh).toEqual(before.mesh);
-    for (const x of [6, 7]) for (const y of [4, 5]) world.set(x, y, 6, 0);
+    for (const x of [5, 6, 7]) for (const y of [4, 5]) world.set(x, y, 6, 0);
     expect(buildPcgTile(world, [], 0, 0).mesh).toBeNull();
   });
   it('keeps corners solid, suppresses occluded facade windows, and supports completed colony walls', () => {
     const world = new Fixture();
-    const buildings: PcgBuilding[] = [{ id: 'a', kind: 'wall', x: 6, y: 4, z: 6, complete: true }, { id: 'b', kind: 'wall', x: 7, y: 4, z: 6, complete: true }];
-    expect(buildPcgTile(world, buildings, 0, 0).stats.windows).toBe(4);
+    const buildings: PcgBuilding[] = [4, 5, 6, 7].map(x => ({ id: `wall-${x}`, kind: 'wall', x, y: 4, z: 6, complete: true }));
+    expect(buildPcgTile(world, buildings, 0, 0).stats.windows).toBeGreaterThan(0);
     world.set(6, 4, 5, 3); world.set(6, 5, 5, 3);
-    expect(buildPcgTile(world, buildings, 0, 0).stats.windows).toBe(3);
+    const occluded = buildPcgTile(world, buildings, 0, 0);
+    expect(occluded.features.some(f => f.kind === 'sill' && f.min[2] < 6 && f.min[0] < 7 && f.max[0] > 6)).toBe(false);
     buildings.push({ id: 'c', kind: 'wall', x: 6, y: 4, z: 7, complete: true });
-    expect(buildPcgTile(world, buildings, 0, 0).features.filter(f => f.kind === 'window' && f.anchor[0] === 6 && f.anchor[2] === 6)).toHaveLength(0);
+    expect(buildPcgTile(world, buildings, 0, 0).features.some(f => f.kind === 'window' && f.min[0] < 7 && f.max[0] > 6 && f.min[2] === 6)).toBe(false);
   });
 });
 
