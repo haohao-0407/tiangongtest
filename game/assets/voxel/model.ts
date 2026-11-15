@@ -1,5 +1,6 @@
 import type { FacadeLayout, FacadeWindowState } from './pcg/facade.ts';
 import {treeBounds,treeCells,type TreeInstance} from './trees.ts';
+import { planSurfaceOreVeins } from './surface-ore.ts';
 
 /** Engine-independent world state. Coordinates are integer cells, with Y pointing up. */
 export type Vec3 = [number, number, number];
@@ -12,7 +13,7 @@ export const CHUNK_SIZE = 24;
 export const DETAIL_TILE_SIZE = 8;
 export const BLOCK = {
   Air: 0, Grass: 1, Dirt: 2, Stone: 3, Wood: 4,
-  Planks: 5, Brick: 6, Leaves: 7, Water: 8, Sand: 9, Road: 10,
+  Planks: 5, Brick: 6, Leaves: 7, Water: 8, Sand: 9, Road: 10, SteelOre: 11,
 } as const;
 export type BlockId = typeof BLOCK[keyof typeof BLOCK];
 export interface BlockDefinition {
@@ -34,6 +35,7 @@ export const BLOCKS: readonly BlockDefinition[] = [
   { id: 8, name: '河水', color: [0.22, 0.57, 0.66], solid: false, buildable: false },
   { id: 9, name: '沙土', color: [0.83, 0.74, 0.48], solid: true, buildable: true },
   { id: 10, name: '道路', color: [0.49, 0.51, 0.49], solid: true, buildable: true },
+  { id: 11, name: '钢矿', color: [0.35, 0.39, 0.40], solid: true, buildable: false },
 ];
 export interface BlockEdit { x: number; y: number; z: number; block: number }
 export interface ChunkCoord { x: number; y: number; z: number }
@@ -51,7 +53,7 @@ interface TreeChange { id:string; before:TreeInstance|null; after:TreeInstance|n
 interface EditTransaction { changes: Change[]; treeChanges:TreeChange[]; facadeBefore: FacadeLayout; facadeAfter: FacadeLayout }
 interface SavedWorld {
   version: 1;
-  generatorVersion: 1 | 2;
+  generatorVersion: 1 | 2 | 3;
   seed: string;
   size: [number, number, number];
   edits: [number, number][];
@@ -120,7 +122,7 @@ function validSeed(seed: unknown): asserts seed is string {
   }
 }
 function validBlock(block: number): block is BlockId {
-  return Number.isInteger(block) && block >= BLOCK.Air && block <= BLOCK.Road;
+  return Number.isInteger(block) && block >= BLOCK.Air && block <= BLOCK.SteelOre;
 }
 function validSize(size: WorldSize): void {
   if (!size || ![size.width, size.height, size.depth].every(Number.isInteger)
@@ -154,7 +156,7 @@ export class VoxelWorld {
   private pcgReset = true;
   private _seed = '';
   private _revision = 0;
-  private _generatorVersion: 1 | 2 = 2;
+  private _generatorVersion: 1 | 2 | 3 = 3;
   private treeMap=new Map<string,TreeInstance>();
   private treeBaseline=new Map<string,TreeInstance>();
   private legacyVegetation=new Map<number,BlockId>();
@@ -166,10 +168,10 @@ export class VoxelWorld {
   private treeList:readonly TreeInstance[]|null=null;
   private _treeRevision=0;
 
-  constructor(seed = '森屿-042', size: WorldSize = WORLD_SIZE) { this.regenerate(seed, size, 2); }
+  constructor(seed = '森屿-042', size: WorldSize = WORLD_SIZE) { this.regenerate(seed, size, 3); }
   get seed(): string { return this._seed; }
   get revision(): number { return this._revision; }
-  get generatorVersion(): 1 | 2 { return this._generatorVersion; }
+  get generatorVersion(): 1 | 2 | 3 { return this._generatorVersion; }
   /** Number of changed raw cells and natural tree identities; also suitable for save status. */
   get editCount(): number { return this.changes.size+this.treeDiffs.size; }
   get treeRevision():number {return this._treeRevision;}
@@ -340,9 +342,11 @@ export class VoxelWorld {
       }
     }
   }
-  set(x: number, y: number, z: number, block: number): boolean { return this.edit([{ x, y, z, block }]); }
+  set(x: number, y: number, z: number, block: number, options: { recordHistory?: boolean } = {}): boolean {
+    return this.edit([{ x, y, z, block }], options);
+  }
   /** Validate every edit before applying any. Repeated cells coalesce into one change. */
-  edit(edits: readonly BlockEdit[]): boolean {
+  edit(edits: readonly BlockEdit[], options: { recordHistory?: boolean } = {}): boolean {
     if (!Array.isArray(edits) || edits.length > this.blocks.length * 4) throw new RangeError('建造操作过大或格式不正确。');
     const final = new Map<number, number>();
     for (const edit of edits) {
@@ -372,7 +376,14 @@ export class VoxelWorld {
     const transaction: EditTransaction = { changes,treeChanges:[...removed.values()].map(tree=>({id:tree.id,before:tree,after:null})), facadeBefore: this.facadeLayout, facadeAfter: this.facadeLayout };
     this.apply(changes, false);
     this.applyTreeChanges(transaction.treeChanges,false);
-    this.recordTransaction(transaction);
+    if (options.recordHistory === false) {
+      // Gameplay consumption cannot be reversed through an older sandbox edit at this cell.
+      const touched = new Set(changes.map(change => change.index));
+      const independent = (entry: EditTransaction) => !entry.changes.some(change => touched.has(change.index))
+        && !entry.treeChanges.some(change => removed.has(change.id));
+      this.past = this.past.filter(independent); this.future = this.future.filter(independent);
+      this.pendingFacade = null;
+    } else this.recordTransaction(transaction);
     return true;
   }
   private recordTransaction(transaction:EditTransaction):void {
@@ -485,9 +496,9 @@ export class VoxelWorld {
   }
   /** A new map uses the current default; loading a legacy map does not pin new games to its size. */
   reset(seed = this.seed || '森屿-042', size: WorldSize = WORLD_SIZE): void {
-    this.regenerate(seed, size, 2);
+    this.regenerate(seed, size, 3);
   }
-  private regenerate(seed: string, size: WorldSize, generatorVersion: 1 | 2): void {
+  private regenerate(seed: string, size: WorldSize, generatorVersion: 1 | 2 | 3): void {
     validSeed(seed);
     validSize(size);
     this.size = { width: size.width, height: size.height, depth: size.depth };
@@ -502,6 +513,7 @@ export class VoxelWorld {
       this.legacyVegetation.set(index,this.blocks[index] as BlockId);this.blocks[index]=BLOCK.Air;
     }
     this.replaceTrees([...this.treeBaseline.values()]);
+    if (generatorVersion >= 3) this.generateSurfaceOre();
     this.baseline = this.blocks.slice();
     this.recount();
     this.changes.clear();
@@ -515,6 +527,21 @@ export class VoxelWorld {
     const tree:TreeInstance=Object.freeze({id:`tree:${x}:${z}`,x,y,z,trunkHeight,crownRadius:2,
       variant:Math.min(2,Math.floor(hash01(x,z,seed^0x781ab)*3)),rotation:Math.min(3,Math.floor(hash01(x,z,seed^0x4f3c2)*4)) as 0|1|2|3});
     this.treeBaseline.set(tree.id,tree);
+  }
+  private generateSurfaceOre(): void {
+    const cx = Math.floor(this.width / 2), cz = Math.floor(this.depth / 2);
+    const clearingRadius = Math.min(16, Math.min(this.width, this.depth) / 4) + 4;
+    const veins = planSurfaceOreVeins({
+      width: this.width, depth: this.depth,
+      candidateHeightAt: (x, z) => {
+        if (Math.hypot(x - cx, z - cz) < clearingRadius || this.treesInColumn(x, z).length) return -1;
+        const y = this.surfaceHeight(x, z), block = this.get(x, y, z);
+        if (y < 1 || y >= this.height - 1
+          || ![BLOCK.Grass, BLOCK.Dirt, BLOCK.Stone, BLOCK.Sand].includes(block as never)) return -1;
+        return y;
+      },
+    }, seedHash(this.seed) ^ 0x6f726533);
+    for (const vein of veins) for (const { x, y, z } of vein) this.blocks[this.index(x, y, z)] = BLOCK.SteelOre;
   }
   private recount(): void {
     this.blockCounts.fill(0);
@@ -671,7 +698,7 @@ export class VoxelWorld {
     const saved: unknown = JSON.parse(json);
     if (!saved || typeof saved !== 'object') throw new RangeError('存档格式不正确。');
     const data = saved as Partial<SavedWorld>;
-    if (data.version !== 1 || (data.generatorVersion !== 1 && data.generatorVersion !== 2)) throw new RangeError('不支持此存档版本。');
+    if (data.version !== 1 || (data.generatorVersion !== 1 && data.generatorVersion !== 2 && data.generatorVersion !== 3)) throw new RangeError('不支持此存档版本。');
     validSeed(data.seed);
     if (!Array.isArray(data.size) || data.size.length !== 3) throw new RangeError('存档地图尺寸不正确。');
     const size = { width: data.size[0], height: data.size[1], depth: data.size[2] };
@@ -687,7 +714,7 @@ export class VoxelWorld {
       seen.add(row[0]);
     }
     const world = new VoxelWorld(data.seed, size);
-    if (data.generatorVersion === 1) world.regenerate(data.seed, size, 1);
+    if (data.generatorVersion !== world.generatorVersion) world.regenerate(data.seed, size, data.generatorVersion);
     const legacy=data.treeVersion===undefined&&data.trees===undefined;
     if(!legacy&&(data.treeVersion!==1||!Array.isArray(data.trees)))throw new RangeError('树木物体存档版本或格式不正确。');
     // Old saves store sparse edits relative to terrain with generated trees still baked into its cells.

@@ -18,6 +18,9 @@ const FACES = [
 ] as const;
 const linear = (v: number) => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
 const LINEAR_COLORS = BLOCKS.map(block => block.color.map(linear));
+// Mineral inclusions are part of the exposed face, so they never float above the
+// ground or remain behind when a block is mined. No additional draw calls.
+const ORE_INCLUSIONS = [[0.70, 0.79, 0.81], [0.62, 0.44, 0.27]].map(rgb => rgb.map(linear));
 
 /** Only visible faces enter the mesh; adjacent chunks consult the same voxel data. */
 export function buildChunkMesh(world: VoxelSource, chunk: ChunkCoordinate): MeshAsset | null {
@@ -37,16 +40,34 @@ export function buildChunkMesh(world: VoxelSource, chunk: ChunkCoordinate): Mesh
           if (neighbor !== 0 && !(neighbor === 8 && block !== 8)) continue;
           const rgb = LINEAR_COLORS[block === 1 && face.n[1] !== 1 ? 2 : block]!;
           const brightness = face.light * variant;
-          const red = rgb[0]! * brightness, green = rgb[1]! * brightness, blue = rgb[2]! * brightness;
-          const offset = position.length / 3;
-          for (let i = 0; i < 4; i++) {
-            const corner = face.corners[i]!;
-            position.push(x + corner[0], y + corner[1], z + corner[2]);
-            normal.push(...face.n);
-            uv.push(i === 1 || i === 2 ? 1 : 0, i >= 2 ? 1 : 0);
-            color.push(red, green, blue, 1);
+          if (block !== BLOCK.SteelOre) {
+            const offset = position.length / 3;
+            for (let i = 0; i < 4; i++) {
+              const corner = face.corners[i]!;
+              position.push(x + corner[0], y + corner[1], z + corner[2]);
+              normal.push(...face.n); uv.push(i === 1 || i === 2 ? 1 : 0, i >= 2 ? 1 : 0);
+              color.push(rgb[0]! * brightness, rgb[1]! * brightness, rgb[2]! * brightness, 1);
+            }
+            indices.push(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
+            continue;
           }
-          indices.push(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
+          const divisions = 4;
+          for (let v = 0; v < divisions; v++) for (let u = 0; u < divisions; u++) {
+            const speck = ((Math.imul(x + u, 73856093) ^ Math.imul(z + v, 19349663)
+              ^ Math.imul(y + face.n[0] + face.n[2], 83492791)) >>> 0) % 7;
+            const tint = speck < 3 ? ORE_INCLUSIONS[speck === 0 ? 1 : 0]! : rgb;
+            const offset = position.length / 3;
+            for (let i = 0; i < 4; i++) {
+              const s = (u + (i === 1 || i === 2 ? 1 : 0)) / divisions;
+              const t = (v + (i >= 2 ? 1 : 0)) / divisions;
+              for (let axis = 0; axis < 3; axis++) position.push([x, y, z][axis]! + face.corners[0][axis]!
+                + s * (face.corners[1][axis]! - face.corners[0][axis]!)
+                + t * (face.corners[3][axis]! - face.corners[0][axis]!));
+              normal.push(...face.n); uv.push(s, t);
+              color.push(tint[0]! * brightness, tint[1]! * brightness, tint[2]! * brightness, 1);
+            }
+            indices.push(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
+          }
         }
       }
     }

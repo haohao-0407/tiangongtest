@@ -12,7 +12,7 @@ describe('deterministic terrain', () => {
     expect(world.blocks.length).toBe(250 * 24 * 250);
     expect(world.terrainHeight(125, 125)).toBe(6);
     expect(world.terrainHeight(120, 120)).toBe(6);
-    expect(world.generatorVersion).toBe(2);
+    expect(world.generatorVersion).toBe(3);
     const chunks = world.consumeDirtyChunks();
     expect(chunks).toHaveLength(121);
     expect(chunks).toContainEqual({ x: 10, y: 0, z: 10 });
@@ -159,7 +159,7 @@ describe('save snapshots', () => {
     expect(large.blocks).toEqual(restored.blocks);
     large.reset('new-game');
     expect([large.width, large.height, large.depth]).toEqual([250, 24, 250]);
-    expect(large.generatorVersion).toBe(2);
+    expect(large.generatorVersion).toBe(3);
   });
   it('round-trips built blocks and explicit deletion of generated terrain', () => {
     const world = smallWorld('save-me');

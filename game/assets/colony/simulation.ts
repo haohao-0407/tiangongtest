@@ -15,6 +15,7 @@ export * from './contracts.ts';
 
 const STEP = 0.25;
 export const DAY_SECONDS = 360;
+export const STEEL_ORE_YIELD = 12;
 const SPEEDS = [0, 1, 3, 6];
 const EMPTY_RESOURCES = (): Resources => Object.fromEntries(RESOURCE_TYPES.map((r) => [r, 0])) as Resources;
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
@@ -23,6 +24,8 @@ const horizontalDistance = (a: Position, b: Position) => Math.hypot(a[0] - b[0],
 const emptySlots = (size: number): InventorySlot[] => Array.from({ length: size }, () => null);
 const validSlot = (index: unknown, slots: readonly PlayerInventorySlot[]): index is number =>
   typeof index === 'number' && Number.isInteger(index) && index >= 0 && index < slots.length;
+const mineableTerrain = (block:number):boolean =>
+  [BLOCK.Stone,BLOCK.SteelOre,BLOCK.Dirt,BLOCK.Grass,BLOCK.Sand].includes(block as never);
 type Personal = { kind: 'eat'|'sleep'|'relax'|'wander'|'patient'; elapsed: number; duration: number; reserved: Partial<Resources>; buildingId?:string };
 type Colonist = ColonistView & { path: Position[]; personal: Personal | null; destination: Position | null; retryAt: number };
 type TerrainPlan = TerrainPlanView & {initialWork:number};
@@ -482,7 +485,11 @@ export class ColonySimulation {
     for(const[xx,z]of cells){const old=this.earthwork.get(this.cellKey(xx,z));if(old&&old.target!==y)throw new Error('建筑地基与已有整地目标冲突。');}
     const rotationValue=rotation as BuildingRotation;
     // Earthwork may cut natural soil/rock; authored voxels cannot disappear to make room for furniture.
-    for(const p of buildingParts({kind:def.id,x,y,z:zz,rotation:rotationValue}))if(![BLOCK.Air,BLOCK.Water,BLOCK.Leaves,BLOCK.Grass,BLOCK.Dirt,BLOCK.Stone,BLOCK.Sand].includes(this.world.get(p.x,p.y,p.z) as never))throw new Error('物体体积内有方块障碍，请先清理。');
+    for(const p of buildingParts({kind:def.id,x,y,z:zz,rotation:rotationValue})){
+      const block=this.world.get(p.x,p.y,p.z);
+      if(block===BLOCK.SteelOre)throw new Error('物体体积内有钢矿，请先开采钢矿。');
+      if(![BLOCK.Air,BLOCK.Water,BLOCK.Leaves,BLOCK.Grass,BLOCK.Dirt,BLOCK.Stone,BLOCK.Sand].includes(block as never))throw new Error('物体体积内有方块障碍，请先清理。');
+    }
     const building: BuildingView = {id:this.id('building'),kind:def.id,x,y,z:zz,w,h,d,rotation:rotationValue,...(def.id==='door'?{doorOpen:false}:{}),phase:'preparingTerrain',complete:false,progress:0,reserved:{},powered:false,comfort:0,roomId:null};
     this.s.buildings.push(building);this.rebuildBuildings();
     const plan=this.createLevelPlan(cells,y,building.id);building.terrainPlanId=plan.id;this.refreshJobs();
@@ -528,6 +535,8 @@ export class ColonySimulation {
     if(this.s.crops.some(p=>p.x===x&&p.z===z))return '等待取消此处农田';
     if(this.terrainTrees(x,z,target).length)return '等待居民清理树木';
     if(this.world.waterSurfaceHeight(x,z)>target)return '目标地面仍有积水，请提高标高';
+    // Ore must use the mining work/yield path, even above a low blueprint's immediate clearance.
+    for(let y=target;y<Math.min(this.world.height,Math.max(target+2,this.world.terrainHeight(x,z)));y++)if(this.world.get(x,y,z)===BLOCK.SteelOre)return '请先开采钢矿，再继续整地';
     for(let y=target;y<Math.min(this.world.height,target+2);y++)if(![BLOCK.Air,BLOCK.Water,BLOCK.Leaves,BLOCK.Grass,BLOCK.Dirt,BLOCK.Stone,BLOCK.Sand].includes(this.world.get(x,y,z) as never))return '等待清理地面障碍';
     return undefined;
   }
@@ -660,6 +669,19 @@ export class ColonySimulation {
     options.sort((a,b)=>horizontalDistance(a,from)-horizontalDistance(b,from));
     for(const p of options){const route=this.path(from,p);if(route!==null)return route;}return null;
   }
+  private mineStand(job:Job,from:Position):Position[]|null {
+    const options:Position[]=[];
+    for(const[dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const x=job.x+dx!,z=job.z+dz!,y=this.groundY(x,z);
+      if(this.walkable(x,z)&&Math.abs(y-(job.y+1))<=1.01)options.push([x+.5,y,z+.5]);
+    }
+    options.sort((a,b)=>horizontalDistance(a,from)-horizontalDistance(b,from));
+    for(const p of options){const route=this.path(from,p);if(route!==null)return route;}return null;
+  }
+  private miningTargetValid(job:Job):boolean {
+    return job.y>0&&!this.buildingAt.get(this.cellKey(job.x,job.z))?.complete&&!this.world.treeAtColumn(job.x,job.z)
+      &&this.world.surfaceHeight(job.x,job.z,false)===job.y&&mineableTerrain(this.world.get(job.x,job.y,job.z));
+  }
   private finishTerraform(c:Colonist,job:Job):boolean {
     const work=this.earthwork.get(this.cellKey(job.x,job.z));
     if(!work||this.terrainBlocker(work.x,work.z,work.target)){this.removeJob(job,false);return false;}
@@ -704,10 +726,11 @@ export class ColonySimulation {
     for(let zz=z;zz<z+d;zz++)for(let xx=x;xx<x+w;xx++) {
       if(c.kind==='mine') {
         if(this.world.treeAtColumn(xx,zz)){treesBlockingMining=true;continue;}
-        if(this.buildingAt.has(this.cellKey(xx,zz)))continue;
+        if(this.buildingAt.get(this.cellKey(xx,zz))?.complete)continue;
         const y=this.world.surfaceHeight(xx,zz,false);
-        if(y>0 && [BLOCK.Stone,BLOCK.Dirt,BLOCK.Grass,BLOCK.Sand].includes(this.world.get(xx,y,zz) as never)
-          && !this.s.jobs.some(j=>j.type==='mine'&&j.x===xx&&j.z===zz)) {this.addJob('mine',`rock:${xx}:${zz}:${y}`,xx,y,zz,19,'开采地表');added++;}
+        const block=this.world.get(xx,y,zz);
+        if(y>0 && mineableTerrain(block)
+          && !this.s.jobs.some(j=>j.type==='mine'&&j.x===xx&&j.z===zz)) {this.addJob('mine',`rock:${xx}:${zz}:${y}`,xx,y,zz,19,block===BLOCK.SteelOre?'开采钢矿':'开采地表');added++;}
       } else if(c.kind==='harvest') {
         for(const crop of this.s.crops.filter(p=>p.x===xx&&p.z===zz&&p.planted&&p.growth>=0.95)) {
           if(!this.s.jobs.some(j=>j.type==='harvest'&&j.targetId===crop.id)){this.addJob('harvest',crop.id,xx,crop.y,zz,6,'收获作物');added++;}
@@ -823,7 +846,7 @@ export class ColonySimulation {
   }
   private refreshTreeJobs():void {
     for(const job of [...this.s.jobs])if(job.type==='chop'&&!this.world.getTree(job.targetId)
-      ||job.type==='mine'&&this.world.treeAtColumn(job.x,job.z))this.removeJob(job,false);
+      ||job.type==='mine'&&!this.miningTargetValid(job))this.removeJob(job,false);
   }
   private groundY(x:number,z:number):number {return x>=0&&x<this.world.width&&z>=0&&z<this.world.depth?this.ground[x+z*this.world.width]??-1:-1;}
   getGroundHeight(x:number,z:number):number{if(this.world.revision!==this.worldRevision)this.refreshGround();return this.groundY(x,z);}
@@ -1144,6 +1167,9 @@ export class ColonySimulation {
       }else if(job.type==='chop'){
         const tree=this.world.getTree(job.targetId),path=tree?this.treeStand(tree,c.position):null;
         if(path===null){job.state='blocked';continue;}c.path=path;c.destination=target;
+      }else if(job.type==='mine'){
+        const path=this.miningTargetValid(job)?this.mineStand(job,c.position):null;
+        if(path===null){job.state='blocked';continue;}c.path=path;c.destination=target;
       }else if(!this.route(c,target,adjacent)){job.state='blocked';continue;}
       this.take(cost);for(const r of RESOURCE_TYPES)if(cost[r])job.reserved[r]=(job.reserved[r]??0)+cost[r]!;
       job.assignedTo=c.id;job.state='working';c.jobId=job.id;
@@ -1239,11 +1265,16 @@ export class ColonySimulation {
       this.world.removeTree(tree.id,{recordHistory:false});this.refreshGround();this.navigationDirty=true;
       this.drop('wood',tree.trunkHeight*6,tree.x,tree.z);
     }else if(job.type==='mine'){
-      if(this.buildingAt.has(this.cellKey(job.x,job.z))||this.world.treeAtColumn(job.x,job.z)){this.removeJob(job,true);return;}
-      const y=this.world.surfaceHeight(job.x,job.z,false),block=this.world.get(job.x,y,job.z);
-      if(y>0&&[BLOCK.Stone,BLOCK.Dirt,BLOCK.Grass,BLOCK.Sand].includes(block as never)){
-        this.world.set(job.x,y,job.z,BLOCK.Air);this.refreshGround();this.navigationDirty=true;this.drop('stone',block===BLOCK.Stone?8:3,job.x,job.z);
-        if(block===BLOCK.Stone)this.drop('steel',2,job.x,job.z);
+      if(!this.miningTargetValid(job)){this.removeJob(job,true);return;}
+      const standX=Math.floor(c.position[0]),standZ=Math.floor(c.position[2]);
+      if(Math.abs(standX-job.x)+Math.abs(standZ-job.z)!==1||Math.abs(this.groundY(standX,standZ)-(job.y+1))>1.01){this.releasePerson(c);return;}
+      const block=this.world.get(job.x,job.y,job.z);
+      this.world.set(job.x,job.y,job.z,BLOCK.Air,{recordHistory:false});this.refreshGround();this.navigationDirty=true;
+      if(block===BLOCK.SteelOre)this.drop('steel',STEEL_ORE_YIELD,job.x,job.z);
+      else{
+        this.drop('stone',block===BLOCK.Stone?8:3,job.x,job.z);
+        // Existing saves retain their original steel source; new worlds have finite ore veins.
+        if(block===BLOCK.Stone&&this.world.generatorVersion<3)this.drop('steel',2,job.x,job.z);
       }
     }
     job.reserved={};c.skills[job.type]=Math.min(20,c.skills[job.type]+.12);this.s.metrics.jobsCompleted++;

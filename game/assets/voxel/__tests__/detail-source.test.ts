@@ -86,7 +86,7 @@ describe('independent incremental detail invalidation', () => {
     const before = world.getDetailCellsForTile(3, 3);
     expect(() => world.edit([
       { x: 27, y: 20, z: 27, block: BLOCK.Air },
-      { x: 28, y: 20, z: 27, block: BLOCK.Road + 1 },
+      { x: 28, y: 20, z: 27, block: BLOCK.SteelOre + 1 },
     ])).toThrow();
     expect(world.getDetailCellsForTile(3, 3)).toEqual(before);
     expect(world.consumePcgDirtyTiles()).toEqual({ reset: false, tiles: [] });

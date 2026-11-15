@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildChunkMesh } from '../mesh.ts';
-import { CHUNK_SIZE } from '../model.ts';
+import { BLOCK, CHUNK_SIZE } from '../model.ts';
 
 function fixture(cells: [number, number, number, number][], size = { width: 48, height: 24, depth: 48 }) {
   const data = new Map(cells.map(([x, y, z, block]) => [`${x},${y},${z}`, block]));
@@ -46,5 +46,19 @@ describe('exposed voxel geometry', () => {
     const corner = fixture([[49, 24, 48, 3]], { width: 50, height: 25, depth: 49 });
     const partial = buildChunkMesh(corner, { x: 2, y: 1, z: 2 })!;
     expect(Array.from(partial.aabb!)).toEqual([49, 24, 48, 50, 25, 49]);
+  });
+  it('shows mineral inclusions only on exposed ore faces and removes them with the ore', () => {
+    const world = fixture([[3, 4, 3, BLOCK.SteelOre], [4, 4, 3, BLOCK.SteelOre]]);
+    const mesh = buildChunkMesh(world, origin)!;
+    expect(Array.from(mesh.aabb!)).toEqual([3, 4, 3, 5, 5, 4]);
+    const colors = mesh.attributes.color as Float32Array;
+    expect(Array.from(colors).every(Number.isFinite)).toBe(true);
+    const topColors = new Set<string>(), normals = mesh.attributes.normal as Float32Array;
+    for (let i = 0; i < normals.length / 3; i++) if (normals[i * 3 + 1] === 1)
+      topColors.add(Array.from(colors.slice(i * 4, i * 4 + 3)).map(n => n.toFixed(3)).join(','));
+    expect(topColors.size).toBeGreaterThan(2);
+    const isolated = buildChunkMesh(fixture([[3, 4, 3, BLOCK.SteelOre]]), origin)!;
+    expect(mesh.indices!.length).toBeLessThan(isolated.indices!.length * 2);
+    expect(buildChunkMesh(fixture([]), origin)).toBeNull();
   });
 });

@@ -163,7 +163,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   on(shadow, 'contextmenu', e => e.preventDefault());
 
   const showTool = (tool: string) => {
-    const hints: Record<string, string> = { inspect: '查看模式 · 点击居民或物体任一部分查看详情', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '整体拆除 · 点击物体任一部分 · 完工设施回收 50% 建材', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树干或树冠，安排整棵砍伐', mine: '采矿规划 · 点击石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
+    const hints: Record<string, string> = { inspect: '查看模式 · 点击居民或物体任一部分查看详情', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '整体拆除 · 点击物体任一部分 · 完工设施回收 50% 建材', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树干或树冠，安排整棵砍伐', mine: '采矿规划 · 点击地表钢矿或石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
     if (state?.selected === 10) hints['sandbox:build'] = '铺设道路 · 左键替换地表 · 路沿与台阶随连接自动更新';
     else if (state?.selected === 6) hints['sandbox:build'] = '砖墙 · 三格起宽、两格高自动排窗组 · 留空作入口 · 增删保留有效窗位';
     get('tool-hint').textContent = tool === 'level'
@@ -268,7 +268,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const entries = [
       ['level', '等高整地', '涂抹或框选，将选区填挖到同一标高。', 'tool-level'],
       ['zone:farm', '农田', '种植、照料与收获食物。', 'tool-zone-farm'], ['zone:stockpile', '仓储', '搬运散落物资，集中保管。', 'tool-zone-stockpile'],
-      ['chop', '伐木', '点击任一部分，整棵砍伐获取木材。', 'tool-chop'], ['mine', '采矿', '标记矿石，获取建材。', 'tool-mine'],
+      ['chop', '伐木', '点击任一部分，整棵砍伐获取木材。', 'tool-chop'], ['mine', '采矿', '地表钢矿产出钢铁，普通石块产出石材。', 'tool-mine'],
       ['harvest', '收获', '标记成熟作物。', 'tool-harvest'], ['cancel', '取消规划', '移除未完成的规划或工作。', 'tool-cancel'],
       ['interact', '开关门', '点击门的任一部分开关；关闭时阻挡通行。', 'tool-interact'], ['demolish', '整体拆除', '点击物体任一部分，完工设施回收 50% 建材。', 'tool-demolish'],
     ];

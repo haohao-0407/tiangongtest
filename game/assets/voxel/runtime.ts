@@ -292,7 +292,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         treeView.update(voxels, selectedTreeId);
       };
       const read = () => ({
-        seed: voxels.seed, selected, mode, tool, crop, colony: colonyState, blocks: voxels.count(), nonAirCount: voxels.count(),
+        seed: voxels.seed, generatorVersion: voxels.generatorVersion, selected, mode, tool, crop, colony: colonyState, blocks: voxels.count(), nonAirCount: voxels.count(),
+        minerals: { steelOre: { cells: voxels.count(BLOCK.SteelOre) } },
         edits: voxels.editCount, editCount: voxels.editCount, revision: voxels.revision,
         undo: tool.startsWith('sandbox:') && voxels.canUndo, redo: tool.startsWith('sandbox:') && voxels.canRedo, hoverCell: hoverCell ? [...hoverCell] : null,
         status, lastEdit, buildRotation, selectedBuildingId, hoverBuildingId, hoverBuildingPart: hoverBuildingPart ? {...hoverBuildingPart} : null,
@@ -828,7 +829,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 const pawn=picks[0]?.p??colonyState.colonists.find(p=>Math.hypot(p.position[0]-(x+.5),p.position[2]-(z+.5))<1.1);
                 if(pawn&&((!objectHit&&!treeHit)||(picks[0]?.t??Infinity)<Math.min(objectHit?.distance??Infinity,treeHit?.distance??Infinity)))execute({action:'select',colonistId:pawn.id});
                 else if(treeHit){execute({action:'select'});selectedTreeId=treeHit.tree.id;status=`整棵树木 · 树干、分枝与树冠共用一个物体 · 高 ${treeHit.tree.trunkHeight+2} 格`;refreshState=true;}
-                else{const b=objectHit?.building;execute({action:'select'});selectedBuildingId=b?.id??null;status=b?`${BUILDING_DEFS[b.kind as BuildingKind].name} · ${b.complete?'已建成':b.phase==='preparingTerrain'?'准备地基':`施工 ${Math.round(b.progress*100)}%`}${b.kind==='door'?b.doorOpen?' · 开启':' · 关闭':''}${b.blockedReason?` · ${b.blockedReason}`:''}`:`地块 [${x}, ${z}] · 地面标高 ${voxels.terrainHeight(x,z)}`;refreshState=true;}
+                else {
+                  const b=objectHit?.building; execute({action:'select'}); selectedBuildingId=b?.id??null;
+                  status=b?`${BUILDING_DEFS[b.kind as BuildingKind].name} · ${b.complete?'已建成':b.phase==='preparingTerrain'?'准备地基':`施工 ${Math.round(b.progress*100)}%`}${b.kind==='door'?b.doorOpen?' · 开启':' · 关闭':''}${b.blockedReason?` · ${b.blockedReason}`:''}`
+                    :`${BLOCKS[hit?.block ?? BLOCK.Air]?.name ?? '地块'} [${x}, ${z}] · 地面标高 ${voxels.terrainHeight(x,z)}${hit?.block===BLOCK.SteelOre?' · 规划 → 采矿，获取钢铁':''}`;
+                  refreshState=true;
+                }
               }
             }
             if (sandbox && (hit||objectHit||treeHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
