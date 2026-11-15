@@ -392,7 +392,7 @@ export default async function dualViewProbe(play) {
   await advance(0.6);
   const requested = await read();
   assert.equal(requested.colony.resources[takenResource], poolBefore[takenResource] - 3, '仓库应锁定滑条选择的数量');
-  assert.ok(requested.player.bag.every(stack => stack === null), '下单不应直接把物品放进快捷栏');
+  assert.ok(requested.player.bag.slice(1).every(stack => stack === null), '下单不应直接把物品放进快捷栏');
   const order = requested.colony.jobs.find(job => job.targetId === 'player-delivery');
   assert.ok(order && order.deliveryPhase === 'pickup' && order.reserved[takenResource] === 3);
   await play.screenshot('inventory-delivery-queued');
@@ -401,12 +401,12 @@ export default async function dualViewProbe(play) {
   const delivered = await waitDelivery(order.id, (job, current) => {
     if (job.deliveryPhase === 'deliver') {
       assert.ok(current.colony.colonists.some(person => person.id === job.assignedTo));
-      assert.ok(current.player.bag.every(stack => stack === null));
+      assert.ok(current.player.bag.slice(1).every(stack => stack === null));
       sawCarrier = true;
     }
   });
   assert.ok(sawCarrier, '应看见居民从储藏区取货后、送到玩家前的状态');
-  assert.deepEqual(delivered.player.bag.filter(Boolean), [{ resource: takenResource, count: 3 }]);
+  assert.deepEqual(delivered.player.bag.slice(1).filter(Boolean), [{ resource: takenResource, count: 3 }]);
   await play.screenshot('inventory-delivery-arrived');
   await pauseColony();
   await play.page.locator('[data-menu="warehouse"]').click();
@@ -527,10 +527,10 @@ export default async function dualViewProbe(play) {
   await getItem.click();
   await advance(0.5);
   assert.deepEqual(starter(await read()).slots[3], { resource: item.resource, count: 1 });
-  assert.deepEqual((await read()).player.bag[0], { resource: item.resource, count: 2 });
+  assert.deepEqual((await read()).player.bag[1], { resource: item.resource, count: 2 });
   assert.equal(await play.page.locator('#hotbar').isVisible(), true, '打开面板时快捷栏应可见');
-  await drag(chestSlot(3), hotbarSlot(0));
-  inventoryState = await drag(hotbarSlot(0), hotbarSlot(6));
+  await drag(chestSlot(3), hotbarSlot(1));
+  inventoryState = await drag(hotbarSlot(1), hotbarSlot(6));
   assert.deepEqual(inventoryState.player.bag[6], item, '取回的整叠物品应进入指定快捷栏格');
   assert.equal(starter(inventoryState).slots[3], null);
   await play.screenshot('inventory-chest-to-hotbar');
@@ -600,9 +600,9 @@ export default async function dualViewProbe(play) {
   await getItem.click();
   await advance(0.5);
   assert.deepEqual(follower(await read()).bag[0], { resource: item.resource, count: 1 });
-  assert.deepEqual((await read()).player.bag[0], { resource: item.resource, count: 2 });
-  await drag(followerSlot, hotbarSlot(0));
-  inventoryState = await drag(hotbarSlot(0), hotbarSlot(7));
+  assert.deepEqual((await read()).player.bag[1], { resource: item.resource, count: 2 });
+  await drag(followerSlot, hotbarSlot(1));
+  inventoryState = await drag(hotbarSlot(1), hotbarSlot(7));
   assert.deepEqual(inventoryState.player.bag[7], item);
   assert.equal(follower(inventoryState).bag[0], null);
   await play.screenshot('inventory-follower-to-hotbar');

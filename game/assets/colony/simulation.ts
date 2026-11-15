@@ -3,12 +3,13 @@ import type { TreeInstance } from '../voxel/trees.ts';
 import {buildingDimensions,buildingParts,buildingBlocksMovement} from './buildings.ts';
 import {
   BUILDING_DEFS, RESEARCH_DEFS, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES,
-  CHEST_SLOTS, CHEST_WOOD_COST, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace,
+  CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET,
+  PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
   type ColonySnapshot, type ColonistView, type CommandResult, type CropView,
   type ItemView, type JobType, type JobView, type Position, type Resource,
   type Resources, type RoomView, type Schedule, type ZoneView, type TerrainPlanView,
-  type ChestView, type InventoryLocation, type InventorySlot,
+  type ChestView, type InventoryLocation, type InventorySlot, type PlayerInventorySlot,
 } from './contracts.ts';
 export * from './contracts.ts';
 
@@ -20,7 +21,7 @@ const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
 const horizontalDistance = (a: Position, b: Position) => Math.hypot(a[0] - b[0], a[2] - b[2]);
 const emptySlots = (size: number): InventorySlot[] => Array.from({ length: size }, () => null);
-const validSlot = (index: unknown, slots: InventorySlot[]): index is number =>
+const validSlot = (index: unknown, slots: readonly PlayerInventorySlot[]): index is number =>
   typeof index === 'number' && Number.isInteger(index) && index >= 0 && index < slots.length;
 type Personal = { kind: 'eat'|'sleep'|'relax'|'wander'|'patient'; elapsed: number; duration: number; reserved: Partial<Resources>; buildingId?:string };
 type Colonist = ColonistView & { path: Position[]; personal: Personal | null; destination: Position | null; retryAt: number };
@@ -31,7 +32,7 @@ type SavedState = {
   version: 1; type: 'peaceful-colony'; worldSeed: string; time: number; accumulator: number; rng: number;
   nextId: number; speed: number; decision: number; lastDay: number; spoilage: number;
   resources: Resources; colonists: Colonist[]; buildings: BuildingView[]; zones: ZoneView[];
-  playerBag: InventorySlot[]; bagSelected: number; chests: ChestView[];
+  playerBag: PlayerInventorySlot[]; bagSelected: number; chests: ChestView[];
   crops: CropView[]; items: ItemView[]; jobs: Job[]; events: ColonyEvent[]; terrainPlans:TerrainPlan[];
   research: ColonySnapshot['research']; power: ColonySnapshot['power']; trade: ColonySnapshot['trade'];
   bills: ColonySnapshot['bills']; metrics: ColonySnapshot['metrics']; selectedColonistId: string|null;
@@ -40,8 +41,9 @@ type SavedState = {
 
 /** All quantities and work reservations have one owner; no runtime/browser API is needed. */
 export class ColonySimulation {
-  private deliveryPosition: Position | undefined;
+  private playerPosition: Position | undefined;
   private deliveryMessage: string | undefined;
+  private playerBuild: { id: string; rate: number } | null = null;
   private walkSurface: ((x:number,z:number,fallback:number)=>number) | undefined;
   /** Source graph/pathfinding stay coarse; derived treads determine actual motion height. */
   setWalkSurfaceSampler(sampler:(x:number,z:number,fallback:number)=>number):void {this.walkSurface=sampler;}
@@ -80,7 +82,7 @@ export class ColonySimulation {
       version: 1, type: 'peaceful-colony', worldSeed: world.seed, time: DAY_SECONDS / 3, accumulator: 0,
       rng: seed >>> 0 || 1, nextId: 1, speed: 1, decision: 0, lastDay: 1, spoilage: 0,
       resources: { wood: 140, stone: 110, steel: 60, food: 40, meal: 14, medicine: 12, cloth: 30, silver: 120, components: 8 },
-      playerBag: emptySlots(PLAYER_SLOTS), bagSelected: 0, chests: [this.starterChest()],
+      playerBag: [{ resource: HAMMER, count: 1 }, ...emptySlots(PLAYER_SLOTS - 1)], bagSelected: 0, chests: [this.starterChest()],
       colonists: [], buildings: [], zones: [], crops: [], items: [], jobs: [], events: [],terrainPlans:[],
       research: { active: null, progress: {}, completed: [] },
       power: { generation: 0, demand: 0, stored: 0, capacity: 0, supplied: 0, coldStorage: false },
@@ -161,10 +163,18 @@ export class ColonySimulation {
   }
 
   selectBagSlot(index: unknown): void {
-    if (validSlot(index, this.s.playerBag)) this.s.bagSelected = index;
+    if (!validSlot(index, this.s.playerBag)) return;
+    this.s.bagSelected = index;
+    if (this.s.playerBag[index]?.resource !== HAMMER) this.stopPlayerConstruction();
   }
 
-  private inventorySlots(location: InventoryLocation): InventorySlot[] | undefined {
+  private ensurePlayerHammer(): void {
+    const bag = this.s.playerBag;
+    const slot = bag.indexOf(null);
+    if (slot >= 0 && !bag.some(item => item?.resource === HAMMER)) bag[slot] = { resource: HAMMER, count: 1 };
+  }
+
+  private inventorySlots(location: InventoryLocation): PlayerInventorySlot[] | undefined {
     if (location.kind === 'player') return this.s.playerBag;
     if (location.kind === 'chest') return this.s.chests.find(chest => chest.id === location.id)?.slots;
     if (location.kind === 'follower') return this.s.colonists.find(colonist => colonist.id === location.id)?.bag;
@@ -180,7 +190,7 @@ export class ColonySimulation {
       const count = bag[index]?.count ?? 0;
       const added = Math.min(STACK_LIMIT - count, left);
       bag[index] = { resource, count: count + added };
-      if (left === amount) this.selectBagSlot(index);
+      if (left === amount && !this.playerBuild) this.selectBagSlot(index);
       left -= added;
     }
     return amount - left;
@@ -189,8 +199,14 @@ export class ColonySimulation {
   transferInventory(from: InventoryLocation, to: InventoryLocation, resource: Resource, amount: number): CommandResult {
     const unavailable = { ok: false, message: '来源格子里的物品已变动' };
     const full = { ok: false, message: '目标格放不下，物品留在原处' };
-    if (!from || !to || !RESOURCE_TYPES.includes(resource) || !Number.isSafeInteger(amount) || amount < 1) {
+    // 锤子这类工具不是 Resource，但同样是可搬的东西：
+    // 放行它的格子间移动，只拦「塞进仓库」——带在身上才能施工。
+    const isTool = String(resource) === HAMMER;
+    if (!from || !to || (!isTool && !RESOURCE_TYPES.includes(resource)) || !Number.isSafeInteger(amount) || amount < 1) {
       return { ok: false, message: '无效的物品转移' };
+    }
+    if (isTool && to.kind === 'warehouse') {
+      return { ok: false, message: '锤子要带在身上才能施工' };
     }
     if (from.kind === 'warehouse' && to.kind === 'warehouse') return unavailable;
     const sourceSlots = this.inventorySlots(from);
@@ -229,6 +245,7 @@ export class ColonySimulation {
     } else if (sourceSlots && validSlot(sourceIndex, sourceSlots)) {
       sourceSlots[sourceIndex] = left ? { resource, count: left } : null;
     }
+    if (from.kind === 'player') this.ensurePlayerHammer();
     return { ok: true, message: moved < amount ? `已转移 ${moved} 个，剩余物品留在原处` : `已转移 ${moved} 个` };
   }
 
@@ -251,9 +268,51 @@ export class ColonySimulation {
     return message;
   }
 
+  get playerConstructionId(): string | null { return this.playerBuild?.id ?? null; }
+
+  stopPlayerConstruction(): void { this.playerBuild = null; }
+
+  private withinBuildReach(position: Position, building: BuildingView): boolean {
+    const [x, y, z] = position;
+    const dx = x - clamp(x, building.x, building.x + building.w);
+    const dz = z - clamp(z, building.z, building.z + building.d);
+    return Math.hypot(dx, dz) <= PLAYER_BUILD_REACH && Math.abs(y - building.y) <= 1.5;
+  }
+
+  startPlayerConstruction(id: string, position: Position): CommandResult {
+    this.stopPlayerConstruction();
+    if (this.s.playerBag[this.s.bagSelected]?.resource !== HAMMER) return { ok: false, message: '请先选中锤子' };
+    const building = this.s.buildings.find(candidate => candidate.id === id && !candidate.complete);
+    if (!building) return { ok: false, message: '没有可施工的蓝图' };
+    if (!this.withinBuildReach(position, building)) return { ok: false, message: '请靠近蓝图后施工' };
+    const job = this.s.jobs.find(candidate => candidate.type === 'construct' && candidate.targetId === id);
+    if (!job || !this.constructionReady(building)) {
+      return { ok: false, message: building.blockedReason ?? '请等地基平整并备齐材料' };
+    }
+    const assigned = this.s.colonists.find(person => person.id === job.assignedTo);
+    const available = this.s.colonists.filter(person => person.priorities.construct > 0);
+    const reference = assigned ? this.workRate(assigned, 'construct')
+      : Math.max(...(available.length ? available : this.s.colonists).map(person => this.workRate(person, 'construct')));
+    this.playerBuild = { id, rate: PLAYER_BUILD_MULTIPLIER * reference };
+    return { ok: true, message: `开始建造${BUILDING_DEFS[building.kind].name}` };
+  }
+
+  private updatePlayerConstruction(dt: number): void {
+    const action = this.playerBuild;
+    if (!action) return;
+    const building = this.s.buildings.find(candidate => candidate.id === action.id && !candidate.complete);
+    const job = this.s.jobs.find(candidate => candidate.type === 'construct' && candidate.targetId === action.id);
+    if (!building || !job || !this.playerPosition || !this.withinBuildReach(this.playerPosition, building)
+      || !this.constructionReady(building)) { this.stopPlayerConstruction(); return; }
+    const assigned = this.s.colonists.find(person => person.id === job.assignedTo);
+    if (assigned) this.releasePerson(assigned);
+    this.advanceConstruction(building, job, dt * action.rate);
+    if (building.complete) this.stopPlayerConstruction();
+  }
+
   tick(realSeconds: number, playerPosition?: Position): void {
     if (!Number.isFinite(realSeconds) || realSeconds < 0 || realSeconds > 600) throw new RangeError('模拟步长必须为 0–600 秒。');
-    this.deliveryPosition = playerPosition;
+    this.playerPosition = playerPosition;
     this.syncWorld();
     this.s.accumulator += realSeconds * this.s.speed;
     while (this.s.accumulator + 1e-9 >= STEP) {
@@ -295,6 +354,7 @@ export class ColonySimulation {
       if (this.navigationDirty) this.updateRooms();
       this.refreshJobs();
     }
+    this.updatePlayerConstruction(dt);
     for (const c of this.s.colonists) this.updateColonist(c, dt);
   }
 
@@ -985,8 +1045,9 @@ export class ColonySimulation {
     }
     if(job.type==='construct'){
       const b=this.s.buildings.find(b=>b.id===job.targetId);
-      if(!b||b.phase==='preparingTerrain'||!this.buildingClearance(b)||!this.footprint(b).every(([x,z])=>this.world.terrainHeight(x,z)===b.y&&!this.terrainBlocker(x,z,b.y))){this.removeJob(job,false);this.refreshJobs();return;}
-      b.phase='constructing';
+      if(!b||!this.constructionReady(b)){this.removeJob(job,false);this.refreshJobs();return;}
+      this.advanceConstruction(b, job, dt * this.workRate(c, 'construct'), c);
+      return;
     }
     if(job.type==='haul'){this.haul(c,job);return;}
     if(job.type==='doctor'){
@@ -996,14 +1057,58 @@ export class ColonySimulation {
         if(!this.route(c,patient.position,true)){this.releasePerson(c);c.retryAt=this.s.time+3;}return;
       }
     }
-    const rate=(.65+c.skills[job.type]*.1)*(c.hunger<20?.65:1)*(c.rest<25?.65:1)*(c.traits.includes('勤劳')?1.1:1);
-    job.progress+=dt*rate;
-    if(job.type==='construct'){const b=this.s.buildings.find(b=>b.id===job.targetId);if(b)b.progress=Math.min(1,job.progress/job.work);}
+    job.progress+=dt*this.workRate(c, job.type);
     if(job.type==='research')this.s.research.progress[job.targetId]=Math.min(job.work,job.progress);
     if(job.progress>=job.work)this.finish(c,job);
   }
+  private workRate(c: Colonist, job: JobType): number {
+    return (.65+c.skills[job]*.1)*(c.hunger<20?.65:1)*(c.rest<25?.65:1)*(c.traits.includes('勤劳')?1.1:1);
+  }
+
+  private constructionReady(building: BuildingView): boolean {
+    return !building.complete && building.phase !== 'preparingTerrain' && this.buildingClearance(building)
+      && this.footprint(building).every(([x,z]) => this.world.terrainHeight(x,z) === building.y && !this.terrainBlocker(x,z,building.y));
+  }
+
+  private advanceConstruction(building: BuildingView, job: Job, work: number, worker?: Colonist): void {
+    building.phase = 'constructing';
+    building.blockedReason = undefined;
+    job.progress = Math.min(job.work, job.progress + work);
+    if (job.progress === job.work && BUILDING_DEFS[building.kind].blocking && this.occupiedByActor(building)) {
+      building.blockedReason = '等待角色离开建筑占地';
+      job.progress = Math.max(0, job.work - .25);
+      for (const person of this.s.colonists) {
+        if (person === worker || person.position[0]+.23 <= building.x || person.position[0]-.23 >= building.x+building.w
+          || person.position[2]+.23 <= building.z || person.position[2]-.23 >= building.z+building.d) continue;
+        this.releasePerson(person);
+        const path = this.buildingStand(building, person.position);
+        if (path) {
+          person.path = path; person.destination = path.at(-1) ?? person.position;
+          person.personal = { kind: 'wander', elapsed: 0, duration: 1, reserved: {} };
+        }
+      }
+    }
+    building.progress = job.progress / job.work;
+    if (job.progress < job.work) return;
+    const leaves = buildingParts(building).filter(part => this.world.get(part.x,part.y,part.z) === BLOCK.Leaves);
+    if (leaves.length) this.world.edit(leaves.map(({x,y,z}) => ({x,y,z,block:BLOCK.Air})));
+    building.complete = true;
+    building.phase = 'completed';
+    building.reserved = {};
+    this.s.metrics.built++;
+    this.s.metrics.jobsCompleted++;
+    this.navigationDirty = true;
+    this.rebuildBuildings();
+    this.event('info', `${worker?.name ?? '玩家'}完成了${BUILDING_DEFS[building.kind].name}。`);
+    this.removeJob(job, false);
+    if (worker) {
+      worker.skills.construct = Math.min(20, worker.skills.construct + .12);
+      worker.task = '工作完成';
+    }
+  }
   private assign(c:Colonist):boolean {
-    const options=this.s.jobs.filter(j=>!j.assignedTo&&c.priorities[j.type]>0&&(j.type!=='doctor'||j.targetId!==c.id))
+    const options=this.s.jobs.filter(j=>!j.assignedTo&&c.priorities[j.type]>0&&(j.type!=='doctor'||j.targetId!==c.id)
+      &&(j.type!=='construct'||j.targetId!==this.playerBuild?.id))
       .sort((a,b)=>Number(b.targetId===PLAYER_DELIVERY_TARGET)-Number(a.targetId===PLAYER_DELIVERY_TARGET)
         ||c.priorities[a.type]-c.priorities[b.type]||Math.hypot(a.x-c.position[0],a.z-c.position[2])-Math.hypot(b.x-c.position[0],b.z-c.position[2]));
     for(const job of options){
@@ -1063,7 +1168,7 @@ export class ColonySimulation {
       return;
     }
 
-    const player = this.deliveryPosition;
+    const player = this.playerPosition;
     c.task = `给玩家送${RESOURCE_NAMES[resource]}`;
     if (!player) return;
     if (horizontalDistance(c.position, player) <= 1.5 && Math.abs(c.position[1] - player[1]) <= 1.5) {
@@ -1112,17 +1217,6 @@ export class ColonySimulation {
   private finish(c:Colonist,job:Job):void {
     if(job.type==='terraform'){
       if(this.finishTerraform(c,job)){c.skills.terraform=Math.min(20,c.skills.terraform+.05);this.s.metrics.jobsCompleted++;c.task='完成一层填挖';}return;
-    }else if(job.type==='construct'){
-      const b=this.s.buildings.find(b=>b.id===job.targetId);if(b){
-        if(!this.buildingClearance(b)||!this.footprint(b).every(([x,z])=>this.world.terrainHeight(x,z)===b.y&&!this.terrainBlocker(x,z,b.y))){this.removeJob(job,false);this.refreshJobs();return;}
-        if(BUILDING_DEFS[b.kind].blocking&&this.occupiedByActor(b)){
-          b.blockedReason='等待居民离开建筑占地';job.progress=job.work-.25;
-          for(const p of this.s.colonists)if(p!==c&&p.position[0]+.23>b.x&&p.position[0]-.23<b.x+b.w&&p.position[2]+.23>b.z&&p.position[2]-.23<b.z+b.d){
-            this.releasePerson(p);const path=this.buildingStand(b,p.position);if(path){p.path=path;p.destination=path.at(-1)??p.position;p.personal={kind:'wander',elapsed:0,duration:1,reserved:{}};}
-          }return;
-        }
-        const leaves=buildingParts(b).filter(p=>this.world.get(p.x,p.y,p.z)===BLOCK.Leaves);if(leaves.length)this.world.edit(leaves.map(({x,y,z})=>({x,y,z,block:BLOCK.Air})));
-        b.complete=true;b.phase='completed';b.progress=1;b.reserved={};this.s.metrics.built++;this.navigationDirty=true;this.rebuildBuildings();this.event('info',`${c.name}完成了${BUILDING_DEFS[b.kind].name}。`);}
     }else if(job.type==='grow'){
       const crop=this.s.crops.find(p=>p.id===job.targetId);if(crop){crop.planted=true;crop.growth=0;}
     }else if(job.type==='harvest'){
@@ -1252,6 +1346,7 @@ export class ColonySimulation {
     this.deliveryMessage = undefined;
     this.s=validated;this.terrainCellViews.clear();this.terrainIndexDirty=true;this.rebuildBuildings();this.refreshGround();this.refreshTerrainPlans();this.navigationDirty=true;this.updateRooms();
     this.refreshTreeJobs();
+    this.stopPlayerConstruction();
   }
   private validate(data:unknown):SavedState {
     const fail=():never=>{throw new Error('殖民地存档数据不完整、损坏或版本不兼容。');};
@@ -1272,8 +1367,10 @@ export class ColonySimulation {
     const integer=(n:unknown,min=0,max=1e9)=>finite(n,min,max)&&Number.isInteger(n);
     const text=(x:unknown,max=200)=>typeof x==='string'&&x.length<=max;
     const list=(x:unknown,max:number)=>Array.isArray(x)&&x.length<=max;
-    const inventory = (slots: unknown, size: number) => Array.isArray(slots) && slots.length === size
-      && slots.every(slot => slot === null || slot && RESOURCE_TYPES.includes(slot.resource) && integer(slot.count, 1, STACK_LIMIT));
+    const inventory = (slots: unknown, size: number, player = false) => Array.isArray(slots) && slots.length === size
+      && (!player || slots.filter(slot => slot?.resource === HAMMER).length <= 1)
+      && slots.every(slot => slot === null || slot && (player && slot.resource === HAMMER
+        ? slot.count === 1 : RESOURCE_TYPES.includes(slot.resource) && integer(slot.count, 1, STACK_LIMIT)));
     const area=this.world.width*this.world.depth;
     const position=(p:unknown)=>Array.isArray(p)&&p.length===3&&finite(p[0],0,this.world.width)&&finite(p[1],0,this.world.height)&&finite(p[2],0,this.world.depth);
     const resources=(r:unknown,partial=false)=>!!r&&typeof r==='object'&&!Array.isArray(r)&&Object.keys(r).every(k=>RESOURCE_TYPES.includes(k as Resource))
@@ -1281,7 +1378,7 @@ export class ColonySimulation {
     if(s.version!==1||s.type!=='peaceful-colony'||s.worldSeed!==this.world.seed||!finite(s.time)||!finite(s.accumulator,0,STEP)||!integer(s.rng,1,4294967295)||!integer(s.nextId,1)||!SPEEDS.includes(s.speed)||!finite(s.decision,0,1)||!integer(s.lastDay,1)||!finite(s.spoilage,0,1000))fail();
     if(!resources(s.resources)||!list(s.colonists,20)||s.colonists.length<1||!list(s.buildings,area)||!list(s.zones,area)||!list(s.crops,area)||!list(s.items,Math.max(5000,area))||!list(s.jobs,Math.max(6000,area))||!list(s.events,80)||!list(s.terrainPlans,area))fail();
     const unique=(rows:{id:string}[])=>{const ids=new Set<string>();for(const row of rows){if(!row||!text(row.id,80)||!row.id||ids.has(row.id))fail();ids.add(row.id);}return ids;};
-    if (!inventory(s.playerBag, PLAYER_SLOTS) || !validSlot(s.bagSelected, s.playerBag) || !list(s.chests, area)) fail();
+    if (!inventory(s.playerBag, PLAYER_SLOTS, true) || !validSlot(s.bagSelected, s.playerBag) || !list(s.chests, area)) fail();
     unique(s.chests);
     const chestCells = new Set<number>();
     for (const chest of s.chests) {

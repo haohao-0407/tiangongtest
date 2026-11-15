@@ -23,7 +23,9 @@ import { overlaps, raycastTree, treesBlockBox, treeSupportHeight, treeProtecting
 import { ColonySimulation } from '../colony/simulation.ts';
 import { ColonyView } from '../colony/view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
-import { BUILDING_DEFS, type BuildingKind, type ColonyCommand, type ChestView } from '../colony/contracts.ts';import { buildingDimensions, type BuildingPart } from '../colony/buildings.ts'; import { raycastBuilding, buildingProtectingVoxel, findPlayerSpawn } from '../colony/interaction.ts';
+import { BUILDING_DEFS, HAMMER, type BuildingKind, type ColonyCommand, type ChestView } from '../colony/contracts.ts';
+import { buildingDimensions, type BuildingPart } from '../colony/buildings.ts';
+import { raycastBuilding, buildingProtectingVoxel, findPlayerSpawn } from '../colony/interaction.ts';
 
 type Point = [number, number, number];
 const PALETTE = [5, 3, 4, 6, 1, 2, 10];
@@ -302,6 +304,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           parts: colonyView.playerEntityCount,
           bag: colonyState.playerBag,
           bagSelected: colonyState.bagSelected,
+          constructionId: colony.playerConstructionId,
           vitals: { ...vitals, gold: Math.floor((colonyState.resources as Record<string, number>).silver ?? 0) },
           chest: colonyState.chests[0] ? chestPosition(colonyState.chests[0]) : null,
           nearChest: viewMode === 'character' ? nearChest()?.id ?? null : null,
@@ -508,7 +511,17 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         fn: () => {
           const input = world.getResource<InputSnapshot>(INPUT_SNAPSHOT_RESOURCE_KEY);
           const dt = Math.min(world.getResource(Time).delta, 0.1);
+          const constructionId = colony.playerConstructionId;
           colony.tick(dt, [player.x, player.y, player.z]); publishElapsed += dt; simViewElapsed += dt;
+          if (constructionId && !colony.playerConstructionId) {
+            colonyState = colony.snapshot();
+            refreshState = true;
+            const building = colonyState.buildings.find(candidate => candidate.id === constructionId && candidate.complete);
+            if (building) {
+              status = `${BUILDING_DEFS[building.kind].name}已建成`;
+              port?.postMessage({ type: 'voxel:inventory-status', message: status });
+            }
+          }
           const delivery = colony.takeDeliveryMessage();
           if (delivery) {
             status = delivery;
@@ -565,6 +578,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 distance = 12;
                 status = '玩家视角 · WASD 移动 / 空格跳跃 / R 切回俯视';
               } else {
+                colony.stopPlayerConstruction();
                 viewMode = 'god'; followId = null;
                 target = [...godReturn.target] as Point;
                 yaw = godReturn.yaw; pitch = godReturn.pitch; distance = godReturn.distance;
@@ -705,7 +719,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             if (sandbox && ctrl && k.justPressedCode('KeyZ')) editHistory(false);
             else if (sandbox && ctrl && k.justPressedCode('KeyY')) editHistory(true);
             if(sandbox) PALETTE.forEach((block, index) => { if (k.justPressedCode(`Digit${index + 1}`)) { selected = block; mode = 'build'; tool='sandbox:build'; refreshState = true; } });
-            else {if(k.justPressedCode('Digit1'))execute({action:'speed',value:1});if(k.justPressedCode('Digit2'))execute({action:'speed',value:3});if(k.justPressedCode('Digit3'))execute({action:'speed',value:6});}
+            else if(viewMode !== 'character') {if(k.justPressedCode('Digit1'))execute({action:'speed',value:1});if(k.justPressedCode('Digit2'))execute({action:'speed',value:3});if(k.justPressedCode('Digit3'))execute({action:'speed',value:6});}
             if (k.justPressedCode('KeyB')) { if(sandbox){mode='build';tool='sandbox:build';}else tool='build:wall';refreshState=true; }
             if (k.justPressedCode('KeyX')) { if(sandbox){mode='remove';tool='sandbox:remove';}else tool='cancel';refreshState=true; }
             const m = input.mouse.position;
@@ -784,6 +798,13 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 refreshState=true;
               }
 
+              else if(viewMode === 'character' && objectHit && !objectHit.building.complete
+                && colonyState.playerBag[colonyState.bagSelected]?.resource === HAMMER) {
+                const result = colony.startPlayerConstruction(objectHit.building.id, [player.x, player.y, player.z]);
+                status = result.message;
+                refreshState = true;
+                if (!result.ok) port?.postMessage({ type: 'voxel:inventory-status', message: status });
+              }
               else if(tool==='place-chest')execute({action:'place-chest',x,z});
               else if(tool.startsWith('build:'))execute({action:'build',kind:tool.slice(6),x,z,target:buildHeight ?? voxels.terrainHeight(x,z),rotation:buildRotation});
               else if(tool.startsWith('zone:'))execute({action:'designate',kind:tool.slice(5),x,z,w:3,d:3,crop});

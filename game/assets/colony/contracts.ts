@@ -4,9 +4,11 @@ export type Resource = typeof RESOURCE_TYPES[number];
 export type Resources = Record<Resource, number>;
 export const PLAYER_SLOTS = 9, CHEST_SLOTS = 20, STACK_LIMIT = 99, CHEST_WOOD_COST = 4;
 export const PLAYER_DELIVERY_TARGET = 'player-delivery';
+export const HAMMER = 'hammer', PLAYER_BUILD_MULTIPLIER = 2, PLAYER_BUILD_REACH = 3;
 export type ItemStack = { resource: Resource; count: number };
 export type InventorySlot = ItemStack | null;
-export const inventorySpace = (slots: readonly InventorySlot[], resource: Resource): number =>
+export type PlayerInventorySlot = InventorySlot | { resource: typeof HAMMER; count: 1 };
+export const inventorySpace = (slots: readonly PlayerInventorySlot[], resource: Resource): number =>
   slots.reduce((total, slot) => total + (slot === null ? STACK_LIMIT : slot.resource === resource ? STACK_LIMIT - slot.count : 0), 0);
 export type InventoryLocation =
   | { kind: 'warehouse' }
@@ -60,7 +62,7 @@ export interface RoomView {id:number;cells:[number,number][];enclosed:boolean;co
 export interface ColonySnapshot {
   version:1;speed:number;day:number;hour:number;season:string;weather:string;temperature:number;time:number;
   resources:Resources;colonists:ColonistView[];buildings:BuildingView[];zones:ZoneView[];crops:CropView[];items:ItemView[];jobs:JobView[];rooms:RoomView[];terrainPlans:TerrainPlanView[];
-  playerBag:InventorySlot[];bagSelected:number;chests:ChestView[];
+  playerBag:PlayerInventorySlot[];bagSelected:number;chests:ChestView[];
   research:{active:string|null;progress:Record<string,number>;completed:string[]};
   power:{generation:number;demand:number;stored:number;capacity:number;supplied:number;coldStorage:boolean};
   trade:{available:boolean;leavesAt:number;stock:Resources;prices:Resources};

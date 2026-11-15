@@ -1,9 +1,9 @@
 import type { GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
-  BUILDING_DEFS, CHEST_SLOTS, CHEST_WOOD_COST, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
+  BUILDING_DEFS, CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
   RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, inventorySpace,
-  type ColonyCommand, type ColonySnapshot, type ColonistView, type InventoryLocation, type InventorySlot, type ItemStack, type Resource,
+  type ColonyCommand, type ColonySnapshot, type ColonistView, type InventoryLocation, type InventorySlot, type ItemStack, type PlayerInventorySlot, type Resource,
 } from '../colony/contracts.ts';
 import { buildingDimensions } from '../colony/buildings.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
@@ -21,8 +21,9 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
   player?: {
     x: number; y: number; z: number; grounded: boolean; moving: boolean; facing: number;
     embedded: boolean; parts: number;
-    bag: InventorySlot[];
+    bag: PlayerInventorySlot[];
     bagSelected: number;
+    constructionId?: string | null;
     vitals?: { health: number; maxHealth: number; stamina: number; maxStamina: number; gold: number };
     nearHint?: 'chest' | 'follower' | null;
   } };
@@ -170,7 +171,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     get('panel-content').scrollTop = 0;
     if (next === 'inspect') { panel = ''; chooseTool('inspect'); }
     if (next === 'sandbox' && panel) chooseTool('sandbox:build');
-    get('workspace').hidden = !panel;
+    const workspace = get('workspace');
+    workspace.dataset.panel = panel;
+    workspace.hidden = !panel;
     for (const b of shadow.querySelectorAll<HTMLElement>('[data-menu]')) b.classList.toggle('active', b.dataset.menu === (panel || 'inspect'));
     lastPanelStamp = ''; renderPanel(true); syncTerrainControls(); syncHover();
   };
@@ -742,7 +745,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   let cancelInventoryDrag: (() => void) | undefined;
   let ignoreInventoryClick = false;
 
-  function transferInventory(from: InventoryLocation, to: InventoryLocation, stack: ItemStack) {
+  function transferInventory(from: InventoryLocation, to: InventoryLocation, stack: DraggableStack) {
     send('inventory', { from, to, resource: stack.resource, amount: stack.count });
   }
 
@@ -765,7 +768,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     attachInventoryDrag(cell, stack, from);
   }
 
-  function attachInventoryDrag(cell: HTMLElement, stack: ItemStack, from: InventoryLocation) {
+  function attachInventoryDrag(cell: HTMLElement, stack: DraggableStack, from: InventoryLocation) {
     cell.classList.add('inventory-source');
     cell.addEventListener('pointerdown', event => {
       if (event.button !== 0 || !event.isPrimary) return;
@@ -784,7 +787,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
           if (!shellEl || Math.hypot(point.clientX - clientX, point.clientY - clientY) < 6) return;
           closeItemMenu();
           ghost = make('div', 'drag-ghost');
-          ghost.append(make('span', 'wh-icon', RESOURCE_ICONS[stack.resource]), make('span', 'wh-count', String(stack.count)));
+          ghost.append(make('span', 'wh-icon', iconOf(stack.resource)), make('span', 'wh-count', String(stack.count)));
           shellEl.append(ghost);
         }
         const frame = shellEl!.getBoundingClientRect();
@@ -834,9 +837,19 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const text = get('hint-text');
     if (!hint || !text) return;
     const kind = state?.player?.nearHint ?? null;
-    if (!kind) { hint.setAttribute('hidden', ''); return; }
+    if (!kind || state?.player?.constructionId) { hint.setAttribute('hidden', ''); return; }
     text.textContent = kind === 'chest' ? '打开木箱' : '打开随从背包';
     hint.removeAttribute('hidden');
+  }
+
+  function renderConstruction() {
+    const progress = get('construction-progress');
+    const id = state?.player?.constructionId;
+    const building = id ? state?.colony?.buildings.find(candidate => candidate.id === id) : undefined;
+    progress.hidden = !building;
+    if (building) {
+      progress.textContent = `建造${BUILDING_DEFS[building.kind].name} · ${Math.round(building.progress * 100)}%${building.blockedReason ? ` · ${building.blockedReason}` : ''}`;
+    }
   }
 
   /** 右上角三条数值：血量、体力、金币。照 Unity 的 VitalsUI。 */
@@ -856,6 +869,17 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
    * 玩家快捷栏。照 Unity 的 HotbarUI：九格显示背包前九格，数字键或点击切换。
    * 上方显示当前选中的物品名；右键格子把东西放回共享池。
    */
+  /**
+   * 能被拖的东西的最小形状。用宽松类型而不是 ItemStack——
+   * 锤子（HAMMER）不是 Resource，但拖着走只需要 resource + count。
+   * 以后加新工具也直接能用。
+   */
+  type DraggableStack = { resource: string; count: number };
+
+  /** 工具类物品的图标。资源表里没有它们，单独挂一份。加新工具往这里补一行。 */
+  const TOOL_ICONS: Record<string, string> = { [HAMMER]: '🔨' };
+  const iconOf = (resource: string) => TOOL_ICONS[resource] ?? RESOURCE_ICONS[resource as Resource] ?? '·';
+
   function renderHotbar() {
     const bar = get('hotbar');
     if (!bar) return;
@@ -874,8 +898,15 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const location: InventoryLocation = { kind: 'player', slot: i };
       setInventoryTarget(slot, location);
       slot.append(make('span', 'hotbar-key', String(i + 1)));
-      if (item) {
-        const res = item.resource as Resource;
+      if (item?.resource === HAMMER) {
+        slot.dataset.item = HAMMER;
+        slot.title = '锤子 · 左键附近的蓝图施工（可拖到其他格）';
+        slot.append(make('span', '', '🔨'));
+        // 锤子也是普通物品，拖放规则和其它格一样——之前这里跳过了，
+        // 所以只有它拖不动。以后加新工具走同一条路就行。
+        attachInventoryDrag(slot, item, location);
+      } else if (item) {
+        const res = item.resource;
         slot.append(make('span', '', RESOURCE_ICONS[res] ?? '·'));
         slot.append(make('span', 'hotbar-count', String(item.count)));
         slot.title = `${RESOURCE_NAMES[res] ?? item.resource} · ${item.count}（右键放回仓库）`;
@@ -893,7 +924,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const nameEl = get('hotbar-name');
     if (nameEl) {
       const cur = bag[selected];
-      nameEl.textContent = cur ? (RESOURCE_NAMES[cur.resource as Resource] ?? '') : '';
+      nameEl.textContent = cur?.resource === HAMMER ? '锤子 · 左键蓝图施工' : cur ? RESOURCE_NAMES[cur.resource] : '';
     }
   }
 
@@ -1193,6 +1224,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (c) renderHotbar();
     renderVitals();
     renderInteractHint();
+    renderConstruction();
     syncTerrainControls();
     if (!booted) {
       booted = true; lastSavedStamp = latestStamp; lastSavedSim = c?.time ?? 0;
