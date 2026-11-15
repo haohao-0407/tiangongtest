@@ -318,6 +318,38 @@ describe('resident needs and civilian production',()=>{
     expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.targetId===tree.id)).toBe(false);
     expect(sim.playerFellTree(tree.id).ok).toBe(false);
   });
+  it('shares one chop progress between the player and residents',()=>{
+    const{sim,world}=setup();onlyJob(sim,'chop');
+    const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40)!;
+    // 玩家先砍掉一半工作量
+    const half=sim.playerChipTree(tree.id,8);
+    expect(half.felled).toBe(false);
+    expect(half.progress).toBeCloseTo(.5,1);
+    // 进度确实落在 job 上，随从看到的是同一条
+    const job=sim.snapshot().jobs.find(j=>j.type==='chop'&&j.targetId===tree.id)!;
+    expect(job).toBeDefined();
+    expect(job.progress).toBe(8);
+    // 剩下的交给随从，他只需要再干一半的活
+    run(sim,90);
+    expect(world.getTree(tree.id)).toBeUndefined();
+  });
+  it('keeps a fresh drop on the ground until the pickup delay elapses',()=>{
+    const{sim,world}=setup();
+    // 找一块平地，把玩家放到旁边
+    const spot=freeCell(sim,world);
+    const player:[number,number,number]=[spot.x+.5,world.terrainHeight(spot.x,spot.z),spot.z+.5];
+    // 玩家脚下掉一份木材
+    const before=sim.snapshot().items.length;
+    (sim as unknown as {drop:(r:string,n:number,x:number,z:number)=>void}).drop('wood',5,spot.x,spot.z);
+    expect(sim.snapshot().items.length).toBe(before+1);
+    // 0.3 秒：还在地上，捡不起来
+    for(let i=0;i<2;i++)sim.tick(.15,player);
+    expect(sim.snapshot().items.some(i=>i.resource==='wood'&&i.amount===5)).toBe(true);
+    // 过了 0.5 秒：被玩家捡走
+    for(let i=0;i<4;i++)sim.tick(.15,player);
+    expect(sim.snapshot().items.some(i=>i.resource==='wood'&&i.amount===5)).toBe(false);
+    expect(sim.snapshot().playerBag.filter(Boolean).some(s=>s.resource==='wood')).toBe(true);
+  });
   it('shows what happens when the player fells a tree a resident is already chopping',()=>{
     const{sim,world}=setup();onlyJob(sim,'chop');
     const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40)!;

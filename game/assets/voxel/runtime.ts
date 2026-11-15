@@ -25,7 +25,7 @@ import { ColonyView } from '../colony/view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
 import {
   BUILDING_DEFS, HAMMER, AXE, PLAYER_CHOP_REACH, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
-  PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN,
+  PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN, CHOP_WORK,
   type BuildingKind, type ColonyCommand, type ChestView,
 } from '../colony/contracts.ts';
 import { buildingDimensions, type BuildingPart } from '../colony/buildings.ts';
@@ -759,18 +759,21 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 const bagSlot = colonyState.playerBag[colonyState.bagSelected];
                 const hasAxe = bagSlot?.resource === AXE;
                 const seconds = hasAxe ? PLAYER_CHOP_SECONDS_AXE : PLAYER_CHOP_SECONDS;
-                if (!playerChop || playerChop.id !== treeHit!.tree.id) playerChop = { id: treeHit!.tree.id, progress: 0 };
-                playerChop.progress += chopDt / seconds;
+                const treeId = treeHit!.tree.id;
+                if (!playerChop || playerChop.id !== treeId) playerChop = { id: treeId, progress: 0 };
+                // 进度写进那条 chop job，所以和随从共用同一个进度条。
+                // 空手 6 秒、木斧 4 秒，换算成每秒工作量。
+                const chip = colony.playerChipTree(treeId, (CHOP_WORK / seconds) * chopDt);
+                playerChop.progress = chip.progress;
                 const spent = (hasAxe ? PLAYER_CHOP_STAMINA_AXE : PLAYER_CHOP_STAMINA) * (chopDt / seconds);
                 vitals.stamina = Math.max(0, vitals.stamina - spent);
-                if (playerChop.progress >= 1) {
-                  const result = colony.playerFellTree(playerChop.id);
-                  status = result.message;
+                if (chip.felled) {
+                  status = chip.message;
                   playerChop = null;
                   colonyState = colony.snapshot();
-                  changed(result.message);
-                } else if (playerChop.progress > 0.08) {
-                  status = `砍伐中 ${Math.round(playerChop.progress * 100)}%${hasAxe ? ' · 木斧' : ''}`;
+                  changed(chip.message);
+                } else {
+                  status = `${chip.message}${hasAxe ? ' · 木斧' : ''}`;
                   refreshState = true;
                 }
               } else if (!holding || !inReach) {

@@ -3,7 +3,7 @@ import type { TreeInstance } from '../voxel/trees.ts';
 import {buildingDimensions,buildingParts,buildingBlocksMovement} from './buildings.ts';
 import {
   BUILDING_DEFS, RESEARCH_DEFS, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES,
-  CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, AXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET,
+  CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, AXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET,
   PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
   type ColonySnapshot, type ColonistView, type CommandResult, type CropView,
@@ -349,6 +349,23 @@ export class ColonySimulation {
       item.age += dt;
       if ((item.resource === 'food' || item.resource === 'meal') && item.age > 260 && !item.reservedBy) {
         this.s.metrics.spoiled += item.amount; this.s.items.splice(this.s.items.indexOf(item), 1);
+      }
+    }
+    // 玩家踩过掉落物就顺手捡走。
+    // 刚掉下来的半秒内捡不了——不然视觉上还没落地就没了，像凭空消失。
+    if (this.playerPosition) {
+      const player = this.playerPosition;
+      for (const item of [...this.s.items]) {
+        if (item.reservedBy) continue;                       // 被搬运任务预定着的不抢
+        if (item.age < ITEM_PICKUP_DELAY) continue;
+        if (Math.abs(item.x + 0.5 - player[0]) > ITEM_PICKUP_RANGE) continue;
+        if (Math.abs(item.z + 0.5 - player[2]) > ITEM_PICKUP_RANGE) continue;
+        if (Math.abs(item.y - player[1]) > 2) continue;
+        const received = this.addToPlayerBag(item.resource, item.amount);
+        if (!received) continue;                             // 背包装不下就留在地上
+        item.amount -= received;
+        if (item.amount <= 0) this.s.items.splice(this.s.items.indexOf(item), 1);
+        this.deliveryMessage = `拾取 ${received} 个${RESOURCE_NAMES[item.resource]}`;
       }
     }
     this.s.decision += dt;
@@ -923,6 +940,27 @@ export class ColonySimulation {
    * 但玩家不经过 job 队列——所以这里要顺手清掉这棵树可能挂着的待办，
    * 否则随从会走到一棵已经不存在的树旁边站着。
    */
+  /**
+   * 玩家亲手推进一棵树的砍伐进度（按工作量算，不是按秒）。
+   *
+   * 关键点：进度写进**同一条 chop job**，所以玩家和随从砍的是同一个进度条。
+   * 玩家砍一半松手，随从走过去接着砍剩下的，不会重复劳动。
+   * 返回当前百分比，让 HUD 能显示。
+   */
+  playerChipTree(treeId:string,work:number):{felled:boolean;progress:number;wood:number;message:string}{
+    const tree=this.world.getTree(treeId);
+    if(!tree)return{felled:false,progress:0,wood:0,message:'这棵树已经不在了'};
+    // 没有任务就先挂一个：随从之后看到它就会过来接手
+    let job=this.s.jobs.find(j=>j.type==='chop'&&j.targetId===treeId);
+    if(!job)job=this.addJob('chop',treeId,tree.x,tree.y,tree.z,16,'砍伐树木');
+    job.progress=Math.min(job.work,job.progress+Math.max(0,work));
+    if(job.progress>=job.work){
+      const result=this.playerFellTree(treeId);
+      return{felled:true,progress:1,wood:result.wood,message:result.message};
+    }
+    return{felled:false,progress:job.progress/job.work,wood:0,message:`砍伐中 ${Math.round(job.progress/job.work*100)}%`};
+  }
+
   playerFellTree(treeId:string):{ok:boolean;wood:number;message:string}{
     const tree=this.world.getTree(treeId);
     if(!tree)return{ok:false,wood:0,message:'这棵树已经不在了'};

@@ -15,7 +15,7 @@ export type ColonyRenderState={
   colonists:RenderPawn[]; buildings:RenderBuilding[];
   zones:{id:string;kind:string;x:number;z:number;w:number;d:number}[];
   crops:{id?:string;x:number;y:number;z:number;growth:number;kind?:string;planted?:boolean}[];
-  items:{id:string;resource:string;amount:number;x:number;y:number;z:number}[];
+  items:{id:string;resource:string;amount:number;x:number;y:number;z:number;age?:number}[];
   selectedColonistId?:string|null;
   selectedBuildingId?:string|null;
   buildPreview?:RenderBuilding|null;
@@ -219,7 +219,20 @@ export class ColonyView {
     }
     for(const item of state.items){
       if(item.amount<=0)continue;const scale=.2+Math.min(.38,Math.cbrt(item.amount)*.07);
-      this.put(`物资/${item.id}`,[{p:[item.x+.5,item.y+scale/2,item.z+.5],s:[scale,scale,scale],c:COLORS[item.resource]?item.resource:'gold'}],active);
+      // 掉落动画（我的世界那种）：掉出来的一瞬间往上弹一下再落回去。
+      // age 就是「存在了多久」，0.45 秒后弹跳结束；正好和「0.5 秒后才能捡」对上，
+      // 所以看得见它弹，而不是刚出现就没了。
+      const age=item.age??99; const POP=0.45, t=Math.min(age,POP), k=t/POP;
+      let hx=0,hz=0,hop=0;
+      if(age<POP){
+        // 用 id 散列给每个物品一个固定的水平方向，免得同格多个物品完全重叠
+        let h=0;for(let i=0;i<item.id.length;i++)h=(h*31+item.id.charCodeAt(i))|0;
+        const a=((h>>>0)%360)/180*Math.PI, b=(((h>>>9)>>>0)%360)/180*Math.PI;
+        const spread=0.42*(1-k);
+        hx=Math.cos(a)*spread; hz=Math.sin(b)*spread;
+        hop=Math.sin(k*Math.PI)*0.6;         // 抛物线：起跳、最高点、落地
+      }
+      this.put(`物资/${item.id}`,[{p:[item.x+.5+hx,item.y+hop+scale/2,item.z+.5+hz],s:[scale,scale,scale],c:COLORS[item.resource]?item.resource:'gold'}],active);
     }
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }

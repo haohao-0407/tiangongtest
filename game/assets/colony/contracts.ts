@@ -22,12 +22,18 @@ export type ToolKind = typeof TOOL_KINDS[number];
  * 玩家砍树的参数。
  * 时间按「真实秒」算，和随从那套 work/workRate 是两套（玩家不受技能影响）。
  */
+/** 一棵树的总工作量。随从和玩家算的是同一个数。 */
+export const CHOP_WORK = 16;
 export const PLAYER_CHOP_SECONDS = 6;          // 空手砍完一棵
 export const PLAYER_CHOP_SECONDS_AXE = 4;      // 木斧
 export const PLAYER_CHOP_REACH = 1;            // 以玩家为中心的半径（3×3）
 export const PLAYER_CHOP_STAMINA = 12;         // 空手砍一棵扣多少体力
 export const PLAYER_CHOP_STAMINA_AXE = 8;      // 木斧扣得少
 export const PLAYER_STAMINA_REGEN = 2;         // 静立每秒回多少
+/** 掉落物落地的 0.5 秒内不许捡：看得见它弹一下，而不是瞬间消失。 */
+export const ITEM_PICKUP_DELAY = 0.5;
+/** 玩家自动拾取的水平距离（格）。 */
+export const ITEM_PICKUP_RANGE = 1.2;
 /** 随从砍一棵树扣多少体力（不管快慢，按棵算）。 */
 export const COLONIST_CHOP_STAMINA = 8;
 export type ItemStack = { resource: Resource; count: number };
