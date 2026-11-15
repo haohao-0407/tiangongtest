@@ -30,7 +30,13 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
 type SaveIntent = 'auto' | 'manual' | 'export';
 const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人', chest: '木箱', followerBag: '随从' };
 const BUILD_ICONS: Record<string, string> = { bed: '▱', table: '▤', stove: '♨', workbench: '⚒', researchDesk: '◇', solar: '☀', battery: '▥', cooler: '❄', medicalBed: '+', wall: '▧', door: '▯', floor: '▦' };
-const RESOURCE_ICONS: Record<Resource, string> = { wood: '▰', stone: '◆', steel: '▱', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙' };
+const RESOURCE_ICONS: Record<Resource, string> = {
+  wood: '▰', stone: '◆', steel: '▱', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙',
+  // 农作物
+  wheat: '🌾', corn: '🌽', blueberry: '🫐', sugarcane: '🎋', cabbage: '🥬', leek: '🧅', potato: '🥔', tomato: '🍅',
+  // 料理
+  friedEgg: '🍳', bread: '🍞', salad: '🥗', pasta: '🍝', pancake: '🥞', blueberryPie: '🥧', pizza: '🍕', perfectBreakfast: '🍱',
+};
 const int = (value: number) => Math.floor(Number.isFinite(value) ? value : 0);
 const percent = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
 
@@ -502,9 +508,15 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const CATEGORY_OF: Record<string, string> = {
     wood: 'block', stone: 'block', steel: 'block',
     food: 'item', meal: 'item', medicine: 'item', cloth: 'item', silver: 'item', components: 'item',
+    wheat: 'crop', corn: 'crop', blueberry: 'crop', sugarcane: 'crop',
+    cabbage: 'crop', leek: 'crop', potato: 'crop', tomato: 'crop',
+    friedEgg: 'dish', bread: 'dish', salad: 'dish', pasta: 'dish',
+    pancake: 'dish', blueberryPie: 'dish', pizza: 'dish', perfectBreakfast: 'dish',
     [HAMMER]: 'tool',
   };
-  const CATEGORY_NAMES: Record<string, string> = { all: '全部', block: '方块', item: '非方块', tool: '工具' };
+  const CATEGORY_NAMES: Record<string, string> = {
+    all: '全部', block: '方块', item: '非方块', crop: '作物', dish: '料理', tool: '工具',
+  };
 
   /**
    * 显示名和分类的统一入口。

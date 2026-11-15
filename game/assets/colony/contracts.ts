@@ -1,5 +1,14 @@
 export type Position = [number, number, number];
-export const RESOURCE_TYPES = ['wood','stone','steel','food','meal','medicine','cloth','silver','components'] as const;
+// 农作物 8 种 + 料理 8 种，照飞书「农作物 / 料理」两张表导入。
+// 牛奶、糖、油不属于农作物（用户已剔除），它们以后作为加工产物再补。
+export const CROP_TYPES = ['wheat','corn','blueberry','sugarcane','cabbage','leek','potato','tomato'] as const;
+export const DISH_TYPES = ['friedEgg','bread','salad','pasta','pancake','blueberryPie','pizza','perfectBreakfast'] as const;
+export const RESOURCE_TYPES = [
+  'wood','stone','steel','food','meal','medicine','cloth','silver','components',
+  ...CROP_TYPES, ...DISH_TYPES,
+] as const;
+export type CropType = typeof CROP_TYPES[number];
+export type DishType = typeof DISH_TYPES[number];
 export type Resource = typeof RESOURCE_TYPES[number];
 export type Resources = Record<Resource, number>;
 export const PLAYER_SLOTS = 9, CHEST_SLOTS = 20, STACK_LIMIT = 99, CHEST_WOOD_COST = 4;
@@ -16,7 +25,17 @@ export type InventoryLocation =
   | { kind: 'chest'; id: string; slot: number }
   | { kind: 'follower' | 'cargo'; id: string };
 export interface ChestView { id: string; x: number; z: number; slots: InventorySlot[] }
-export const RESOURCE_NAMES: Record<Resource,string> = {wood:'木材',stone:'石材',steel:'钢铁',food:'生食',meal:'熟食',medicine:'药品',cloth:'布料',silver:'银币',components:'零件'};
+export const RESOURCE_NAMES: Record<Resource,string> = {
+  wood:'木材',stone:'石材',steel:'钢铁',food:'生食',meal:'熟食',medicine:'药品',cloth:'布料',silver:'银币',components:'零件',
+  wheat:'小麦',corn:'玉米',blueberry:'蓝莓',sugarcane:'甘蔗',cabbage:'白菜',leek:'韭葱',potato:'土豆',tomato:'番茄',
+  friedEgg:'煎鸡蛋',bread:'面包',salad:'沙拉',pasta:'意大利面',pancake:'薄煎饼',blueberryPie:'蓝莓千层酥',pizza:'披萨',perfectBreakfast:'完美早餐',
+};
+
+/** 售卖价（照飞书表）。农作物统一 10，料理按表。 */
+export const RESOURCE_PRICES: Partial<Record<Resource, number>> = {
+  wheat:10,corn:10,blueberry:10,sugarcane:10,cabbage:10,leek:10,potato:10,tomato:10,
+  friedEgg:35,bread:60,salad:110,pasta:120,pancake:80,blueberryPie:150,pizza:300,perfectBreakfast:350,
+};
 export const JOB_TYPES = ['terraform','construct','grow','harvest','haul','cook','chop','mine','research','doctor','craft'] as const;
 export type JobType = typeof JOB_TYPES[number];
 export const JOB_NAMES: Record<JobType,string> = {terraform:'整地',construct:'建造',grow:'种植',harvest:'收获',haul:'搬运',cook:'烹饪',chop:'伐木',mine:'采矿',research:'研究',doctor:'医疗',craft:'制作'};

@@ -81,13 +81,18 @@ export class ColonySimulation {
     this.s = {
       version: 1, type: 'peaceful-colony', worldSeed: world.seed, time: DAY_SECONDS / 3, accumulator: 0,
       rng: seed >>> 0 || 1, nextId: 1, speed: 1, decision: 0, lastDay: 1, spoilage: 0,
-      resources: { wood: 140, stone: 110, steel: 60, food: 40, meal: 14, medicine: 12, cloth: 30, silver: 120, components: 8 },
+      resources: {
+        ...EMPTY_RESOURCES(), wood: 140, stone: 110, steel: 60, food: 40, meal: 14, medicine: 12, cloth: 30, silver: 120, components: 8,
+        // 新导入的农作物和料理，先各给 10 个，方便试拖动和分类
+        wheat: 10, corn: 10, blueberry: 10, sugarcane: 10, cabbage: 10, leek: 10, potato: 10, tomato: 10,
+        friedEgg: 10, bread: 10, salad: 10, pasta: 10, pancake: 10, blueberryPie: 10, pizza: 10, perfectBreakfast: 10,
+      },
       playerBag: [{ resource: HAMMER, count: 1 }, ...emptySlots(PLAYER_SLOTS - 1)], bagSelected: 0, chests: [this.starterChest()],
       colonists: [], buildings: [], zones: [], crops: [], items: [], jobs: [], events: [],terrainPlans:[],
       research: { active: null, progress: {}, completed: [] },
       power: { generation: 0, demand: 0, stored: 0, capacity: 0, supplied: 0, coldStorage: false },
-      trade: { available: true, leavesAt: DAY_SECONDS / 3 + 120, stock: { wood: 40, stone: 30, steel: 25, food: 35, meal: 12, medicine: 10, cloth: 20, silver: 500, components: 6 },
-        prices: { wood: 2, stone: 2, steel: 4, food: 3, meal: 7, medicine: 12, cloth: 4, silver: 1, components: 18 } },
+      trade: { available: true, leavesAt: DAY_SECONDS / 3 + 120, stock: { ...EMPTY_RESOURCES(), wood: 40, stone: 30, steel: 25, food: 35, meal: 12, medicine: 10, cloth: 20, silver: 500, components: 6 },
+        prices: { ...EMPTY_RESOURCES(), wood: 2, stone: 2, steel: 4, food: 3, meal: 7, medicine: 12, cloth: 4, silver: 1, components: 18 } },
       bills: { meal: 16, medicine: 8, components: 4 },
       metrics: { jobsCompleted: 0, built: 0, harvested: 0, hauled: 0, cooked: 0, researched: 0, treated: 0, spoiled: 0, distanceWalked: 0 },
       selectedColonistId: null, weather: '晴朗', temperature: 22,
@@ -1296,7 +1301,7 @@ export class ColonySimulation {
     this.event('weather',`第 ${this.day()} 天：${this.season()}，预计${this.s.weather}。留意居民需求与食品供应。`);
     if(this.day()%3===1){
       this.s.trade.available=true;this.s.trade.leavesAt=this.s.time+150;
-      this.s.trade.stock={wood:40,stone:30,steel:25,food:35,meal:12,medicine:10,cloth:20,silver:500,components:6};
+      this.s.trade.stock={...EMPTY_RESOURCES(),wood:40,stone:30,steel:25,food:35,meal:12,medicine:10,cloth:20,silver:500,components:6};
       this.event('trade','友善商队抵达，可在贸易面板交换物资。');
     }
     if(this.day()%3===2&&this.s.colonists.length){
@@ -1349,6 +1354,8 @@ export class ColonySimulation {
     const s=copy(data) as SavedState;
     // Legacy objects are upgraded together, on the private copy, before any live state changes.
     s.terrainPlans??=[];
+    // 老存档没有作物/料理这些新资源，缺的补 0，否则面板上会显示 NaN
+    for (const r of RESOURCE_TYPES) if (typeof s.resources?.[r] !== 'number') s.resources[r] = 0;
     // 旧存档没有背包字段。迁移时补一把锤子——不然老玩家读完档永远造不了东西。
     // 这是「一次性迁移」，运行时不再自动补：锤子放进仓库就是放进去了。
     if (!s.playerBag) s.playerBag = [{ resource: HAMMER, count: 1 }, ...emptySlots(PLAYER_SLOTS - 1)];
