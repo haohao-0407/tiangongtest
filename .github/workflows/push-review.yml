@@ -1,0 +1,56 @@
+name: AI Master Review
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+# Each push gets its own run. Do not put pushes in a shared concurrency group:
+# GitHub can replace older pending runs even with cancel-in-progress disabled.
+jobs:
+  review:
+    if: github.event.deleted != true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout this push
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24.15.0'
+          package-manager-cache: false
+      - name: Install locked reviewer dependencies
+        working-directory: tools/pr-review
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify reviewer behavior
+        working-directory: tools/pr-review
+        run: npm test
+      - name: Review pushed changes
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_REVIEW_MODEL: ${{ vars.OPENAI_REVIEW_MODEL || 'gpt-6-astra' }}
+          OPENAI_REVIEW_REASONING_EFFORT: ${{ vars.OPENAI_REVIEW_REASONING_EFFORT || 'high' }}
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo '::error::Set the repository Actions secret OPENAI_API_KEY before running AI Master Review.'
+            exit 1
+          fi
+          node tools/pr-review/review.mjs --push --output tools/pr-review/output/review.md
+      - name: Save push review reports
+        if: always() && hashFiles('tools/pr-review/output/review.md') != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: master-review-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            tools/pr-review/output/review.md
+            tools/pr-review/output/review.json
+          if-no-files-found: error
+          retention-days: 14

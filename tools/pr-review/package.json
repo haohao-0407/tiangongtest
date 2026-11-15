@@ -5,7 +5,7 @@
   "type": "module",
   "engines": { "node": ">=22.13.0" },
   "scripts": {
-    "test": "node --test review.test.mjs",
+    "test": "node --test *.test.mjs",
     "review": "node review.mjs",
     "smoke": "node review.mjs --smoke"
   },
