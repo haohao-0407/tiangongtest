@@ -260,7 +260,17 @@ export function validateReview(review, files) {
   return review;
 }
 
-export async function runAgent({ client, input, model = 'gpt-6-astra', timeoutMs = 480_000, log = console.warn, cleanupDelayMs = 1000, instructions = REVIEW_INSTRUCTIONS }) {
+export function parseReasoningEffort(value) {
+  const effort = value === undefined ? 'high' : typeof value === 'string' ? value.trim().toLowerCase() || 'high' : null;
+  if (!['low', 'medium', 'high', 'xhigh', 'max'].includes(effort)) {
+    throw new ReviewError('OPENAI_REVIEW_REASONING_EFFORT must be low, medium, high, xhigh, or max.');
+  }
+  return effort;
+}
+
+export async function runAgent({ client, input, model = 'gpt-6-astra', reasoningEffort = 'high', timeoutMs = 480_000, log = console.warn, cleanupDelayMs = 1000, instructions = REVIEW_INSTRUCTIONS }) {
+  const effort = parseReasoningEffort(reasoningEffort);
+  log(`OpenAI reasoning effort: ${effort}.`);
   let sessionId;
   let turnId;
   let completed = false;
@@ -268,7 +278,7 @@ export async function runAgent({ client, input, model = 'gpt-6-astra', timeoutMs
   const abort = new AbortController();
   const work = (async () => {
     const events = await client.beta.agents.sessions.create({
-      agent: { model, instructions, text: { format: { type: 'json_schema', schema: REVIEW_SCHEMA } } },
+      agent: { model, instructions, reasoning: { effort }, text: { format: { type: 'json_schema', schema: REVIEW_SCHEMA } } },
       environment: { type: 'openai_hosted', network: { access: 'disabled' }, files: [{ type: 'inline', path: '/workspace/review-input.json', data: Buffer.from(JSON.stringify(input)).toString('base64') }] },
       input: 'Read the actual file /workspace/review-input.json, inspect the supplied evidence, and return the required JSON.', stream: true,
     }, { signal: abort.signal });
@@ -389,12 +399,13 @@ export async function main(args = process.argv.slice(2), env = process.env) {
     if (args[index] === '--output' && !args[++index]) throw new ReviewError('--output needs a path.');
   }
   if (!env.OPENAI_API_KEY) throw new ReviewError('OPENAI_API_KEY is required.');
+  const reasoningEffort = parseReasoningEffort(env.OPENAI_REVIEW_REASONING_EFFORT);
   // The key and GitHub token remain in this controller; they are never uploaded to the hosted sandbox.
   const client = new OpenAI({ apiKey: env.OPENAI_API_KEY, baseURL: 'https://api.openai.com/v1', maxRetries: 0, timeout: 60_000 });
   const model = env.OPENAI_REVIEW_MODEL || 'gpt-6-astra';
   if (args.includes('--smoke')) {
     const nonce = randomUUID();
-    const review = await runAgent({ client, input: { smokeToken: nonce }, model, timeoutMs: 180_000,
+    const review = await runAgent({ client, input: { smokeToken: nonce }, model, reasoningEffort, timeoutMs: 180_000,
       instructions: 'Read the actual file /workspace/review-input.json using the file tools. Return JSON with summary exactly equal to the smokeToken read from that file and findings: []. Do not access the network or create other files.' });
     if (review.summary !== nonce || !Array.isArray(review.findings) || review.findings.length) throw new ReviewError('Hosted file-read smoke check failed.');
     console.log('PASS: hosted Agents API session read its input file and returned the expected value.');
@@ -420,7 +431,7 @@ export async function main(args = process.argv.slice(2), env = process.env) {
   }
   let review;
   if (!collected.files.length) review = { summary: '此次变更没有可供审查的文本材料，请人工检查覆盖范围限制。', findings: [] };
-  else review = validateReview(await runAgent({ client, input: collected.input, model }), collected.files);
+  else review = validateReview(await runAgent({ client, input: collected.input, model, reasoningEffort }), collected.files);
   const body = renderComment({ review, input: collected.input, headSha: collected.pr.head.sha });
   const outputIndex = args.indexOf('--output');
   const outputPath = resolve(outputIndex >= 0 ? args[outputIndex + 1] : env.PR_REVIEW_OUTPUT || '.launcher/pr-review/review.md');

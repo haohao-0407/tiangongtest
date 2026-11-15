@@ -65,6 +65,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_REVIEW_MODEL: ${{ vars.OPENAI_REVIEW_MODEL || 'gpt-6-astra' }}
+          OPENAI_REVIEW_REASONING_EFFORT: ${{ vars.OPENAI_REVIEW_REASONING_EFFORT || 'high' }}
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
           EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}

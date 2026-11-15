@@ -7,6 +7,7 @@ import {
   createGitHubClient,
   hasCompletedReview,
   parseAddedLines,
+  parseReasoningEffort,
   publishReview,
   renderComment,
   runAgent,
@@ -509,6 +510,67 @@ test('completed agent returns structured review and deletes its sandbox session'
   assert.ok(!fixture.calls.some((call) => call.action === 'event'), 'Successful completed work should not need cancellation');
   const create = fixture.calls.find((call) => call.action === 'create').body;
   assert.equal(create.environment.network.access, 'disabled');
+  assert.deepEqual(create.agent.reasoning, { effort: 'high' });
+});
+
+test('reasoning effort defaults to high and normalizes every supported configuration value', () => {
+  for (const value of [undefined, '', '   ', '\t\n']) {
+    assert.equal(parseReasoningEffort(value), 'high');
+  }
+  for (const effort of ['low', 'medium', 'high', 'xhigh', 'max']) {
+    assert.equal(parseReasoningEffort(effort), effort);
+    assert.equal(parseReasoningEffort(` \t${effort.toUpperCase()}\n`), effort);
+  }
+});
+
+test('invalid reasoning configuration fails safely without echoing its value', () => {
+  for (const value of ['ultra', 'none', 'high,low', 'untrusted-configuration-value-123']) {
+    assert.throws(() => parseReasoningEffort(value), (error) => {
+      assert.ok(error instanceof Error);
+      assert.match(error.message, /reasoning|effort|思考|强度/i);
+      assert.ok(!error.message.includes(value), 'Configuration errors must not echo untrusted values');
+      return true;
+    });
+  }
+});
+
+test('the requested reasoning effort reaches the actual Agents API creation payload', async (t) => {
+  for (const effort of ['low', 'medium', 'high', 'xhigh', 'max']) {
+    await t.test(effort, async () => {
+      const fixture = agentFixture();
+      assert.deepEqual(await runAgent({
+        client: fixture.client,
+        input: reviewInput(),
+        reasoningEffort: ` ${effort.toUpperCase()} `,
+        timeoutMs: 1000,
+        cleanupDelayMs: 0,
+        log() {},
+      }), review);
+      assert.equal(fixture.creates, 1);
+      assert.deepEqual(fixture.calls.find((call) => call.action === 'create').body.agent.reasoning, { effort });
+      assert.equal(fixture.deletes, 1);
+    });
+  }
+});
+
+test('runAgent independently rejects invalid reasoning effort before creating a paid session', async () => {
+  const fixture = agentFixture();
+  const invalidValue = 'untrusted-reasoning-value-456';
+  const messages = [];
+  await assert.rejects(runAgent({
+    client: fixture.client,
+    input: reviewInput(),
+    reasoningEffort: invalidValue,
+    timeoutMs: 1000,
+    cleanupDelayMs: 0,
+    log(message) { messages.push(message); },
+  }), (error) => {
+    assert.ok(!error.message.includes(invalidValue));
+    return true;
+  });
+  assert.equal(fixture.creates, 0);
+  assert.equal(fixture.calls.length, 0, 'Invalid configuration must not contact the API');
+  assert.ok(!messages.join('\n').includes(invalidValue));
 });
 
 test('failed or cancelled agent turns cannot be reported as successful reviews', async (t) => {
