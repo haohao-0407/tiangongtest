@@ -542,7 +542,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               id:'placement-preview',kind:previewKind,x:hoverCell[0],y:buildHeight??hoverCell[1],z:hoverCell[2],
               ...buildingDimensions(previewKind,buildRotation),rotation:buildRotation,doorOpen:false,complete:true,progress:0,
             }:null;
-            colonyView.update({ ...renderState, selectedBuildingId, buildPreview, colonists: renderState.colonists.map(p => ({ ...p,
+            // player 是给云影用的：renderState() 只管殖民地模拟，没有玩家。
+            colonyView.update({ ...renderState, selectedBuildingId, buildPreview,
+              player: { x: player.x, y: player.y, z: player.z, facing: player.facing, moving: false, grounded: player.grounded },
+              colonists: renderState.colonists.map(p => ({ ...p,
               position: [p.position[0], pcgView.walkHeight(p.position[0], p.position[2], p.position[1]), p.position[2]] as Point,
             })) }, world.getResource(Time).elapsed);
             if (voxels.revision !== lastTerrainRevision) {

@@ -45,8 +45,11 @@ export class ColonyView {
   }
   private material(key:string):AssetHandle<'material'>{
     const existing=this.materials.get(key);if(existing)return existing;
-    const translucent=['blueprint','zoneFarm','zoneStock','selected'].includes(key);
-    const c=rgba(COLORS[key]??key);if(translucent)c[3]=key==='blueprint'?.35:.28;
+    const translucent=['blueprint','zoneFarm','zoneStock','selected','cloudShadow','cloudShadowSoft','cloudShadowFaint'].includes(key);
+    // 云影分三层叠出羽化边缘：核心深、中层淡、外圈几乎透明的晕。
+    const shadowAlpha:Record<string,number>={cloudShadow:.20,cloudShadowSoft:.09,cloudShadowFaint:.04};
+    const c=key in shadowAlpha?[0.02,0.04,0.02,shadowAlpha[key]!] as [number,number,number,number]:rgba(COLORS[key]??key);
+    if(translucent&&!(key in shadowAlpha))c[3]=key==='blueprint'?.35:.28;
     const value=translucent?Materials.unlit(c,{queue:RenderQueue.Transparent,renderState:{depthWriteEnabled:false,cullMode:'none',blend:{color:{srcFactor:'src-alpha',dstFactor:'one-minus-src-alpha',operation:'add'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha',operation:'add'}}}}):Materials.standard({baseColor:c,roughness:.86,metallic:key==='steel'?.3:0});
     const handle=this.assets.create(value).unwrap();this.materials.set(key,handle);return handle;
   }
@@ -156,6 +159,34 @@ export class ColonyView {
     for(const item of state.items){
       if(item.amount<=0)continue;const scale=.2+Math.min(.38,Math.cbrt(item.amount)*.07);
       this.put(`物资/${item.id}`,[{p:[item.x+.5,item.y+scale/2,item.z+.5],s:[scale,scale,scale],c:COLORS[item.resource]?item.resource:'gold'}],active);
+    }
+    // ---- 假云阴影 ----
+    // 真做云会拖垮渲染，这里用几片贴地的半透明暗斑，跟着玩家走、按风向慢慢漂。
+    // 每团由 4 块错开的矩形叠出来，边缘靠叠加过渡，不做贴图。
+    const player=state.player;
+    if(player){
+      const SPAN=54, DRIFT=time*0.5;
+      const BLOBS:[number,number,number,number][]=[
+        // x, z, 宽, 深
+        [0,0,26,18],[-9,6,16,13],[11,7,14,11],[3,-9,17,12],
+        [34,24,22,16],[27,31,14,11],[41,31,13,10],
+        [-30,-24,24,17],[-37,-17,14,11],[-23,-30,15,12],
+        [18,-38,20,15],[25,-31,12,10],[11,-45,13,10],
+        [-42,26,21,15],[-49,33,12,10],[-35,34,14,11],
+      ];
+      const parts:Part[]=[];
+      for(const [bx,bz,bw,bd]of BLOBS){
+        // 玩家为中心循环铺开，走到哪云影跟到哪
+        const rawX=bx+DRIFT, rawZ=bz+DRIFT*0.35;
+        const x=player.x+((rawX%SPAN)+SPAN)%SPAN-SPAN/2;
+        const z=player.z+((rawZ%SPAN)+SPAN)%SPAN-SPAN/2;
+        const gy=this.terrain().terrainHeight(Math.round(x),Math.round(z));
+        // 三层不同尺寸+不同高度，外层更大更淡，凑出柔边
+        parts.push({p:[x,gy+0.082,z],s:[bw,0.01,bd],c:'cloudShadow',shadow:false});
+        parts.push({p:[x,gy+0.068,z],s:[bw*1.15,0.01,bd*1.15],c:'cloudShadowSoft',shadow:false});
+        parts.push({p:[x,gy+0.054,z],s:[bw*1.32,0.01,bd*1.32],c:'cloudShadowFaint',shadow:false});
+      }
+      this.put('云影',parts,active,'');
     }
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }
