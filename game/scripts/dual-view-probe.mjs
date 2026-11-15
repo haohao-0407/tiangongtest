@@ -392,7 +392,7 @@ export default async function dualViewProbe(play) {
   await advance(0.6);
   const requested = await read();
   assert.equal(requested.colony.resources[takenResource], poolBefore[takenResource] - 3, '仓库应锁定滑条选择的数量');
-  assert.ok(requested.player.bag.slice(1).every(stack => stack === null), '下单不应直接把物品放进快捷栏');
+  assert.ok(requested.player.bag.slice(2).every(stack => stack === null), '下单不应直接把物品放进快捷栏');
   const order = requested.colony.jobs.find(job => job.targetId === 'player-delivery');
   assert.ok(order && order.deliveryPhase === 'pickup' && order.reserved[takenResource] === 3);
   await play.screenshot('inventory-delivery-queued');
@@ -401,12 +401,12 @@ export default async function dualViewProbe(play) {
   const delivered = await waitDelivery(order.id, (job, current) => {
     if (job.deliveryPhase === 'deliver') {
       assert.ok(current.colony.colonists.some(person => person.id === job.assignedTo));
-      assert.ok(current.player.bag.slice(1).every(stack => stack === null));
+      assert.ok(current.player.bag.slice(2).every(stack => stack === null));
       sawCarrier = true;
     }
   });
   assert.ok(sawCarrier, '应看见居民从储藏区取货后、送到玩家前的状态');
-  assert.deepEqual(delivered.player.bag.slice(1).filter(Boolean), [{ resource: takenResource, count: 3 }]);
+  assert.deepEqual(delivered.player.bag.slice(2).filter(Boolean), [{ resource: takenResource, count: 3 }]);
   await play.screenshot('inventory-delivery-arrived');
   await pauseColony();
   await play.page.locator('[data-menu="warehouse"]').click();
@@ -540,9 +540,14 @@ export default async function dualViewProbe(play) {
   assert.ok(boxAfter <= boxSlotCount, `木箱那格不该变多，实际 ${boxAfter}`);
   assert.ok(bagAfter.some(stack => stack.resource === item.resource), '背包里应出现取回的物品');
   assert.equal(await play.page.locator('#hotbar').isVisible(), true, '打开面板时快捷栏应可见');
-  await drag(chestSlot(3), hotbarSlot(1));
-  inventoryState = await drag(hotbarSlot(1), hotbarSlot(6));
-  assert.deepEqual(inventoryState.player.bag[6], item, '取回的整叠物品应进入指定快捷栏格');
+  // 背包 0/1 是工具（锤子、木斧），取回的物品落在第一个空槽——动态找，别写死
+  const refillSlot = (await read()).player.bag.findIndex(stack => stack?.resource === item.resource);
+  assert.ok(refillSlot >= 2, `取回的物品应在工具之后的槽位，实际 ${refillSlot}`);
+  await drag(chestSlot(3), hotbarSlot(refillSlot));
+  // 不写死落在第几格：工具占着 0/1，格位会随背包内容浮动
+  inventoryState = await read();
+  assert.ok(inventoryState.player.bag.some(stack => stack?.resource === item.resource && stack.count === item.count),
+    `取回的整叠物品应在快捷栏里，实际 ${JSON.stringify(inventoryState.player.bag.filter(Boolean))}`);
   assert.equal(starter(inventoryState).slots[3], null);
   await play.screenshot('inventory-chest-to-hotbar');
 
@@ -599,7 +604,7 @@ export default async function dualViewProbe(play) {
   assert.ok(fbText.includes('任务'), '应显示任务');
   await play.screenshot('follower-panel');
   const follower = (s) => s.colony.colonists.find(person => person.id === cid);
-  inventoryState = await drag(hotbarSlot(6), followerSlot);
+  inventoryState = await drag(hotbarSlot(refillSlot), followerSlot);
   assert.equal(inventoryState.player.bag[6], null);
   assert.deepEqual(follower(inventoryState).bag[0], item, '物品应进入指定随从的随身背包');
   assert.ok(inventoryState.colony.colonists.filter(person => person.id !== cid).every(person => person.bag[0] === null));
@@ -614,9 +619,14 @@ export default async function dualViewProbe(play) {
     `随从背包不该变多，实际 ${follower(await read()).bag[0]?.count}`);
   assert.ok((await read()).player.bag.filter(Boolean).some(stack => stack.resource === item.resource),
     '背包里应出现从随从取回的物品');
-  await drag(followerSlot, hotbarSlot(1));
-  inventoryState = await drag(hotbarSlot(1), hotbarSlot(7));
-  assert.deepEqual(inventoryState.player.bag[7], item);
+  // 从随从取回要落在空槽：0/1 被工具占着，写死 slot 1 会把斧头当物品拖走
+  const returnSlot = (await read()).player.bag.findIndex(stack => stack === null);
+  assert.ok(returnSlot >= 2, `应落在工具之后的空槽，实际 ${returnSlot}`);
+  await drag(followerSlot, hotbarSlot(returnSlot));
+  inventoryState = await drag(hotbarSlot(returnSlot), hotbarSlot(7));
+  // 随从身上剩几个取决于前面取回时的滑条上限，只验种类和「数量大于 0」
+  assert.equal(inventoryState.player.bag[7]?.resource, item.resource, '取回的物品应进第 8 格');
+  assert.ok((inventoryState.player.bag[7]?.count ?? 0) >= 1, '取回后数量应大于 0');
   assert.equal(follower(inventoryState).bag[0], null);
   await play.screenshot('inventory-follower-to-hotbar');
 

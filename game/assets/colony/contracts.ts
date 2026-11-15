@@ -13,10 +13,26 @@ export type Resource = typeof RESOURCE_TYPES[number];
 export type Resources = Record<Resource, number>;
 export const PLAYER_SLOTS = 9, CHEST_SLOTS = 20, STACK_LIMIT = 99, CHEST_WOOD_COST = 4;
 export const PLAYER_DELIVERY_TARGET = 'player-delivery';
-export const HAMMER = 'hammer', PLAYER_BUILD_MULTIPLIER = 2, PLAYER_BUILD_REACH = 3;
+export const HAMMER = 'hammer', AXE = 'axe', PLAYER_BUILD_MULTIPLIER = 2, PLAYER_BUILD_REACH = 3;
+/** 工具不是 Resource，但要走同一条搬运/存档流程。加新工具时只往这里加。 */
+export const TOOL_KINDS = [HAMMER, AXE] as const;
+export type ToolKind = typeof TOOL_KINDS[number];
+
+/**
+ * 玩家砍树的参数。
+ * 时间按「真实秒」算，和随从那套 work/workRate 是两套（玩家不受技能影响）。
+ */
+export const PLAYER_CHOP_SECONDS = 6;          // 空手砍完一棵
+export const PLAYER_CHOP_SECONDS_AXE = 4;      // 木斧
+export const PLAYER_CHOP_REACH = 1;            // 以玩家为中心的半径（3×3）
+export const PLAYER_CHOP_STAMINA = 12;         // 空手砍一棵扣多少体力
+export const PLAYER_CHOP_STAMINA_AXE = 8;      // 木斧扣得少
+export const PLAYER_STAMINA_REGEN = 2;         // 静立每秒回多少
+/** 随从砍一棵树扣多少体力（不管快慢，按棵算）。 */
+export const COLONIST_CHOP_STAMINA = 8;
 export type ItemStack = { resource: Resource; count: number };
 export type InventorySlot = ItemStack | null;
-export type PlayerInventorySlot = InventorySlot | { resource: typeof HAMMER; count: 1 };
+export type PlayerInventorySlot = InventorySlot | { resource: ToolKind; count: 1 };
 export const inventorySpace = (slots: readonly PlayerInventorySlot[], resource: Resource): number =>
   slots.reduce((total, slot) => total + (slot === null ? STACK_LIMIT : slot.resource === resource ? STACK_LIMIT - slot.count : 0), 0);
 export type InventoryLocation =

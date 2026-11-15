@@ -23,7 +23,11 @@ import { overlaps, raycastTree, treesBlockBox, treeSupportHeight, treeProtecting
 import { ColonySimulation } from '../colony/simulation.ts';
 import { ColonyView } from '../colony/view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
-import { BUILDING_DEFS, HAMMER, type BuildingKind, type ColonyCommand, type ChestView } from '../colony/contracts.ts';
+import {
+  BUILDING_DEFS, HAMMER, AXE, PLAYER_CHOP_REACH, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
+  PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN,
+  type BuildingKind, type ColonyCommand, type ChestView,
+} from '../colony/contracts.ts';
 import { buildingDimensions, type BuildingPart } from '../colony/buildings.ts';
 import { raycastBuilding, buildingProtectingVoxel, findPlayerSpawn } from '../colony/interaction.ts';
 
@@ -71,6 +75,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let buildRotation = 0, selectedBuildingId: string | null = null;
       let hoverBuildingId: string | null = null, hoverBuildingPart: BuildingPart | null = null;
       let selectedTreeId: string | null = null, hoverTreeId: string | null = null;
+      // 玩家撸树：按住左键时推进，换目标或松手就归零。
+      let playerChop: { id: string; progress: number } | null = null;
       let hoverTreePart: 'trunk' | 'branch' | 'crown' | null = null;
       let terrainTarget = 6, terrainSize = 3, terrainShape: 'brush' | 'rectangle' = 'brush', terrainSample = false;
       let buildHeight: number | null = null;
@@ -732,8 +738,51 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             const buildingHit = r ? raycastBuilding(colonyState.buildings, Array.from(ray.getOrigin(vec3.create(),r)) as Point, Array.from(ray.getDirection(vec3.create(),r)) as Point, hit?.distance ?? 1200) : null;
             const treeHit = r ? raycastTree(voxels.getTrees(), Array.from(ray.getOrigin(vec3.create(),r)) as Point, Array.from(ray.getDirection(vec3.create(),r)) as Point, buildingHit?.distance ?? hit?.distance ?? 1200) : null;
             const objectHit = treeHit ? null : buildingHit;
-            if (hoverTreeId !== (treeHit?.tree.id ?? null) || hoverTreePart !== (treeHit?.part.role ?? null)) refreshState = true;
-            hoverTreeId = treeHit?.tree.id ?? null; hoverTreePart = treeHit?.part.role ?? null;
+            // 树的悬停高亮和「整棵树」面板是上帝视角的东西——那是经营视角下给随从派活用的。
+            // 角色视角下鼠标指着树是要自己砍，不该弹面板抢焦点。
+            const hoverTree = viewMode === 'god' ? treeHit : null;
+            if (hoverTreeId !== (hoverTree?.tree.id ?? null) || hoverTreePart !== (hoverTree?.part.role ?? null)) refreshState = true;
+            hoverTreeId = hoverTree?.tree.id ?? null; hoverTreePart = hoverTree?.part.role ?? null;
+
+            // ---- 玩家撸树 ----
+            // 只在角色视角：按住左键，瞄着 3×3 范围内的树，进度满了整棵倒。
+            // 空手 6 秒、木斧 4 秒；体力扣得也不一样。没有裂纹特效，满了直接消失。
+            // 角色视角 + 瞄着射程内的树 = 正在砍，这时左键不干别的
+            const canopyChop = viewMode === 'character' && !!treeHit
+              && Math.abs(treeHit.tree.x - Math.floor(player.x)) <= PLAYER_CHOP_REACH
+              && Math.abs(treeHit.tree.z - Math.floor(player.z)) <= PLAYER_CHOP_REACH;
+            if (viewMode === 'character') {
+              const chopDt = Math.min(world.getResource(Time).delta, 0.1);
+              const inReach = canopyChop;
+              const holding = input.mouse.button(0);
+              if (inReach && holding && vitals.stamina > 0) {
+                const bagSlot = colonyState.playerBag[colonyState.bagSelected];
+                const hasAxe = bagSlot?.resource === AXE;
+                const seconds = hasAxe ? PLAYER_CHOP_SECONDS_AXE : PLAYER_CHOP_SECONDS;
+                if (!playerChop || playerChop.id !== treeHit!.tree.id) playerChop = { id: treeHit!.tree.id, progress: 0 };
+                playerChop.progress += chopDt / seconds;
+                const spent = (hasAxe ? PLAYER_CHOP_STAMINA_AXE : PLAYER_CHOP_STAMINA) * (chopDt / seconds);
+                vitals.stamina = Math.max(0, vitals.stamina - spent);
+                if (playerChop.progress >= 1) {
+                  const result = colony.playerFellTree(playerChop.id);
+                  status = result.message;
+                  playerChop = null;
+                  colonyState = colony.snapshot();
+                  changed(result.message);
+                } else if (playerChop.progress > 0.08) {
+                  status = `砍伐中 ${Math.round(playerChop.progress * 100)}%${hasAxe ? ' · 木斧' : ''}`;
+                  refreshState = true;
+                }
+              } else if (!holding) {
+                playerChop = null;
+              }
+            } else {
+              playerChop = null;
+            }
+            // 体力回复：手上没在砍就慢慢回，站着回得更快（这里不区分，先统一）
+            if (!(viewMode === 'character' && input.mouse.button(0) && playerChop)) {
+              vitals.stamina = Math.min(vitals.maxStamina, vitals.stamina + Math.min(world.getResource(Time).delta, 0.1) * PLAYER_STAMINA_REGEN);
+            }
             if(hoverBuildingId!==(objectHit?.building.id??null)||hoverBuildingPart?.role!==objectHit?.part.role)refreshState=true;
             hoverBuildingId=objectHit?.building.id??null; hoverBuildingPart=objectHit?.part??null;
             const removing = sandbox && (mode === 'remove' || input.mouse.button(2));
@@ -789,7 +838,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 terrainView.preview([...cells.values()], height, key); refreshState = true;
               }
             } else if (!stroke) { terrainView.clearPreview(); previewKey = ''; }
-            if (!sandbox && tool !== 'level' && (hit||objectHit||treeHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
+            if (!sandbox && !canopyChop && tool !== 'level' && (hit||objectHit||treeHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
               const x=treeTarget?treeHit.tree.x:objectTarget?objectHit.part.x:hit?.cell[0]??treeHit!.tree.x,z=treeTarget?treeHit.tree.z:objectTarget?objectHit.part.z:hit?.cell[2]??treeHit!.tree.z;
               if(input.mouse.justPressed(2)){
                 // 角色视角下贴着东西右键 = 打开它。箱子优先于随从（箱子不会自己走开）。
@@ -831,7 +880,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 const picks=colonyState.colonists.map(p=>{const v=[p.position[0]-o[0],p.position[1]+.8-o[1],p.position[2]-o[2]];const t=v[0]!*d[0]+v[1]!*d[1]+v[2]!*d[2];return{p,t,dist:Math.hypot(v[0]!-d[0]*t,v[1]!-d[1]*t,v[2]!-d[2]*t)};}).filter(q=>q.t>0&&q.t<(hit?.distance??1200)&&q.dist<.8).sort((a,b)=>a.t-b.t);
                 const pawn=picks[0]?.p??colonyState.colonists.find(p=>Math.hypot(p.position[0]-(x+.5),p.position[2]-(z+.5))<1.1);
                 if(pawn&&((!objectHit&&!treeHit)||(picks[0]?.t??Infinity)<Math.min(objectHit?.distance??Infinity,treeHit?.distance??Infinity)))execute({action:'select',colonistId:pawn.id});
-                else if(treeHit){execute({action:'select'});selectedTreeId=treeHit.tree.id;status=`整棵树木 · 树干、分枝与树冠共用一个物体 · 高 ${treeHit.tree.trunkHeight+2} 格`;refreshState=true;}
+                else if(treeHit && viewMode === 'god'){execute({action:'select'});selectedTreeId=treeHit.tree.id;status=`整棵树木 · 树干、分枝与树冠共用一个物体 · 高 ${treeHit.tree.trunkHeight+2} 格`;refreshState=true;}
                 else {
                   const b=objectHit?.building; execute({action:'select'}); selectedBuildingId=b?.id??null;
                   status=b?`${BUILDING_DEFS[b.kind as BuildingKind].name} · ${b.complete?'已建成':b.phase==='preparingTerrain'?'准备地基':`施工 ${Math.round(b.progress*100)}%`}${b.kind==='door'?b.doorOpen?' · 开启':' · 关闭':''}${b.blockedReason?` · ${b.blockedReason}`:''}`

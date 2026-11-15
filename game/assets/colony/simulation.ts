@@ -3,11 +3,11 @@ import type { TreeInstance } from '../voxel/trees.ts';
 import {buildingDimensions,buildingParts,buildingBlocksMovement} from './buildings.ts';
 import {
   BUILDING_DEFS, RESEARCH_DEFS, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES,
-  CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET,
+  CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, AXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET,
   PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
   type ColonySnapshot, type ColonistView, type CommandResult, type CropView,
-  type ItemView, type JobType, type JobView, type Position, type Resource,
+  type ItemView, type JobType, type JobView, type Position, type Resource, type ToolKind,
   type Resources, type RoomView, type Schedule, type ZoneView, type TerrainPlanView,
   type ChestView, type InventoryLocation, type InventorySlot, type PlayerInventorySlot,
 } from './contracts.ts';
@@ -90,7 +90,7 @@ export class ColonySimulation {
         wheat: 10, corn: 10, blueberry: 10, sugarcane: 10, cabbage: 10, leek: 10, potato: 10, tomato: 10,
         friedEgg: 10, bread: 10, salad: 10, pasta: 10, pancake: 10, blueberryPie: 10, pizza: 10, perfectBreakfast: 10,
       },
-      playerBag: [{ resource: HAMMER, count: 1 }, ...emptySlots(PLAYER_SLOTS - 1)], bagSelected: 0, chests: [this.starterChest()],
+      playerBag: [{ resource: HAMMER, count: 1 }, { resource: AXE, count: 1 }, ...emptySlots(PLAYER_SLOTS - 2)], bagSelected: 0, chests: [this.starterChest()],
       colonists: [], buildings: [], zones: [], crops: [], items: [], jobs: [], events: [],terrainPlans:[],
       research: { active: null, progress: {}, completed: [] },
       power: { generation: 0, demand: 0, stored: 0, capacity: 0, supplied: 0, coldStorage: false },
@@ -198,7 +198,7 @@ export class ColonySimulation {
     return amount - left;
   }
 
-  transferInventory(from: InventoryLocation, to: InventoryLocation, incoming: Resource | typeof HAMMER, amount: number): CommandResult {
+  transferInventory(from: InventoryLocation, to: InventoryLocation, incoming: Resource | ToolKind, amount: number): CommandResult {
     // 锤子不是 Resource，但要走同一条搬运流程。内部一律按 Resource 用，
     // 只有「查资源表」那一步靠 isTool 绕开。
     const resource = incoming as Resource;
@@ -206,7 +206,7 @@ export class ColonySimulation {
     const full = { ok: false, message: '目标格放不下，物品留在原处' };
     // 锤子不是 Resource（不在那九种物资里），但它是普通物资的一种，
     // 该能放进仓库、能被拖来拖去。手上没有锤子就是造不了，那是玩家的选择。
-    const isTool = String(incoming) === HAMMER;
+    const isTool = (TOOL_KINDS as readonly string[]).includes(String(incoming));
     if (!from || !to || (!isTool && !RESOURCE_TYPES.includes(resource)) || !Number.isSafeInteger(amount) || amount < 1) {
       return { ok: false, message: '无效的物品转移' };
     }
@@ -916,6 +916,26 @@ export class ColonySimulation {
     return null;
   }
   private treeBase(x:number,z:number):number{return this.world.treeAtColumn(x,z)?.y??-1;}
+  /**
+   * 玩家亲手砍倒一棵树（角色视角按住左键）。
+   *
+   * 和随从砍完的效果一致：整棵移除、掉落 trunkHeight*6 木材。
+   * 但玩家不经过 job 队列——所以这里要顺手清掉这棵树可能挂着的待办，
+   * 否则随从会走到一棵已经不存在的树旁边站着。
+   */
+  playerFellTree(treeId:string):{ok:boolean;wood:number;message:string}{
+    const tree=this.world.getTree(treeId);
+    if(!tree)return{ok:false,wood:0,message:'这棵树已经不在了'};
+    this.world.removeTree(tree.id,{recordHistory:false});
+    this.refreshGround();
+    this.navigationDirty=true;
+    const wood=tree.trunkHeight*6;
+    this.drop('wood',wood,tree.x,tree.z);
+    const stale=this.s.jobs.filter(job=>job.type==='chop'&&job.targetId===tree.id);
+    for(const job of stale)this.removeJob(job,false);
+    return{ok:true,wood,message:`砍倒树木 · 掉落 ${wood} 木材`};
+  }
+
   private drop(resource:Resource,amount:number,x:number,z:number):void {
     if(amount<=0)return;const pos=this.closestOpen(x,z)??[x+.5,Math.max(1,this.world.surfaceHeight(x,z)+1),z+.5];
     const xx=Math.floor(pos[0]),zz=Math.floor(pos[2]);
@@ -1080,7 +1100,11 @@ export class ColonySimulation {
         if(!this.route(c,patient.position,true)){this.releasePerson(c);c.retryAt=this.s.time+3;}return;
       }
     }
-    job.progress+=dt*this.workRate(c, job.type);
+    const rate=this.workRate(c, job.type);
+    job.progress+=dt*rate;
+    // 砍树额外耗体力：按进度比例扣，所以一棵树固定掉 COLONIST_CHOP_STAMINA，
+    // 不管他技能高低砍得快还是慢。
+    if(job.type==='chop')c.rest=clamp(c.rest-dt*rate/Math.max(1,job.work)*COLONIST_CHOP_STAMINA);
     if(job.type==='research')this.s.research.progress[job.targetId]=Math.min(job.work,job.progress);
     if(job.progress>=job.work)this.finish(c,job);
   }
@@ -1403,8 +1427,8 @@ export class ColonySimulation {
     const text=(x:unknown,max=200)=>typeof x==='string'&&x.length<=max;
     const list=(x:unknown,max:number)=>Array.isArray(x)&&x.length<=max;
     const inventory = (slots: unknown, size: number, player = false) => Array.isArray(slots) && slots.length === size
-      && (!player || slots.filter(slot => slot?.resource === HAMMER).length <= 1)
-      && slots.every(slot => slot === null || slot && (player && slot.resource === HAMMER
+      && (!player || (TOOL_KINDS as readonly string[]).every(tool => slots.filter(slot => slot?.resource === tool).length <= 1))
+      && slots.every(slot => slot === null || slot && (player && (TOOL_KINDS as readonly string[]).includes(slot.resource)
         ? slot.count === 1 : RESOURCE_TYPES.includes(slot.resource) && integer(slot.count, 1, STACK_LIMIT)));
     const area=this.world.width*this.world.depth;
     const position=(p:unknown)=>Array.isArray(p)&&p.length===3&&finite(p[0],0,this.world.width)&&finite(p[1],0,this.world.height)&&finite(p[2],0,this.world.depth);

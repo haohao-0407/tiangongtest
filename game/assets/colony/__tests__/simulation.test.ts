@@ -63,21 +63,24 @@ describe('inventory reservation, work and walking',()=>{
     const nextPlayer = before.colonists[2]!.position;
     expect(order.ok).toBe(true);
     expect(sim.snapshot().resources.steel).toBe(before.resources.steel - 7);
-    expect(sim.snapshot().playerBag.slice(1).every(stack => stack === null)).toBe(true);
+    // slot 0/1 是锤子和木斧，空槽从 2 开始
+expect(sim.snapshot().playerBag.slice(2).every(stack => stack === null)).toBe(true);
     expect(pending()?.targetId).toBe(PLAYER_DELIVERY_TARGET);
     for (let i = 0; i < 200 && pending()?.deliveryPhase === 'pickup'; i++) sim.tick(.25, originalPlayer);
     const traveling = pending();
     expect(traveling?.deliveryPhase).toBe('deliver');
     const carrier = sim.snapshot().colonists.find(person => person.id === traveling?.assignedTo)!;
     expect([Math.floor(carrier.position[0]), Math.floor(carrier.position[2])]).toEqual([traveling!.x, traveling!.z]);
-    expect(sim.snapshot().playerBag.slice(1).every(stack => stack === null)).toBe(true);
+    // slot 0/1 是锤子和木斧，空槽从 2 开始
+expect(sim.snapshot().playerBag.slice(2).every(stack => stack === null)).toBe(true);
 
     const restored = new ColonySimulation(world);
     restored.load(sim.serialize());
     for (let i = 0; i < 240 && restored.snapshot().jobs.some(job => job.id === order.id); i++) restored.tick(.25, nextPlayer);
     const finished = restored.snapshot();
     expect(finished.jobs.some(job => job.id === order.id)).toBe(false);
-    expect(finished.playerBag[1]).toEqual({ resource: 'steel', count: 7 });
+    // 送货落在第一个空槽——0/1 是工具，所以是 2
+expect(finished.playerBag[2]).toEqual({ resource: 'steel', count: 7 });
     expect(finished.resources.steel).toBe(before.resources.steel - 7);
     const arrived = finished.colonists.find(person => person.id === carrier.id)!;
     expect(Math.hypot(arrived.position[0] - nextPlayer[0], arrived.position[2] - nextPlayer[2])).toBeLessThanOrEqual(1.5);
@@ -107,15 +110,16 @@ describe('inventory reservation, work and walking',()=>{
   it('keeps overflow in its source and rejects incompatible or stale slots', () => {
     const { sim } = setup();
     const warehouse = { kind: 'warehouse' } as const;
-    const first = { kind: 'player', slot: 1 } as const;
-    const second = { kind: 'player', slot: 2 } as const;
+    // 0 和 1 被工具占着（锤子、木斧），从 2 起才是空槽
+    const first = { kind: 'player', slot: 2 } as const;
+    const second = { kind: 'player', slot: 3 } as const;
     const chest = { kind: 'chest', id: sim.snapshot().chests[0]!.id, slot: 3 } as const;
     expect(sim.transferInventory(warehouse, first, 'wood', 98).ok).toBe(true);
     expect(sim.transferInventory(warehouse, second, 'wood', 12).ok).toBe(true);
     expect(sim.transferInventory(first, chest, 'wood', 98).ok).toBe(true);
     expect(sim.transferInventory(second, chest, 'wood', 12).ok).toBe(true);
     expect(sim.snapshot().chests[0]!.slots[3]).toEqual({ resource: 'wood', count: 99 });
-    expect(sim.snapshot().playerBag[2]).toEqual({ resource: 'wood', count: 11 });
+    expect(sim.snapshot().playerBag[3]).toEqual({ resource: 'wood', count: 11 });
     expect(sim.snapshot().resources.wood).toBe(30);
     expect(sim.transferInventory(first, chest, 'wood', 98).ok).toBe(false);
     expect(sim.transferInventory(warehouse, first, 'stone', 1).ok).toBe(true);
@@ -295,6 +299,35 @@ describe('resident needs and civilian production',()=>{
     const{sim}=setup();onlyJob(sim,'doctor');const data=raw(sim);data.colonists[0].disease=65;data.colonists[0].health=60;sim.load(data);const before=sim.snapshot();
     run(sim,50);const after=sim.snapshot();expect(after.metrics.treated).toBeGreaterThan(0);expect(after.colonists[0]!.disease).toBeLessThan(20);
     expect(after.resources.medicine).toBeLessThan(before.resources.medicine);expect(after.colonists[0]!.health).toBeGreaterThan(before.colonists[0]!.health);
+  });
+  it('lets the player fell a tree directly and clears the queued chop',()=>{
+    const{sim,world}=setup();onlyJob(sim,'chop');
+    const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40)!;
+    expect(tree).toBeDefined();
+    // 先挂一个随从的砍伐任务，模拟「玩家抢先砍了同一棵」
+    expect(sim.command({action:'designate',kind:'chop',id:tree.id}).ok).toBe(true);
+    expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.targetId===tree.id)).toBe(true);
+    const before=sim.snapshot().items.filter(i=>i.resource==='wood').reduce((n,i)=>n+i.amount,0);
+    const result=sim.playerFellTree(tree.id);
+    expect(result.ok).toBe(true);
+    expect(result.wood).toBe(tree.trunkHeight*6);
+    expect(world.getTree(tree.id)).toBeUndefined();
+    // 掉落进世界，不是直接进仓库
+    expect(sim.snapshot().items.filter(i=>i.resource==='wood').reduce((n,i)=>n+i.amount,0)).toBe(before+tree.trunkHeight*6);
+    // 那条随从任务必须被清掉，否则居民会守着一棵不存在的树
+    expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.targetId===tree.id)).toBe(false);
+    expect(sim.playerFellTree(tree.id).ok).toBe(false);
+  });
+  it('spends resident stamina on chopping beyond the natural drain',()=>{
+    const{sim,world}=setup();onlyJob(sim,'chop');
+    const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40)!;
+    const before=sim.snapshot().colonists.map(c=>c.rest);
+    expect(sim.command({action:'designate',kind:'chop',id:tree.id}).ok).toBe(true);
+    run(sim,90);
+    const after=sim.snapshot().colonists;
+    // 自然衰减约 0.07/秒，砍一棵的额外开销固定 8 点，所以掉得明显更多。
+    const spent=after.reduce((sum,c,i)=>sum+(before[i]!-c.rest),0)/Math.max(1,after.length);
+    expect(spent).toBeGreaterThan(3);
   });
   it('extracts resources only after completing a tree or mining job',()=>{
     const{sim,world}=setup();onlyJob(sim,'chop');
