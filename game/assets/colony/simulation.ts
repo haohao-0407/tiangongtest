@@ -170,6 +170,27 @@ export class ColonySimulation {
     return { ok: true, message: '已放置木箱', id };
   }
 
+  /**
+   * 拆掉一个木箱。
+   *
+   * 箱子里的东西不能凭空消失，全部撒到地上（复用 drop，
+   * 所以也走同一套弹跳动画和 0.5 秒拾取延迟）。
+   * 箱子本身只能存 Resource，装不了工具，所以这里不用考虑工具。
+   */
+  demolishChest(chestId: string): CommandResult {
+    const chest = this.s.chests.find(candidate => candidate.id === chestId);
+    if (!chest) throw new Error('木箱不存在。');
+    let spilled = 0;
+    for (const slot of chest.slots) {
+      if (!slot) continue;
+      this.drop(slot.resource, slot.count, chest.x, chest.z);
+      spilled += slot.count;
+    }
+    this.s.chests.splice(this.s.chests.indexOf(chest), 1);
+    this.event('info', spilled ? `拆掉木箱，${spilled} 件物品散落在地上。` : '拆掉木箱。');
+    return { ok: true, id: chest.id, message: spilled ? `木箱已拆，${spilled} 件物品掉在地上` : '木箱已拆' };
+  }
+
   selectBagSlot(index: unknown): void {
     if (!validSlot(index, this.s.playerBag)) return;
     this.s.bagSelected = index;
@@ -408,6 +429,7 @@ export class ColonySimulation {
       if (c.action === 'toggleDoor') return this.toggleDoor(c);
       if (c.action === 'demolish') return this.demolish(c);
       if (c.action === 'place-chest') return this.placeChest(c.x, c.z);
+      if (c.action === 'demolish-chest') return this.demolishChest(c.id ?? '');
       if (c.action === 'level') return this.orderLevel(c);
       if (c.action === 'designate') return this.designate(c);
       if (c.action === 'cancel') return this.cancel(c.id);

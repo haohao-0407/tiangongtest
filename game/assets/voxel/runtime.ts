@@ -736,8 +736,36 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             const m = input.mouse.position;
             const r = m ? viewportToWorld(world, camera, m.x, m.y, size.width, size.height) : undefined;
             const hit = r ? voxels.raycast(Array.from(ray.getOrigin(vec3.create(), r)) as Point, Array.from(ray.getDirection(vec3.create(), r)) as Point, 1200) : null;
-            const buildingHit = r ? raycastBuilding(colonyState.buildings, Array.from(ray.getOrigin(vec3.create(),r)) as Point, Array.from(ray.getDirection(vec3.create(),r)) as Point, hit?.distance ?? 1200) : null;
-            const treeHit = r ? raycastTree(voxels.getTrees(), Array.from(ray.getOrigin(vec3.create(),r)) as Point, Array.from(ray.getDirection(vec3.create(),r)) as Point, buildingHit?.distance ?? hit?.distance ?? 1200) : null;
+            // 建筑/树的射线不能严格卡在地形距离上：
+            // 角色视角平视时射线常常先扫到脚前的地面，命中距离很短，
+            // 身后的床和工作台就被截掉了，看起来像「点不到」。
+            // 给个至少 8 米的下限，近处的东西一定点得到。
+            const pickLimit = Math.max(hit?.distance ?? 1200, 8);
+            const buildingHit = r ? raycastBuilding(colonyState.buildings, Array.from(ray.getOrigin(vec3.create(),r)) as Point, Array.from(ray.getDirection(vec3.create(),r)) as Point, pickLimit) : null;
+            const treeHit = r ? raycastTree(voxels.getTrees(), Array.from(ray.getOrigin(vec3.create(),r)) as Point, Array.from(ray.getDirection(vec3.create(),r)) as Point, Math.max(buildingHit?.distance ?? pickLimit, 8)) : null;
+            // 木箱是独立系统（不在 buildings 里），射线得单独算。
+            // 只探 12 米内，避免点到很远的箱子。
+            const chestHit = r ? (() => {
+              const o = Array.from(ray.getOrigin(vec3.create(), r)) as Point;
+              const d = Array.from(ray.getDirection(vec3.create(), r)) as Point;
+              let best: { chest: ChestView; distance: number } | null = null;
+              for (const chest of colonyState.chests) {
+                const base = voxels.terrainHeight(chest.x, chest.z);
+                if (base < 0) continue;
+                const min = [chest.x, base, chest.z], max = [chest.x + 1, base + 1, chest.z + 1];
+                let near = 0, far = 12, miss = false;
+                for (let axis = 0; axis < 3; axis++) {
+                  const oo = o[axis]!, dd = d[axis]!;
+                  if (Math.abs(dd) < 1e-8) { if (oo < min[axis]! || oo > max[axis]!) { miss = true; break; } }
+                  else {
+                    const a = (min[axis]! - oo) / dd, b = (max[axis]! - oo) / dd;
+                    near = Math.max(near, Math.min(a, b)); far = Math.min(far, Math.max(a, b));
+                  }
+                }
+                if (!miss && near <= far && (!best || near < best.distance)) best = { chest, distance: near };
+              }
+              return best;
+            })() : null;
             const objectHit = treeHit ? null : buildingHit;
             // 树的悬停高亮和「整棵树」面板是上帝视角的东西——那是经营视角下给随从派活用的。
             // 角色视角下鼠标指着树是要自己砍，不该弹面板抢焦点。
@@ -745,11 +773,43 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             if (hoverTreeId !== (hoverTree?.tree.id ?? null) || hoverTreePart !== (hoverTree?.part.role ?? null)) refreshState = true;
             hoverTreeId = hoverTree?.tree.id ?? null; hoverTreePart = hoverTree?.part.role ?? null;
 
+            // ---- 玩家拆木箱 ----
+            // 箱子是独立系统，走 demolish-chest：里面的资源撒到地上，工具塞回背包。
+            if (viewMode === 'character' && chestHit) {
+              const holdLeft = input.mouse.button(0);
+              const chest = chestHit.chest;
+              const inReach = Math.abs(chest.x + 0.5 - player.x) <= PLAYER_BUILD_REACH + 1
+                && Math.abs(chest.z + 0.5 - player.z) <= PLAYER_BUILD_REACH + 1;
+              if (inReach && holdLeft) {
+                const dtChest = Math.min(world.getResource(Time).delta, 0.1);
+                if (!playerDemolish || playerDemolish.id !== chest.id) playerDemolish = { id: chest.id, progress: 0 };
+                // 一个木箱按 8 点工作量算：空手约 3 秒，拿斧头快一点
+                const held = String(colonyState.playerBag[colonyState.bagSelected]?.resource ?? '');
+                const rate = held === AXE ? PLAYER_DEMOLISH_RATE_TOOL : PLAYER_DEMOLISH_RATE;
+                playerDemolish.progress += (rate * dtChest) / 8;
+                if (playerDemolish.progress >= 1) {
+                  try {
+                    const result = execute({ action: 'demolish-chest', id: chest.id });
+                    status = result.message;
+                    colonyState = colony.snapshot();
+                  } catch (error) {
+                    status = error instanceof Error ? error.message : '拆不掉这个木箱';
+                  }
+                  playerDemolish = null;
+                } else {
+                  status = `拆木箱 ${Math.round(playerDemolish.progress * 100)}%`;
+                }
+                refreshState = true;
+              } else if (!holdLeft) {
+                playerDemolish = null;
+              }
+            }
+
             // ---- 玩家拆建筑 ----
             // 角色视角下左键直接挖，不弹详情面板（那是上帝视角的经营操作）。
             // 石造/金属建筑必须拿镐子，徒手只提示不给进度。
             const demolishTarget = viewMode === 'character' ? objectHit?.building : undefined;
-            const inDemolishReach = !!demolishTarget
+            const inDemolishReach = !!demolishTarget && !chestHit
               && Math.abs(demolishTarget.x + demolishTarget.w / 2 - player.x) <= PLAYER_BUILD_REACH + 2
               && Math.abs(demolishTarget.z + demolishTarget.d / 2 - player.z) <= PLAYER_BUILD_REACH + 2;
             if (viewMode === 'character' && inDemolishReach) {
@@ -760,6 +820,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               const wrongTool = needPick && heldTool !== PICKAXE;
               if (!holdLeft) {
                 playerDemolish = null;
+                // 指着建筑但没按：给一句提示，不然玩家不知道这里能拆。
+                // 只在文字真变了才 publish，否则每帧刷状态会拖慢发布。
+                const hint = `按住左键拆除${def.name}`;
+                if (status !== hint) { status = hint; refreshState = true; }
               } else if (wrongTool) {
                 playerDemolish = null;
                 status = `${def.name}是石造的，需要石镐才能拆`;
@@ -783,6 +847,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               playerDemolish = null;
             }
             // 正在拆东西时，左键不再触发「选中并弹面板」
+            // 拆箱子时同样不该弹面板
             const canopyDemolish = viewMode === 'character' && !!playerDemolish;
 
             // ---- 玩家撸树 ----

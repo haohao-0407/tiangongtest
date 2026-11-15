@@ -318,6 +318,25 @@ describe('resident needs and civilian production',()=>{
     expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.targetId===tree.id)).toBe(false);
     expect(sim.playerFellTree(tree.id).ok).toBe(false);
   });
+  it('spills a chest onto the ground when it is demolished',()=>{
+    const{sim}=setup();
+    const chest=sim.snapshot().chests[0]!;
+    // 往箱子里塞两样东西
+    sim.transferInventory({kind:'warehouse'},{kind:'chest',id:chest.id,slot:0},'wood',10);
+    sim.transferInventory({kind:'warehouse'},{kind:'chest',id:chest.id,slot:1},'stone',4);
+    const before=sim.snapshot().items.length;
+    const result=sim.demolishChest(chest.id);
+    expect(result.ok).toBe(true);
+    // 箱子没了
+    expect(sim.snapshot().chests.some(c=>c.id===chest.id)).toBe(false);
+    // 东西全在地上，一件不少
+    const after=sim.snapshot().items;
+    expect(after.length).toBeGreaterThan(before);
+    const woodOnGround=after.filter(i=>i.resource==='wood').reduce((n,i)=>n+i.amount,0);
+    const stoneOnGround=after.filter(i=>i.resource==='stone').reduce((n,i)=>n+i.amount,0);
+    expect(woodOnGround).toBeGreaterThanOrEqual(10);
+    expect(stoneOnGround).toBeGreaterThanOrEqual(4);
+  });
   it('requires a pickaxe only for stone or metal buildings',()=>{
     // 石造/金属：徒手拆不动
     expect(needsPickaxe(BUILDING_DEFS.forgery)).toBe(true);
