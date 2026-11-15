@@ -45,11 +45,10 @@ export class ColonyView {
   }
   private material(key:string):AssetHandle<'material'>{
     const existing=this.materials.get(key);if(existing)return existing;
-    const translucent=['blueprint','zoneFarm','zoneStock','selected','cloudShadow','cloudShadowSoft','cloudShadowFaint'].includes(key);
-    // 云影分三层叠出羽化边缘：核心深、中层淡、外圈几乎透明的晕。
-    const shadowAlpha:Record<string,number>={cloudShadow:.20,cloudShadowSoft:.09,cloudShadowFaint:.04};
-    const c=key in shadowAlpha?[0.02,0.04,0.02,shadowAlpha[key]!] as [number,number,number,number]:rgba(COLORS[key]??key);
-    if(translucent&&!(key in shadowAlpha))c[3]=key==='blueprint'?.35:.28;
+    const cloudKeys=['cloudHigh','cloudHigh2'];
+    const translucent=['blueprint','zoneFarm','zoneStock','selected'].includes(key);
+    const c=cloudKeys.includes(key)?[0.93,0.95,0.97,1] as [number,number,number,number]:rgba(COLORS[key]??key);
+    if(translucent)c[3]=key==='blueprint'?.35:.28;
     const value=translucent?Materials.unlit(c,{queue:RenderQueue.Transparent,renderState:{depthWriteEnabled:false,cullMode:'none',blend:{color:{srcFactor:'src-alpha',dstFactor:'one-minus-src-alpha',operation:'add'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha',operation:'add'}}}}):Materials.standard({baseColor:c,roughness:.86,metallic:key==='steel'?.3:0});
     const handle=this.assets.create(value).unwrap();this.materials.set(key,handle);return handle;
   }
@@ -68,8 +67,70 @@ export class ColonyView {
       if(next.some((n,j)=>n!==group!.transforms[i]![j])){this.world.set(group.entities[i]!,Transform,{pos:p.p,scale:p.s}).unwrap();group.transforms[i]=next;}
     }
   }
+  /**
+   * 云影：在天空放一批扁平云片，让方向光把它们的影子投到地面。
+   *
+   * 为什么这么做：贴地的半透明平面看起来是「雾」，因为它不随光照角度变化、
+   * 也不会被地形遮挡。真正的阴影是阴影贴图算出来的——所以只要把云放到天上，
+   * 打开 cast，地面自然就有了严丝合缝的影子：跨台阶、绕建筑、随地形起伏都对。
+   *
+   * 云片本身故意做得很淡（薄云），玩家抬头能看到一点点，但不抢戏。
+   */
+  private renderClouds(time:number,active:Set<string>){
+    const CLOUD_Y=18, DRIFT_X=1.1, DRIFT_Z=0.4;
+    // 云片布局：错开的大块，别排成整齐的阵列
+    // 阳光几乎垂直（[-0.32,-0.91,-0.24]），所以影子基本就在云正下方。
+    // 云片要铺在**地图中间**——出生点和主要活动区都在 128 附近，
+    // 之前围着原点摆，玩家在 125 格开外，头顶根本没云。
+    const CX=128, CZ=128;
+    // 每片之间留出比自身更大的空隙，地面才会出现「一块亮一块暗」，
+    // 连成一片就只是一层均匀的灰，看不出是云。
+    const SHAPES:[number,number,number,number][]=[
+      // x, z, 宽, 深
+      [0,0,26,20],
+      [46,34,22,16],
+      [-40,-32,24,18],
+      [24,-50,20,15],
+      [-52,40,22,17],
+      [64,-8,18,14],
+      [-8,54,20,15],
+      [78,50,16,12],
+      [-74,-10,18,14],
+    ];
+    // 每片云由几个错开的小块拼出来。
+    // 单个矩形投出来的影子是规整的方块，一眼就看出是几何体；
+    // 错开叠一叠，轮廓才有起伏，像真的云。
+    const CLUSTER:[number,number,number,number][]=[
+      // 相对偏移, 相对尺寸
+      [0,0,1,1],
+      [0.58,0.16,0.52,0.66],
+      [-0.46,-0.26,0.46,0.6],
+      [0.06,-0.52,0.42,0.46],
+    ];
+    const parts:Part[]=[];
+    for(const [bx,bz,bw,bd]of SHAPES){
+      // 云在世界里飘。用取模让它们绕地图循环，否则跑几个小时后全飘出地图。
+      const wrap=(v:number)=>((v%256)+256)%256;
+      const x=wrap(CX+bx+time*DRIFT_X);
+      const z=wrap(CZ+bz+time*DRIFT_Z);
+      for(const [ox,oz,sw,sd]of CLUSTER){
+        parts.push({
+          p:[x+ox*bw,CLOUD_Y+(ox+oz)*0.8,z+oz*bd],
+          s:[bw*sw,0.6,bd*sd],
+          c:'cloudHigh',
+          shadow:true,
+        });
+      }
+    }
+    // signature 固定，靠 put 的 transform 分支移动（每帧重建 48 个实体会掉帧）
+    this.put('云影',parts,active,'cloud');
+  }
+
   update(state:ColonyRenderState,time:number){
     const active=new Set<string>();
+    // 云影：真云在天上，靠引擎的方向光阴影投到地面。
+    // 不再画贴地的半透明平板——那样看起来是雾，不是影子。
+    this.renderClouds(time,active);
     for(const [i,p]of state.colonists.entries()){
       const [x,y,z]=p.position;
       const old=this.pawnPositions.get(p.id);const moving=old&&Math.hypot(x-old[0],z-old[2])>.003;
@@ -159,34 +220,6 @@ export class ColonyView {
     for(const item of state.items){
       if(item.amount<=0)continue;const scale=.2+Math.min(.38,Math.cbrt(item.amount)*.07);
       this.put(`物资/${item.id}`,[{p:[item.x+.5,item.y+scale/2,item.z+.5],s:[scale,scale,scale],c:COLORS[item.resource]?item.resource:'gold'}],active);
-    }
-    // ---- 假云阴影 ----
-    // 真做云会拖垮渲染，这里用几片贴地的半透明暗斑，跟着玩家走、按风向慢慢漂。
-    // 每团由 4 块错开的矩形叠出来，边缘靠叠加过渡，不做贴图。
-    const player=state.player;
-    if(player){
-      const SPAN=54, DRIFT=time*0.5;
-      const BLOBS:[number,number,number,number][]=[
-        // x, z, 宽, 深
-        [0,0,26,18],[-9,6,16,13],[11,7,14,11],[3,-9,17,12],
-        [34,24,22,16],[27,31,14,11],[41,31,13,10],
-        [-30,-24,24,17],[-37,-17,14,11],[-23,-30,15,12],
-        [18,-38,20,15],[25,-31,12,10],[11,-45,13,10],
-        [-42,26,21,15],[-49,33,12,10],[-35,34,14,11],
-      ];
-      const parts:Part[]=[];
-      for(const [bx,bz,bw,bd]of BLOBS){
-        // 玩家为中心循环铺开，走到哪云影跟到哪
-        const rawX=bx+DRIFT, rawZ=bz+DRIFT*0.35;
-        const x=player.x+((rawX%SPAN)+SPAN)%SPAN-SPAN/2;
-        const z=player.z+((rawZ%SPAN)+SPAN)%SPAN-SPAN/2;
-        const gy=this.terrain().terrainHeight(Math.round(x),Math.round(z));
-        // 三层不同尺寸+不同高度，外层更大更淡，凑出柔边
-        parts.push({p:[x,gy+0.082,z],s:[bw,0.01,bd],c:'cloudShadow',shadow:false});
-        parts.push({p:[x,gy+0.068,z],s:[bw*1.15,0.01,bd*1.15],c:'cloudShadowSoft',shadow:false});
-        parts.push({p:[x,gy+0.054,z],s:[bw*1.32,0.01,bd*1.32],c:'cloudShadowFaint',shadow:false});
-      }
-      this.put('云影',parts,active,'');
     }
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }
