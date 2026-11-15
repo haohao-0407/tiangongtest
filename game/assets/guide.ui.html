@@ -24,6 +24,11 @@
     </div>
   </div>
 
+  <div id="vitals" class="vitals">
+    <div class="vital-bar health"><i id="vital-health"></i></div>
+    <div class="vital-bar stamina"><i id="vital-stamina"></i></div>
+    <div class="vital-gold"><span id="vital-gold">0</span></div>
+  </div>
   <header class="topbar panel" data-interactive>
     <div class="brand"><span class="brand-icon">▧</span><div><h1>森屿</h1><p>和平家园 · COLONY HOMESTEAD</p></div></div>
     <div class="clock"><strong id="date">正在铺开家园…</strong><span id="weather">等待世界数据</span></div>
@@ -50,6 +55,10 @@
   <footer class="bottom-area"><div class="selection-info"><span class="status-dot"></span><span id="status">居民正在准备安家…</span><span id="cell"></span></div>
         <div class="footer-hint"><span id="tool-hint">查看模式 · 左键选择居民或地块</span><span id="quick-save">本机存档</span></div>
 </footer>
+  <div id="interact-hint" class="interact-hint" hidden>
+    <span class="hint-key">右键</span>
+    <span id="hint-text"></span>
+  </div>
   <div id="hotbar-name" class="hotbar-name"></div>
   <div class="hotbar" id="hotbar" data-interactive aria-label="快捷栏"></div>
   <nav class="tool-rail panel" data-interactive aria-label="家园菜单"><button data-menu="warehouse"><span>▤</span>仓库</button><button data-menu="follower"><span>☺</span>随从</button><button data-menu="plan"><span>▦</span>规划</button><div class="rail-sep"></div><button data-menu="inspect" class="active"><span>⌖</span>查看</button><button data-menu="build"><span>▧</span>建造</button><button data-menu="work"><span>☷</span>工作</button><button data-menu="production"><span>⚒</span>生产</button><button data-menu="research"><span>◇</span>研究</button><button data-menu="trade"><span>⇄</span>贸易</button><button data-menu="logs"><span>≡</span>记录</button><button data-menu="sandbox"><span>▨</span>沙盒</button></nav>

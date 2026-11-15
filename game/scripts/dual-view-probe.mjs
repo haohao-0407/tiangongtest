@@ -120,12 +120,19 @@ export default async function dualViewProbe(play) {
   const totalTurn = Math.abs(((facingEnd - facingIdle2 + Math.PI) % (Math.PI * 2)) - Math.PI);
   assert.ok(totalTurn > 0.4, `转身幅度应该够明显，实测 ${totalTurn.toFixed(2)} 弧度`);
 
-  // ---- 5. 空格跳跃：离地后 y 会升起来 ----
+  // ---- 5. 空格跳跃：离地后 y 会升起来，且不消耗体力 ----
   const groundY = s2.player.y;
+  const staminaBeforeJump = s2.player.vitals?.stamina ?? 0;
   await play.page.keyboard.press('Space');
   await advance(0.18);
   const s3 = await read();
   assert.equal(s3.player.grounded, false, '起跳后应处于离地状态');
+  // 跳跃不扣体力：只允许因为「站着回体力」而略微变多，不许变少
+  const staminaAfterJump = s3.player.vitals?.stamina ?? 0;
+  assert.ok(
+    staminaAfterJump >= staminaBeforeJump - 0.01,
+    `跳跃不该扣体力，跳前 ${staminaBeforeJump.toFixed(1)} → 跳后 ${staminaAfterJump.toFixed(1)}`,
+  );
   assert.ok(s3.player.y > groundY + 0.15, `起跳后高度应上升，实测 Δ${(s3.player.y - groundY).toFixed(2)}`);
   // 玩家模型必须始终只有一套（曾经落地/起跳来回切换导致叠出两套人）
   assert.equal(s3.player.parts, 11, `空中时玩家部件数应为 11，实际 ${s3.player.parts}`);
@@ -379,9 +386,22 @@ export default async function dualViewProbe(play) {
   await play.page.locator('[data-menu="inspect"]').click();
   await advance(0.3);
 
-  // 切到玩家视角：快捷栏应该显示刚才拿到手上的那件东西
-  await play.page.keyboard.press('KeyR');
-  await advance(0.9);
+  // 切到玩家视角：快捷栏应该显示刚才拿到手上的那件东西。
+  // 先把可能挡着的浮层都关掉——暂停层是全屏的，开着会吃掉键盘事件，
+  // 表现出来就是「没按 R」。
+  for (let i = 0; i < 3; i++) {
+    const blocking = (await play.page.locator('#game-options').isVisible())
+      || (await play.page.locator('#pause-menu').isVisible());
+    if (!blocking) break;
+    await play.page.keyboard.press('Escape');
+    await advance(0.35);
+  }
+  // 点一下画布把焦点从按钮上拿回来，再按 R
+  await play.page.mouse.click(640, 300);
+  await advance(0.3);
+  await tapR();
+  await advance(0.5);
+  assert.equal((await read()).camera.mode, 'character', '按 R 应切到玩家视角');
   const hotbarSlots = await play.page.locator('#hotbar .hotbar-slot:not(.empty)').count();
   assert.ok(hotbarSlots >= 1, `玩家视角快捷栏应显示背包内容，实际 ${hotbarSlots} 格有东西`);
   const hotbarState = await read();
@@ -392,9 +412,119 @@ export default async function dualViewProbe(play) {
     bagNow[selNow],
     `选中格 ${selNow} 应该有东西；背包现状 ${JSON.stringify(bagNow.filter(Boolean))}，标题「${selectedName}」`,
   );
+  // 右上角三条：血量 / 体力 / 金币
+  assert.equal(await play.page.locator('#vitals').isVisible(), true, '玩家视角应显示血量 HUD');
+  assert.equal(await play.page.locator('#vital-health').count(), 1, '应有血条');
+  assert.equal(await play.page.locator('#vital-stamina').count(), 1, '应有体力条');
+  const goldText = (await play.page.locator('#vital-gold').textContent()) ?? '';
+  assert.ok(/^\d+$/.test(goldText.trim()), `金币应显示数字，实际「${goldText}」`);
   await play.screenshot('hotbar-bag');
   await play.page.keyboard.press('KeyR');
   await advance(0.6);
+
+  // ---- 木箱：位置在投影里，面板能打开 ----
+  const chestState = await read();
+  assert.ok(Array.isArray(chestState.player.chest), `投影里应有木箱位置，实际 ${JSON.stringify(chestState.player.chest)}`);
+
+  await play.page.evaluate(() => window.__wbOpenChest());
+  await advance(0.6);
+  assert.equal(await play.page.locator('#workspace').isVisible(), true, '木箱面板应打开');
+  assert.equal(await play.page.locator('#workspace .chest-grid').count(), 1, '木箱应渲染成格子');
+  const chestCells = await play.page.locator('#workspace .chest-cell').count();
+  assert.equal(chestCells, 20, `木箱应是 5×4 二十格，实际 ${chestCells}`);
+  const chestFilled = await play.page.locator('#workspace .chest-cell:not(.empty)').count();
+  assert.ok(chestFilled >= 5, `木箱里应该装着现有物资，实际 ${chestFilled} 格`);
+  assert.ok(
+    ((await play.page.locator('#workspace .chest-include').textContent()) ?? '').includes('计入仓库'),
+    '木箱应有「计入仓库」状态行',
+  );
+  // 分类和仓库用同一个下拉组件
+  assert.equal(await play.page.locator('#workspace .chest-grid ~ * .wh-cat-trigger').count() + await play.page.locator('#workspace .wh-cat-trigger').count() > 0, true, '木箱应有分类下拉');
+  await play.page.locator('#workspace .wh-cat-trigger').click();
+  await advance(0.3);
+  assert.equal(await play.page.locator('#workspace .wh-cat-menu').isVisible(), true, '木箱分类应能展开');
+  await play.page.locator('#workspace .wh-cat-option[data-cat="block"]').click();
+  await advance(0.4);
+  const chestFiltered = await play.page.locator('#workspace .chest-cell:not(.empty)').count();
+  assert.equal(chestFiltered, 3, `木箱切「方块」应只剩 3 项，实际 ${chestFiltered}`);
+  await play.page.locator('#workspace .wh-cat-trigger').click();
+  await advance(0.3);
+  await play.page.locator('#workspace .wh-cat-option[data-cat="all"]').click();
+  await advance(0.3);
+  await play.screenshot('chest-panel');
+
+  // 木箱格子右键也能弹物品菜单
+  await play.page.locator('#workspace .chest-cell[data-item]').first().click({ button: 'right' });
+  await advance(0.4);
+  assert.equal(await itemMenu.isVisible(), true, '木箱格子右键应弹物品菜单');
+  // 点空白处收起菜单（ESC 会连面板一起关掉）
+  await play.page.mouse.click(20, 500);
+  await advance(0.4);
+  // 重新打开木箱面板，确认快捷栏在场
+  await play.page.evaluate(() => window.__wbOpenChest());
+  await advance(0.5);
+  assert.equal(await play.page.locator('#workspace').isVisible(), true, '木箱面板应重新打开');
+  assert.equal(await play.page.locator('#hotbar').isVisible(), true, '打开面板时快捷栏应可见');
+  assert.equal(await play.page.locator('#hotbar .hotbar-slot[data-index="0"]').count(), 1, '快捷栏格子应带索引');
+
+  await play.page.locator('[data-menu="inspect"]').click();
+  await advance(0.3);
+
+  // ---- 随从页：玩家单独一块，和随从列表分开 ----
+  await play.page.locator('[data-menu="follower"]').click();
+  await advance(0.5);
+  assert.equal(await play.page.locator('#workspace .self-card').count(), 1, '随从页顶部应有玩家卡片');
+  assert.ok(
+    ((await play.page.locator('#workspace .self-tag').textContent()) ?? '').includes('玩家'),
+    '玩家卡片应带「玩家」标签',
+  );
+  const followerRows = await play.page.locator('#workspace .row-list .production-row').count();
+  assert.ok(followerRows >= 3, `下面应该是随从列表，实际 ${followerRows} 行`);
+  await play.screenshot('follower-list');
+  await play.page.locator('[data-menu="inspect"]').click();
+  await advance(0.3);
+
+  // ---- 随从面板：靠近右键打开，左数值右背包 ----
+  // 顺带确认「靠近谁」这个判定跑通了（角色视角下才有值）
+  assert.ok('nearColonist' in (await read()).player, '投影里应有 nearColonist 字段');
+  assert.ok('nearHint' in (await read()).player, '投影里应有 nearHint 字段（靠近提示用）');
+  assert.equal(await play.page.locator('#interact-hint').count(), 1, '应有靠近提示条');
+  // 提示要跟着距离走：站在箱子旁边就必须出，走远了就必须收
+  const hintState = await read();
+  const chestCell = hintState.player.chest;
+  const distToChest = Math.abs(Math.floor(hintState.player.x) - chestCell[0])
+    + Math.abs(Math.floor(hintState.player.z) - chestCell[2]);
+  const hintVisible = await play.page.locator('#interact-hint').isVisible();
+  if (distToChest <= 1) {
+    assert.equal(hintState.player.nearHint, 'chest', `贴着箱子时提示类型应为 chest，实际 ${hintState.player.nearHint}`);
+    assert.equal(hintVisible, true, `距离 ${distToChest} 格时应显示提示`);
+    await play.screenshot('near-hint');
+  } else {
+    assert.equal(hintState.player.nearHint, null, `距离 ${distToChest} 格时不该有提示`);
+    assert.equal(hintVisible, false, `距离 ${distToChest} 格时提示应隐藏`);
+  }
+  const cid = (await read()).colony.colonists[0].id;
+  await play.page.evaluate((id) => window.__wbOpenFollower(id), cid);
+  await advance(0.6);
+  assert.equal(await play.page.locator('#workspace').isVisible(), true, '随从面板应打开');
+  assert.equal(await play.page.locator('#workspace .fb-bar.health').count(), 1, '应有血条');
+  assert.equal(await play.page.locator('#workspace .fb-bar.stamina').count(), 1, '应有体力条');
+  const fbCells = await play.page.locator('#workspace .fb-cell').count();
+  assert.equal(fbCells, 9, `随从背包应是九格，实际 ${fbCells}`);
+  const fbText = (await play.page.locator('#workspace .fb-wrap').textContent()) ?? '';
+  assert.ok(fbText.includes('状态'), '应显示状态');
+  assert.ok(fbText.includes('任务'), '应显示任务');
+  await play.screenshot('follower-panel');
+  await play.page.locator('[data-menu="inspect"]').click();
+  await advance(0.3);
+
+  // 退出游戏按钮本身只验存在。
+  // 真点会把页面导航走，验收框架拿不到最终帧，所以点击行为不在这个脚本里跑。
+  await play.page.keyboard.press('Escape');
+  await advance(0.4);
+  assert.equal(await play.page.locator('#pause-quit').count(), 1, '暂停层应有「退出游戏」');
+  await play.page.keyboard.press('Escape');
+  await advance(0.4);
 
   return {
     spawn,

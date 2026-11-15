@@ -63,6 +63,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       const bag: BagSlot[] = Array.from({ length: 9 }, () => null);
       let bagSelected = 0;
 
+      // 玩家三条基础数值，照 Unity 的 PlayerVitals。
+      // 血的用途等战斗系统上了再接；体力先给跳跃扣费，金币直接映射银币存量。
+      const vitals = { health: 100, maxHealth: 100, stamina: 100, maxStamina: 100 };
+
+      // 初始储藏区的木箱。天工的资源本来就在全局池里，这个箱子是它的一个「看得见的容器」：
+      // 打开它看到的就是仓库里的东西，也是 Unity 那边「箱子默认计入仓库」的同一个意思。
+      let chestPos: Point | null = null;
+
       /** 从共享池扣一份进背包，返回是否真的拿到了。 */
       const takeToBag = (resource: string, amount = 1): boolean => {
         const pool = (colonyState.resources as Record<string, number>)[resource] ?? 0;
@@ -154,6 +162,41 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       const connectPlayerOccupancy = () => colony.setExternalOccupancySampler((x,y,z,w,h,d) =>
         player.x + PLAYER_HALF > x && player.x - PLAYER_HALF < x+w && player.z + PLAYER_HALF > z && player.z - PLAYER_HALF < z+d && player.y + PLAYER_HEIGHT > y && player.y < y+h);
       connectPlayerOccupancy();
+
+      /**
+       * 玩家离木箱够不够近。以木箱**中心**为圆心的实际距离，不是格子距离——
+       * 按格子算会让判定框偏到格子角上，看着像「离箱还有半格就触发了」。
+       * 以箱子所在的**格子**为中心，向周围八个格子扩散一圈。
+       */
+      const chestNear = () => {
+        if (!chestPos) return false;
+        // 以箱子所在格为中心的一圈：上下左右 + 斜对角，共八格。
+        // 用格子坐标判而不是浮点圆——玩家不一定踩在格子正中心，
+        // 按浮点算会出现「站在相邻格却够不着」的怪事（实测差 0.08 格）。
+        const pcx = Math.floor(player.x), pcz = Math.floor(player.z);
+        return Math.abs(pcx - chestPos[0]) <= 1 && Math.abs(pcz - chestPos[2]) <= 1;
+      };
+
+      /** 玩家脚边一格内（格子曼哈顿距离）最近的居民。照 Unity 的 FollowerInteract。 */
+      const nearColonist = () => {
+        const px = Math.floor(player.x), pz = Math.floor(player.z);
+        let best: { id: string; dist: number } | null = null;
+        for (const p of colonyState.colonists) {
+          const cx = Math.floor(p.position[0]), cz = Math.floor(p.position[2]);
+          const d = Math.abs(cx - px) + Math.abs(cz - pz);
+          if (d > 1) continue;
+          if (!best || d < best.dist) best = { id: p.id, dist: d };
+        }
+        return best;
+      };
+
+      /** 把木箱摆到玩家旁边两格，高度取那一格的地面。 */
+      const placeChest = () => {
+        const cx = Math.floor(player.x) + 1, cz = Math.floor(player.z);
+        chestPos = [cx, voxels.terrainHeight(cx, cz), cz];
+        colonyView.setChest(chestPos);
+      };
+      placeChest();
 
       /** AABB 覆盖到的格子范围，四个方向都用这个，别再用中心格近似。 */
       const boxCells = (cx: number, cz: number, footY: number) => ({
@@ -306,7 +349,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           embedded: blocked(player.x, player.z, player.y),
           parts: colonyView.playerEntityCount,
           bag: bag.map((slot) => (slot ? { resource: slot.resource, count: slot.count } : null)),
-          bagSelected },
+          bagSelected,
+          vitals: { ...vitals, gold: Math.floor((colonyState.resources as Record<string, number>).silver ?? 0) },
+          chest: chestPos,
+          nearColonist: viewMode === 'character' ? (nearColonist()?.id ?? null) : null,
+          // 靠近提示用：贴着箱子还是贴着人
+          nearHint: viewMode !== 'character' ? null
+            : chestNear() ? 'chest'
+            : nearColonist() ? 'follower' : null },
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth], worldSize: [voxels.width, voxels.height, voxels.depth],
         terrain: { target: terrainTarget, size: terrainSize, shape: terrainShape, sample: terrainSample, preview: { ...terrainPreview }, minHeight: 1, maxHeight: voxels.height - 2 }, buildHeight,
         pcg: pcgView.read(),
@@ -433,6 +483,18 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             status = ok ? '拿到手上了' : '背包放不下，或者仓库里没有了';
             refreshState = true;
           }
+          if (c.action === 'takeFromFollower') {
+            const res = String(c.resource || '');
+            const who = colonyState.colonists.find((p) => (p.carrying as Record<string, number>)[res] > 0);
+            if (!who) status = '那个人身上没有这个';
+            else if (takeToBag(res, 1)) {
+              const carried = who.carrying as Record<string, number>;
+              carried[res] = (carried[res] ?? 0) - 1;
+              if (carried[res] <= 0) delete carried[res];
+              status = '从随从手里拿到了';
+            } else status = '背包放不下';
+            refreshState = true;
+          }
           if (c.action === 'drop') {
             dropFromBag(Number(c.slot) || 0);
             status = '放回仓库了';
@@ -466,7 +528,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             terrainView.clear(); pcgView.clear();
             viewMode = 'god'; followId = null; terrainTarget = clamp(terrainTarget, 1, voxels.height - 2);
             for (const entry of chunks.values()) { world.despawn(entry.entity).unwrap(); entities.delete(entry.entity); release(entry.handle); } chunks.clear();
-            player.x = voxels.width / 2; player.z = voxels.depth / 2; player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z)); player.grounded = true; player.vy = 0;
+            player.x = voxels.width / 2; player.z = voxels.depth / 2; player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z)); player.grounded = true; player.vy = 0; placeChest();
             lastEdit = null; lastTerrainRevision = -1; tool = 'inspect'; crop = 'rice'; home(); changed('新的和平殖民地已生成');
             godReturn = { target: [...target], yaw, pitch, distance };
           }
@@ -573,9 +635,11 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }
 
               // 空格在角色视角归跳跃；俯视视角仍然留给暂停
+              // 跳跃不消耗体力。体力留给后面的采集/战斗，先不在这里扣。
               if (k.justPressedCode('Space') && player.grounded) {
                 player.vy = Math.sqrt(-2 * PLAYER_GRAVITY * PLAYER_JUMP);
                 player.grounded = false;
+                refreshState = true;
               }
 
               if (!player.grounded) {
@@ -736,7 +800,16 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             } else if (!stroke) { terrainView.clearPreview(); previewKey = ''; }
             if (!sandbox && tool !== 'level' && (hit||objectHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
               const x=objectTarget?objectHit.part.x:hit!.cell[0],z=objectTarget?objectHit.part.z:hit!.cell[2];
-              if(input.mouse.justPressed(2)){tool='inspect';status='已取消当前工具';refreshState=true;}
+              if(input.mouse.justPressed(2)){
+                // 角色视角下贴着东西右键 = 打开它。箱子优先于随从（箱子不会自己走开）。
+                // 俯视视角不接这个键，那里右键是拖镜头和取消工具。
+                const chestHere = viewMode === 'character' && chestNear();
+                const near = viewMode === 'character' ? nearColonist() : null;
+                if (chestHere) { port?.postMessage({ type: 'voxel:openChest' }); status = '打开木箱'; }
+                else if (near) { port?.postMessage({ type: 'voxel:openFollower', id: near.id }); status = '打开随从'; }
+                else { tool='inspect'; status='已取消当前工具'; }
+                refreshState=true;
+              }
               else if(tool.startsWith('build:'))execute({action:'build',kind:tool.slice(6),x,z,target:buildHeight ?? voxels.terrainHeight(x,z),rotation:buildRotation});
               else if(tool.startsWith('zone:'))execute({action:'designate',kind:tool.slice(5),x,z,w:3,d:3,crop});
               else if(['chop','mine','harvest'].includes(tool))execute({action:'designate',kind:tool,x,z});

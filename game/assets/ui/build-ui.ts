@@ -20,9 +20,11 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
     embedded: boolean; parts: number;
     bag: ({ resource: string; count: number } | null)[];
     bagSelected: number;
+    vitals?: { health: number; maxHealth: number; stamina: number; maxStamina: number; gold: number };
+    nearHint?: 'chest' | 'follower' | null;
   } };
 type SaveIntent = 'auto' | 'manual' | 'export';
-const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人' };
+const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人', chest: '木箱', followerBag: '随从' };
 const BUILD_ICONS: Record<string, string> = { bed: '▱', table: '▤', stove: '♨', workbench: '⚒', researchDesk: '◇', solar: '☀', battery: '▥', cooler: '❄', medicalBed: '+', wall: '▧', door: '▯', floor: '▦' };
 const RESOURCE_ICONS: Record<Resource, string> = { wood: '▰', stone: '◆', steel: '▱', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙' };
 const int = (value: number) => Math.floor(Number.isFinite(value) ? value : 0);
@@ -330,6 +332,73 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     root.append(materials, note(`当前土地 ${state?.edits ?? 0} 格改动 · 1—7 选材 · 左键执行 · 右键拆除`));
     root.append(note('连续砖墙叠高两格后，露出的墙面自动生成窗框与窗台。选道路后点击地表铺设；道路两侧生成沿边人行道，相邻道路相差一格高度时生成台阶。增删、撤销与读档都会更新细节。'));
   }
+  /**
+   * 分类下拉。仓库和木箱共用同一个实现。
+   * 照 Unity 的 DropdownList：trigger 展开、竖排选项、点外部收起、选完自动收起。
+   */
+  function makeCategoryDropdown(
+    initial: string,
+    onChange: (key: string) => void,
+    initiallyOpen = false,
+    onToggle: (open: boolean) => void = () => {},
+  ) {
+    let current = initial;
+    const dropdown = make('div', 'wh-dropdown');
+    const trigger = make('button', 'wh-cat-trigger');
+    const label = make('span', '', CATEGORY_NAMES[current]!);
+    trigger.append(label, make('span', 'wh-cat-caret', '▾'));
+
+    const menu = make('div', 'wh-cat-menu');
+    if (!initiallyOpen) menu.setAttribute('hidden', '');
+    const options = new Map<string, HTMLButtonElement>();
+    for (const [key, text] of Object.entries(CATEGORY_NAMES)) {
+      const btn = make('button', `wh-cat-option${key === current ? ' active' : ''}`, text);
+      btn.dataset.cat = key;
+      options.set(key, btn);
+      menu.append(btn);
+    }
+    dropdown.append(trigger, menu);
+
+    // 展开状态由调用方保存：面板重建时新组件的局部变量会归零，
+    // 但用户眼里那是一个「还开着」的下拉，不能重建一次就自己合上。
+    let open = initiallyOpen;
+    if (initiallyOpen) dropdown.classList.add('open');
+    const close = () => {
+      open = false;
+      menu.setAttribute('hidden', '');
+      dropdown.classList.remove('open');
+      onToggle(false);
+    };
+    trigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      open = !open;
+      if (open) menu.removeAttribute('hidden'); else menu.setAttribute('hidden', '');
+      dropdown.classList.toggle('open', open);
+      onToggle(open);
+    });
+    for (const [key, btn] of options) {
+      btn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        close();
+        if (key === current) return;
+        current = key;
+        label.textContent = CATEGORY_NAMES[key]!;
+        for (const [k, other] of options) other.classList.toggle('active', k === key);
+        onChange(key);
+      });
+    }
+    // 点外面收起。下拉在 Shadow DOM 里，必须用 composedPath 判断。
+    doc.addEventListener('mousedown', (event) => {
+      if (!open) return;
+      const inside = event.composedPath().some(
+        (node) => (node as HTMLElement)?.classList?.contains?.('wh-dropdown'),
+      );
+      if (!inside) close();
+    }, true);
+
+    return dropdown;
+  }
+
   // ---- 物品右键菜单 ----
   // 照 Unity 的 WarehouseItemMenu：点格子弹出，在这里对单件资源做操作。
   // Unity 那边三项是「选中 / 获取 / 聚焦」，天工只有全局资源池、没有背包，
@@ -378,9 +447,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   doc.addEventListener('mousedown', closeItemMenuOnDown, true);
 
   /** 仓库：格子式面板，照 Unity 那边搬过来的。搜索 / 升降序 / 分类 / 网格。 */
-  let whQuery = '', whDesc = false, whCategory = 'all', whMenuOpen = false;
-  // 面板每次重建都会重挂 document 监听，旧的先摘掉，别越堆越多
-  let whDocDown: ((event: MouseEvent) => void) | null = null;
+  let whQuery = '', whDesc = false, whCategory = 'all', whMenuOpen = false, chestMenuOpen = false;
+  // 当前打开的随从面板对应哪个居民
+  let followerPanelId: string | null = null;
   // Unity 那边只分「方块 / 非方块」两类，这里照搬
   const CATEGORY_OF: Record<string, string> = {
     wood: 'block', stone: 'block', steel: 'block',
@@ -398,24 +467,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
     const order = make('button', 'wh-order', whDesc ? '降序' : '升序');
 
-    // 分类用自绘下拉，照 Unity 的 DropdownList：
-    // TriggerButton 展开 → Panel 竖排选项 → Blocker 全屏透明层负责收起。
-    // 不用原生 select：它的展开层是浏览器画的，样式拦不住，还在 Shadow DOM 里容易错位。
-    const dropdown = make('div', 'wh-dropdown');
-    const trigger = make('button', 'wh-cat-trigger');
-    const triggerLabel = make('span', '', CATEGORY_NAMES[whCategory]!);
-    trigger.append(triggerLabel, make('span', 'wh-cat-caret', '▾'));
-    const menu = make('div', 'wh-cat-menu');
-    if (!whMenuOpen) menu.setAttribute('hidden', '');
-    if (whMenuOpen) dropdown.classList.add('open');
-    const optionButtons = new Map<string, HTMLButtonElement>();
-    for (const [key, label] of Object.entries(CATEGORY_NAMES)) {
-      const option = make('button', `wh-cat-option${key === whCategory ? ' active' : ''}`, label);
-      option.dataset.cat = key;
-      optionButtons.set(key, option);
-      menu.append(option);
-    }
-    dropdown.append(trigger, menu);
+    // 分类下拉：和木箱共用同一个组件
+    const dropdown = makeCategoryDropdown(whCategory, (key) => { whCategory = key; drawGrid(); }, whMenuOpen, (v) => { whMenuOpen = v; });
 
     tools.append(search, order, dropdown);
     root.append(tools);
@@ -464,39 +517,6 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     search.addEventListener('input', () => { whQuery = search.value; drawGrid(); });
     order.addEventListener('click', () => { whDesc = !whDesc; order.textContent = whDesc ? '降序' : '升序'; drawGrid(); });
 
-    // 下拉交互：展开/收起，选完自动收起，选同一项不重复触发
-    const closeMenu = () => { menu.setAttribute('hidden', ''); dropdown.classList.remove('open'); whMenuOpen = false; };
-    trigger.addEventListener('click', (event) => {
-      event.stopPropagation();
-      const willOpen = menu.hasAttribute('hidden');
-      if (willOpen) menu.removeAttribute('hidden'); else menu.setAttribute('hidden', '');
-      whMenuOpen = willOpen;
-      dropdown.classList.toggle('open', willOpen);
-    });
-    for (const [key, option] of optionButtons) {
-      option.addEventListener('click', (event) => {
-        event.stopPropagation();
-        closeMenu();
-        if (key === whCategory) return;   // 选的是同一项，不用重画
-        whCategory = key;
-        triggerLabel.textContent = CATEGORY_NAMES[key]!;
-        for (const [k, b] of optionButtons) b.classList.toggle('active', k === key);
-        drawGrid();
-      });
-    }
-    // 点别处收起。下拉在 Shadow DOM 里，必须用 composedPath 判断，
-    // 否则 event.target 在 document 层会被重定向到 host，永远判成「点在外面」。
-    const onDocDown = (event: MouseEvent) => {
-      if (menu.hasAttribute('hidden')) return;
-      const inside = event.composedPath().some(
-        (node) => (node as HTMLElement)?.classList?.contains?.('wh-dropdown'),
-      );
-      if (!inside) closeMenu();
-    };
-    if (whDocDown) doc.removeEventListener('mousedown', whDocDown, true);
-    whDocDown = onDocDown;
-    doc.addEventListener('mousedown', onDocDown, true);
-
     drawGrid();
 
     const loose = c.items.filter((item) => item.amount > 0);
@@ -505,8 +525,157 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       : '地面干净，没有待搬运的物资。'));
   }
 
+  /**
+   * 木箱：照 Unity 的 ChestWindow。五列二十格，顶部搜索 + 升降序 + 分类，
+   * 还有一行「计入仓库」状态。天工只有这一个箱子且资源本来就是全局的，
+   * 所以它显示的就是仓库里的东西，勾选框常亮。
+   */
+  let chestDesc = false, chestQuery = '', chestCategory = 'all';
+  function renderChest(c: ColonySnapshot, root: HTMLElement) {
+    root.append(note('这个箱子放在初始储藏区。打开它就是仓库里的全部家当，随从会往这里搬东西。'));
+
+    const include = make('div', 'chest-include');
+    include.append(make('i', 'chest-toggle'));
+    include.append(make('span', '', '计入仓库：开'));
+    root.append(include);
+
+    const tools = make('div', 'wh-tools');
+    const search = make('input', 'wh-search') as HTMLInputElement;
+    search.type = 'text';
+    search.placeholder = '搜索物品名…';
+    search.value = chestQuery;
+    search.setAttribute('aria-label', '搜索物品');
+
+    const order = make('button', 'wh-order', chestDesc ? '降序' : '升序');
+    const category = makeCategoryDropdown(chestCategory, (key) => { chestCategory = key; draw(); }, chestMenuOpen, (v) => { chestMenuOpen = v; });
+    tools.append(search, order, category);
+    root.append(tools);
+
+    const grid = make('div', 'chest-grid');
+    root.append(grid);
+
+    const draw = () => {
+      const items = RESOURCE_TYPES
+        .filter((r) => chestCategory === 'all' || CATEGORY_OF[r] === chestCategory)
+        .filter((r) => !chestQuery || RESOURCE_NAMES[r].includes(chestQuery))
+        .map((r) => ({ kind: r as string, name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
+        .sort((a, b) => {
+          const diff = a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+          const result = diff === 0 ? a.count - b.count : diff;
+          return chestDesc ? -result : result;
+        });
+
+      clear(grid);
+      // 五列，固定铺满二十格
+      for (let i = 0; i < 20; i++) {
+        const item = items[i];
+        const cell = make('div', `chest-cell${item ? '' : ' empty'}`);
+        if (item) {
+          cell.title = `${item.name} · ${item.count}`;
+          cell.append(make('span', 'wh-icon', item.icon));
+          if (item.count > 0) cell.append(make('span', 'wh-count', String(item.count)));
+          cell.dataset.item = item.kind;
+          cell.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openItemMenu(item.kind, event.clientX, event.clientY);
+          });
+          attachDrag(cell, item.kind, 'pool');
+        }
+        grid.append(cell);
+      }
+    };
+
+    search.addEventListener('input', () => { chestQuery = search.value; draw(); });
+    order.addEventListener('click', () => { chestDesc = !chestDesc; order.textContent = chestDesc ? '降序' : '升序'; draw(); });
+    draw();
+  }
+
+  /**
+   * 随从面板：左栏数值、右栏背包。照 Unity 的 FollowerPanelUI。
+   * 靠近某个居民右键打开，显示的是它自己的状态和身上背的东西。
+   */
+  function renderFollowerBag(c: ColonySnapshot, root: HTMLElement) {
+    const p = c.colonists.find((x) => x.id === followerPanelId) ?? c.colonists[0];
+    if (!p) { root.append(note('找不到这个居民。')); return; }
+
+    const wrap = make('div', 'fb-wrap');
+    const left = make('div', 'fb-left');
+    const right = make('div', 'fb-right');
+
+    // 血条：天工用 health（0-100）
+    const hpRow = make('div', 'fb-bar health');
+    hpRow.append(make('i', ''), make('span', 'fb-bar-text', `${Math.round(p.health)} / 100`));
+    const hpFill = hpRow.querySelector('i') as HTMLElement;
+    hpFill.style.width = `${Math.max(0, Math.min(100, p.health))}%`;
+
+    // 体力条：天工对应的是 rest（休息度）
+    const spRow = make('div', 'fb-bar stamina');
+    spRow.append(make('i', ''), make('span', 'fb-bar-text', `${Math.round(p.rest)} / 100`));
+    const spFill = spRow.querySelector('i') as HTMLElement;
+    spFill.style.width = `${Math.max(0, Math.min(100, p.rest))}%`;
+
+    left.append(hpRow, spRow);
+    left.append(make('p', 'fb-line', `状态：${p.task || '待命'}`));
+    left.append(make('p', 'fb-line', `任务：${p.jobId ? '进行中' : '无'}`));
+
+    // 右栏：九格背包，装的是它正在搬的东西
+    const grid = make('div', 'fb-grid');
+    const carrying = Object.entries(p.carrying ?? {}).filter(([, n]) => (n ?? 0) > 0) as [string, number][];
+    for (let i = 0; i < 9; i++) {
+      const cell = make('div', `fb-cell${carrying[i] ? '' : ' empty'}`);
+      if (carrying[i]) {
+        const [res, count] = carrying[i]!;
+        cell.title = `${RESOURCE_NAMES[res as Resource] ?? res} · ${count}`;
+        cell.append(make('span', 'wh-icon', RESOURCE_ICONS[res as Resource] ?? '·'));
+        cell.append(make('span', 'wh-count', String(count)));
+        cell.dataset.item = res;
+        cell.addEventListener('contextmenu', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          openItemMenu(res, event.clientX, event.clientY);
+        });
+      }
+      grid.append(cell);
+    }
+    right.append(grid);
+    right.append(note(carrying.length ? '' : '身上没有东西'));
+
+    wrap.append(left, right);
+    root.append(wrap);
+  }
+
   /** 随从：居民的概览页。姓名、在干什么、三项关键需求，点进去看完整档案。 */
   function renderFollower(c: ColonySnapshot, root: HTMLElement) {
+    // 你自己单独一块。玩家不在 colonists 里，所以列表里那些全是随从，
+    // 但界面上得让人一眼看出「哪个是我」。
+    const v = state?.player?.vitals;
+    if (v) {
+      const self = make('div', 'self-card');
+      const head = make('div', 'self-head');
+      head.append(make('span', 'self-tag', '玩家'), make('strong', '', '你'));
+      self.append(head);
+
+      const bars = make('div', 'self-bars');
+      for (const [cls, n, max, label] of [
+        ['health', v.health, v.maxHealth, '生命'],
+        ['stamina', v.stamina, v.maxStamina, '体力'],
+      ] as [string, number, number, string][]) {
+        const bar = make('div', `fb-bar ${cls}`);
+        const fill = make('i', '');
+        fill.style.width = `${Math.max(0, Math.min(100, max > 0 ? (n / max) * 100 : 0))}%`;
+        bar.append(fill, make('span', 'fb-bar-text', `${label} ${Math.round(n)} / ${max}`));
+        bars.append(bar);
+      }
+      self.append(bars);
+
+      const carried = (state?.player?.bag ?? []).filter(Boolean);
+      self.append(make('p', 'self-foot', carried.length
+        ? `身上带着 ${carried.length} 种东西 · 银币 ${Math.floor(v.gold)}`
+        : `身上没有东西 · 银币 ${Math.floor(v.gold)}`));
+      root.append(self);
+    }
+
     root.append(note('跟着你一起生活的人。点名字可以打开完整档案，也能在工作页调他们的优先级。'));
     const list = make('div', 'row-list');
     for (const p of c.colonists) {
@@ -523,6 +692,89 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       list.append(row);
     }
     root.append(list);
+  }
+
+  /**
+   * 让一个容器格子能被拖到快捷栏。照 Unity 的 ContainerSlot 拖放：
+   * 源格知道自己装的是哪件东西，落点格（快捷栏）知道自己收哪一格。
+   * 用指针事件手写，不用 HTML5 draggable——后者在 Shadow DOM 里行为不一致。
+   */
+  function attachDrag(cell: HTMLElement, resource: string, from: 'pool' | 'follower') {
+    cell.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      const startX = event.clientX, startY = event.clientY;
+      let ghost: HTMLElement | null = null;
+
+      const move = (moveEvent: PointerEvent) => {
+        if (!ghost) {
+          if (Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY) < 6) return;
+          ghost = make('div', 'drag-ghost');
+          ghost.append(make('span', 'wh-icon', RESOURCE_ICONS[resource as Resource] ?? '·'));
+          const rect = shellEl?.getBoundingClientRect();
+          ghost.style.left = `${moveEvent.clientX - (rect?.left ?? 0) - 22}px`;
+          ghost.style.top = `${moveEvent.clientY - (rect?.top ?? 0) - 22}px`;
+          shellEl?.append(ghost);
+        } else {
+          const rect = shellEl?.getBoundingClientRect();
+          ghost.style.left = `${moveEvent.clientX - (rect?.left ?? 0) - 22}px`;
+          ghost.style.top = `${moveEvent.clientY - (rect?.top ?? 0) - 22}px`;
+        }
+        for (const slot of Array.from(shellEl?.querySelectorAll('#hotbar .hotbar-slot') ?? [])) {
+          const r = slot.getBoundingClientRect();
+          const inside = moveEvent.clientX >= r.left && moveEvent.clientX <= r.right
+            && moveEvent.clientY >= r.top && moveEvent.clientY <= r.bottom;
+          slot.classList.toggle('drop-target', inside);
+        }
+      };
+
+      const up = (upEvent: PointerEvent) => {
+        doc.removeEventListener('pointermove', move, true);
+        doc.removeEventListener('pointerup', up, true);
+        ghost?.remove();
+        ghost = null;
+        const target = Array.from(shellEl?.querySelectorAll('#hotbar .hotbar-slot') ?? []).find((slot) => {
+          const r = slot.getBoundingClientRect();
+          return upEvent.clientX >= r.left && upEvent.clientX <= r.right
+            && upEvent.clientY >= r.top && upEvent.clientY <= r.bottom;
+        }) as HTMLElement | undefined;
+        for (const slot of Array.from(shellEl?.querySelectorAll('#hotbar .hotbar-slot') ?? [])) {
+          slot.classList.remove('drop-target');
+        }
+        if (!target) return;
+        const index = Number(target.dataset.index);
+        if (!Number.isFinite(index)) return;
+        // 拖进快捷栏 = 拿到手上。随从身上的东西先放回共享池再拿。
+        if (from === 'follower') send('takeFromFollower', { resource, slot: index });
+        else send('take', { resource, amount: 1, slot: index });
+      };
+
+      doc.addEventListener('pointermove', move, true);
+      doc.addEventListener('pointerup', up, true);
+    });
+  }
+
+  /** 靠近提示：贴着箱子或随从时，在准星上方挂一条「右键 打开…」。 */
+  function renderInteractHint() {
+    const hint = get('interact-hint');
+    const text = get('hint-text');
+    if (!hint || !text) return;
+    const kind = state?.player?.nearHint ?? null;
+    if (!kind) { hint.setAttribute('hidden', ''); return; }
+    text.textContent = kind === 'chest' ? '打开木箱' : '打开随从背包';
+    hint.removeAttribute('hidden');
+  }
+
+  /** 右上角三条数值：血量、体力、金币。照 Unity 的 VitalsUI。 */
+  function renderVitals() {
+    const v = state?.player?.vitals;
+    if (!v) return;
+    const pct = (n: number, max: number) => `${Math.max(0, Math.min(100, max > 0 ? (n / max) * 100 : 0))}%`;
+    const hp = get('vital-health');
+    const sp = get('vital-stamina');
+    const gold = get('vital-gold');
+    if (hp) hp.style.width = pct(v.health, v.maxHealth);
+    if (sp) sp.style.width = pct(v.stamina, v.maxStamina);
+    if (gold) gold.textContent = String(Math.floor(v.gold));
   }
 
   /**
@@ -544,6 +796,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     for (let i = 0; i < 9; i++) {
       const item = bag[i] ?? null;
       const slot = make('div', `hotbar-slot${i === selected ? ' active' : ''}${item ? '' : ' empty'}`);
+      slot.dataset.index = String(i);
       slot.append(make('span', 'hotbar-key', String(i + 1)));
       if (item) {
         const res = item.resource as Resource;
@@ -576,11 +829,15 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const stamp = JSON.stringify([panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, state.buildHeight, state.buildRotation, state.terrain && [state.terrain.target, state.terrain.size, state.terrain.shape, state.terrain.sample], c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, bills: c.bills, trade: c.trade, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete, b.phase, b.blockedReason, b.rotation, b.doorOpen, percent(b.progress * 100)]), terrainPlans: c.terrainPlans?.map(p => [p.id, p.state, p.remainingCut, p.remainingFill, p.blockedReason]), jobs: c.jobs.map(j => [j.id, j.state, j.label]), zones: c.zones.length, time: Math.floor(c.time) }]);
     if (!force && stamp === lastPanelStamp) return;
     lastPanelStamp = stamp;
-    get('panel-title').textContent = MENU_NAMES[panel] ?? '家园管理';
+    // 随从面板的标题是那个人的名字，不是栏目名
+    const followerName = panel === 'followerBag'
+      ? c?.colonists.find((x) => x.id === followerPanelId)?.name
+      : undefined;
+    get('panel-title').textContent = followerName ?? MENU_NAMES[panel] ?? '家园管理';
     const root = get('panel-content'), scrollTop = root.scrollTop; clear(root);
     if (panel === 'sandbox') { renderSandbox(root); root.scrollTop = scrollTop; return; }
     if (!c) { root.append(empty('正在等待居民与世界数据…')); return; }
-    ({ build: renderBuild, plan: renderPlan, work: renderWork, production: renderProduction, research: renderResearch, trade: renderTrade, logs: renderLogs, warehouse: renderWarehouse, follower: renderFollower } as Record<string, (c: ColonySnapshot, root: HTMLElement) => void>)[panel]?.(c, root);
+    ({ build: renderBuild, plan: renderPlan, work: renderWork, production: renderProduction, research: renderResearch, trade: renderTrade, logs: renderLogs, warehouse: renderWarehouse, follower: renderFollower, chest: renderChest, followerBag: renderFollowerBag } as Record<string, (c: ColonySnapshot, root: HTMLElement) => void>)[panel]?.(c, root);
     root.scrollTop = scrollTop;
   }
   function renderBuildingInspector(c: ColonySnapshot, force = false) {
@@ -773,6 +1030,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       try { win.localStorage.setItem(SAVE_KEY, msg.data); saySave('家园已载入，自动存档已同步'); } catch { saySave('家园已载入，但本机存储不可用'); }
       return;
     }
+    if (msg?.type === 'voxel:openChest') { openPanel('chest'); return; }
+    if (msg?.type === 'voxel:openFollower' && typeof msg.id === 'string') {
+      followerPanelId = msg.id;
+      openPanel('followerBag');
+      return;
+    }
     if (msg?.type === 'voxel:save') {
       const intent = pendingSave ?? 'auto', data = typeof msg.data === 'string' ? msg.data : JSON.stringify(msg.data);
       pendingSave = null;
@@ -802,6 +1065,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     latestStamp = JSON.stringify([state.seed, state.revision, state.edits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase, b.rotation, b.doorOpen]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.colonists.map(p => [p.id, p.priorities, p.schedule])]]);
     if (c) renderColony(c); else renderPanel();
     if (c) renderHotbar(c);
+    renderVitals();
+    renderInteractHint();
     syncTerrainControls();
     if (!booted) {
       booted = true; lastSavedStamp = latestStamp; lastSavedSim = c?.time ?? 0;
@@ -809,6 +1074,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }
   };
   if (port) { on(port, 'message', message); port.start?.(); send('sync'); } else saySave('引擎通信不可用');
+
+  // 验收脚本要能在不开地图的情况下打开木箱面板（面板挂在 port 消息上，
+  // 外部没法直接戳）。只暴露这一件事，不碰别的。
+  const hooks = win as unknown as { __wbOpenChest?: () => void; __wbOpenFollower?: (id: string) => void };
+  hooks.__wbOpenChest = () => openPanel('chest');
+  hooks.__wbOpenFollower = (id: string) => { followerPanelId = id; openPanel('followerBag'); };
 
   // ---- ESC 暂停层 ----
   // 分两级：先关面板，面板都关了才弹出暂停层。
@@ -872,12 +1143,30 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const backBtn = get('options-back');
   if (backBtn) on(backBtn, 'click', () => { if (optionsLayer) optionsLayer.hidden = true; });
   on(get('pause-quit'), 'click', () => {
-    // 浏览器只允许脚本自己开的窗口调用 close()，普通标签页会被忽略
+    // 退出前先把进度落盘，别让人白玩
+    requestSave('manual');
+    pauseLayer.hidden = true;
+
+    // 浏览器只允许脚本自己开的窗口调用 close()，普通标签页会被静默忽略。
+    // 所以这里分三步退化：关窗口 → 跳空白页 → 铺一块「已退出」的黑屏。
     win.close();
+
     win.setTimeout(() => {
-      pauseLayer.hidden = true;
-      saySave('浏览器不允许页面自行关闭，请直接关掉这个标签页');
-    }, 150);
+      try {
+        // 跳到空白页等效于退出：页面没了，进程交给浏览器回收
+        win.location.replace('about:blank');
+        return;
+      } catch {
+        // 被沙箱或 iframe 拦住时兜底
+      }
+
+      // 最后兜底：铺占位屏，至少让玩家知道游戏已经关了
+      const goodbye = doc.createElement('div');
+      goodbye.className = 'goodbye';
+      goodbye.textContent = '游戏已退出，可以关闭这个标签页了';
+      doc.body.append(goodbye);
+      try { send('pause'); } catch { /* 引擎可能已经断了，忽略 */ }
+    }, 120);
   });
 
   // 右键在画布上是「按住拖动平移镜头」，浏览器默认菜单会抢这个操作，拦掉。
