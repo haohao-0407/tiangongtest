@@ -1,9 +1,9 @@
 import type { GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
-  BUILDING_DEFS, CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
-  RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, inventorySpace,
-  type ColonyCommand, type ColonySnapshot, type ColonistView, type InventoryLocation, type InventorySlot, type ItemStack, type PlayerInventorySlot, type Resource,
+  BUILDING_DEFS, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
+  RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, TOOL_NAMES, inventorySpace, isToolKind,
+  type ColonyCommand, type ColonySnapshot, type ColonistView, type InventoryLocation, type PlayerInventorySlot, type Resource, type ToolKind,
 } from '../colony/contracts.ts';
 import { buildingDimensions } from '../colony/buildings.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
@@ -26,6 +26,7 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
     constructionId?: string | null;
     vitals?: { health: number; maxHealth: number; stamina: number; maxStamina: number; gold: number };
     nearHint?: 'chest' | 'follower' | null;
+    demolitionHint?: string | null;
   } };
 type SaveIntent = 'auto' | 'manual' | 'export';
 const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人', chest: '木箱', followerBag: '随从' };
@@ -235,20 +236,14 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     for (const def of defs) {
       const locked = !!def.research && !c.research.completed.includes(def.research);
       const short = Object.entries(def.cost).some(([r, amount]) => c.resources[r as Resource] < (amount ?? 0));
-      const b = toolButton('', `build:${def.id}`, `build-${def.id}`, 'build-card'); b.disabled = locked;
+      const b = toolButton('', def.id === 'chest' ? 'place-chest' : `build:${def.id}`, `build-${def.id}`, 'build-card'); b.disabled = locked;
       const title = make('span', 'card-title'); title.append(make('span', 'card-icon', BUILD_ICONS[def.id] ?? '▧'), make('span', '', def.name));
       const dimensions = buildingDimensions(def.id, state?.buildRotation ?? 0);
       b.append(title, make('span', 'card-description', `${dimensions.w} × ${dimensions.d} 格 · 高 ${dimensions.h} 格 · ${def.description}`), make('span', 'card-cost', costText(def.cost)));
       if (locked) b.append(make('span', 'card-lock', `需研究：${RESEARCH_DEFS[def.research!]?.name ?? def.research}`));
-      else if (short) b.append(make('span', 'card-lock', '可先规划 · 施工前等待材料'));
+      else if (short) b.append(make('span', 'card-lock', def.id === 'chest' ? '仓库里的木材不足' : '可先规划 · 施工前等待材料'));
       grid.append(b);
     }
-      if (group.key === 'core') {
-        const chest = toolButton('', 'place-chest', 'build-chest', 'build-card');
-        chest.append(make('span', 'card-title', '木箱'), make('span', 'card-description', `1 × 1 格 · 独立储物 · ${CHEST_SLOTS} 格`),
-          make('span', 'card-cost', costText({ wood: CHEST_WOOD_COST })));
-        grid.append(chest);
-      }
       root.append(grid);
     }
     const pending = c.buildings.filter(b => !b.complete);
@@ -463,7 +458,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   // ---- 物品右键菜单 ----
   // 仓库、木箱和随从共用弹层，获取时保留真实来源。
   let whSelected = '';
-  let pendingItem: { stack: ItemStack; from: InventoryLocation } | null = null;
+  let pendingItem: { resource: Resource|ToolKind; from: InventoryLocation } | null = null;
   const itemMenu = get('item-menu');
   const itemMenuTitle = get('item-menu-title');
   const itemAmount = get<HTMLInputElement>('item-amount');
@@ -473,13 +468,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   function updateItemAmount(reset = false) {
     const c = state?.colony;
     if (!pendingItem || !c || itemMenu.hidden) return;
-    const { from, stack } = pendingItem;
-    const resource = stack.resource;
+    const { from, resource } = pendingItem;
     const follower = from.kind === 'follower' || from.kind === 'cargo' ? c.colonists.find(person => person.id === from.id) : undefined;
     const slot = from.kind === 'chest' ? c.chests.find(chest => chest.id === from.id)?.slots[from.slot]
       : from.kind === 'follower' ? follower?.bag[0] : null;
-    const available = from.kind === 'warehouse' ? c.resources[resource]
-      : from.kind === 'cargo' ? follower?.carrying[resource] ?? 0
+    const available = from.kind === 'warehouse' ? isToolKind(resource) ? 0 : c.resources[resource]
+      : from.kind === 'cargo' ? isToolKind(resource) ? 0 : follower?.carrying[resource] ?? 0
       : slot?.resource === resource ? slot.count : 0;
     const max = Math.min(available, inventorySpace(c.playerBag, resource));
     const value = max < 1 ? 0 : reset ? 1 : Math.min(max, Math.max(1, Number(itemAmount.value)));
@@ -490,9 +484,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     itemTake.disabled = max < 1;
     itemAmountValue.textContent = `${value} / ${max}`;
   }
-  const openItemMenu = (kind: Resource, clientX: number, clientY: number, from: InventoryLocation = { kind: 'warehouse' }, count = 1) => {
+  const openItemMenu = (kind: Resource|ToolKind, clientX: number, clientY: number, from: InventoryLocation = { kind: 'warehouse' }) => {
     if (!itemMenu) return;
-    pendingItem = { stack: { resource: kind, count }, from };
+    pendingItem = { resource: kind, from };
     if (itemMenuTitle) itemMenuTitle.textContent = nameOf(kind);
     for (const button of itemMenu.querySelectorAll<HTMLElement>('[data-item-action]')) {
       button.hidden = from.kind !== 'warehouse' && button.dataset.itemAction !== 'take';
@@ -512,8 +506,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const btn = (event.target as HTMLElement | null)?.closest?.('[data-item-action]') as HTMLElement | null;
       if (!btn?.dataset.itemAction || !pendingItem) return;
       const action = btn.dataset.itemAction;
-      const { stack, from } = pendingItem;
-      const kind = stack.resource;
+      const { resource: kind, from } = pendingItem;
       closeItemMenu();
       if (action === 'select') {
         whSelected = whSelected === kind ? '' : kind;
@@ -561,8 +554,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
    * 工具（锤子）不是 Resource，查不到就回退——所有面板必须走这两个函数，
    * 别直接索引 RESOURCE_NAMES / CATEGORY_OF，否则加个新物品就会崩。
    */
-  const TOOL_NAMES: Record<string, string> = { [HAMMER]: '锤子', [AXE]: '木斧', [PICKAXE]: '石镐' };
-  const nameOf = (resource: string) => TOOL_NAMES[resource] ?? RESOURCE_NAMES[resource as Resource] ?? resource;
+  const nameOf = (resource: string) => isToolKind(resource) ? TOOL_NAMES[resource] : RESOURCE_NAMES[resource as Resource] ?? resource;
   const categoryOf = (resource: string) => CATEGORY_OF[resource] ?? 'item';
 
   function renderWarehouse(c: ColonySnapshot, root: HTMLElement) {
@@ -814,7 +806,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     inventoryTargets.set(cell, location);
   }
 
-  function bindInventoryCell(cell: HTMLElement, stack: InventorySlot, from: InventoryLocation, to: InventoryLocation) {
+  function bindInventoryCell(cell: HTMLElement, stack: PlayerInventorySlot, from: InventoryLocation, to: InventoryLocation) {
     setInventoryTarget(cell, to);
     if (!stack) return;
     cell.dataset.item = stack.resource;
@@ -823,7 +815,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     cell.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       event.stopPropagation();
-      openItemMenu(stack.resource, event.clientX, event.clientY, from, stack.count);
+      openItemMenu(stack.resource, event.clientX, event.clientY, from);
     });
     attachInventoryDrag(cell, stack, from);
   }
@@ -891,15 +883,18 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   releases.push(() => cancelInventoryDrag?.());
 
 
-  /** 靠近提示：贴着箱子或随从时，在准星上方挂一条「右键 打开…」。 */
   function renderInteractHint() {
     const hint = get('interact-hint');
+    const key = get('hint-key');
     const text = get('hint-text');
-    if (!hint || !text) return;
+    const demolition = get('demolition-hint');
     const kind = state?.player?.nearHint ?? null;
-    if (!kind || state?.player?.constructionId) { hint.setAttribute('hidden', ''); return; }
+    const action = state?.player?.demolitionHint;
+    hint.hidden = (!kind && !action) || !!state?.player?.constructionId;
+    key.hidden = text.hidden = !kind;
+    demolition.hidden = !action;
+    demolition.textContent = action ?? '';
     text.textContent = kind === 'chest' ? '打开木箱' : '打开随从背包';
-    hint.removeAttribute('hidden');
   }
 
   function renderConstruction() {
@@ -1032,7 +1027,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       details.append(note('上下两格同步开关。门口有人时不能关门。'));
     }
     actions.append(button(b.complete ? '拆除整座设施' : '取消整座蓝图', 'building-demolish', { action: 'demolish', id: b.id }, 'danger'));
-    details.append(actions, note(b.complete ? '拆除立即移除整个物体，回收各项建材的 50%（向下取整）。' : '取消返还尚未使用的预约建材，已经完成的整地保留。'));
+    details.append(actions, note(b.storage ? '拆除后，箱内的物品会全部掉在地上。'
+      : b.complete ? '拆除立即移除整个物体，回收各项建材的 50%（向下取整）。' : '取消返还尚未使用的预约建材，已经完成的整地保留。'));
     root.append(details);
   }
   function renderTreeInspector(c: ColonySnapshot, force = false) {

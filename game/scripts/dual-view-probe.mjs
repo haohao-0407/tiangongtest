@@ -484,11 +484,16 @@ export default async function dualViewProbe(play) {
   await play.screenshot('hotbar-bag');
 
   assert.equal(bagNow[selNow].resource, takenResource, '应对刚送到的普通物品测试右键');
+  const hotbarBounds = await hotbarSlot(selNow).boundingBox();
+  assert.ok(hotbarBounds);
+  // 把鼠标移到快捷栏后再取基准，避免把离开场景设施时消失的拆除提示算成右键效果。
+  await play.page.mouse.move(hotbarBounds.x + hotbarBounds.width / 2, hotbarBounds.y + hotbarBounds.height / 2);
+  const beforeHotbarRightClick = await advance(0.2);
   await hotbarSlot(selNow).click({ button: 'right' });
   const afterHotbarRightClick = await advance(0.5);
-  assert.deepEqual(afterHotbarRightClick.player.bag, bagNow, '快捷栏右键不应转移物品');
-  assert.deepEqual(afterHotbarRightClick.colony.resources, hotbarState.colony.resources, '快捷栏右键不应增加仓库库存');
-  assert.equal(afterHotbarRightClick.status, hotbarState.status, '快捷栏右键不应触发转移提示');
+  assert.deepEqual(afterHotbarRightClick.player.bag, beforeHotbarRightClick.player.bag, '快捷栏右键不应转移物品');
+  assert.deepEqual(afterHotbarRightClick.colony.resources, beforeHotbarRightClick.colony.resources, '快捷栏右键不应增加仓库库存');
+  assert.equal(afterHotbarRightClick.status, beforeHotbarRightClick.status, '快捷栏右键不应触发转移提示');
 
   // ---- 木箱：位置在投影里，面板能打开 ----
   const chestState = await read();
@@ -687,7 +692,7 @@ export default async function dualViewProbe(play) {
 
   await play.page.waitForFunction((id) => {
     const stored = JSON.parse(localStorage.getItem('homestead.colony.v2') ?? 'null');
-    return stored?.colony.chests.some(chest => chest.id === id);
+    return stored?.colony.buildings.some(building => building.id === id && building.storage);
   }, second.id, { timeout: 8500 });
   await play.reload();
   const restored = await play.waitFor(s => s.colony?.chests.length === 2 && s.colony.speed === 0, { read: READ, timeoutMs: 10_000 });

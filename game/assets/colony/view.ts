@@ -15,7 +15,7 @@ export type ColonyRenderState={
   colonists:RenderPawn[]; buildings:RenderBuilding[];
   zones:{id:string;kind:string;x:number;z:number;w:number;d:number}[];
   crops:{id?:string;x:number;y:number;z:number;growth:number;kind?:string;planted?:boolean}[];
-  items:{id:string;resource:string;amount:number;x:number;y:number;z:number;age?:number}[];
+  items:{id:string;resource:string;amount:number;x:number;y:number;z:number;age?:number;scatter?:boolean}[];
   selectedColonistId?:string|null;
   selectedBuildingId?:string|null;
   buildPreview?:RenderBuilding|null;
@@ -173,6 +173,8 @@ export class ColonyView {
           else{part(0,.93,-.39,.78,1.8,.1,'wood');part(0,.5,-.455,.68,.08,.035,'dark');part(0,1.45,-.455,.68,.08,.035,'dark');part(.26,.92,-.49,.08,.1,.08,'gold');}
           break;
         case 'floor':part(0,.025,0,.98,.05,.98,'wood');break;
+        case 'chest':
+          part(0,.28,0,.86,.56,.72,'wood');part(0,.60,0,.9,.12,.76,'dark');part(0,.30,.37,.18,.2,.06,'steel');break;
         case 'bed':case 'hospital':case 'hospitalBed':case 'medicalBed':
           part(0,.22,0,.86,.36,1.84,'wood');part(0,.44,.22,.82,.12,1.35,b.kind==='bed'?'blanket':'white');part(0,.49,-.62,.67,.17,.4,'white');part(0,.5,-.91,.94,.8,.1,'wood');part(0,.27,.91,.94,.48,.1,'wood');break;
         case 'table':case 'bench':case 'workbench':case 'research':case 'researchBench':case 'researchDesk':
@@ -224,19 +226,18 @@ export class ColonyView {
       // 所以看得见它弹，而不是刚出现就没了。
       const age=item.age??99; const POP=0.45, t=Math.min(age,POP), k=t/POP;
       let hx=0,hz=0,hop=0;
-      if(age<POP){
-        // 用 id 散列给每个物品一个固定的水平方向，免得同格多个物品完全重叠
-        let h=0;for(let i=0;i<item.id.length;i++)h=(h*31+item.id.charCodeAt(i))|0;
-        const a=((h>>>0)%360)/180*Math.PI, b=(((h>>>9)>>>0)%360)/180*Math.PI;
-        const spread=0.42*(1-k);
-        hx=Math.cos(a)*spread; hz=Math.sin(b)*spread;
+      if(age<POP||item.scatter){
+        let hash=0;for(let i=0;i<item.id.length;i++)hash=(hash*31+item.id.charCodeAt(i))|0;
+        const angle=(hash>>>0)*2.399963229728653;
+        const spread=item.scatter ? .42*k : .42*(1-k);
+        hx=Math.cos(angle)*spread; hz=Math.sin(angle)*spread;
         hop=Math.sin(k*Math.PI)*0.6;         // 抛物线：起跳、最高点、落地
       }
       this.put(`物资/${item.id}`,[{p:[item.x+.5+hx,item.y+hop+scale/2,item.z+.5+hz],s:[scale,scale,scale],c:COLORS[item.resource]?item.resource:'gold'}],active);
     }
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }
-  dispose(){this.disposePlayer();this.updateChests([]);for(const g of this.groups.values())for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.clear();for(const m of this.materials.values())this.assets.release(m).unwrap();this.materials.clear();this.assets.release(this.cube).unwrap();}
+  dispose(){this.disposePlayer();for(const g of this.groups.values())for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.clear();for(const m of this.materials.values())this.assets.release(m).unwrap();this.materials.clear();this.assets.release(this.cube).unwrap();}
 
   // ---- 玩家角色 ----
   // 玩家每帧都在动，不能跟着殖民地那套 20Hz 的快照刷新，
@@ -244,7 +245,6 @@ export class ColonyView {
 
   private playerEntities:EntityHandle[]=[];
   private playerParts:Part[]=[];
-  private chestEntities = new Map<string, { pos: V3; parts: EntityHandle[] }>();
   private playerFacing=Number.NaN;
 
   /** 每帧调，只改位置/姿态，不重建实体。 */
@@ -299,35 +299,6 @@ export class ColonyView {
   }
 
   get playerEntityCount(){return this.playerEntities.length;}
-
-  updateChests(chests: readonly { id: string; pos: V3 }[]) {
-    for (const [id, chest] of this.chestEntities) {
-      const next = chests.find(candidate => candidate.id === id);
-      if (next && chest.pos.every((coord, axis) => coord === next.pos[axis])) continue;
-      for (const entity of chest.parts) this.world.despawn(entity).unwrap();
-      this.chestEntities.delete(id);
-    }
-    for (const { id, pos } of chests) {
-      if (!this.chestEntities.has(id)) this.chestEntities.set(id, { pos, parts: this.spawnChest(id, pos) });
-    }
-  }
-
-  private spawnChest(id: string, pos: V3): EntityHandle[] {
-    const [gx,gy,gz]=pos;
-    // 画在格子中心，和判定用的圆心对齐
-    const x=gx+0.5, y=gy, z=gz+0.5;
-    // 箱体 + 盖子 + 正面的锁扣，凑成一个能认出来的箱子
-    const parts:Part[]=[
-      {p:[x,y+.28,z],s:[.86,.56,.72],c:'wood'},
-      {p:[x,y+.60,z],s:[.9,.12,.76],c:'dark'},
-      {p:[x,y+.30,z+.37],s:[.18,.2,.06],c:'steel'},
-    ];
-    return parts.map((part,i)=>this.world.spawn(
-      {component:Name,data:{value:`chest/${id}/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s}},
-      {component:MeshFilter,data:{assetHandle:this.cube}},{component:MeshRenderer,data:{materials:[this.material(part.c)]}},
-      {component:ShadowParticipation,data:{cast:true,receive:true}},
-    ).unwrap());
-  }
 
   disposePlayer(){for(const e of this.playerEntities)this.world.despawn(e).unwrap();this.playerEntities=[];this.playerParts=[];}
 }

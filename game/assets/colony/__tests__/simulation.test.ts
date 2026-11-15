@@ -131,6 +131,8 @@ expect(finished.playerBag[TOOL_KINDS.length]).toEqual({ resource: 'steel', count
   it('opens saves made before personal and chest inventories existed', () => {
     const { sim } = setup();
     const old = raw(sim);
+    old.version = 1;
+    old.buildings = old.buildings.filter((building: { kind: string }) => building.kind !== 'chest');
     delete old.chests;
     delete old.playerBag;
     delete old.bagSelected;
@@ -321,21 +323,32 @@ describe('resident needs and civilian production',()=>{
   it('spills a chest onto the ground when it is demolished',()=>{
     const{sim}=setup();
     const chest=sim.snapshot().chests[0]!;
-    // 往箱子里塞两样东西
     sim.transferInventory({kind:'warehouse'},{kind:'chest',id:chest.id,slot:0},'wood',10);
     sim.transferInventory({kind:'warehouse'},{kind:'chest',id:chest.id,slot:1},'stone',4);
-    const before=sim.snapshot().items.length;
-    const result=sim.demolishChest(chest.id);
+    sim.transferInventory({kind:'player',slot:0},{kind:'chest',id:chest.id,slot:2},HAMMER,1);
+    const legacy=raw(sim);
+    legacy.version=1;
+    legacy.chests=sim.snapshot().chests;
+    legacy.buildings=legacy.buildings.filter((building: { id: string })=>building.id!==chest.id);
+    sim.load(legacy);
+    expect(sim.snapshot().chests[0]).toEqual({ ...chest, slots: legacy.chests[0].slots });
+    const building=sim.snapshot().buildings.find(b=>b.id===chest.id)!;
+    expect(sim.buildingAtVoxel(chest.x,building.y,chest.z)?.kind).toBe('chest');
+    const before=new Set(sim.snapshot().items.map(item=>item.id));
+    const result=sim.command({action:'demolish',id:chest.id});
     expect(result.ok).toBe(true);
-    // 箱子没了
-    expect(sim.snapshot().chests.some(c=>c.id===chest.id)).toBe(false);
-    // 东西全在地上，一件不少
-    const after=sim.snapshot().items;
-    expect(after.length).toBeGreaterThan(before);
-    const woodOnGround=after.filter(i=>i.resource==='wood').reduce((n,i)=>n+i.amount,0);
-    const stoneOnGround=after.filter(i=>i.resource==='stone').reduce((n,i)=>n+i.amount,0);
-    expect(woodOnGround).toBeGreaterThanOrEqual(10);
-    expect(stoneOnGround).toBeGreaterThanOrEqual(4);
+    sim.load(sim.serialize());
+    const after=sim.snapshot();
+    expect(after.chests).toEqual([]);
+    expect(after.buildings.some(b=>b.id===chest.id)).toBe(false);
+    expect(after.items.filter(i=>!before.has(i.id)).map(({resource,amount})=>({resource,amount}))).toEqual([
+      {resource:'wood',amount:10},{resource:'stone',amount:4},{resource:HAMMER,amount:1},
+    ]);
+    const foot:[number,number,number]=[chest.x+.5,building.y,chest.z+.5];
+    sim.tick(.25,foot);
+    expect(sim.snapshot().playerBag.some(slot=>slot?.resource===HAMMER)).toBe(false);
+    sim.tick(.5,foot);
+    expect(sim.snapshot().playerBag).toContainEqual({resource:HAMMER,count:1});
   });
   it('requires a pickaxe only for stone or metal buildings',()=>{
     // 石造/金属：徒手拆不动
