@@ -5,11 +5,12 @@ export const CROP_TYPES = ['wheat','corn','blueberry','sugarcane','cabbage','lee
 export const DISH_TYPES = ['friedEgg','bread','salad','pasta','pancake','blueberryPie','pizza','perfectBreakfast'] as const;
 export const RESOURCE_TYPES = [
   'wood','stone','steel','food','meal','medicine','cloth','silver','components',
-  ...CROP_TYPES, ...DISH_TYPES,
+  ...CROP_TYPES, ...DISH_TYPES, 'dirt',
 ] as const;
 export type CropType = typeof CROP_TYPES[number];
 export type DishType = typeof DISH_TYPES[number];
 export type Resource = typeof RESOURCE_TYPES[number];
+export const isResource = (item: unknown): item is Resource => (RESOURCE_TYPES as readonly unknown[]).includes(item);
 export type Resources = Record<Resource, number>;
 export const PLAYER_SLOTS = 9, CHEST_SLOTS = 20, STACK_LIMIT = 99, CHEST_WOOD_COST = 4;
 export const PLAYER_DELIVERY_TARGET = 'player-delivery';
@@ -17,6 +18,8 @@ export const HAMMER = 'hammer', AXE = 'axe', PICKAXE = 'pickaxe', PLAYER_BUILD_M
 /** 工具不是 Resource，但要走同一条搬运/存档流程。加新工具时只往这里加。 */
 export const TOOL_KINDS = [HAMMER, AXE, PICKAXE] as const;
 export type ToolKind = typeof TOOL_KINDS[number];
+export type BuildingItem = `building:${BuildingKind}`;
+export type InventoryItem = Resource | ToolKind | BuildingItem;
 export const isToolKind = (item: unknown): item is ToolKind => (TOOL_KINDS as readonly unknown[]).includes(item);
 export const TOOL_NAMES: Record<ToolKind,string> = {hammer:'锤子',axe:'木斧',pickaxe:'石镐'};
 
@@ -47,8 +50,8 @@ export const ITEM_PICKUP_RANGE = 1.2;
 export const COLONIST_CHOP_STAMINA = 8;
 export type ItemStack = { resource: Resource; count: number };
 export type InventorySlot = ItemStack | null;
-export type PlayerInventorySlot = InventorySlot | { resource: ToolKind; count: 1 };
-export const inventorySpace = (slots: readonly PlayerInventorySlot[], resource: Resource|ToolKind): number =>
+export type PlayerInventorySlot = { resource: InventoryItem; count: number } | null;
+export const inventorySpace = (slots: readonly PlayerInventorySlot[], resource: InventoryItem): number =>
   isToolKind(resource) ? Number(slots.includes(null) && !slots.some(slot => slot?.resource === resource))
     : slots.reduce((total, slot) => total + (slot === null ? STACK_LIMIT : slot.resource === resource ? STACK_LIMIT - slot.count : 0), 0);
 export type InventoryLocation =
@@ -58,7 +61,7 @@ export type InventoryLocation =
   | { kind: 'follower' | 'cargo'; id: string };
 export interface ChestView { id: string; x: number; z: number; slots: PlayerInventorySlot[] }
 export const RESOURCE_NAMES: Record<Resource,string> = {
-  wood:'木材',stone:'石材',steel:'钢铁',food:'生食',meal:'熟食',medicine:'药品',cloth:'布料',silver:'银币',components:'零件',
+  wood:'木材',stone:'石材',steel:'钢铁',food:'生食',meal:'熟食',medicine:'药品',cloth:'布料',silver:'银币',components:'零件',dirt:'泥土',
   wheat:'小麦',corn:'玉米',blueberry:'蓝莓',sugarcane:'甘蔗',cabbage:'白菜',leek:'韭葱',potato:'土豆',tomato:'番茄',
   friedEgg:'煎鸡蛋',bread:'面包',salad:'沙拉',pasta:'意大利面',pancake:'薄煎饼',blueberryPie:'蓝莓千层酥',pizza:'披萨',perfectBreakfast:'完美早餐',
 };
@@ -149,6 +152,19 @@ export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
  * 判据是建材：石头/钢铁/零件占大头的就算「硬结构」，必须拿镐子。
  * 木头的、布的都是徒手就能拆（这样不用给 45 种建筑一个个标）。
  */
+export function buildingItemKind(item: string | undefined): BuildingKind | undefined {
+  if (!item?.startsWith('building:')) return;
+  const kind = item.slice('building:'.length);
+  if (Object.hasOwn(BUILDING_DEFS, kind)) return kind as BuildingKind;
+}
+
+export function itemName(item: InventoryItem): string {
+  if (isToolKind(item)) return TOOL_NAMES[item];
+  if (isResource(item)) return RESOURCE_NAMES[item];
+  const kind = buildingItemKind(item);
+  return kind ? BUILDING_DEFS[kind].name : item;
+}
+
 export function needsPickaxe(def: BuildingDefinition): boolean {
   const hard = (def.cost.stone ?? 0) + (def.cost.steel ?? 0) + (def.cost.components ?? 0) * 2;
   const soft = (def.cost.wood ?? 0) + (def.cost.cloth ?? 0) + (def.cost.food ?? 0);
@@ -168,12 +184,12 @@ export type Schedule = keyof typeof SCHEDULES;
 export type CropKind = 'rice'|'corn';
 export interface ColonyCommand {action:string;value?:unknown;kind?:string;x?:number;y?:number;z?:number;rotation?:number;w?:number;d?:number;cells?:[number,number][];id?:string;colonistId?:string;job?:string;resource?:string;amount?:number;buy?:boolean;target?:number;crop?:string}
 export interface CommandResult {ok:boolean;message:string;id?:string}
-export interface ColonistView {id:string;name:string;traits:string[];skills:Record<JobType,number>;priorities:Record<JobType,number>;schedule:Schedule;position:Position;health:number;hunger:number;rest:number;recreation:number;mood:number;disease:number;task:string;jobId:string|null;color:Position;carrying:Partial<Resources>;bag:InventorySlot[];comfort:number}
+export interface ColonistView {id:string;name:string;traits:string[];skills:Record<JobType,number>;priorities:Record<JobType,number>;schedule:Schedule;position:Position;health:number;hunger:number;rest:number;recreation:number;mood:number;disease:number;task:string;jobId:string|null;color:Position;carrying:Partial<Resources>;bag:PlayerInventorySlot[];comfort:number}
 export interface BuildingView {id:string;kind:BuildingKind;x:number;y:number;z:number;w:number;h:number;d:number;rotation:BuildingRotation;doorOpen?:boolean;phase:'preparingTerrain'|'readyToBuild'|'constructing'|'completed';terrainPlanId?:string;blockedReason?:string;complete:boolean;progress:number;reserved:Partial<Resources>;powered:boolean;comfort:number;roomId:number|null;storage?:PlayerInventorySlot[]}
 export interface TerrainPlanView {id:string;target:number;cells:[number,number][];remainingCut:number;remainingFill:number;progress:number;state:'queued'|'working'|'blocked'|'completed';blockedReason?:string;buildingId?:string}
 export interface ZoneView {id:string;kind:'farm'|'stockpile';x:number;y:number;z:number;w:number;d:number;crop:CropKind}
 export interface CropView {id:string;kind:CropKind;x:number;y:number;z:number;growth:number;planted:boolean}
-export interface ItemView {id:string;resource:Resource|ToolKind;amount:number;x:number;y:number;z:number;age:number;reservedBy:string|null;scatter?:boolean}
+export interface ItemView {id:string;resource:InventoryItem;amount:number;x:number;y:number;z:number;age:number;reservedBy:string|null;scatter?:boolean;playerOnly?:boolean}
 export interface JobView {id:string;type:JobType;targetId:string;x:number;y:number;z:number;progress:number;work:number;state:'queued'|'working'|'blocked';assignedTo:string|null;reserved:Partial<Resources>;label:string;deliveryPhase?:'pickup'|'deliver'}
 export interface ColonyEvent {id:string;time:number;day:number;hour:number;type:'info'|'weather'|'health'|'trade'|'research'|'arrival';text:string}
 export interface RoomView {id:number;cells:[number,number][];enclosed:boolean;comfort:number;temperature:number}

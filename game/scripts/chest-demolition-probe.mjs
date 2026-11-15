@@ -7,16 +7,20 @@ const unit = vector => vector.map(value => value / Math.hypot(...vector));
 
 export default async function chestDemolition(play) {
   const { page } = play;
+  const read = () => play.state(READ);
   const advance = (seconds = .4) => play.advance(seconds, { read: READ, stepSeconds: .05 });
-  const aim = async (state, building) => {
+  const project = (state, point) => {
     const { target, eye } = state.camera;
     const forward = unit(target.map((value, i) => value - eye[i]));
     const right = unit(cross(forward, [0, 1, 0]));
     const up = cross(right, forward);
-    const relative = [building.x + .5, building.y + .55, building.z + .5].map((value, i) => value - eye[i]);
+    const relative = point.map((value, i) => value - eye[i]);
     const depth = dot(relative, forward) * Math.tan(Math.PI / 8);
     const { width, height } = page.viewportSize();
-    await page.mouse.move(width / 2 + dot(relative, right) * height / (2 * depth), height / 2 - dot(relative, up) * height / (2 * depth));
+    return [width / 2 + dot(relative, right) * height / (2 * depth), height / 2 - dot(relative, up) * height / (2 * depth)];
+  };
+  const aim = async (state, building) => {
+    await page.mouse.move(...project(state,[building.x+.5,building.y+.55,building.z+.5]));
     assert.equal((await advance()).hoverBuildingId, building.id, '鼠标指向箱盖时应命中整座木箱');
   };
 
@@ -72,7 +76,8 @@ export default async function chestDemolition(play) {
   assert.equal(demolished.colony.buildings.some(building => building.id === chest.id), false);
   assert.equal(demolished.colony.chests.some(box => box.id === chest.id), false);
   assert.deepEqual(demolished.colony.items.filter(item => item.resource === 'hammer').map(item => [item.amount, item.x, item.z]), [[1, chest.x, chest.z]]);
-  assert.match(await page.locator('#inventory-notice').textContent(), /木箱已拆.*1 件物品/);
+  assert.deepEqual(demolished.colony.items.filter(item => item.resource === 'building:chest').map(item => [item.amount, item.x, item.z]), [[1, chest.x, chest.z]]);
+  assert.match(await page.locator('#inventory-notice').textContent(), /木箱已拆.*箱体和 1 件物品/);
   await play.screenshot('chest-contents-spilled');
 
   await page.waitForFunction((id) => {
@@ -82,6 +87,44 @@ export default async function chestDemolition(play) {
   await play.reload();
   const restored = await play.waitFor(state => state.colony.speed === 0 && state.colony.items.some(item => item.resource === 'hammer'), { read: READ, timeoutMs: 10000 });
   assert.equal(restored.colony.buildings.some(building => building.id === chest.id), false);
+  assert.equal(restored.colony.items.filter(item => item.resource === 'building:chest').length, 1);
   await play.screenshot('chest-demolition-restored');
-  return { demolished: chest.id };
+  if (await page.locator('#inspector-close').isVisible()) await page.locator('#inspector-close').click();
+  await page.keyboard.press('Escape');
+  await advance(.2);
+  assert.ok(await page.locator('#pause-menu').isVisible());
+  await page.keyboard.press('Escape');
+  assert.equal((await advance(.6)).colony.speed,1);
+  await page.mouse.click(1000,350);
+  await advance(.4);
+  await page.keyboard.press('KeyR');
+  const collected = await advance();
+  const carried = collected.player.bag.findIndex(item => item?.resource === 'building:chest');
+  assert.ok(carried >= 0, '拆下的箱体应能捡进快捷栏');
+  await page.keyboard.press(`Digit${carried + 1}`);
+  await advance();
+  await play.screenshot('chest-item-in-hotbar');
+
+  await page.mouse.click(...project(await read(),[chest.x+.5,chest.y+.005,chest.z+.5]));
+  const placed = await advance(.6);
+  assert.equal(placed.player.bag[carried], null);
+  assert.ok(placed.colony.buildings.some(building => building.kind === 'chest' && building.complete && building.x === chest.x && building.z === chest.z));
+  assert.ok(placed.colony.chests[0].slots.every(slot => slot === null));
+  await play.screenshot('chest-placed-again-empty');
+
+  const bed = placed.colony.buildings.find(building => building.kind === 'bed');
+  await aim(placed,bed);
+  await page.mouse.down();
+  const bedRemoved=await advance(7.5);
+  await page.mouse.up();
+  assert.equal(bedRemoved.colony.buildings.some(building=>building.id===bed.id),false);
+  assert.equal(bedRemoved.colony.items.filter(item=>item.resource==='building:bed').length,1);
+  await play.screenshot('miniature-bed-drop');
+  await page.keyboard.down('KeyA');
+  await advance(.72);
+  await page.keyboard.up('KeyA');
+  const carriedBed=await advance(.65);
+  assert.ok(carriedBed.player.bag.some(item=>item?.resource==='building:bed'));
+  await play.screenshot('bed-item-in-hotbar');
+  return { demolished: [chest.id,bed.id] };
 }

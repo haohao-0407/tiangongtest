@@ -2,8 +2,8 @@ import type { GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
   BUILDING_DEFS, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
-  RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, TOOL_NAMES, inventorySpace, isToolKind,
-  type ColonyCommand, type ColonySnapshot, type ColonistView, type InventoryLocation, type PlayerInventorySlot, type Resource, type ToolKind,
+  RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, inventorySpace, isResource, itemName,
+  type ColonyCommand, type ColonySnapshot, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource,
 } from '../colony/contracts.ts';
 import { buildingDimensions } from '../colony/buildings.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
@@ -35,7 +35,7 @@ const BUILD_ICONS: Record<string, string> = {
   // 结构
   woodWall: '▧', brickWall: '▨', stoneDoor: '▯', autoDoor: '⊞', fence: '╫',
   // 家具
-  bedroll: '▭', doubleBed: '▬', chair: 'ᑎ', stool: '⊓', shelf: '▤', planter: '❦', painting: '▣', sculpture: '♜', vase: '⌂',
+  chest: '▣', bedroll: '▭', doubleBed: '▬', chair: 'ᑎ', stool: '⊓', shelf: '▤', planter: '❦', painting: '▣', sculpture: '♜', vase: '⌂',
   campfire: '🔥', torch: '🕯', floorLamp: '💡', chandelier: '✦',
   // 生产
   campStove: '♨', stoneCutter: '◧', forgery: '⚒', fabricator: '⚙', tailorBench: '✂', pickleBarrel: '◍', brewBarrel: '◉', cheesePress: '◎',
@@ -44,7 +44,7 @@ const BUILD_ICONS: Record<string, string> = {
   hydroponics: '❋', sprinkler: '☂', greenhouseWall: '▢', scarecrow: 'ᛉ', compostBin: '♻',
 };
 const RESOURCE_ICONS: Record<Resource, string> = {
-  wood: '▰', stone: '◆', steel: '▱', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙',
+  wood: '▰', stone: '◆', steel: '▱', dirt: '▩', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙',
   // 农作物
   wheat: '🌾', corn: '🌽', blueberry: '🫐', sugarcane: '🎋', cabbage: '🥬', leek: '🧅', potato: '🥔', tomato: '🍅',
   // 料理
@@ -168,7 +168,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   });
 
   const showTool = (tool: string) => {
-    const hints: Record<string, string> = { inspect: '查看模式 · 点击居民或物体任一部分查看详情', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '整体拆除 · 点击物体任一部分 · 完工设施回收 50% 建材', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树干或树冠，安排整棵砍伐', mine: '采矿规划 · 点击地表钢矿或石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
+    const hints: Record<string, string> = { inspect: '查看模式 · 点击居民或物体任一部分查看详情', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '整体拆除 · 点击物体任一部分 · 拆下后可拾取', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树干或树冠，安排整棵砍伐', mine: '采矿规划 · 点击地表钢矿或石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
     if (state?.selected === 10) hints['sandbox:build'] = '铺设道路 · 左键替换地表 · 路沿与台阶随连接自动更新';
     else if (state?.selected === 6) hints['sandbox:build'] = '砖墙 · 三格起宽、两格高自动排窗组 · 留空作入口 · 增删保留有效窗位';
     get('tool-hint').textContent = tool === 'level'
@@ -269,7 +269,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       ['zone:farm', '农田', '种植、照料与收获食物。', 'tool-zone-farm'], ['zone:stockpile', '仓储', '搬运散落物资，集中保管。', 'tool-zone-stockpile'],
       ['chop', '伐木', '点击任一部分，整棵砍伐获取木材。', 'tool-chop'], ['mine', '采矿', '地表钢矿产出钢铁，普通石块产出石材。', 'tool-mine'],
       ['harvest', '收获', '标记成熟作物。', 'tool-harvest'], ['cancel', '取消规划', '移除未完成的规划或工作。', 'tool-cancel'],
-      ['interact', '开关门', '点击门的任一部分开关；关闭时阻挡通行。', 'tool-interact'], ['demolish', '整体拆除', '点击物体任一部分，完工设施回收 50% 建材。', 'tool-demolish'],
+      ['interact', '开关门', '点击门的任一部分开关；关闭时阻挡通行。', 'tool-interact'], ['demolish', '整体拆除', '点击物体任一部分，拆下整座设施后可拾取。', 'tool-demolish'],
     ];
     for (const [tool, name, detail, id] of entries) { const b = toolButton('', tool!, id!); b.append(make('strong', '', name), make('span', '', detail)); grid.append(b); }
     root.append(grid);
@@ -458,7 +458,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   // ---- 物品右键菜单 ----
   // 仓库、木箱和随从共用弹层，获取时保留真实来源。
   let whSelected = '';
-  let pendingItem: { resource: Resource|ToolKind; from: InventoryLocation } | null = null;
+  let pendingItem: { resource: InventoryItem; from: InventoryLocation } | null = null;
   const itemMenu = get('item-menu');
   const itemMenuTitle = get('item-menu-title');
   const itemAmount = get<HTMLInputElement>('item-amount');
@@ -472,8 +472,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const follower = from.kind === 'follower' || from.kind === 'cargo' ? c.colonists.find(person => person.id === from.id) : undefined;
     const slot = from.kind === 'chest' ? c.chests.find(chest => chest.id === from.id)?.slots[from.slot]
       : from.kind === 'follower' ? follower?.bag[0] : null;
-    const available = from.kind === 'warehouse' ? isToolKind(resource) ? 0 : c.resources[resource]
-      : from.kind === 'cargo' ? isToolKind(resource) ? 0 : follower?.carrying[resource] ?? 0
+    const available = from.kind === 'warehouse' ? isResource(resource) ? c.resources[resource] : 0
+      : from.kind === 'cargo' ? isResource(resource) ? follower?.carrying[resource] ?? 0 : 0
       : slot?.resource === resource ? slot.count : 0;
     const max = Math.min(available, inventorySpace(c.playerBag, resource));
     const value = max < 1 ? 0 : reset ? 1 : Math.min(max, Math.max(1, Number(itemAmount.value)));
@@ -484,7 +484,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     itemTake.disabled = max < 1;
     itemAmountValue.textContent = `${value} / ${max}`;
   }
-  const openItemMenu = (kind: Resource|ToolKind, clientX: number, clientY: number, from: InventoryLocation = { kind: 'warehouse' }) => {
+  const openItemMenu = (kind: InventoryItem, clientX: number, clientY: number, from: InventoryLocation = { kind: 'warehouse' }) => {
     if (!itemMenu) return;
     pendingItem = { resource: kind, from };
     if (itemMenuTitle) itemMenuTitle.textContent = nameOf(kind);
@@ -537,7 +537,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   let chestPanelId: string | null = null;
   // Unity 那边只分「方块 / 非方块」两类，这里照搬
   const CATEGORY_OF: Record<string, string> = {
-    wood: 'block', stone: 'block', steel: 'block',
+    wood: 'block', stone: 'block', steel: 'block', dirt: 'block',
     food: 'item', meal: 'item', medicine: 'item', cloth: 'item', silver: 'item', components: 'item',
     wheat: 'crop', corn: 'crop', blueberry: 'crop', sugarcane: 'crop',
     cabbage: 'crop', leek: 'crop', potato: 'crop', tomato: 'crop',
@@ -546,7 +546,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     [HAMMER]: 'tool', [AXE]: 'tool', [PICKAXE]: 'tool',
   };
   const CATEGORY_NAMES: Record<string, string> = {
-    all: '全部', block: '方块', item: '非方块', crop: '作物', dish: '料理', tool: '工具',
+    all: '全部', block: '方块', item: '非方块', crop: '作物', dish: '料理', tool: '工具', building: '设施',
   };
 
   /**
@@ -554,8 +554,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
    * 工具（锤子）不是 Resource，查不到就回退——所有面板必须走这两个函数，
    * 别直接索引 RESOURCE_NAMES / CATEGORY_OF，否则加个新物品就会崩。
    */
-  const nameOf = (resource: string) => isToolKind(resource) ? TOOL_NAMES[resource] : RESOURCE_NAMES[resource as Resource] ?? resource;
-  const categoryOf = (resource: string) => CATEGORY_OF[resource] ?? 'item';
+  const nameOf = itemName;
+  const categoryOf = (resource: string) => buildingItemKind(resource) ? 'building' : CATEGORY_OF[resource] ?? 'item';
 
   function renderWarehouse(c: ColonySnapshot, root: HTMLElement) {
     const tools = make('div', 'wh-tools');
@@ -920,20 +920,14 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (gold) gold.textContent = String(Math.floor(v.gold));
   }
 
-  /**
-   * 玩家快捷栏。照 Unity 的 HotbarUI：九格显示背包前九格，数字键或点击切换。
-   * 上方显示当前选中的物品名；右键格子把东西放回共享池。
-   */
-  /**
-   * 能被拖的东西的最小形状。用宽松类型而不是 ItemStack——
-   * 锤子（HAMMER）不是 Resource，但拖着走只需要 resource + count。
-   * 以后加新工具也直接能用。
-   */
-  type DraggableStack = { resource: string; count: number };
+  type DraggableStack = NonNullable<PlayerInventorySlot>;
 
   /** 工具类物品的图标。资源表里没有它们，单独挂一份。加新工具往这里补一行。 */
   const TOOL_ICONS: Record<string, string> = { [HAMMER]: '🔨', [AXE]: '🪓', [PICKAXE]: '⛏️' };
-  const iconOf = (resource: string) => TOOL_ICONS[resource] ?? RESOURCE_ICONS[resource as Resource] ?? '·';
+  const iconOf = (resource: InventoryItem) => {
+    const building = buildingItemKind(resource);
+    return building ? BUILD_ICONS[building] ?? '▧' : TOOL_ICONS[resource] ?? RESOURCE_ICONS[resource as Resource] ?? '·';
+  };
 
   function renderHotbar() {
     const bar = get('hotbar');
@@ -962,6 +956,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         attachInventoryDrag(slot, item, location);
       } else if (item) {
         const res = item.resource;
+        slot.dataset.item = res;
         slot.append(make('span', '', iconOf(res)));
         slot.append(make('span', 'hotbar-count', String(item.count)));
         slot.title = `${nameOf(res)} · ${item.count}`;
@@ -974,8 +969,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const nameEl = get('hotbar-name');
     if (nameEl) {
       const cur = bag[selected];
-      const toolHints: Record<string, string> = { hammer: '锤子 · 左键蓝图施工', axe: '木斧 · 左键砍树（更快）', pickaxe: '石镐 · 左键拆石造建筑' };
-      nameEl.textContent = cur ? (toolHints[String(cur.resource)] ?? nameOf(cur.resource)) : '';
+      const toolHints: Record<string, string> = { hammer: '锤子 · 左键蓝图施工', axe: '木斧 · 左键砍树（更快）', pickaxe: '石镐 · 长按左键采石和钢矿' };
+      nameEl.textContent = cur ? (toolHints[cur.resource] ?? (buildingItemKind(cur.resource) ? `${nameOf(cur.resource)} · 左键放置 · T 旋转` : nameOf(cur.resource))) : '';
     }
   }
 
@@ -1027,8 +1022,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       details.append(note('上下两格同步开关。门口有人时不能关门。'));
     }
     actions.append(button(b.complete ? '拆除整座设施' : '取消整座蓝图', 'building-demolish', { action: 'demolish', id: b.id }, 'danger'));
-    details.append(actions, note(b.storage ? '拆除后，箱内的物品会全部掉在地上。'
-      : b.complete ? '拆除立即移除整个物体，回收各项建材的 50%（向下取整）。' : '取消返还尚未使用的预约建材，已经完成的整地保留。'));
+    details.append(actions, note(b.storage ? '箱体和箱内物品会分别掉落，拾取后可重新放置空箱。'
+      : b.complete ? '拆下的整座设施会掉在地上，可拾取并重新放置。' : '取消返还尚未使用的预约建材，已经完成的整地保留。'));
     root.append(details);
   }
   function renderTreeInspector(c: ColonySnapshot, force = false) {

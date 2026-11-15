@@ -5,7 +5,8 @@ import { Materials, MeshFilter, MeshRenderer, ShadowParticipation } from '@forge
 import { Name, Transform } from '@forgeax/engine/scene';
 import { RenderQueue, type AssetHandle } from '@forgeax/engine/types';
 import type { VoxelWorld } from '../voxel/model.ts';
-import { BUILDING_DEFS, type BuildingKind } from './contracts.ts';
+import { BUILDING_DEFS, buildingItemKind, type BuildingKind } from './contracts.ts';
+import { buildingDimensions } from './buildings.ts';
 
 type V3=[number,number,number];
 type Part={p:V3;s:V3;c:string;shadow?:boolean};
@@ -23,7 +24,7 @@ export type ColonyRenderState={
   player?:{x:number;y:number;z:number;facing:number;moving:boolean;grounded:boolean};
 };
 const COLORS:Record<string,string>={
-  wood:'#a97943',stone:'#9ca9a5',steel:'#899fae',food:'#e4bc63',meal:'#d4834b',medicine:'#ecf4dd',cloth:'#c2b3d9',silver:'#e5d69b',components:'#d0ad45',
+  wood:'#a97943',dirt:'#845a3a',stone:'#9ca9a5',steel:'#899fae',food:'#e4bc63',meal:'#d4834b',medicine:'#ecf4dd',cloth:'#c2b3d9',silver:'#e5d69b',components:'#d0ad45',
   dark:'#2e4247',cream:'#f0ddba',blanket:'#568b9b',white:'#fff3d5',green:'#63935e',gold:'#e5c66f',blue:'#4d7d96',black:'#233135',
   shirt0:'#e0a160',shirt1:'#6b9ba5',shirt2:'#b17f91',shirt3:'#849d60',skin:'#e5b48a',hair:'#60483e',light:'#c5e4cd',soil:'#7e563b',
   blueprint:'#75cece',zoneFarm:'#90bd65',zoneStock:'#75baca',selected:'#ecd78c',health:'#9fc174',bad:'#c56b55',
@@ -126,6 +127,58 @@ export class ColonyView {
     this.put('云影',parts,active,'cloud');
   }
 
+  private buildingGeometry(b: RenderBuilding, scale=1): Part[] {
+    const w=b.w??1,d=b.d??1,h=b.h??1,x=b.x+w/2,y=b.y,z=b.z+d/2;
+    const rotation=b.rotation??0,ghost=b.id==='placement-preview';
+    const parts:Part[]=[];
+    const part=(dx:number,dy:number,dz:number,sx:number,sy:number,sz:number,c:string,shadow=true)=>{
+      const rx=rotation===1?-dz:rotation===2?-dx:rotation===3?dz:dx;
+      const rz=rotation===1?dx:rotation===2?-dz:rotation===3?-dx:dz;
+      parts.push({p:[x+rx*scale,y+dy*scale,z+rz*scale],
+        s:rotation%2?[sz*scale,sy*scale,sx*scale]:[sx*scale,sy*scale,sz*scale],c:ghost?'blueprint':c,shadow:ghost?false:shadow});
+    };
+    if(!b.complete&&!ghost){
+      // Blueprint bounds are already in world orientation.
+      parts.push({p:[x,y+h/2,z],s:[w-.14,h-.1,d-.14],c:'blueprint',shadow:false});
+      parts.push({p:[x,y+.02,z],s:[w-.02,.035,d-.02],c:b.phase==='preparingTerrain'?'selected':'zoneStock',shadow:false});
+      parts.push({p:[x,y+h+.02,z],s:[w*.8*Math.max(.02,Math.min(1,b.progress)),.06,.07],c:'light',shadow:false});
+    }
+    else switch(b.kind){
+      case 'wall':part(0,.9,0,1,1.8,1,'stone');part(0,1.84,0,1.03,.08,1.03,'cream');break;
+      case 'door':
+        part(-.44,.96,-.39,.12,1.92,.2,'wood');part(.44,.96,-.39,.12,1.92,.2,'wood');part(0,1.94,-.39,1,.12,.2,'wood');
+        if(b.doorOpen){part(-.39,.93,0,.1,1.8,.78,'wood');part(-.46,.92,.26,.07,.1,.08,'gold');}
+        else{part(0,.93,-.39,.78,1.8,.1,'wood');part(0,.5,-.455,.68,.08,.035,'dark');part(0,1.45,-.455,.68,.08,.035,'dark');part(.26,.92,-.49,.08,.1,.08,'gold');}
+        break;
+      case 'floor':part(0,.025,0,.98,.05,.98,'wood');break;
+      case 'chest':
+        part(0,.28,0,.86,.56,.72,'wood');part(0,.60,0,.9,.12,.76,'dark');part(0,.30,.37,.18,.2,.06,'steel');break;
+      case 'bed':case 'hospital':case 'hospitalBed':case 'medicalBed':
+        part(0,.22,0,.86,.36,1.84,'wood');part(0,.44,.22,.82,.12,1.35,b.kind==='bed'?'blanket':'white');part(0,.49,-.62,.67,.17,.4,'white');part(0,.5,-.91,.94,.8,.1,'wood');part(0,.27,.91,.94,.48,.1,'wood');break;
+      case 'table':case 'bench':case 'workbench':case 'research':case 'researchBench':case 'researchDesk':
+        for(const dx of[-.35,.35])for(const dz of[-.3,.3])part(dx,.35,dz,.1,.7,.1,'wood');
+        part(0,.75,0,1.15,.15,.9,'wood');
+        if(b.kind.toLowerCase().includes('research')){part(0,1,-.1,.6,.4,.09,'dark');part(0,1,-.04,.52,.32,.03,'blue');part(.25,.86,.2,.25,.06,.2,'white');}
+        else if(b.kind!=='table'){part(-.25,.9,0,.3,.18,.3,'steel');part(.25,.86,.05,.25,.06,.35,'gold');}break;
+      case 'stove':case 'kitchen':part(0,.38,0,.9,.76,.85,'stone');part(0,.81,0,.95,.1,.9,'dark');part(-.2,.88,.1,.25,.04,.25,'gold');part(.21,.91,-.12,.3,.15,.3,'steel');part(0,.25,.44,.6,.3,.03,'black');break;
+      case 'solar':case 'solarPanel':part(0,.4,0,.18,.8,.18,'steel');part(0,.88,0,1.45,.11,1.25,'dark');part(0,.96,0,1.33,.04,1.13,'blue');part(0,.99,0,.035,.015,1.13,'steel');part(0,.99,0,1.33,.015,.035,'steel');break;
+      case 'battery':part(0,.45,0,.7,.9,.7,'dark');part(0,.5,.36,.45,.55,.035,'green');part(-.18,.95,0,.12,.1,.15,'gold');part(.18,.95,0,.12,.1,.15,'steel');break;
+      case 'cooler':case 'fridge':case 'freezer':part(0,.65,0,.85,1.3,.85,'white');part(0,.75,.44,.71,.95,.04,'blanket');part(.26,.75,.49,.06,.35,.04,'steel');break;
+      default:{
+        // 占位符：飞书「模型」往下那批建筑还没建模，先按 BUILDING_DEFS 里的颜色画个方块。
+        // 以后接真模型只需要在 switch 里补 case，这段不用动。
+        const def=BUILDING_DEFS[b.kind as BuildingKind];
+        const hex=def?`#${def.color.map(v=>Math.round(v*255).toString(16).padStart(2,'0')).join('')}`:'#8a8a8a';
+        const hh=def?.height??0.9;
+        part(0,hh/2,0,w*.82,hh,d*.82,hex);
+        part(0,hh+.03,0,w*.88,.06,d*.88,'cream',false);
+        break;
+      }
+    }
+    if(b.complete&&['solar','battery','cooler'].includes(b.kind))part(.26,.7,.47,.08,.08,.025,b.powered?'green':'bad',false);
+    return parts;
+  }
+
   update(state:ColonyRenderState,time:number){
     const active=new Set<string>();
     // 云影：真云在天上，靠引擎的方向光阴影投到地面。
@@ -151,53 +204,8 @@ export class ColonyView {
     for(const b of state.buildPreview?[...state.buildings,state.buildPreview]:state.buildings){
       // Completed walls are composed by the shared semantic voxel renderer.
       if(b.complete&&b.kind==='wall'&&b.id!=='placement-preview')continue;
-      const w=b.w??1,d=b.d??1,h=b.h??1,x=b.x+w/2,y=b.y,z=b.z+d/2;
-      const rotation=b.rotation??0,ghost=b.id==='placement-preview';
-      const parts:Part[]=[];
-      const part=(dx:number,dy:number,dz:number,sx:number,sy:number,sz:number,c:string,shadow=true)=>{
-        const rx=rotation===1?-dz:rotation===2?-dx:rotation===3?dz:dx;
-        const rz=rotation===1?dx:rotation===2?-dz:rotation===3?-dx:dz;
-        parts.push({p:[x+rx,y+dy,z+rz],s:rotation%2?[sz,sy,sx]:[sx,sy,sz],c:ghost?'blueprint':c,shadow:ghost?false:shadow});
-      };
-      if(!b.complete&&!ghost){
-        // Blueprint bounds are already in world orientation.
-        parts.push({p:[x,y+h/2,z],s:[w-.14,h-.1,d-.14],c:'blueprint',shadow:false});
-        parts.push({p:[x,y+.02,z],s:[w-.02,.035,d-.02],c:b.phase==='preparingTerrain'?'selected':'zoneStock',shadow:false});
-        parts.push({p:[x,y+h+.02,z],s:[w*.8*Math.max(.02,Math.min(1,b.progress)),.06,.07],c:'light',shadow:false});
-      }
-      else switch(b.kind){
-        case 'wall':part(0,.9,0,1,1.8,1,'stone');part(0,1.84,0,1.03,.08,1.03,'cream');break;
-        case 'door':
-          part(-.44,.96,-.39,.12,1.92,.2,'wood');part(.44,.96,-.39,.12,1.92,.2,'wood');part(0,1.94,-.39,1,.12,.2,'wood');
-          if(b.doorOpen){part(-.39,.93,0,.1,1.8,.78,'wood');part(-.46,.92,.26,.07,.1,.08,'gold');}
-          else{part(0,.93,-.39,.78,1.8,.1,'wood');part(0,.5,-.455,.68,.08,.035,'dark');part(0,1.45,-.455,.68,.08,.035,'dark');part(.26,.92,-.49,.08,.1,.08,'gold');}
-          break;
-        case 'floor':part(0,.025,0,.98,.05,.98,'wood');break;
-        case 'chest':
-          part(0,.28,0,.86,.56,.72,'wood');part(0,.60,0,.9,.12,.76,'dark');part(0,.30,.37,.18,.2,.06,'steel');break;
-        case 'bed':case 'hospital':case 'hospitalBed':case 'medicalBed':
-          part(0,.22,0,.86,.36,1.84,'wood');part(0,.44,.22,.82,.12,1.35,b.kind==='bed'?'blanket':'white');part(0,.49,-.62,.67,.17,.4,'white');part(0,.5,-.91,.94,.8,.1,'wood');part(0,.27,.91,.94,.48,.1,'wood');break;
-        case 'table':case 'bench':case 'workbench':case 'research':case 'researchBench':case 'researchDesk':
-          for(const dx of[-.35,.35])for(const dz of[-.3,.3])part(dx,.35,dz,.1,.7,.1,'wood');
-          part(0,.75,0,1.15,.15,.9,'wood');
-          if(b.kind.toLowerCase().includes('research')){part(0,1,-.1,.6,.4,.09,'dark');part(0,1,-.04,.52,.32,.03,'blue');part(.25,.86,.2,.25,.06,.2,'white');}
-          else if(b.kind!=='table'){part(-.25,.9,0,.3,.18,.3,'steel');part(.25,.86,.05,.25,.06,.35,'gold');}break;
-        case 'stove':case 'kitchen':part(0,.38,0,.9,.76,.85,'stone');part(0,.81,0,.95,.1,.9,'dark');part(-.2,.88,.1,.25,.04,.25,'gold');part(.21,.91,-.12,.3,.15,.3,'steel');part(0,.25,.44,.6,.3,.03,'black');break;
-        case 'solar':case 'solarPanel':part(0,.4,0,.18,.8,.18,'steel');part(0,.88,0,1.45,.11,1.25,'dark');part(0,.96,0,1.33,.04,1.13,'blue');part(0,.99,0,.035,.015,1.13,'steel');part(0,.99,0,1.33,.015,.035,'steel');break;
-        case 'battery':part(0,.45,0,.7,.9,.7,'dark');part(0,.5,.36,.45,.55,.035,'green');part(-.18,.95,0,.12,.1,.15,'gold');part(.18,.95,0,.12,.1,.15,'steel');break;
-        case 'cooler':case 'fridge':case 'freezer':part(0,.65,0,.85,1.3,.85,'white');part(0,.75,.44,.71,.95,.04,'blanket');part(.26,.75,.49,.06,.35,.04,'steel');break;
-        default:{
-          // 占位符：飞书「模型」往下那批建筑还没建模，先按 BUILDING_DEFS 里的颜色画个方块。
-          // 以后接真模型只需要在 switch 里补 case，这段不用动。
-          const def=BUILDING_DEFS[b.kind as BuildingKind];
-          const hex=def?`#${def.color.map(v=>Math.round(v*255).toString(16).padStart(2,'0')).join('')}`:'#8a8a8a';
-          const hh=def?.height??0.9;
-          part(0,hh/2,0,w*.82,hh,d*.82,hex);
-          part(0,hh+.03,0,w*.88,.06,d*.88,'cream',false);
-          break;
-        }
-      }
-      if(b.complete&&['solar','battery','cooler'].includes(b.kind))part(.26,.7,.47,.08,.08,.025,b.powered?'green':'bad',false);
+      const w=b.w??1,d=b.d??1,h=b.h??1,x=b.x+w/2,y=b.y,z=b.z+d/2,rotation=b.rotation??0;
+      const parts=this.buildingGeometry(b);
       if(state.selectedBuildingId===b.id)parts.push({p:[x,y+.025,z],s:[w+.04,.045,d+.04],c:'selected',shadow:false});
       this.put(`设施/${b.id}`,parts,active,`${b.kind}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
     }
@@ -233,7 +241,13 @@ export class ColonyView {
         hx=Math.cos(angle)*spread; hz=Math.sin(angle)*spread;
         hop=Math.sin(k*Math.PI)*0.6;         // 抛物线：起跳、最高点、落地
       }
-      this.put(`物资/${item.id}`,[{p:[item.x+.5+hx,item.y+hop+scale/2,item.z+.5+hz],s:[scale,scale,scale],c:COLORS[item.resource]?item.resource:'gold'}],active);
+      const x=item.x+.5+hx,y=item.y+hop,z=item.z+.5+hz;
+      const buildingKind=buildingItemKind(item.resource);
+      if(buildingKind){
+        const dimensions=buildingDimensions(buildingKind);
+        const miniature={id:item.id,kind:buildingKind,x:x-dimensions.w/2,y:y+.06,z:z-dimensions.d/2,...dimensions,complete:true,progress:1};
+        this.put(`物资/${item.id}`,this.buildingGeometry(miniature,.56/Math.max(dimensions.w,dimensions.h,dimensions.d)),active);
+      }else this.put(`物资/${item.id}`,[{p:[x,y+scale/2,z],s:[scale,scale,scale],c:COLORS[item.resource]?item.resource:'gold'}],active);
     }
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }

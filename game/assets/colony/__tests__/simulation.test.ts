@@ -342,7 +342,7 @@ describe('resident needs and civilian production',()=>{
     expect(after.chests).toEqual([]);
     expect(after.buildings.some(b=>b.id===chest.id)).toBe(false);
     expect(after.items.filter(i=>!before.has(i.id)).map(({resource,amount})=>({resource,amount}))).toEqual([
-      {resource:'wood',amount:10},{resource:'stone',amount:4},{resource:HAMMER,amount:1},
+      {resource:'wood',amount:10},{resource:'stone',amount:4},{resource:HAMMER,amount:1},{resource:'building:chest',amount:1},
     ]);
     const foot:[number,number,number]=[chest.x+.5,building.y,chest.z+.5];
     sim.tick(.25,foot);

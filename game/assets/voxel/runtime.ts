@@ -20,11 +20,11 @@ import { PcgView } from './pcg/view.ts';
 import { TreeView } from './tree-view.ts';
 import { treeParts, type TreeInstance } from './trees.ts';
 import { overlaps, raycastTree, treesBlockBox, treeSupportHeight, treeProtectingVoxel } from './tree-interaction.ts';
-import { ColonySimulation } from '../colony/simulation.ts';
+import { ColonySimulation, playerTerrainRule, withinTerrainReach } from '../colony/simulation.ts';
 import { ColonyView } from '../colony/view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
 import {
-  BUILDING_DEFS, HAMMER, AXE, PICKAXE, needsPickaxe, PLAYER_DEMOLISH_RATE, PLAYER_DEMOLISH_RATE_TOOL, PLAYER_CHOP_REACH, PLAYER_BUILD_REACH, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
+  BUILDING_DEFS, HAMMER, AXE, PICKAXE, buildingItemKind, needsPickaxe, PLAYER_DEMOLISH_RATE, PLAYER_DEMOLISH_RATE_TOOL, PLAYER_CHOP_REACH, PLAYER_BUILD_REACH, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
   PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN, CHOP_WORK,
   type BuildingKind, type ColonyCommand, type ChestView,
 } from '../colony/contracts.ts';
@@ -79,6 +79,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let playerChop: { id: string; progress: number } | null = null;
       // 玩家手工拆建筑：按住左键推进，换目标或松手归零。
       let playerDemolish: { id: string; progress: number } | null = null;
+      let playerExcavation: {target:string;seconds:number} | null = null;
+      let waitForLeftRelease = false;
       let demolitionHint: string | null = null;
       let hoverTreePart: 'trunk' | 'branch' | 'crown' | null = null;
       let terrainTarget = 6, terrainSize = 3, terrainShape: 'brush' | 'rectangle' = 'brush', terrainSample = false;
@@ -429,7 +431,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             cancelStroke(); terrainSample = false;
             tool = c.value; hoverKey = '';
             if(tool.startsWith('sandbox:')) {mode = tool.endsWith('remove')?'remove':'build';execute({action:'speed',value:0});status='沙盒编辑 · 已暂停居民模拟，材料无限';}
-            else status = tool==='inspect'?'点击居民或设施查看详情':tool==='place-chest'?'点击空地放置木箱':tool.startsWith('build:')?'安放建筑蓝图 · R 旋转 · 先整平地基，再施工':tool==='demolish'?'点击任一部分拆除整座设施 · 完工设施回收一半材料':tool==='interact'?'点击门的任一部分开关门':tool==='level'?'等高整地 · 拖动规划，松开下达蓝图 · Shift 点击取样':tool.startsWith('zone:')?'点击地面规划 3 × 3 区域':'点击地面下达工作订单';
+            else status = tool==='inspect'?'点击居民或设施查看详情':tool==='place-chest'?'点击空地放置木箱':tool.startsWith('build:')?'安放建筑蓝图 · R 旋转 · 先整平地基，再施工':tool==='demolish'?'点击任一部分拆除整座设施 · 拆下后可拾取':tool==='interact'?'点击门的任一部分开关门':tool==='level'?'等高整地 · 拖动规划，松开下达蓝图 · Shift 点击取样':tool.startsWith('zone:')?'点击地面规划 3 × 3 区域':'点击地面下达工作订单';
           }
           if (c.action === 'rotateBuild') rotateBuild();
           if (c.action === 'clearSelection') { execute({action:'select'}); selectedBuildingId=null; }
@@ -723,6 +725,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           const input = world.getResource<InputSnapshot>(INPUT_SNAPSHOT_RESOURCE_KEY);
           const size = host.drawingBufferSize?.() ?? { width: host.canvas?.width ?? 1280, height: host.canvas?.height ?? 720 };
           const releasedStroke = !!stroke && !!input && (!input.mouse.button(0) || input.mouse.justReleased(0));
+          if (!input?.mouse.button(0) || input.mouse.justReleased(0)) waitForLeftRelease = false;
           let nextDemolitionHint: string | null = null;
           if (input && !uiHover) {
             const k = input.keyboard, ctrl = k.downCode('ControlLeft') || k.downCode('ControlRight') || k.downCode('MetaLeft') || k.downCode('MetaRight');
@@ -746,6 +749,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             const buildingHit = origin && direction ? raycastBuilding(colonyState.buildings, origin, direction, pickLimit) : null;
             const treeHit = origin && direction ? raycastTree(voxels.getTrees(), origin, direction, buildingHit?.distance ?? pickLimit) : null;
             const objectHit = treeHit ? null : buildingHit;
+            const held = colonyState.playerBag[colonyState.bagSelected]?.resource ?? null;
+            const carriedBuilding = viewMode==='character' && tool==='inspect' ? buildingItemKind(held??undefined) : undefined;
+            if (carriedBuilding && k.justPressedCode('KeyT')) {
+              buildRotation = (buildRotation + 1) % 4;
+              refreshState = true;
+            }
             // 树的悬停高亮和「整棵树」面板是上帝视角的东西——那是经营视角下给随从派活用的。
             // 角色视角下鼠标指着树是要自己砍，不该弹面板抢焦点。
             const hoverTree = viewMode === 'god' ? treeHit : null;
@@ -758,11 +767,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               && Math.abs(demolishTarget.x + demolishTarget.w / 2 - player.x) <= PLAYER_BUILD_REACH + 2
               && Math.abs(demolishTarget.z + demolishTarget.d / 2 - player.z) <= PLAYER_BUILD_REACH + 2;
             if (demolishTarget && inDemolishReach) {
-              const holdLeft = input.mouse.button(0);
+              const holdLeft = input.mouse.button(0) && !waitForLeftRelease;
               const def = BUILDING_DEFS[demolishTarget.kind];
-              const heldTool = String(colonyState.playerBag[colonyState.bagSelected]?.resource ?? '');
               const needPick = needsPickaxe(def);
-              const wrongTool = needPick && heldTool !== PICKAXE;
+              const wrongTool = needPick && held !== PICKAXE;
               if (!holdLeft) {
                 playerDemolish = null;
                 nextDemolitionHint = wrongTool ? `${def.name}需要石镐才能拆` : `按住左键拆除${def.name}`;
@@ -771,12 +779,13 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 nextDemolitionHint = `${def.name}需要石镐才能拆`;
               } else {
                 const dtDemolish = Math.min(world.getResource(Time).delta, 0.1);
-                const hasRightTool = heldTool === (needPick ? PICKAXE : AXE);
+                const hasRightTool = held === (needPick ? PICKAXE : AXE);
                 const rate = hasRightTool ? PLAYER_DEMOLISH_RATE_TOOL : PLAYER_DEMOLISH_RATE;
                 if (!playerDemolish || playerDemolish.id !== demolishTarget.id) playerDemolish = { id: demolishTarget.id, progress: 0 };
                 playerDemolish.progress += (rate * dtDemolish) / Math.max(1, def.work);
                 if (playerDemolish.progress >= 1) {
                   const result = execute({ action: 'demolish', id: demolishTarget.id });
+                  if (result.ok) waitForLeftRelease = true;
                   status = result.message;
                   port?.postMessage({ type: 'voxel:inventory-status', message: result.message });
                   playerDemolish = null;
@@ -789,6 +798,44 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             }
             const demolishing = !!inDemolishReach && input.mouse.button(0);
 
+            const playerPosition:Point = [player.x,player.y,player.z];
+            const terrainAhead = !objectHit || (!objectHit.building.complete && held===PICKAXE && hit && hit.distance<=objectHit.distance+.001);
+            const terrainHit = viewMode==='character' && tool==='inspect' && !treeHit && terrainAhead && hit && withinTerrainReach(playerPosition,hit.cell) ? hit : null;
+            const terrainRule = terrainHit ? playerTerrainRule(terrainHit.block) : undefined;
+            const excavating = !!terrainRule && !carriedBuilding && !waitForLeftRelease && input.mouse.button(0);
+            if (terrainHit && terrainRule && !carriedBuilding) {
+              const name=BLOCKS[terrainHit.block]!.name;
+              const blocked = colony.playerTerrainBlocked(terrainHit.cell);
+              const equipped = held===terrainRule.tool;
+              if (blocked || !equipped || !excavating) {
+                playerExcavation=null;
+                nextDemolitionHint = blocked ? '此处有设施、树根或作物需要保护'
+                  : !equipped ? (terrainRule.tool ? `${name}需要石镐` : '切换到空格后挖土') : `按住左键挖掘${name}`;
+              } else {
+                const target = `${terrainHit.cell.join(',')}:${terrainHit.block}`;
+                if (playerExcavation?.target!==target) playerExcavation={target,seconds:0};
+                playerExcavation.seconds+=Math.min(world.getResource(Time).delta,.1);
+                if (playerExcavation.seconds>=terrainRule.seconds) {
+                  const result=colony.playerHarvestTerrain(terrainHit.cell,terrainHit.block,playerPosition);
+                  playerExcavation=null;
+                  if (result.ok) { colonyState=colony.snapshot(); changed(result.message); }
+                  port?.postMessage({type:'voxel:inventory-status',message:result.message});
+                } else nextDemolitionHint=`挖掘${name} ${Math.floor(100*playerExcavation.seconds/terrainRule.seconds)}%`;
+              }
+            } else playerExcavation=null;
+
+            const placingCarried = carriedBuilding && !objectHit && terrainHit?.normal?.[1]===1;
+            if (placingCarried) {
+              const [x,,z]=terrainHit.cell;
+              nextDemolitionHint=`左键放置${BUILDING_DEFS[carriedBuilding].name} · T 旋转 ${buildRotation*90}°`;
+              if (input.mouse.justPressed(0)) {
+                const result=colony.placeCarriedBuilding(x,z,buildRotation as 0|1|2|3,playerPosition);
+                if (result.ok) { colonyState=colony.snapshot(); nextDemolitionHint=null; waitForLeftRelease=true; }
+                status=result.message;refreshState=true;
+                port?.postMessage({type:'voxel:inventory-status',message:result.message});
+              }
+            }
+
             // ---- 玩家撸树 ----
             // 只在角色视角：按住左键，瞄着 3×3 范围内的树，进度满了整棵倒。
             // 空手 6 秒、木斧 4 秒；体力扣得也不一样。没有裂纹特效，满了直接消失。
@@ -799,7 +846,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             if (viewMode === 'character') {
               const chopDt = Math.min(world.getResource(Time).delta, 0.1);
               const inReach = canopyChop;
-              const holding = input.mouse.button(0);
+              const holding = input.mouse.button(0) && !waitForLeftRelease;
               if (inReach && holding && vitals.stamina > 0) {
                 const bagSlot = colonyState.playerBag[colonyState.bagSelected];
                 const hasAxe = bagSlot?.resource === AXE;
@@ -887,7 +934,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 terrainView.preview([...cells.values()], height, key); refreshState = true;
               }
             } else if (!stroke) { terrainView.clearPreview(); previewKey = ''; }
-            if (!sandbox && !canopyChop && !demolishing && tool !== 'level' && (hit||objectTarget||treeTarget) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
+            if (!sandbox && !canopyChop && !demolishing && tool !== 'level' && (hit||objectTarget||treeTarget)
+              && (input.mouse.justPressed(0) && !placingCarried && !excavating || input.mouse.justPressed(2))) {
               const x=treeTarget?treeHit.tree.x:objectTarget?objectHit.part.x:hit!.cell[0],z=treeTarget?treeHit.tree.z:objectTarget?objectHit.part.z:hit!.cell[2];
               if(input.mouse.justPressed(2)){
                 // 角色视角下贴着东西右键 = 打开它。箱子优先于随从（箱子不会自己走开）。
@@ -966,8 +1014,9 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 }
               }
             }
-          } else if (hoverCell || playerDemolish) {
+          } else if (hoverCell || playerDemolish || playerExcavation) {
             playerDemolish = null;
+            playerExcavation = null;
             hoverCell = null; hoverBuildingId=null;hoverBuildingPart=null;hoverTreeId=null;hoverTreePart=null;hoverKey = ''; if(!stroke){terrainView.clearPreview();previewKey='';} world.set(cursor, Transform, { pos: [0, -100, 0] }).unwrap(); refreshState = true;
           }
           if (demolitionHint !== nextDemolitionHint) { demolitionHint = nextDemolitionHint; refreshState = true; }

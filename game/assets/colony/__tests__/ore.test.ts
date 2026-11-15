@@ -27,6 +27,33 @@ const loose=(sim:ColonySimulation,resource:string)=>sim.snapshot().items.filter(
 const mining=(sim:ColonySimulation)=>sim.snapshot().jobs.filter(job=>job.type==='mine');
 
 describe('finite steel ore mining',()=>{
+  it('lets the player collect dirt by hand and stone or steel with the pickaxe exactly once',()=>{
+    const{world,sim}=setup();
+    world.set(21,5,20,BLOCK.Stone);
+    world.set(22,5,20,BLOCK.SteelOre);
+    sim.command({action:'designate',kind:'mine',x:22,z:20});
+    const position:[number,number,number]=[21.5,6,19.5];
+    const initial=sim.snapshot().resources;
+    sim.selectBagSlot(8);
+    expect(sim.playerHarvestTerrain([20,5,20],BLOCK.Grass,position).ok).toBe(true);
+    expect(sim.playerHarvestTerrain([21,5,20],BLOCK.Stone,position).ok).toBe(false);
+    expect(sim.playerHarvestTerrain([22,5,20],BLOCK.SteelOre,position).ok).toBe(false);
+    sim.selectBagSlot(2);
+    expect(sim.playerHarvestTerrain([21,5,20],BLOCK.Stone,position).ok).toBe(true);
+    expect(sim.playerHarvestTerrain([22,5,20],BLOCK.SteelOre,position).ok).toBe(true);
+    expect(sim.playerHarvestTerrain([22,5,20],BLOCK.SteelOre,position).ok).toBe(false);
+    expect(mining(sim)).toHaveLength(0);
+    expect(sim.snapshot().resources).toEqual(initial);
+    const restoredWorld=VoxelWorld.deserialize(world.serialize()),restored=new ColonySimulation(restoredWorld);
+    restored.load(sim.serialize());
+    expect(restoredWorld.get(22,5,20)).toBe(BLOCK.Air);
+    restored.tick(.75,[21.5,6,20.5]);
+    expect(restored.snapshot().playerBag).toEqual(expect.arrayContaining([
+      {resource:'dirt',count:1},{resource:'stone',count:8},{resource:'steel',count:STEEL_ORE_YIELD},
+    ]));
+    expect(restored.snapshot().bagSelected).toBe(2);
+  });
+
   it('walks beside ore, completes real work, drops steel and then hauls it into storage',()=>{
     const{world,sim}=setup();world.set(20,5,20,BLOCK.SteelOre);enable(sim,'mine');
     const steel=sim.snapshot().resources.steel,stone=sim.snapshot().resources.stone;
