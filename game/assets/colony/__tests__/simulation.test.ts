@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BLOCK, VoxelWorld } from '../../voxel/model.ts';
-import { BUILDING_DEFS, ColonySimulation, DAY_SECONDS, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES } from '../simulation.ts';
+import { BUILDING_DEFS, ColonySimulation, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES } from '../simulation.ts';
 
 function setup(seed='colony-test') { const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed,size:[48,24,48],edits:[]}));return {world,sim:new ColonySimulation(world)}; }
 function run(sim:ColonySimulation,seconds:number) { for(let i=0;i<seconds*4;i++)sim.tick(.25); }
@@ -137,6 +137,19 @@ describe('inventory reservation, work and walking',()=>{
     expect(restored.playerBag).toEqual([{ resource: 'hammer', count: 1 }, ...Array(8).fill(null)]);
     expect(restored.chests[0]!.slots).toEqual(Array(20).fill(null));
     expect(restored.colonists.every(resident => resident.bag[0] === null)).toBe(true);
+  });
+
+  it('treats the hammer as ordinary cargo: it can be stored, and is not conjured back', () => {
+    const { sim } = setup();
+    // 锤子放进仓库
+    const stored = sim.transferInventory({ kind: 'player', slot: 0 }, { kind: 'warehouse' }, HAMMER, 1);
+    expect(stored.ok).toBe(true);
+    expect(sim.snapshot().playerBag[0]).toBeNull();
+    expect(sim.snapshot().resources[HAMMER as never]).toBe(1);
+    // 手上没锤子，就不该能开工
+    const order = sim.command({ action: 'build', kind: 'floor', x: 5, z: 5 });
+    const built = order.ok ? sim.snapshot().buildings.find(b => b.id === order.id) : undefined;
+    expect(built?.complete ?? false).toBe(false);
   });
 
   it('builds with the selected hammer at twice the resident rate, with the existing material reservation', () => {

@@ -168,12 +168,6 @@ export class ColonySimulation {
     if (this.s.playerBag[index]?.resource !== HAMMER) this.stopPlayerConstruction();
   }
 
-  private ensurePlayerHammer(): void {
-    const bag = this.s.playerBag;
-    const slot = bag.indexOf(null);
-    if (slot >= 0 && !bag.some(item => item?.resource === HAMMER)) bag[slot] = { resource: HAMMER, count: 1 };
-  }
-
   private inventorySlots(location: InventoryLocation): PlayerInventorySlot[] | undefined {
     if (location.kind === 'player') return this.s.playerBag;
     if (location.kind === 'chest') return this.s.chests.find(chest => chest.id === location.id)?.slots;
@@ -196,17 +190,17 @@ export class ColonySimulation {
     return amount - left;
   }
 
-  transferInventory(from: InventoryLocation, to: InventoryLocation, resource: Resource, amount: number): CommandResult {
+  transferInventory(from: InventoryLocation, to: InventoryLocation, incoming: Resource | typeof HAMMER, amount: number): CommandResult {
+    // 锤子不是 Resource，但要走同一条搬运流程。内部一律按 Resource 用，
+    // 只有「查资源表」那一步靠 isTool 绕开。
+    const resource = incoming as Resource;
     const unavailable = { ok: false, message: '来源格子里的物品已变动' };
     const full = { ok: false, message: '目标格放不下，物品留在原处' };
-    // 锤子这类工具不是 Resource，但同样是可搬的东西：
-    // 放行它的格子间移动，只拦「塞进仓库」——带在身上才能施工。
-    const isTool = String(resource) === HAMMER;
+    // 锤子不是 Resource（不在那九种物资里），但它是普通物资的一种，
+    // 该能放进仓库、能被拖来拖去。手上没有锤子就是造不了，那是玩家的选择。
+    const isTool = String(incoming) === HAMMER;
     if (!from || !to || (!isTool && !RESOURCE_TYPES.includes(resource)) || !Number.isSafeInteger(amount) || amount < 1) {
       return { ok: false, message: '无效的物品转移' };
-    }
-    if (isTool && to.kind === 'warehouse') {
-      return { ok: false, message: '锤子要带在身上才能施工' };
     }
     if (from.kind === 'warehouse' && to.kind === 'warehouse') return unavailable;
     const sourceSlots = this.inventorySlots(from);
@@ -234,7 +228,9 @@ export class ColonySimulation {
       targetSlots[targetIndex] = { resource, count: (current?.count ?? 0) + moved };
       if (to.kind === 'player') this.selectBagSlot(targetIndex);
     } else {
-      this.s.resources[resource] += moved;
+      // 锤子这类工具在资源表里没有初值，直接 += 会变成 NaN，先兜个零
+      const pool = this.s.resources as Record<string, number>;
+      pool[resource] = (pool[resource] ?? 0) + moved;
     }
 
     const left = available - moved;
@@ -245,7 +241,6 @@ export class ColonySimulation {
     } else if (sourceSlots && validSlot(sourceIndex, sourceSlots)) {
       sourceSlots[sourceIndex] = left ? { resource, count: left } : null;
     }
-    if (from.kind === 'player') this.ensurePlayerHammer();
     return { ok: true, message: moved < amount ? `已转移 ${moved} 个，剩余物品留在原处` : `已转移 ${moved} 个` };
   }
 
@@ -1354,7 +1349,9 @@ export class ColonySimulation {
     const s=copy(data) as SavedState;
     // Legacy objects are upgraded together, on the private copy, before any live state changes.
     s.terrainPlans??=[];
-    s.playerBag ??= emptySlots(PLAYER_SLOTS);
+    // 旧存档没有背包字段。迁移时补一把锤子——不然老玩家读完档永远造不了东西。
+    // 这是「一次性迁移」，运行时不再自动补：锤子放进仓库就是放进去了。
+    if (!s.playerBag) s.playerBag = [{ resource: HAMMER, count: 1 }, ...emptySlots(PLAYER_SLOTS - 1)];
     s.bagSelected ??= 0;
     s.chests ??= [this.starterChest()];
     const legacyBuildings=new Set<string>();
