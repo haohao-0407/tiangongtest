@@ -17,6 +17,54 @@ export default async function dualViewProbe(play) {
     await advance(0.4);
   };
   const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+  const hotbarSlot = (slot) => play.page.locator(`#hotbar .hotbar-slot[data-index="${slot}"]`);
+  const chestSlot = (slot) => play.page.locator(`.chest-cell[data-index="${slot}"]`);
+  const followerSlot = play.page.locator('.fb-cell[data-index="0"]');
+  const slider = play.page.locator('#item-amount');
+  const getItem = play.page.locator('#item-menu [data-item-action="take"]');
+  const chooseQuantity = async (amount) => {
+    if (amount > 1) {
+      await slider.press('Home');
+      for (let value = 1; value < amount; value++) await slider.press('ArrowRight');
+    }
+    assert.equal(await slider.inputValue(), String(amount));
+  };
+  const pauseColony = async () => {
+    await play.page.locator('[data-menu="sandbox"]').click();
+    await play.page.locator('[data-menu="inspect"]').click();
+    await advance(0.4);
+    assert.equal((await read()).colony.speed, 0);
+  };
+  const resumeColony = async () => {
+    const close = play.page.locator('#panel-close');
+    if (await close.isVisible()) await close.click();
+    await play.page.keyboard.press('Escape');
+    await advance(0.35);
+    assert.ok(await play.page.locator('#pause-menu').isVisible());
+    await play.page.keyboard.press('Escape');
+    await advance(0.4);
+    assert.equal((await read()).colony.speed, 1);
+  };
+  const waitDelivery = async (id, observe = () => {}) => {
+    let current = await read();
+    for (let i = 0; i < 64; i++) {
+      const order = current.colony.jobs.find(job => job.id === id);
+      if (!order) return current;
+      observe(order, current);
+      current = await advance(0.75);
+    }
+    assert.fail(`随从未完成配送，当前状态：${JSON.stringify(current.colony.jobs.find(job => job.id === id))}`);
+  };
+  const drag = async (source, target) => {
+    const from = await source.boundingBox(), to = await target.boundingBox();
+    assert.ok(from && to, '拖放两端必须在屏幕上');
+    await play.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await play.page.mouse.down();
+    await play.page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 });
+    await play.page.mouse.up();
+    await advance(0.6);
+    return read();
+  };
 
   // ---- 1. 开局：俯视视角，玩家站在地面上 ----
   const s0 = await read();
@@ -292,6 +340,8 @@ export default async function dualViewProbe(play) {
   }
 
   // ---- 17. 仓库是格子面板，搜索/排序/分类都能用 ----
+  // 沙盒入口会暂停居民。回到查看后，移动和物品交互仍可正常操作。
+  await pauseColony();
   await play.page.locator('[data-menu="warehouse"]').click();
   await advance(0.5);
   const cells = await play.page.locator('#workspace .wh-cell').count();
@@ -331,23 +381,36 @@ export default async function dualViewProbe(play) {
   assert.equal(await play.page.locator('#item-menu [data-item-action="select"]').count(), 1, '菜单应有「选中」');
   assert.equal(await play.page.locator('#item-menu [data-item-action="take"]').count(), 1, '菜单应有「获取」');
   assert.equal(await play.page.locator('#item-menu [data-item-action="focus"]').count(), 1, '菜单应有「聚焦」');
+  assert.equal(await itemMenu.locator('button').first().getAttribute('data-item-action'), 'take');
+  await chooseQuantity(3);
   await play.screenshot('item-menu');
 
-  // 获取：从共享池扣一份拿到手上
+  // 暂停状态下精确核对仓库扣账。
   const poolBefore = (await read()).colony.resources;
-  await play.page.locator('#workspace .wh-cell[data-item]').first().click({ button: 'right' });
-  await advance(0.4);
-  await play.page.locator('#item-menu [data-item-action="take"]').click();
+  const takenResource = await play.page.locator('#workspace .wh-cell[data-item]').first().getAttribute('data-item');
+  await getItem.click();
   await advance(0.6);
-  const afterTake = await read();
-  // 模拟一直在跑、居民在采集，池子总量会自己涨，所以不验总量守恒；
-  // 只验「背包里确实多了东西」这一件事。
-  const bagSlots = (afterTake.player.bag ?? []);
-  const bagFilled = bagSlots.filter(Boolean).length;
-  const bagTotal = bagSlots.reduce((a, slot) => a + (slot ? slot.count : 0), 0);
-  assert.ok(bagFilled >= 1, `获取后背包里应该有东西，实际 ${bagFilled} 格`);
-  assert.ok(bagTotal >= 1, `背包总数应至少 +1，实际 ${bagTotal}`);
-  void poolBefore;
+  const requested = await read();
+  assert.equal(requested.colony.resources[takenResource], poolBefore[takenResource] - 3, '仓库应锁定滑条选择的数量');
+  assert.ok(requested.player.bag.every(stack => stack === null), '下单不应直接把物品放进快捷栏');
+  const order = requested.colony.jobs.find(job => job.targetId === 'player-delivery');
+  assert.ok(order && order.deliveryPhase === 'pickup' && order.reserved[takenResource] === 3);
+  await play.screenshot('inventory-delivery-queued');
+  await resumeColony();
+  let sawCarrier = false;
+  const delivered = await waitDelivery(order.id, (job, current) => {
+    if (job.deliveryPhase === 'deliver') {
+      assert.ok(current.colony.colonists.some(person => person.id === job.assignedTo));
+      assert.ok(current.player.bag.every(stack => stack === null));
+      sawCarrier = true;
+    }
+  });
+  assert.ok(sawCarrier, '应看见居民从储藏区取货后、送到玩家前的状态');
+  assert.deepEqual(delivered.player.bag.filter(Boolean), [{ resource: takenResource, count: 3 }]);
+  await play.screenshot('inventory-delivery-arrived');
+  await pauseColony();
+  await play.page.locator('[data-menu="warehouse"]').click();
+  await advance(0.4);
 
   // 选中：格子要留下高亮
   await play.page.locator('#workspace .wh-cell[data-item]').first().click({ button: 'right' });
@@ -419,8 +482,6 @@ export default async function dualViewProbe(play) {
   const goldText = (await play.page.locator('#vital-gold').textContent()) ?? '';
   assert.ok(/^\d+$/.test(goldText.trim()), `金币应显示数字，实际「${goldText}」`);
   await play.screenshot('hotbar-bag');
-  await play.page.keyboard.press('KeyR');
-  await advance(0.6);
 
   // ---- 木箱：位置在投影里，面板能打开 ----
   const chestState = await read();
@@ -432,12 +493,15 @@ export default async function dualViewProbe(play) {
   assert.equal(await play.page.locator('#workspace .chest-grid').count(), 1, '木箱应渲染成格子');
   const chestCells = await play.page.locator('#workspace .chest-cell').count();
   assert.equal(chestCells, 20, `木箱应是 5×4 二十格，实际 ${chestCells}`);
-  const chestFilled = await play.page.locator('#workspace .chest-cell:not(.empty)').count();
-  assert.ok(chestFilled >= 5, `木箱里应该装着现有物资，实际 ${chestFilled} 格`);
-  assert.ok(
-    ((await play.page.locator('#workspace .chest-include').textContent()) ?? '').includes('计入仓库'),
-    '木箱应有「计入仓库」状态行',
-  );
+  assert.equal(await play.page.locator('#workspace .chest-cell:not(.empty)').count(), 0, '初始箱独立于仓库，应该为空');
+  const starterId = chestState.colony.chests[0].id;
+  const starter = (s) => s.colony.chests.find(chest => chest.id === starterId);
+  const item = chestState.player.bag[selNow];
+  let inventoryState = await drag(hotbarSlot(selNow), chestSlot(3));
+  assert.deepEqual(starter(inventoryState).slots[3], item, '整叠物品应进入指向的箱格');
+  assert.equal(inventoryState.player.bag[selNow], null);
+  assert.deepEqual(inventoryState.colony.resources, chestState.colony.resources, '木箱转移不得改变仓库');
+  await play.screenshot('inventory-hotbar-to-chest');
   // 分类和仓库用同一个下拉组件
   assert.equal(await play.page.locator('#workspace .chest-grid ~ * .wh-cat-trigger').count() + await play.page.locator('#workspace .wh-cat-trigger').count() > 0, true, '木箱应有分类下拉');
   await play.page.locator('#workspace .wh-cat-trigger').click();
@@ -446,29 +510,34 @@ export default async function dualViewProbe(play) {
   await play.page.locator('#workspace .wh-cat-option[data-cat="block"]').click();
   await advance(0.4);
   const chestFiltered = await play.page.locator('#workspace .chest-cell:not(.empty)').count();
-  assert.equal(chestFiltered, 3, `木箱切「方块」应只剩 3 项，实际 ${chestFiltered}`);
+  assert.equal(chestFiltered, ['wood', 'stone', 'steel'].includes(item.resource) ? 1 : 0);
   await play.page.locator('#workspace .wh-cat-trigger').click();
   await advance(0.3);
   await play.page.locator('#workspace .wh-cat-option[data-cat="all"]').click();
   await advance(0.3);
   await play.screenshot('chest-panel');
 
-  // 木箱格子右键也能弹物品菜单
+  // 木箱格子右键也能弹物品菜单。
   await play.page.locator('#workspace .chest-cell[data-item]').first().click({ button: 'right' });
   await advance(0.4);
   assert.equal(await itemMenu.isVisible(), true, '木箱格子右键应弹物品菜单');
-  // 点空白处收起菜单（ESC 会连面板一起关掉）
-  await play.page.mouse.click(20, 500);
-  await advance(0.4);
-  // 重新打开木箱面板，确认快捷栏在场
-  await play.page.evaluate(() => window.__wbOpenChest());
+  assert.equal(await slider.getAttribute('max'), '3');
+  await chooseQuantity(2);
+  await play.screenshot('inventory-chest-quantity');
+  await getItem.click();
   await advance(0.5);
-  assert.equal(await play.page.locator('#workspace').isVisible(), true, '木箱面板应重新打开');
+  assert.deepEqual(starter(await read()).slots[3], { resource: item.resource, count: 1 });
+  assert.deepEqual((await read()).player.bag[0], { resource: item.resource, count: 2 });
   assert.equal(await play.page.locator('#hotbar').isVisible(), true, '打开面板时快捷栏应可见');
-  assert.equal(await play.page.locator('#hotbar .hotbar-slot[data-index="0"]').count(), 1, '快捷栏格子应带索引');
+  await drag(chestSlot(3), hotbarSlot(0));
+  inventoryState = await drag(hotbarSlot(0), hotbarSlot(6));
+  assert.deepEqual(inventoryState.player.bag[6], item, '取回的整叠物品应进入指定快捷栏格');
+  assert.equal(starter(inventoryState).slots[3], null);
+  await play.screenshot('inventory-chest-to-hotbar');
 
-  await play.page.locator('[data-menu="inspect"]').click();
-  await advance(0.3);
+  await play.page.locator('#panel-close').click();
+  await play.page.mouse.click(640, 300);
+  await tapR();
 
   // ---- 随从页：玩家单独一块，和随从列表分开 ----
   await play.page.locator('[data-menu="follower"]').click();
@@ -503,6 +572,9 @@ export default async function dualViewProbe(play) {
     assert.equal(hintState.player.nearHint, null, `距离 ${distToChest} 格时不该有提示`);
     assert.equal(hintVisible, false, `距离 ${distToChest} 格时提示应隐藏`);
   }
+  await play.page.mouse.click(640, 300);
+  await tapR();
+  assert.equal((await read()).camera.mode, 'character');
   const cid = (await read()).colony.colonists[0].id;
   await play.page.evaluate((id) => window.__wbOpenFollower(id), cid);
   await advance(0.6);
@@ -515,6 +587,106 @@ export default async function dualViewProbe(play) {
   assert.ok(fbText.includes('状态'), '应显示状态');
   assert.ok(fbText.includes('任务'), '应显示任务');
   await play.screenshot('follower-panel');
+  const follower = (s) => s.colony.colonists.find(person => person.id === cid);
+  inventoryState = await drag(hotbarSlot(6), followerSlot);
+  assert.equal(inventoryState.player.bag[6], null);
+  assert.deepEqual(follower(inventoryState).bag[0], item, '物品应进入指定随从的随身背包');
+  assert.ok(inventoryState.colony.colonists.filter(person => person.id !== cid).every(person => person.bag[0] === null));
+  await play.screenshot('inventory-hotbar-to-follower');
+  await followerSlot.click({ button: 'right' });
+  assert.equal(await slider.getAttribute('max'), '3');
+  await chooseQuantity(2);
+  await play.screenshot('inventory-follower-quantity');
+  await getItem.click();
+  await advance(0.5);
+  assert.deepEqual(follower(await read()).bag[0], { resource: item.resource, count: 1 });
+  assert.deepEqual((await read()).player.bag[0], { resource: item.resource, count: 2 });
+  await drag(followerSlot, hotbarSlot(0));
+  inventoryState = await drag(hotbarSlot(0), hotbarSlot(7));
+  assert.deepEqual(inventoryState.player.bag[7], item);
+  assert.equal(follower(inventoryState).bag[0], null);
+  await play.screenshot('inventory-follower-to-hotbar');
+
+  // 同时给随从、木箱和玩家留下物品，验证存档及浏览器重载。
+  inventoryState = await drag(hotbarSlot(7), followerSlot);
+  await play.page.locator('#panel-close').click();
+  await play.page.mouse.click(640, 300);
+  await tapR();
+  assert.equal((await read()).camera.mode, 'god');
+  await play.page.locator('[data-menu="warehouse"]').click();
+  const orderFromWarehouse = async (resource) => {
+    await play.page.locator(`#workspace .wh-cell[data-item="${resource}"]`).click({ button: 'right' });
+    await getItem.click();
+    await advance(0.6);
+  };
+  await orderFromWarehouse('wood');
+  await orderFromWarehouse('stone');
+  const remainingOrders = (await read()).colony.jobs.filter(job => job.targetId === 'player-delivery');
+  assert.equal(remainingOrders.length, 2);
+  await resumeColony();
+  for (const queued of remainingOrders) await waitDelivery(queued.id);
+  await pauseColony();
+  inventoryState = await read();
+  const woodSlot = inventoryState.player.bag.findIndex(stack => stack?.resource === 'wood');
+  const stoneSlot = inventoryState.player.bag.findIndex(stack => stack?.resource === 'stone');
+  await play.page.evaluate(() => window.__wbOpenChest());
+  await advance(0.5);
+  inventoryState = await drag(hotbarSlot(woodSlot), chestSlot(4));
+  assert.deepEqual(starter(inventoryState).slots[4], { resource: 'wood', count: 1 });
+  assert.deepEqual(inventoryState.player.bag[stoneSlot], { resource: 'stone', count: 1 });
+
+  await play.page.locator('[data-menu="build"]').click();
+  await play.page.locator('[data-testid="build-chest"]').click();
+  await play.page.locator('#panel-close').click();
+  await advance(0.4);
+  assert.equal((await read()).tool, 'place-chest');
+  const beforeBuild = await read();
+  let placed;
+  for (const [x, y] of [[640, 360], [660, 360], [620, 360], [660, 375], [620, 375], [670, 310]]) {
+    await play.page.mouse.click(x, y);
+    await advance(0.45);
+    placed = await read();
+    if (placed.colony.chests.length === 2) break;
+  }
+  assert.equal(placed.colony.chests.length, 2, `应能通过建造菜单放置第二个木箱，实际状态 ${placed.status}`);
+  const second = placed.colony.chests.find(chest => chest.id !== starterId);
+  assert.ok(second.slots.every(stack => stack === null), '新木箱必须从空箱开始');
+  assert.deepEqual(starter(placed).slots[4], { resource: 'wood', count: 1 }, '放置另一个木箱不改变旧箱库存');
+  assert.equal(placed.colony.resources.wood, beforeBuild.colony.resources.wood - 4);
+  await play.screenshot('inventory-independent-chests');
+
+  await play.page.waitForFunction((id) => {
+    const stored = JSON.parse(localStorage.getItem('homestead.colony.v2') ?? 'null');
+    return stored?.colony.chests.some(chest => chest.id === id);
+  }, second.id, { timeout: 8500 });
+  await play.reload();
+  const restored = await play.waitFor(s => s.colony?.chests.length === 2 && s.colony.speed === 0, { read: READ, timeoutMs: 10_000 });
+  assert.deepEqual(restored.colony.chests, placed.colony.chests);
+  assert.deepEqual(follower(restored).bag, follower(placed).bag);
+  assert.deepEqual(restored.player.bag, placed.player.bag);
+  assert.equal(restored.player.bagSelected, placed.player.bagSelected);
+  await tapR();
+  assert.equal((await read()).camera.mode, 'character');
+  assert.ok((await read()).player.nearChest, '重载回出生点应够得到木箱');
+  const chestGrid = play.page.locator('.chest-grid');
+  for (const [x, y] of [[640, 420], [640, 490], [700, 450]]) {
+    await play.page.mouse.click(x, y, { button: 'right' });
+    await advance(0.4);
+    if (await chestGrid.isVisible()) break;
+  }
+  assert.ok(await chestGrid.isVisible(), '角色靠近后右键应能打开木箱');
+  const openedId = await chestGrid.getAttribute('data-chest-id');
+  const visibleChest = restored.colony.chests.find(chest => chest.id === openedId);
+  assert.ok(visibleChest, '右键应打开一个真实的独立木箱');
+  assert.equal(await chestSlot(4).getAttribute('data-item'), visibleChest.slots[4]?.resource ?? null);
+  const workspaceBox = await play.page.locator('#workspace').boundingBox();
+  const hotbarBox = await play.page.locator('#hotbar').boundingBox();
+  assert.ok(workspaceBox.y + workspaceBox.height <= hotbarBox.y, '快捷栏不得盖住最后一排容器格子');
+  assert.equal(await play.page.locator('#interact-hint').isVisible(), false, '开箱后应隐藏靠近提示');
+  await play.screenshot('inventory-restored');
+  await play.page.locator('#panel-close').click();
+  await play.page.mouse.click(640, 300);
+  await tapR();
   await play.page.locator('[data-menu="inspect"]').click();
   await advance(0.3);
 

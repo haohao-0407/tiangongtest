@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BLOCK, VoxelWorld } from '../../voxel/model.ts';
-import { BUILDING_DEFS, ColonySimulation, DAY_SECONDS, JOB_TYPES, RESOURCE_TYPES } from '../simulation.ts';
+import { BUILDING_DEFS, ColonySimulation, DAY_SECONDS, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES } from '../simulation.ts';
 
 function setup(seed='colony-test') { const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed,size:[48,24,48],edits:[]}));return {world,sim:new ColonySimulation(world)}; }
 function run(sim:ColonySimulation,seconds:number) { for(let i=0;i<seconds*4;i++)sim.tick(.25); }
@@ -53,6 +53,92 @@ describe('peaceful colony and fixed-step persistence',()=>{
 });
 
 describe('inventory reservation, work and walking',()=>{
+  it('reserves warehouse goods, walks to storage and delivers the requested quantity to the moving player', () => {
+    const { sim, world } = setup();
+    onlyJob(sim, 'haul');
+    const before = sim.snapshot();
+    const order = sim.requestDelivery('steel', 7);
+    const pending = () => sim.snapshot().jobs.find(job => job.id === order.id);
+    const originalPlayer = before.colonists[0]!.position;
+    const nextPlayer = before.colonists[2]!.position;
+    expect(order.ok).toBe(true);
+    expect(sim.snapshot().resources.steel).toBe(before.resources.steel - 7);
+    expect(sim.snapshot().playerBag.every(stack => stack === null)).toBe(true);
+    expect(pending()?.targetId).toBe(PLAYER_DELIVERY_TARGET);
+    for (let i = 0; i < 200 && pending()?.deliveryPhase === 'pickup'; i++) sim.tick(.25, originalPlayer);
+    const traveling = pending();
+    expect(traveling?.deliveryPhase).toBe('deliver');
+    const carrier = sim.snapshot().colonists.find(person => person.id === traveling?.assignedTo)!;
+    expect([Math.floor(carrier.position[0]), Math.floor(carrier.position[2])]).toEqual([traveling!.x, traveling!.z]);
+    expect(sim.snapshot().playerBag.every(stack => stack === null)).toBe(true);
+
+    const restored = new ColonySimulation(world);
+    restored.load(sim.serialize());
+    for (let i = 0; i < 240 && restored.snapshot().jobs.some(job => job.id === order.id); i++) restored.tick(.25, nextPlayer);
+    const finished = restored.snapshot();
+    expect(finished.jobs.some(job => job.id === order.id)).toBe(false);
+    expect(finished.playerBag[0]).toEqual({ resource: 'steel', count: 7 });
+    expect(finished.resources.steel).toBe(before.resources.steel - 7);
+    const arrived = finished.colonists.find(person => person.id === carrier.id)!;
+    expect(Math.hypot(arrived.position[0] - nextPlayer[0], arrived.position[2] - nextPlayer[2])).toBeLessThanOrEqual(1.5);
+  });
+
+  it('keeps undelivered goods reserved when the player fills their bag and refunds them on cancellation', () => {
+    const { sim } = setup();
+    onlyJob(sim, 'haul');
+    const before = sim.snapshot().resources.silver;
+    const order = sim.requestDelivery('silver', 3);
+    expect(order.ok).toBe(true);
+    const remaining = raw(sim);
+    remaining.playerBag = Array.from({ length: 9 }, () => ({ resource: 'cloth', count: 99 }));
+    sim.load(remaining);
+    const player = sim.snapshot().colonists[0]!.position;
+    const pending = () => sim.snapshot().jobs.find(job => job.id === order.id);
+    for (let i = 0; i < 240 && pending()?.state !== 'blocked'; i++) sim.tick(.25, player);
+    expect(pending()?.deliveryPhase).toBe('deliver');
+    expect(pending()?.state).toBe('blocked');
+    expect(pending()?.reserved.silver).toBe(3);
+    expect(sim.snapshot().playerBag.every(stack => stack?.resource === 'cloth')).toBe(true);
+    expect(sim.command({ action: 'cancel', id: order.id }).ok).toBe(true);
+    expect(sim.snapshot().resources.silver).toBe(before);
+    expect(pending()).toBeUndefined();
+  });
+
+  it('keeps overflow in its source and rejects incompatible or stale slots', () => {
+    const { sim } = setup();
+    const warehouse = { kind: 'warehouse' } as const;
+    const first = { kind: 'player', slot: 0 } as const;
+    const second = { kind: 'player', slot: 1 } as const;
+    const chest = { kind: 'chest', id: sim.snapshot().chests[0]!.id, slot: 3 } as const;
+    expect(sim.transferInventory(warehouse, first, 'wood', 98).ok).toBe(true);
+    expect(sim.transferInventory(warehouse, second, 'wood', 12).ok).toBe(true);
+    expect(sim.transferInventory(first, chest, 'wood', 98).ok).toBe(true);
+    expect(sim.transferInventory(second, chest, 'wood', 12).ok).toBe(true);
+    expect(sim.snapshot().chests[0]!.slots[3]).toEqual({ resource: 'wood', count: 99 });
+    expect(sim.snapshot().playerBag[1]).toEqual({ resource: 'wood', count: 11 });
+    expect(sim.snapshot().resources.wood).toBe(30);
+    expect(sim.transferInventory(first, chest, 'wood', 98).ok).toBe(false);
+    expect(sim.transferInventory(warehouse, first, 'stone', 1).ok).toBe(true);
+    const before = sim.snapshot();
+    expect(sim.transferInventory(first, chest, 'stone', 1).ok).toBe(false);
+    expect(sim.snapshot()).toEqual(before);
+  });
+
+  it('opens saves made before personal and chest inventories existed', () => {
+    const { sim } = setup();
+    const old = raw(sim);
+    delete old.chests;
+    delete old.playerBag;
+    delete old.bagSelected;
+    for (const resident of old.colonists) delete resident.bag;
+    sim.load(old);
+    const restored = sim.snapshot();
+    expect(restored.resources).toEqual(old.resources);
+    expect(restored.playerBag).toEqual(Array(9).fill(null));
+    expect(restored.chests[0]!.slots).toEqual(Array(20).fill(null));
+    expect(restored.colonists.every(resident => resident.bag[0] === null)).toBe(true);
+  });
+
   it('reserves construction once, cancels once and conserves materials',()=>{
     const{sim,world}=setup();sim.command({action:'speed',value:0});
     const pos=freeCell(sim,world),before=sim.snapshot().resources;

@@ -1,8 +1,9 @@
 import type { GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
-  BUILDING_DEFS, JOB_NAMES, JOB_TYPES, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES,
-  type ColonyCommand, type ColonySnapshot, type ColonistView, type Resource,
+  BUILDING_DEFS, CHEST_SLOTS, CHEST_WOOD_COST, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
+  RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, inventorySpace,
+  type ColonyCommand, type ColonySnapshot, type ColonistView, type InventoryLocation, type InventorySlot, type ItemStack, type Resource,
 } from '../colony/contracts.ts';
 
 const SAVE_KEY = 'homestead.colony.v2';
@@ -17,7 +18,7 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
   player?: {
     x: number; y: number; z: number; grounded: boolean; moving: boolean; facing: number;
     embedded: boolean; parts: number;
-    bag: ({ resource: string; count: number } | null)[];
+    bag: InventorySlot[];
     bagSelected: number;
     vitals?: { health: number; maxHealth: number; stamina: number; maxStamina: number; gold: number };
     nearHint?: 'chest' | 'follower' | null;
@@ -120,7 +121,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   on(shadow, 'contextmenu', e => e.preventDefault());
 
   const showTool = (tool: string) => {
-    const hints: Record<string, string> = { inspect: '查看模式 · 左键选择居民或地块', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树木，居民会领取工作', mine: '采矿规划 · 点击石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
+    const hints: Record<string, string> = { inspect: '查看模式 · 左键选择居民或地块', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树木，居民会领取工作', mine: '采矿规划 · 点击石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
     if (state?.selected === 10) hints['sandbox:build'] = '铺设道路 · 左键替换地表 · 路沿与台阶随连接自动更新';
     else if (state?.selected === 6) hints['sandbox:build'] = '砖墙 · 连续墙面叠高两格生成窗框、窗台 · 增删后自动更新';
     get('tool-hint').textContent = tool === 'level'
@@ -133,8 +134,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     lastPanelStamp = ''; renderPanel(true);
   };
   const hideSidePanels = () => { get('settings').hidden = true; get('help').hidden = true; get('inspector').hidden = true; };
-  const openPanel = (next: string) => {
-    hideSidePanels(); panel = panel === next ? '' : next;
+  const openPanel = (next: string, toggle = true) => {
+    cancelInventoryDrag?.();
+    hideSidePanels(); panel = toggle && panel === next ? '' : next;
     get('panel-content').scrollTop = 0;
     if (next === 'inspect') { panel = ''; chooseTool('inspect'); }
     if (next === 'sandbox' && panel) chooseTool('sandbox:build');
@@ -163,6 +165,10 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       else if (short) b.append(make('span', 'card-lock', '可先规划 · 施工前等待材料'));
       grid.append(b);
     }
+    const chest = toolButton('', 'place-chest', 'build-chest', 'build-card');
+    chest.append(make('span', 'card-title', '木箱'), make('span', 'card-description', `1 × 1 格 · 独立储物 · ${CHEST_SLOTS} 格`),
+      make('span', 'card-cost', costText({ wood: CHEST_WOOD_COST })));
+    grid.append(chest);
     root.append(grid);
     const pending = c.buildings.filter(b => !b.complete);
     if (pending.length) {
@@ -373,37 +379,67 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   }
 
   // ---- 物品右键菜单 ----
-  // 照 Unity 的 WarehouseItemMenu：点格子弹出，在这里对单件资源做操作。
-  // Unity 那边三项是「选中 / 获取 / 聚焦」，天工只有全局资源池、没有背包，
-  // 「获取」没有对应物，所以这里只留能真正起作用的两个。
-  let whSelected = '', pendingItem: string | null = null;
+  // 仓库、木箱和随从共用弹层，获取时保留真实来源。
+  let whSelected = '';
+  let pendingItem: { stack: ItemStack; from: InventoryLocation } | null = null;
   const itemMenu = get('item-menu');
   const itemMenuTitle = get('item-menu-title');
+  const itemAmount = get<HTMLInputElement>('item-amount');
+  const itemAmountValue = get('item-amount-value');
+  const itemTake = itemMenu.querySelector<HTMLButtonElement>('[data-item-action="take"]')!;
   const closeItemMenu = () => { if (itemMenu) itemMenu.hidden = true; };
-  const openItemMenu = (kind: string, clientX: number, clientY: number) => {
+  function updateItemAmount(reset = false) {
+    const c = state?.colony;
+    if (!pendingItem || !c || itemMenu.hidden) return;
+    const { from, stack } = pendingItem;
+    const resource = stack.resource;
+    const follower = from.kind === 'follower' || from.kind === 'cargo' ? c.colonists.find(person => person.id === from.id) : undefined;
+    const slot = from.kind === 'chest' ? c.chests.find(chest => chest.id === from.id)?.slots[from.slot]
+      : from.kind === 'follower' ? follower?.bag[0] : null;
+    const available = from.kind === 'warehouse' ? c.resources[resource]
+      : from.kind === 'cargo' ? follower?.carrying[resource] ?? 0
+      : slot?.resource === resource ? slot.count : 0;
+    const max = Math.min(available, inventorySpace(c.playerBag, resource));
+    const value = max < 1 ? 0 : reset ? 1 : Math.min(max, Math.max(1, Number(itemAmount.value)));
+    itemAmount.min = max < 1 ? '0' : '1';
+    itemAmount.max = String(max);
+    itemAmount.value = String(value);
+    itemAmount.disabled = max <= 1;
+    itemTake.disabled = max < 1;
+    itemAmountValue.textContent = `${value} / ${max}`;
+  }
+  const openItemMenu = (kind: Resource, clientX: number, clientY: number, from: InventoryLocation = { kind: 'warehouse' }, count = 1) => {
     if (!itemMenu) return;
-    pendingItem = kind;
-    if (itemMenuTitle) itemMenuTitle.textContent = RESOURCE_NAMES[kind as Resource];
+    pendingItem = { stack: { resource: kind, count }, from };
+    if (itemMenuTitle) itemMenuTitle.textContent = RESOURCE_NAMES[kind];
+    for (const button of itemMenu.querySelectorAll<HTMLElement>('[data-item-action]')) {
+      button.hidden = from.kind !== 'warehouse' && button.dataset.itemAction !== 'take';
+    }
     itemMenu.hidden = false;
+    updateItemAmount(true);
     const rect = shellEl?.getBoundingClientRect();
-    const x = Math.min(clientX - (rect?.left ?? 0), (rect?.width ?? 0) - 126);
-    const y = Math.min(clientY - (rect?.top ?? 0), (rect?.height ?? 0) - 120);
+    const menuRect = itemMenu.getBoundingClientRect();
+    const x = Math.min(clientX - (rect?.left ?? 0), (rect?.width ?? 0) - menuRect.width - 4);
+    const y = Math.min(clientY - (rect?.top ?? 0), (rect?.height ?? 0) - menuRect.height - 4);
     itemMenu.style.left = `${Math.max(4, x)}px`;
     itemMenu.style.top = `${Math.max(4, y)}px`;
   };
   if (itemMenu) {
+    on(itemAmount, 'input', () => updateItemAmount());
     on(itemMenu, 'click', (event) => {
       const btn = (event.target as HTMLElement | null)?.closest?.('[data-item-action]') as HTMLElement | null;
       if (!btn?.dataset.itemAction || !pendingItem) return;
       const action = btn.dataset.itemAction;
-      const kind = pendingItem;
+      const { stack, from } = pendingItem;
+      const kind = stack.resource;
       closeItemMenu();
       if (action === 'select') {
         whSelected = whSelected === kind ? '' : kind;
         renderPanel(true);
       } else if (action === 'take') {
-        // 照 Unity 的 OnTake：从共享池扣一份拿到手上
-        send('take', { resource: kind, amount: 1 });
+        const amount = Number(itemAmount.value);
+        if (from.kind === 'warehouse') send('request-delivery', { resource: kind, amount });
+        else transferInventory(from, { kind: 'player' }, { resource: kind, count: amount });
       } else if (action === 'focus') {
         // 天工没有容器，聚焦的目标改成「产出这种东西的建筑」
         send('focus', { resource: kind });
@@ -423,6 +459,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   let whQuery = '', whDesc = false, whCategory = 'all', whMenuOpen = false, chestMenuOpen = false;
   // 当前打开的随从面板对应哪个居民
   let followerPanelId: string | null = null;
+  let chestPanelId: string | null = null;
   // Unity 那边只分「方块 / 非方块」两类，这里照搬
   const CATEGORY_OF: Record<string, string> = {
     wood: 'block', stone: 'block', steel: 'block',
@@ -455,7 +492,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const items = RESOURCE_TYPES
         .filter((r) => whCategory === 'all' || CATEGORY_OF[r] === whCategory)
         .filter((r) => !whQuery || RESOURCE_NAMES[r].includes(whQuery))
-        .map((r) => ({ kind: r as string, name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
+        .map((r) => ({ kind: r, name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
         // 照 Unity 的 ChestWindow：按显示名的字典序排，不是按数量。
         // 同名（理论上不会）才拿数量兜底，保证顺序稳定、不会每帧跳。
         .sort((a, b) => {
@@ -496,80 +533,80 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     root.append(note(loose.length
       ? `另有 ${loose.length} 堆物资还散在地上，居民会陆续搬回仓储。`
       : '地面干净，没有待搬运的物资。'));
+    const deliveries = warehouseDeliveries(c);
+    if (deliveries.length) {
+      const section = make('section', 'warehouse-deliveries');
+      section.append(make('h3', '', '送往玩家'));
+      const list = make('div', 'row-list');
+      for (const job of deliveries) {
+        const resident = c.colonists.find(person => person.id === job.assignedTo);
+        const status = job.state === 'blocked'
+          ? resident?.task ?? '等待可到达的储藏区' : !resident ? '等待随从领取'
+            : job.deliveryPhase === 'deliver' ? `${resident.name}正在送来` : `${resident.name}正在去储藏区`;
+        const line = make('div', 'production-row');
+        const body = make('div', 'row-main');
+        body.append(make('strong', '', costText(job.reserved)), make('p', '', status));
+        line.append(body, button('取消', `cancel-delivery-${job.id}`, { action: 'cancel', id: job.id }));
+        list.append(line);
+      }
+      section.append(list);
+      root.append(section);
+    }
   }
+  const warehouseDeliveries = (c: ColonySnapshot) => c.jobs.filter(job => job.targetId === PLAYER_DELIVERY_TARGET);
 
-  /**
-   * 木箱：照 Unity 的 ChestWindow。五列二十格，顶部搜索 + 升降序 + 分类，
-   * 还有一行「计入仓库」状态。天工只有这一个箱子且资源本来就是全局的，
-   * 所以它显示的就是仓库里的东西，勾选框常亮。
-   */
-  let chestDesc = false, chestQuery = '', chestCategory = 'all';
+  let chestSort = 0, chestQuery = '', chestCategory = 'all';
   function renderChest(c: ColonySnapshot, root: HTMLElement) {
-    root.append(note('这个箱子放在初始储藏区。打开它就是仓库里的全部家当，随从会往这里搬东西。'));
-
-    const include = make('div', 'chest-include');
-    include.append(make('i', 'chest-toggle'));
-    include.append(make('span', '', '计入仓库：开'));
-    root.append(include);
+    const chest = c.chests.find(item => item.id === chestPanelId);
+    if (!chest) { root.append(empty('找不到这个木箱')); return; }
 
     const tools = make('div', 'wh-tools');
     const search = make('input', 'wh-search') as HTMLInputElement;
-    search.type = 'text';
-    search.placeholder = '搜索物品名…';
+    search.type = 'search';
     search.value = chestQuery;
-    search.setAttribute('aria-label', '搜索物品');
-
-    const order = make('button', 'wh-order', chestDesc ? '降序' : '升序');
+    search.placeholder = '搜索箱内物品…';
+    search.setAttribute('aria-label', '搜索箱内物品');
+    const sortLabels = ['槽位顺序', '升序', '降序'];
+    const order = make('button', 'wh-order', sortLabels[chestSort]);
     const category = makeCategoryDropdown(chestCategory, (key) => { chestCategory = key; draw(); }, chestMenuOpen, (v) => { chestMenuOpen = v; });
     tools.append(search, order, category);
-    root.append(tools);
-
     const grid = make('div', 'chest-grid');
-    root.append(grid);
+    grid.dataset.chestId = chest.id;
+    root.append(tools, grid);
 
     const draw = () => {
-      const items = RESOURCE_TYPES
-        .filter((r) => chestCategory === 'all' || CATEGORY_OF[r] === chestCategory)
-        .filter((r) => !chestQuery || RESOURCE_NAMES[r].includes(chestQuery))
-        .map((r) => ({ kind: r as string, name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
-        .sort((a, b) => {
-          const diff = a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
-          const result = diff === 0 ? a.count - b.count : diff;
-          return chestDesc ? -result : result;
-        });
-
       clear(grid);
-      // 五列，固定铺满二十格
-      for (let i = 0; i < 20; i++) {
-        const item = items[i];
-        const cell = make('div', `chest-cell${item ? '' : ' empty'}`);
-        if (item) {
-          cell.title = `${item.name} · ${item.count}`;
-          cell.append(make('span', 'wh-icon', item.icon));
-          if (item.count > 0) cell.append(make('span', 'wh-count', String(item.count)));
-          cell.dataset.item = item.kind;
-          cell.addEventListener('contextmenu', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            openItemMenu(item.kind, event.clientX, event.clientY);
-          });
-          attachDrag(cell, item.kind, 'pool');
-        }
+      const entries = chest.slots.map((stack, slot) => ({ stack, slot }));
+      if (chestSort) entries.sort((a, b) => {
+        if (!a.stack || !b.stack) return Number(!a.stack) - Number(!b.stack);
+        return (chestSort === 1 ? 1 : -1) * RESOURCE_NAMES[a.stack.resource].localeCompare(RESOURCE_NAMES[b.stack.resource], 'zh-CN');
+      });
+      for (const { stack, slot } of entries) {
+        const matched = !stack || (chestCategory === 'all' || CATEGORY_OF[stack.resource] === chestCategory)
+          && RESOURCE_NAMES[stack.resource].includes(chestQuery);
+        const cell = make('div', 'chest-cell' + (!stack || !matched ? ' empty' : ''));
+        cell.dataset.index = String(slot);
+        const location: InventoryLocation = { kind: 'chest', id: chest.id, slot };
+        if (matched) bindInventoryCell(cell, stack, location, location);
         grid.append(cell);
       }
     };
-
     search.addEventListener('input', () => { chestQuery = search.value; draw(); });
-    order.addEventListener('click', () => { chestDesc = !chestDesc; order.textContent = chestDesc ? '降序' : '升序'; draw(); });
+    order.addEventListener('click', () => {
+      chestSort = (chestSort + 1) % sortLabels.length;
+      order.textContent = sortLabels[chestSort]!;
+      draw();
+    });
     draw();
   }
+
 
   /**
    * 随从面板：左栏数值、右栏背包。照 Unity 的 FollowerPanelUI。
    * 靠近某个居民右键打开，显示的是它自己的状态和身上背的东西。
    */
   function renderFollowerBag(c: ColonySnapshot, root: HTMLElement) {
-    const p = c.colonists.find((x) => x.id === followerPanelId) ?? c.colonists[0];
+    const p = c.colonists.find((x) => x.id === followerPanelId);
     if (!p) { root.append(note('找不到这个居民。')); return; }
 
     const wrap = make('div', 'fb-wrap');
@@ -592,27 +629,21 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     left.append(make('p', 'fb-line', `状态：${p.task || '待命'}`));
     left.append(make('p', 'fb-line', `任务：${p.jobId ? '进行中' : '无'}`));
 
-    // 右栏：九格背包，装的是它正在搬的东西
     const grid = make('div', 'fb-grid');
-    const carrying = Object.entries(p.carrying ?? {}).filter(([, n]) => (n ?? 0) > 0) as [string, number][];
-    for (let i = 0; i < 9; i++) {
-      const cell = make('div', `fb-cell${carrying[i] ? '' : ' empty'}`);
-      if (carrying[i]) {
-        const [res, count] = carrying[i]!;
-        cell.title = `${RESOURCE_NAMES[res as Resource] ?? res} · ${count}`;
-        cell.append(make('span', 'wh-icon', RESOURCE_ICONS[res as Resource] ?? '·'));
-        cell.append(make('span', 'wh-count', String(count)));
-        cell.dataset.item = res;
-        cell.addEventListener('contextmenu', (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          openItemMenu(res, event.clientX, event.clientY);
-        });
-      }
+    const personal: InventoryLocation = { kind: 'follower', id: p.id };
+    const cargo: InventoryLocation = { kind: 'cargo', id: p.id };
+    const carrying = RESOURCE_TYPES.flatMap(resource => p.carrying[resource] ? [{ resource, count: p.carrying[resource]! }] : []);
+    const stacks = [...p.bag, ...carrying];
+    for (let i = 0; i < PLAYER_SLOTS; i++) {
+      const stack = stacks[i] ?? null;
+      const cell = make('div', 'fb-cell' + (stack ? '' : ' empty'));
+      cell.dataset.index = String(i);
+      bindInventoryCell(cell, stack, i === 0 ? personal : cargo, personal);
+      if (i > 0 && stack) cell.title += '（搬运中）';
       grid.append(cell);
     }
-    right.append(grid);
-    right.append(note(carrying.length ? '' : '身上没有东西'));
+    right.append(grid, note('随身背包可装一叠物品'));
+
 
     wrap.append(left, right);
     root.append(wrap);
@@ -672,59 +703,95 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
    * 源格知道自己装的是哪件东西，落点格（快捷栏）知道自己收哪一格。
    * 用指针事件手写，不用 HTML5 draggable——后者在 Shadow DOM 里行为不一致。
    */
-  function attachDrag(cell: HTMLElement, resource: string, from: 'pool' | 'follower') {
-    cell.addEventListener('pointerdown', (event) => {
-      if (event.button !== 0) return;
-      const startX = event.clientX, startY = event.clientY;
-      let ghost: HTMLElement | null = null;
+  const inventoryTargets = new WeakMap<Element, InventoryLocation>();
+  let cancelInventoryDrag: (() => void) | undefined;
+  let ignoreInventoryClick = false;
 
-      const move = (moveEvent: PointerEvent) => {
+  function transferInventory(from: InventoryLocation, to: InventoryLocation, stack: ItemStack) {
+    send('inventory', { from, to, resource: stack.resource, amount: stack.count });
+  }
+
+  function setInventoryTarget(cell: HTMLElement, location: InventoryLocation) {
+    cell.dataset.inventoryTarget = '';
+    inventoryTargets.set(cell, location);
+  }
+
+  function bindInventoryCell(cell: HTMLElement, stack: InventorySlot, from: InventoryLocation, to: InventoryLocation) {
+    setInventoryTarget(cell, to);
+    if (!stack) return;
+    cell.dataset.item = stack.resource;
+    cell.title = RESOURCE_NAMES[stack.resource] + ' · ' + stack.count;
+    cell.append(make('span', 'wh-icon', RESOURCE_ICONS[stack.resource]), make('span', 'wh-count', String(stack.count)));
+    cell.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openItemMenu(stack.resource, event.clientX, event.clientY, from, stack.count);
+    });
+    attachInventoryDrag(cell, stack, from);
+  }
+
+  function attachInventoryDrag(cell: HTMLElement, stack: ItemStack, from: InventoryLocation) {
+    cell.classList.add('inventory-source');
+    cell.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || !event.isPrimary) return;
+      cancelInventoryDrag?.();
+      const { pointerId, clientX, clientY } = event;
+      let ghost: HTMLElement | undefined;
+      let highlighted: Element | null = null;
+
+      const targetAt = (point: PointerEvent) => {
+        const hit = shadow.elementFromPoint(point.clientX, point.clientY);
+        return hit?.closest('[data-inventory-target]') ?? null;
+      };
+      const move = (point: PointerEvent) => {
+        if (point.pointerId !== pointerId) return;
         if (!ghost) {
-          if (Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY) < 6) return;
+          if (!shellEl || Math.hypot(point.clientX - clientX, point.clientY - clientY) < 6) return;
+          closeItemMenu();
           ghost = make('div', 'drag-ghost');
-          ghost.append(make('span', 'wh-icon', RESOURCE_ICONS[resource as Resource] ?? '·'));
-          const rect = shellEl?.getBoundingClientRect();
-          ghost.style.left = `${moveEvent.clientX - (rect?.left ?? 0) - 22}px`;
-          ghost.style.top = `${moveEvent.clientY - (rect?.top ?? 0) - 22}px`;
-          shellEl?.append(ghost);
-        } else {
-          const rect = shellEl?.getBoundingClientRect();
-          ghost.style.left = `${moveEvent.clientX - (rect?.left ?? 0) - 22}px`;
-          ghost.style.top = `${moveEvent.clientY - (rect?.top ?? 0) - 22}px`;
+          ghost.append(make('span', 'wh-icon', RESOURCE_ICONS[stack.resource]), make('span', 'wh-count', String(stack.count)));
+          shellEl.append(ghost);
         }
-        for (const slot of Array.from(shellEl?.querySelectorAll('#hotbar .hotbar-slot') ?? [])) {
-          const r = slot.getBoundingClientRect();
-          const inside = moveEvent.clientX >= r.left && moveEvent.clientX <= r.right
-            && moveEvent.clientY >= r.top && moveEvent.clientY <= r.bottom;
-          slot.classList.toggle('drop-target', inside);
-        }
+        const frame = shellEl!.getBoundingClientRect();
+        ghost.style.left = String(point.clientX - frame.left - 22) + 'px';
+        ghost.style.top = String(point.clientY - frame.top - 22) + 'px';
+        highlighted?.classList.remove('drop-target');
+        highlighted = targetAt(point);
+        highlighted?.classList.add('drop-target');
       };
-
-      const up = (upEvent: PointerEvent) => {
+      const clearDrag = () => {
         doc.removeEventListener('pointermove', move, true);
-        doc.removeEventListener('pointerup', up, true);
+        doc.removeEventListener('pointerup', finish, true);
+        doc.removeEventListener('pointercancel', cancel, true);
+        win.removeEventListener('blur', clearDrag);
         ghost?.remove();
-        ghost = null;
-        const target = Array.from(shellEl?.querySelectorAll('#hotbar .hotbar-slot') ?? []).find((slot) => {
-          const r = slot.getBoundingClientRect();
-          return upEvent.clientX >= r.left && upEvent.clientX <= r.right
-            && upEvent.clientY >= r.top && upEvent.clientY <= r.bottom;
-        }) as HTMLElement | undefined;
-        for (const slot of Array.from(shellEl?.querySelectorAll('#hotbar .hotbar-slot') ?? [])) {
-          slot.classList.remove('drop-target');
-        }
-        if (!target) return;
-        const index = Number(target.dataset.index);
-        if (!Number.isFinite(index)) return;
-        // 拖进快捷栏 = 拿到手上。随从身上的东西先放回共享池再拿。
-        if (from === 'follower') send('takeFromFollower', { resource, slot: index });
-        else send('take', { resource, amount: 1, slot: index });
+        highlighted?.classList.remove('drop-target');
+        cancelInventoryDrag = undefined;
+      };
+      const finish = (point: PointerEvent) => {
+        if (point.pointerId !== pointerId) return;
+        const target = ghost && targetAt(point);
+        const dragged = Boolean(ghost);
+        clearDrag();
+        if (!dragged) return;
+        ignoreInventoryClick = true;
+        win.setTimeout(() => { ignoreInventoryClick = false; }, 0);
+        const to = target ? inventoryTargets.get(target) : undefined;
+        if (to) transferInventory(from, to, stack);
+      };
+      const cancel = (point: PointerEvent) => {
+        if (point.pointerId === pointerId) clearDrag();
       };
 
+      cancelInventoryDrag = clearDrag;
       doc.addEventListener('pointermove', move, true);
-      doc.addEventListener('pointerup', up, true);
+      doc.addEventListener('pointerup', finish, true);
+      doc.addEventListener('pointercancel', cancel, true);
+      win.addEventListener('blur', clearDrag);
     });
   }
+  releases.push(() => cancelInventoryDrag?.());
+
 
   /** 靠近提示：贴着箱子或随从时，在准星上方挂一条「右键 打开…」。 */
   function renderInteractHint() {
@@ -754,10 +821,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
    * 玩家快捷栏。照 Unity 的 HotbarUI：九格显示背包前九格，数字键或点击切换。
    * 上方显示当前选中的物品名；右键格子把东西放回共享池。
    */
-  function renderHotbar(c: ColonySnapshot) {
+  function renderHotbar() {
     const bar = get('hotbar');
     if (!bar) return;
-    // 背包挂在顶层的 player 上，不在 colony 快照里
     const player = state?.player;
     const bag = player?.bag ?? [];
     const selected = player?.bagSelected ?? 0;
@@ -766,10 +832,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     bar.dataset.signature = signature;
     clear(bar);
 
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < PLAYER_SLOTS; i++) {
       const item = bag[i] ?? null;
       const slot = make('div', `hotbar-slot${i === selected ? ' active' : ''}${item ? '' : ' empty'}`);
       slot.dataset.index = String(i);
+      const location: InventoryLocation = { kind: 'player', slot: i };
+      setInventoryTarget(slot, location);
       slot.append(make('span', 'hotbar-key', String(i + 1)));
       if (item) {
         const res = item.resource as Resource;
@@ -779,10 +847,11 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         slot.addEventListener('contextmenu', (event) => {
           event.preventDefault();
           event.stopPropagation();
-          send('drop', { slot: i });
+          transferInventory(location, { kind: 'warehouse' }, item);
         });
+        attachInventoryDrag(slot, item, location);
       }
-      slot.addEventListener('click', () => send('bagSelect', { index: i }));
+      slot.addEventListener('click', () => { if (!ignoreInventoryClick) send('bagSelect', { index: i }); });
       bar.append(slot);
     }
 
@@ -799,13 +868,16 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     // A simulation snapshot must not replace a field while the player is typing.
     if (!force && focused && content.contains(focused) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(focused.tagName)) return;
     const c = state.colony;
-    const stamp = JSON.stringify([panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, state.buildHeight, state.terrain && [state.terrain.target, state.terrain.size, state.terrain.shape, state.terrain.sample], c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, bills: c.bills, trade: c.trade, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete, b.phase, b.blockedReason, percent(b.progress * 100)]), terrainPlans: c.terrainPlans?.map(p => [p.id, p.state, p.remainingCut, p.remainingFill, p.blockedReason]), jobs: c.jobs.map(j => [j.id, j.state, j.label]), zones: c.zones.length, time: Math.floor(c.time) }]);
+    const follower = panel === 'followerBag' ? c?.colonists.find(p => p.id === followerPanelId) : undefined;
+    const stamp = JSON.stringify(panel === 'chest' ? [panel, c?.chests.find(chest => chest.id === chestPanelId)]
+      : panel === 'followerBag' ? [panel, follower && [follower.id, follower.name, follower.task, follower.jobId,
+        Math.round(follower.health), Math.round(follower.rest), follower.bag, follower.carrying]]
+      : panel === 'warehouse' ? [panel, c?.resources, c?.items.length, c && warehouseDeliveries(c)]
+      : [panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, state.buildHeight, state.terrain && [state.terrain.target, state.terrain.size, state.terrain.shape, state.terrain.sample], c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, bills: c.bills, trade: c.trade, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete, b.phase, b.blockedReason, percent(b.progress * 100)]), terrainPlans: c.terrainPlans?.map(p => [p.id, p.state, p.remainingCut, p.remainingFill, p.blockedReason]), jobs: c.jobs.map(j => [j.id, j.state, j.label]), zones: c.zones.length, time: Math.floor(c.time) }]);
     if (!force && stamp === lastPanelStamp) return;
     lastPanelStamp = stamp;
     // 随从面板的标题是那个人的名字，不是栏目名
-    const followerName = panel === 'followerBag'
-      ? c?.colonists.find((x) => x.id === followerPanelId)?.name
-      : undefined;
+    const followerName = follower?.name;
     get('panel-title').textContent = followerName ?? MENU_NAMES[panel] ?? '家园管理';
     const root = get('panel-content'), scrollTop = root.scrollTop; clear(root);
     if (panel === 'sandbox') { renderSandbox(root); root.scrollTop = scrollTop; return; }
@@ -929,7 +1001,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }
     switch (b.id) {
       case 'home': send('home'); break;
-      case 'panel-close': panel = ''; get('workspace').hidden = true; syncTerrainControls(); syncHover(); break;
+      case 'panel-close': cancelInventoryDrag?.(); panel = ''; get('workspace').hidden = true; syncTerrainControls(); syncHover(); break;
       case 'inspector-close': get('inspector').hidden = true; syncTerrainControls(); syncHover(); break;
       case 'settings-toggle': { const hidden = !get('settings').hidden; hideSidePanels(); get('workspace').hidden = true; panel = ''; get('settings').hidden = hidden; syncTerrainControls(); break; }
       case 'help-toggle': { const hidden = !get('help').hidden; hideSidePanels(); get('workspace').hidden = true; panel = ''; get('help').hidden = hidden; syncTerrainControls(); break; }
@@ -953,6 +1025,14 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       }
     }
   });
+  const showChest = (id: string) => {
+    const same = chestPanelId === id;
+    chestPanelId = id;
+    if (!same) { chestSort = 0; chestQuery = ''; chestCategory = 'all'; chestMenuOpen = false; }
+    openPanel('chest', same);
+  };
+  let inventoryNoticeTimer = 0;
+  releases.push(() => win.clearTimeout(inventoryNoticeTimer));
   const message = (event: Event) => {
     const msg = (event as MessageEvent).data;
     if (msg?.type === 'voxel:loaded' && typeof msg.data === 'string') {
@@ -961,10 +1041,19 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       try { win.localStorage.setItem(SAVE_KEY, msg.data); saySave('家园已载入，自动存档已同步'); } catch { saySave('家园已载入，但本机存储不可用'); }
       return;
     }
-    if (msg?.type === 'voxel:openChest') { openPanel('chest'); return; }
+    if (msg?.type === 'voxel:inventory-status' && typeof msg.message === 'string') {
+      const notice = get('inventory-notice');
+      notice.textContent = msg.message;
+      notice.hidden = false;
+      win.clearTimeout(inventoryNoticeTimer);
+      inventoryNoticeTimer = win.setTimeout(() => { notice.hidden = true; }, 2200);
+      return;
+    }
+    if (msg?.type === 'voxel:openChest' && typeof msg.id === 'string') { showChest(msg.id); return; }
     if (msg?.type === 'voxel:openFollower' && typeof msg.id === 'string') {
+      const same = followerPanelId === msg.id;
       followerPanelId = msg.id;
-      openPanel('followerBag');
+      openPanel('followerBag', same);
       return;
     }
     if (msg?.type === 'voxel:save') {
@@ -993,9 +1082,10 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (state.seed !== lastWorldSeed) { lastWorldSeed = state.seed; get<HTMLInputElement>('seed').value = state.seed; }
     get('world-size').textContent = state.worldSize ? `当前地图 ${state.worldSize[0]} × ${state.worldSize[2]} 格 · 新地图默认 250 × 250` : '新地图默认 250 × 250 格';
     const c = state.colony;
-    latestStamp = JSON.stringify([state.seed, state.revision, state.edits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.colonists.map(p => [p.id, p.priorities, p.schedule])]]);
+    latestStamp = JSON.stringify([state.seed, state.revision, state.edits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.playerBag, c.bagSelected, c.chests, c.colonists.map(p => [p.id, p.priorities, p.schedule, p.bag]), warehouseDeliveries(c)]]);
+    updateItemAmount();
     if (c) renderColony(c); else renderPanel();
-    if (c) renderHotbar(c);
+    if (c) renderHotbar();
     renderVitals();
     renderInteractHint();
     syncTerrainControls();
@@ -1009,7 +1099,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   // 验收脚本要能在不开地图的情况下打开木箱面板（面板挂在 port 消息上，
   // 外部没法直接戳）。只暴露这一件事，不碰别的。
   const hooks = win as unknown as { __wbOpenChest?: () => void; __wbOpenFollower?: (id: string) => void };
-  hooks.__wbOpenChest = () => openPanel('chest');
+  hooks.__wbOpenChest = () => { const chest = state?.colony?.chests[0]; if (chest) showChest(chest.id); };
   hooks.__wbOpenFollower = (id: string) => { followerPanelId = id; openPanel('followerBag'); };
 
   // ---- ESC 暂停层 ----

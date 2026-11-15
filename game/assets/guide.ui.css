@@ -29,8 +29,8 @@
 
 /* 玩家快捷栏：只在玩家视角出现，俯视时收起。
    九格对应九类资源，数字键 1-9 切换选中。 */
-.hotbar{display:none}
-.shell[data-view-mode="character"] .hotbar{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:3px;padding:4px;background:rgba(38,52,40,.72);border:2px solid #5c4b32;border-radius:6px;z-index:7}
+.hotbar{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:none;gap:3px;padding:4px;background:rgba(38,52,40,.72);border:2px solid #5c4b32;border-radius:6px;z-index:7}
+.shell[data-view-mode="character"] .hotbar{display:flex}
 .hotbar-slot{position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:rgba(92,75,50,.55);border:2px solid #4a3c28;border-radius:4px;font-size:15px;color:#f0ddba}
 .hotbar-slot.active{border-color:#e05a4a;background:rgba(150,90,60,.65);box-shadow:0 0 0 1px rgba(224,90,74,.45)}
 .hotbar-slot.empty{opacity:.42}
@@ -93,11 +93,19 @@
 .wh-cat-option.active{color:#2f4a2a;font-weight:600;background:#dbe6cc}
 
 /* 仓库格子右键菜单：深色小卡，和暂停卡片同一套。 */
-.item-menu{position:absolute;min-width:112px;padding:5px;display:flex;flex-direction:column;gap:2px;z-index:35;background:#1d2620;border:2px solid #3a4b3a;border-radius:6px;box-shadow:0 8px 22px #0d150f55}
+.item-menu{position:absolute;width:170px;max-width:calc(100% - 8px);padding:5px;display:flex;flex-direction:column;gap:2px;z-index:35;background:#1d2620;border:2px solid #3a4b3a;border-radius:6px;box-shadow:0 8px 22px #0d150f55}
 .item-menu[hidden]{display:none}
 .item-menu-title{padding:5px 10px 7px;font-size:10px;color:#93a487;border-bottom:1px solid #33422f;margin-bottom:3px}
+.item-menu-quantity{display:grid;gap:3px;padding:2px 10px 5px;color:#dcd9c3;font-size:10px}
+.item-menu-quantity span{display:flex;justify-content:space-between}
+.item-menu-quantity output{font-variant-numeric:tabular-nums;color:#f4e5ae}
+.item-menu-quantity input{width:100%;margin:0;padding:0}
 .item-menu button{padding:7px 10px;text-align:left;font-size:11px;color:#dcd9c3;background:transparent;border:1px solid transparent;border-radius:4px;cursor:pointer}
 .item-menu button:hover{background:#2f3d31;border-color:#4a5c48}
+.item-menu button[data-item-action="take"]:enabled{background:#334731;border-color:#526747}
+.item-menu button[data-item-action="take"]:enabled:hover{background:#425735}
+.warehouse-deliveries{margin-top:8px}
+.warehouse-deliveries h3{margin-bottom:5px}
 .item-menu button[disabled]{color:#6d7a66;cursor:not-allowed}
 .item-menu button[disabled]:hover{background:transparent;border-color:transparent}
 
@@ -121,10 +129,9 @@
 .vital-bar.stamina i{background:#a8bd58}
 .vital-gold{margin-left:auto;min-width:64px;padding:3px 10px;text-align:right;font-size:12px;color:#f0e6c8;background:#5c4526;border:1px solid #7a5f36;border-radius:2px}
 
-/* 木箱面板：照 Unity 的 ChestWindow。米色底 + 五列格 + 计入仓库那行。 */
-.chest-include{display:flex;align-items:center;gap:7px;margin-bottom:9px;font-size:11px;color:#5d6b52}
-.chest-toggle{display:inline-block;width:11px;height:11px;background:#7d9560;border:1px solid #5f7449;border-radius:1px}
-.chest-grid{display:grid;grid-template-columns:repeat(5,64px);justify-content:center;gap:5px;padding:9px;background:#e9dfc8;border:1px solid #cbbb98;border-radius:5px}
+/* 木箱的五列独立储物格。 */
+.chest-grid{display:grid;grid-template-columns:repeat(5,minmax(0,64px));justify-content:center;gap:5px;padding:9px;background:#e9dfc8;border:1px solid #cbbb98;border-radius:5px}
+@media(max-height:650px){.chest-grid{grid-template-columns:repeat(5,minmax(0,52px))}}
 .chest-cell{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#d9c9a8;border:1px solid #c2ad86;border-radius:3px;overflow:hidden}
 .chest-cell.empty{background:#e2d5b9;border-color:#cfc0a0}
 
@@ -154,13 +161,19 @@
 .interact-hint{display:none;position:absolute;left:50%;bottom:130px;transform:translateX(-50%);align-items:center;gap:7px;padding:5px 11px;font-size:11px;color:#eef2e6;background:#1d2620cc;border:1px solid #4a5c48;border-radius:3px;white-space:nowrap;z-index:23;pointer-events:none}
 .interact-hint[hidden]{display:none}
 .shell[data-view-mode="character"] .interact-hint:not([hidden]){display:flex}
+.shell:has(#workspace:not([hidden])) .interact-hint{display:none}
 .hint-key{padding:1px 6px;font-size:10px;color:#1d2620;background:#d6cfb4;border-radius:2px;box-shadow:0 1px 0 #8f8a72}
 
 /* 打开面板时快捷栏也要在场——它是拖放的目标。
    上帝视角下底部有那排菜单，所以往上抬一截避让。 */
-.shell:has(#workspace:not([hidden])) .hotbar{display:flex;bottom:96px;z-index:22}
-.hotbar-slot.drop-target{border-color:#e0a94a;background:rgba(200,150,70,.7);box-shadow:0 0 0 2px #e0a94a88}
+.shell:has(#workspace:not([hidden])) .hotbar{display:flex;bottom:52px;z-index:22}
+.shell:has(#workspace:not([hidden])) .hotbar-name{display:none}
+.inventory-source{cursor:grab;touch-action:none}
+.hotbar-slot.drop-target,.chest-cell.drop-target,.fb-cell.drop-target{border-color:#e0a94a;background:rgba(200,150,70,.7);box-shadow:0 0 0 2px #e0a94a88}
 .drag-ghost{position:absolute;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:#d9c9a8;border:1px solid #c2ad86;border-radius:3px;box-shadow:0 6px 16px #00000055;opacity:.9;pointer-events:none;z-index:99;font-size:16px}
+.inventory-notice{display:none;position:absolute;left:50%;bottom:72px;transform:translateX(-50%);padding:5px 10px;color:#f8ecd2;background:#263026ee;border:1px solid #67664d;border-radius:4px;z-index:24;pointer-events:none}
+.shell[data-view-mode="character"] .inventory-notice{display:block}
+.shell:has(#workspace:not([hidden])) .inventory-notice{bottom:14px}
 
 /* 关掉网页的「长按拖拽选字」。游戏里拖动是干活的，选中一片蓝字很碍眼。
    输入框单独放开——搜索时还是要能选文字改错。 */

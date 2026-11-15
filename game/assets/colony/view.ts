@@ -132,7 +132,7 @@ export class ColonyView {
     }
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }
-  dispose(){this.disposePlayer();for(const g of this.groups.values())for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.clear();for(const m of this.materials.values())this.assets.release(m).unwrap();this.materials.clear();this.assets.release(this.cube).unwrap();}
+  dispose(){this.disposePlayer();this.updateChests([]);for(const g of this.groups.values())for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.clear();for(const m of this.materials.values())this.assets.release(m).unwrap();this.materials.clear();this.assets.release(this.cube).unwrap();}
 
   // ---- 玩家角色 ----
   // 玩家每帧都在动，不能跟着殖民地那套 20Hz 的快照刷新，
@@ -140,8 +140,7 @@ export class ColonyView {
 
   private playerEntities:EntityHandle[]=[];
   private playerParts:Part[]=[];
-  private chestEntities:EntityHandle[]=[];
-  private chestAt:V3|null=null;
+  private chestEntities = new Map<string, { pos: V3; parts: EntityHandle[] }>();
   private playerFacing=Number.NaN;
 
   /** 每帧调，只改位置/姿态，不重建实体。 */
@@ -197,12 +196,19 @@ export class ColonyView {
 
   get playerEntityCount(){return this.playerEntities.length;}
 
-  /** 放一个木箱。重复调用同一位置不做任何事。 */
-  setChest(pos:V3){
-    if(this.chestAt&&this.chestAt[0]===pos[0]&&this.chestAt[2]===pos[2])return;
-    this.chestAt=pos;
-    for(const e of this.chestEntities)this.world.despawn(e).unwrap();
-    this.chestEntities=[];
+  updateChests(chests: readonly { id: string; pos: V3 }[]) {
+    for (const [id, chest] of this.chestEntities) {
+      const next = chests.find(candidate => candidate.id === id);
+      if (next && chest.pos.every((coord, axis) => coord === next.pos[axis])) continue;
+      for (const entity of chest.parts) this.world.despawn(entity).unwrap();
+      this.chestEntities.delete(id);
+    }
+    for (const { id, pos } of chests) {
+      if (!this.chestEntities.has(id)) this.chestEntities.set(id, { pos, parts: this.spawnChest(id, pos) });
+    }
+  }
+
+  private spawnChest(id: string, pos: V3): EntityHandle[] {
     const [gx,gy,gz]=pos;
     // 画在格子中心，和判定用的圆心对齐
     const x=gx+0.5, y=gy, z=gz+0.5;
@@ -212,14 +218,12 @@ export class ColonyView {
       {p:[x,y+.60,z],s:[.9,.12,.76],c:'dark'},
       {p:[x,y+.30,z+.37],s:[.18,.2,.06],c:'steel'},
     ];
-    this.chestEntities=parts.map((part,i)=>this.world.spawn(
-      {component:Name,data:{value:`chest/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s}},
+    return parts.map((part,i)=>this.world.spawn(
+      {component:Name,data:{value:`chest/${id}/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s}},
       {component:MeshFilter,data:{assetHandle:this.cube}},{component:MeshRenderer,data:{materials:[this.material(part.c)]}},
       {component:ShadowParticipation,data:{cast:true,receive:true}},
     ).unwrap());
   }
-
-  clearChest(){for(const e of this.chestEntities)this.world.despawn(e).unwrap();this.chestEntities=[];this.chestAt=null;}
 
   disposePlayer(){for(const e of this.playerEntities)this.world.despawn(e).unwrap();this.playerEntities=[];this.playerParts=[];}
 }
