@@ -24,7 +24,7 @@ import { ColonySimulation } from '../colony/simulation.ts';
 import { ColonyView } from '../colony/view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
 import {
-  BUILDING_DEFS, HAMMER, AXE, PLAYER_CHOP_REACH, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
+  BUILDING_DEFS, HAMMER, AXE, PICKAXE, needsPickaxe, PLAYER_DEMOLISH_RATE, PLAYER_DEMOLISH_RATE_TOOL, PLAYER_CHOP_REACH, PLAYER_BUILD_REACH, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
   PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN, CHOP_WORK,
   type BuildingKind, type ColonyCommand, type ChestView,
 } from '../colony/contracts.ts';
@@ -77,6 +77,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let selectedTreeId: string | null = null, hoverTreeId: string | null = null;
       // 玩家撸树：按住左键时推进，换目标或松手就归零。
       let playerChop: { id: string; progress: number } | null = null;
+      // 玩家手工拆建筑：按住左键推进，换目标或松手归零。
+      let playerDemolish: { id: string; progress: number } | null = null;
       let hoverTreePart: 'trunk' | 'branch' | 'crown' | null = null;
       let terrainTarget = 6, terrainSize = 3, terrainShape: 'brush' | 'rectangle' = 'brush', terrainSample = false;
       let buildHeight: number | null = null;
@@ -743,6 +745,46 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             if (hoverTreeId !== (hoverTree?.tree.id ?? null) || hoverTreePart !== (hoverTree?.part.role ?? null)) refreshState = true;
             hoverTreeId = hoverTree?.tree.id ?? null; hoverTreePart = hoverTree?.part.role ?? null;
 
+            // ---- 玩家拆建筑 ----
+            // 角色视角下左键直接挖，不弹详情面板（那是上帝视角的经营操作）。
+            // 石造/金属建筑必须拿镐子，徒手只提示不给进度。
+            const demolishTarget = viewMode === 'character' ? objectHit?.building : undefined;
+            const inDemolishReach = !!demolishTarget
+              && Math.abs(demolishTarget.x + demolishTarget.w / 2 - player.x) <= PLAYER_BUILD_REACH + 2
+              && Math.abs(demolishTarget.z + demolishTarget.d / 2 - player.z) <= PLAYER_BUILD_REACH + 2;
+            if (viewMode === 'character' && inDemolishReach) {
+              const holdLeft = input.mouse.button(0);
+              const def = BUILDING_DEFS[demolishTarget!.kind as BuildingKind];
+              const heldTool = String(colonyState.playerBag[colonyState.bagSelected]?.resource ?? '');
+              const needPick = needsPickaxe(def);
+              const wrongTool = needPick && heldTool !== PICKAXE;
+              if (!holdLeft) {
+                playerDemolish = null;
+              } else if (wrongTool) {
+                playerDemolish = null;
+                status = `${def.name}是石造的，需要石镐才能拆`;
+                refreshState = true;
+              } else {
+                const dtDemolish = Math.min(world.getResource(Time).delta, 0.1);
+                const hasRightTool = heldTool === (needPick ? PICKAXE : AXE);
+                const rate = hasRightTool ? PLAYER_DEMOLISH_RATE_TOOL : PLAYER_DEMOLISH_RATE;
+                if (!playerDemolish || playerDemolish.id !== demolishTarget!.id) playerDemolish = { id: demolishTarget!.id, progress: 0 };
+                playerDemolish.progress += (rate * dtDemolish) / Math.max(1, def.work);
+                if (playerDemolish.progress >= 1) {
+                  const result = execute({ action: 'demolish', id: demolishTarget!.id });
+                  status = result.message;
+                  playerDemolish = null;
+                } else {
+                  status = `拆除${def.name} ${Math.round(playerDemolish.progress * 100)}%`;
+                  refreshState = true;
+                }
+              }
+            } else {
+              playerDemolish = null;
+            }
+            // 正在拆东西时，左键不再触发「选中并弹面板」
+            const canopyDemolish = viewMode === 'character' && !!playerDemolish;
+
             // ---- 玩家撸树 ----
             // 只在角色视角：按住左键，瞄着 3×3 范围内的树，进度满了整棵倒。
             // 空手 6 秒、木斧 4 秒；体力扣得也不一样。没有裂纹特效，满了直接消失。
@@ -841,7 +883,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 terrainView.preview([...cells.values()], height, key); refreshState = true;
               }
             } else if (!stroke) { terrainView.clearPreview(); previewKey = ''; }
-            if (!sandbox && !canopyChop && tool !== 'level' && (hit||objectHit||treeHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
+            if (!sandbox && !canopyChop && !canopyDemolish && tool !== 'level' && (hit||objectHit||treeHit) && (input.mouse.justPressed(0) || input.mouse.justPressed(2))) {
               const x=treeTarget?treeHit.tree.x:objectTarget?objectHit.part.x:hit?.cell[0]??treeHit!.tree.x,z=treeTarget?treeHit.tree.z:objectTarget?objectHit.part.z:hit?.cell[2]??treeHit!.tree.z;
               if(input.mouse.justPressed(2)){
                 // 角色视角下贴着东西右键 = 打开它。箱子优先于随从（箱子不会自己走开）。

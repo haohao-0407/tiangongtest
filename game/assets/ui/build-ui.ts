@@ -1,7 +1,7 @@
 import type { GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
-  BUILDING_DEFS, CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, AXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
+  BUILDING_DEFS, CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
   RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, inventorySpace,
   type ColonyCommand, type ColonySnapshot, type ColonistView, type InventoryLocation, type InventorySlot, type ItemStack, type PlayerInventorySlot, type Resource,
 } from '../colony/contracts.ts';
@@ -550,7 +550,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     cabbage: 'crop', leek: 'crop', potato: 'crop', tomato: 'crop',
     friedEgg: 'dish', bread: 'dish', salad: 'dish', pasta: 'dish',
     pancake: 'dish', blueberryPie: 'dish', pizza: 'dish', perfectBreakfast: 'dish',
-    [HAMMER]: 'tool', [AXE]: 'tool',
+    [HAMMER]: 'tool', [AXE]: 'tool', [PICKAXE]: 'tool',
   };
   const CATEGORY_NAMES: Record<string, string> = {
     all: '全部', block: '方块', item: '非方块', crop: '作物', dish: '料理', tool: '工具',
@@ -561,7 +561,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
    * 工具（锤子）不是 Resource，查不到就回退——所有面板必须走这两个函数，
    * 别直接索引 RESOURCE_NAMES / CATEGORY_OF，否则加个新物品就会崩。
    */
-  const TOOL_NAMES: Record<string, string> = { [HAMMER]: '锤子', [AXE]: '木斧' };
+  const TOOL_NAMES: Record<string, string> = { [HAMMER]: '锤子', [AXE]: '木斧', [PICKAXE]: '石镐' };
   const nameOf = (resource: string) => TOOL_NAMES[resource] ?? RESOURCE_NAMES[resource as Resource] ?? resource;
   const categoryOf = (resource: string) => CATEGORY_OF[resource] ?? 'item';
 
@@ -937,7 +937,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   type DraggableStack = { resource: string; count: number };
 
   /** 工具类物品的图标。资源表里没有它们，单独挂一份。加新工具往这里补一行。 */
-  const TOOL_ICONS: Record<string, string> = { [HAMMER]: '🔨', [AXE]: '🪓' };
+  const TOOL_ICONS: Record<string, string> = { [HAMMER]: '🔨', [AXE]: '🪓', [PICKAXE]: '⛏️' };
   const iconOf = (resource: string) => TOOL_ICONS[resource] ?? RESOURCE_ICONS[resource as Resource] ?? '·';
 
   function renderHotbar() {
@@ -979,7 +979,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const nameEl = get('hotbar-name');
     if (nameEl) {
       const cur = bag[selected];
-      const toolHints: Record<string, string> = { hammer: '锤子 · 左键蓝图施工', axe: '木斧 · 左键砍树（更快）' };
+      const toolHints: Record<string, string> = { hammer: '锤子 · 左键蓝图施工', axe: '木斧 · 左键砍树（更快）', pickaxe: '石镐 · 左键拆石造建筑' };
       nameEl.textContent = cur ? (toolHints[String(cur.resource)] ?? nameOf(cur.resource)) : '';
     }
   }

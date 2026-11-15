@@ -13,9 +13,9 @@ export type Resource = typeof RESOURCE_TYPES[number];
 export type Resources = Record<Resource, number>;
 export const PLAYER_SLOTS = 9, CHEST_SLOTS = 20, STACK_LIMIT = 99, CHEST_WOOD_COST = 4;
 export const PLAYER_DELIVERY_TARGET = 'player-delivery';
-export const HAMMER = 'hammer', AXE = 'axe', PLAYER_BUILD_MULTIPLIER = 2, PLAYER_BUILD_REACH = 3;
+export const HAMMER = 'hammer', AXE = 'axe', PICKAXE = 'pickaxe', PLAYER_BUILD_MULTIPLIER = 2, PLAYER_BUILD_REACH = 3;
 /** 工具不是 Resource，但要走同一条搬运/存档流程。加新工具时只往这里加。 */
-export const TOOL_KINDS = [HAMMER, AXE] as const;
+export const TOOL_KINDS = [HAMMER, AXE, PICKAXE] as const;
 export type ToolKind = typeof TOOL_KINDS[number];
 
 /**
@@ -30,6 +30,13 @@ export const PLAYER_CHOP_REACH = 1;            // 以玩家为中心的半径（
 export const PLAYER_CHOP_STAMINA = 12;         // 空手砍一棵扣多少体力
 export const PLAYER_CHOP_STAMINA_AXE = 8;      // 木斧扣得少
 export const PLAYER_STAMINA_REGEN = 2;         // 静立每秒回多少
+/**
+ * 拆建筑的工作量速度（每秒）。
+ * 和砍树用同一套换算：空手 16/6、拿对工具 16/4。
+ */
+export const PLAYER_DEMOLISH_RATE = CHOP_WORK / PLAYER_CHOP_SECONDS;
+export const PLAYER_DEMOLISH_RATE_TOOL = CHOP_WORK / PLAYER_CHOP_SECONDS_AXE;
+
 /** 掉落物落地的 0.5 秒内不许捡：看得见它弹一下，而不是瞬间消失。 */
 export const ITEM_PICKUP_DELAY = 0.5;
 /** 玩家自动拾取的水平距离（格）。 */
@@ -132,6 +139,18 @@ export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
   scarecrow:{id:'scarecrow',name:'稻草人',description:'防鸟，减少作物损失。',cost:{wood:6,cloth:2},work:12,power:0,blocking:true,color:[0.74,0.62,0.36],category:'agriculture'},
   compostBin:{id:'compostBin',name:'堆肥箱',description:'秸秆转化成肥料。',cost:{wood:10},work:16,power:0,blocking:true,color:[0.50,0.42,0.28],category:'agriculture'},
 };
+/**
+ * 这栋建筑徒手拆不拆得动。
+ *
+ * 判据是建材：石头/钢铁/零件占大头的就算「硬结构」，必须拿镐子。
+ * 木头的、布的都是徒手就能拆（这样不用给 45 种建筑一个个标）。
+ */
+export function needsPickaxe(def: BuildingDefinition): boolean {
+  const hard = (def.cost.stone ?? 0) + (def.cost.steel ?? 0) + (def.cost.components ?? 0) * 2;
+  const soft = (def.cost.wood ?? 0) + (def.cost.cloth ?? 0) + (def.cost.food ?? 0);
+  return hard > soft;
+}
+
 export interface ResearchDefinition {id:string;name:string;description:string;work:number;requires?:string;unlocks:string[]}
 export const RESEARCH_DEFS: Record<string,ResearchDefinition> = {
   agriculture:{id:'agriculture',name:'精耕农业',description:'解锁玉米和更高产的种植方式。',work:90,unlocks:['corn']},

@@ -3,7 +3,7 @@ import type { TreeInstance } from '../voxel/trees.ts';
 import {buildingDimensions,buildingParts,buildingBlocksMovement} from './buildings.ts';
 import {
   BUILDING_DEFS, RESEARCH_DEFS, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES,
-  CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, AXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET,
+  CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, AXE, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET,
   PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
   type ColonySnapshot, type ColonistView, type CommandResult, type CropView,
@@ -90,7 +90,7 @@ export class ColonySimulation {
         wheat: 10, corn: 10, blueberry: 10, sugarcane: 10, cabbage: 10, leek: 10, potato: 10, tomato: 10,
         friedEgg: 10, bread: 10, salad: 10, pasta: 10, pancake: 10, blueberryPie: 10, pizza: 10, perfectBreakfast: 10,
       },
-      playerBag: [{ resource: HAMMER, count: 1 }, { resource: AXE, count: 1 }, ...emptySlots(PLAYER_SLOTS - 2)], bagSelected: 0, chests: [this.starterChest()],
+      playerBag: [{ resource: HAMMER, count: 1 }, { resource: AXE, count: 1 }, { resource: PICKAXE, count: 1 }, ...emptySlots(PLAYER_SLOTS - 3)], bagSelected: 0, chests: [this.starterChest()],
       colonists: [], buildings: [], zones: [], crops: [], items: [], jobs: [], events: [],terrainPlans:[],
       research: { active: null, progress: {}, completed: [] },
       power: { generation: 0, demand: 0, stored: 0, capacity: 0, supplied: 0, coldStorage: false },

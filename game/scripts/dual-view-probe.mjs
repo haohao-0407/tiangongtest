@@ -392,7 +392,7 @@ export default async function dualViewProbe(play) {
   await advance(0.6);
   const requested = await read();
   assert.equal(requested.colony.resources[takenResource], poolBefore[takenResource] - 3, '仓库应锁定滑条选择的数量');
-  assert.ok(requested.player.bag.slice(2).every(stack => stack === null), '下单不应直接把物品放进快捷栏');
+  assert.ok(requested.player.bag.slice(3).every(stack => stack === null), '下单不应直接把物品放进快捷栏');
   const order = requested.colony.jobs.find(job => job.targetId === 'player-delivery');
   assert.ok(order && order.deliveryPhase === 'pickup' && order.reserved[takenResource] === 3);
   await play.screenshot('inventory-delivery-queued');
@@ -401,12 +401,12 @@ export default async function dualViewProbe(play) {
   const delivered = await waitDelivery(order.id, (job, current) => {
     if (job.deliveryPhase === 'deliver') {
       assert.ok(current.colony.colonists.some(person => person.id === job.assignedTo));
-      assert.ok(current.player.bag.slice(2).every(stack => stack === null));
+      assert.ok(current.player.bag.slice(3).every(stack => stack === null));
       sawCarrier = true;
     }
   });
   assert.ok(sawCarrier, '应看见居民从储藏区取货后、送到玩家前的状态');
-  assert.deepEqual(delivered.player.bag.slice(2).filter(Boolean), [{ resource: takenResource, count: 3 }]);
+  assert.deepEqual(delivered.player.bag.slice(3).filter(Boolean), [{ resource: takenResource, count: 3 }]);
   await play.screenshot('inventory-delivery-arrived');
   await pauseColony();
   await play.page.locator('[data-menu="warehouse"]').click();
@@ -547,9 +547,9 @@ export default async function dualViewProbe(play) {
   assert.ok(boxAfter <= boxSlotCount, `木箱那格不该变多，实际 ${boxAfter}`);
   assert.ok(bagAfter.some(stack => stack.resource === item.resource), '背包里应出现取回的物品');
   assert.equal(await play.page.locator('#hotbar').isVisible(), true, '打开面板时快捷栏应可见');
-  // 背包 0/1 是工具（锤子、木斧），取回的物品落在第一个空槽——动态找，别写死
+  // 背包 0~2 是工具（锤子、木斧、石镐），取回的物品落在第一个空槽——动态找，别写死
   const refillSlot = (await read()).player.bag.findIndex(stack => stack?.resource === item.resource);
-  assert.ok(refillSlot >= 2, `取回的物品应在工具之后的槽位，实际 ${refillSlot}`);
+  assert.ok(refillSlot >= 3, `取回的物品应在工具之后的槽位，实际 ${refillSlot}`);
   await drag(chestSlot(3), hotbarSlot(refillSlot));
   // 不写死落在第几格：工具占着 0/1，格位会随背包内容浮动
   inventoryState = await read();
@@ -626,9 +626,9 @@ export default async function dualViewProbe(play) {
     `随从背包不该变多，实际 ${follower(await read()).bag[0]?.count}`);
   assert.ok((await read()).player.bag.filter(Boolean).some(stack => stack.resource === item.resource),
     '背包里应出现从随从取回的物品');
-  // 从随从取回要落在空槽：0/1 被工具占着，写死 slot 1 会把斧头当物品拖走
+  // 从随从取回要落在空槽：0~2 被工具占着，写死低索引会把工具当物品拖走
   const returnSlot = (await read()).player.bag.findIndex(stack => stack === null);
-  assert.ok(returnSlot >= 2, `应落在工具之后的空槽，实际 ${returnSlot}`);
+  assert.ok(returnSlot >= 3, `应落在工具之后的空槽，实际 ${returnSlot}`);
   await drag(followerSlot, hotbarSlot(returnSlot));
   inventoryState = await drag(hotbarSlot(returnSlot), hotbarSlot(7));
   // 随从身上剩几个取决于前面取回时的滑条上限，只验种类和「数量大于 0」

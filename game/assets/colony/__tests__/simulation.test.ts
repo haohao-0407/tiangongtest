@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BLOCK, VoxelWorld } from '../../voxel/model.ts';
-import { BUILDING_DEFS, ColonySimulation, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES } from '../simulation.ts';
+import { BUILDING_DEFS, ColonySimulation, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES, TOOL_KINDS, needsPickaxe } from '../simulation.ts';
 
 function setup(seed='colony-test') { const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed,size:[48,24,48],edits:[]}));return {world,sim:new ColonySimulation(world)}; }
 function run(sim:ColonySimulation,seconds:number) { for(let i=0;i<seconds*4;i++)sim.tick(.25); }
@@ -64,7 +64,7 @@ describe('inventory reservation, work and walking',()=>{
     expect(order.ok).toBe(true);
     expect(sim.snapshot().resources.steel).toBe(before.resources.steel - 7);
     // slot 0/1 是锤子和木斧，空槽从 2 开始
-expect(sim.snapshot().playerBag.slice(2).every(stack => stack === null)).toBe(true);
+expect(sim.snapshot().playerBag.slice(TOOL_KINDS.length).every(stack => stack === null)).toBe(true);
     expect(pending()?.targetId).toBe(PLAYER_DELIVERY_TARGET);
     for (let i = 0; i < 200 && pending()?.deliveryPhase === 'pickup'; i++) sim.tick(.25, originalPlayer);
     const traveling = pending();
@@ -72,7 +72,7 @@ expect(sim.snapshot().playerBag.slice(2).every(stack => stack === null)).toBe(tr
     const carrier = sim.snapshot().colonists.find(person => person.id === traveling?.assignedTo)!;
     expect([Math.floor(carrier.position[0]), Math.floor(carrier.position[2])]).toEqual([traveling!.x, traveling!.z]);
     // slot 0/1 是锤子和木斧，空槽从 2 开始
-expect(sim.snapshot().playerBag.slice(2).every(stack => stack === null)).toBe(true);
+expect(sim.snapshot().playerBag.slice(TOOL_KINDS.length).every(stack => stack === null)).toBe(true);
 
     const restored = new ColonySimulation(world);
     restored.load(sim.serialize());
@@ -80,7 +80,7 @@ expect(sim.snapshot().playerBag.slice(2).every(stack => stack === null)).toBe(tr
     const finished = restored.snapshot();
     expect(finished.jobs.some(job => job.id === order.id)).toBe(false);
     // 送货落在第一个空槽——0/1 是工具，所以是 2
-expect(finished.playerBag[2]).toEqual({ resource: 'steel', count: 7 });
+expect(finished.playerBag[TOOL_KINDS.length]).toEqual({ resource: 'steel', count: 7 });
     expect(finished.resources.steel).toBe(before.resources.steel - 7);
     const arrived = finished.colonists.find(person => person.id === carrier.id)!;
     expect(Math.hypot(arrived.position[0] - nextPlayer[0], arrived.position[2] - nextPlayer[2])).toBeLessThanOrEqual(1.5);
@@ -111,15 +111,15 @@ expect(finished.playerBag[2]).toEqual({ resource: 'steel', count: 7 });
     const { sim } = setup();
     const warehouse = { kind: 'warehouse' } as const;
     // 0 和 1 被工具占着（锤子、木斧），从 2 起才是空槽
-    const first = { kind: 'player', slot: 2 } as const;
-    const second = { kind: 'player', slot: 3 } as const;
+    const first = { kind: 'player', slot: TOOL_KINDS.length } as const;
+    const second = { kind: 'player', slot: TOOL_KINDS.length + 1 } as const;
     const chest = { kind: 'chest', id: sim.snapshot().chests[0]!.id, slot: 3 } as const;
     expect(sim.transferInventory(warehouse, first, 'wood', 98).ok).toBe(true);
     expect(sim.transferInventory(warehouse, second, 'wood', 12).ok).toBe(true);
     expect(sim.transferInventory(first, chest, 'wood', 98).ok).toBe(true);
     expect(sim.transferInventory(second, chest, 'wood', 12).ok).toBe(true);
     expect(sim.snapshot().chests[0]!.slots[3]).toEqual({ resource: 'wood', count: 99 });
-    expect(sim.snapshot().playerBag[3]).toEqual({ resource: 'wood', count: 11 });
+    expect(sim.snapshot().playerBag[TOOL_KINDS.length + 1]).toEqual({ resource: 'wood', count: 11 });
     expect(sim.snapshot().resources.wood).toBe(30);
     expect(sim.transferInventory(first, chest, 'wood', 98).ok).toBe(false);
     expect(sim.transferInventory(warehouse, first, 'stone', 1).ok).toBe(true);
@@ -317,6 +317,18 @@ describe('resident needs and civilian production',()=>{
     // 那条随从任务必须被清掉，否则居民会守着一棵不存在的树
     expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.targetId===tree.id)).toBe(false);
     expect(sim.playerFellTree(tree.id).ok).toBe(false);
+  });
+  it('requires a pickaxe only for stone or metal buildings',()=>{
+    // 石造/金属：徒手拆不动
+    expect(needsPickaxe(BUILDING_DEFS.forgery)).toBe(true);
+    expect(needsPickaxe(BUILDING_DEFS.stove)).toBe(true);
+    expect(needsPickaxe(BUILDING_DEFS.wall)).toBe(true);
+    expect(needsPickaxe(BUILDING_DEFS.solar)).toBe(true);
+    // 木造/布造：徒手就能拆
+    expect(needsPickaxe(BUILDING_DEFS.bed)).toBe(false);
+    expect(needsPickaxe(BUILDING_DEFS.table)).toBe(false);
+    expect(needsPickaxe(BUILDING_DEFS.fence)).toBe(false);
+    expect(needsPickaxe(BUILDING_DEFS.floor)).toBe(false);
   });
   it('shares one chop progress between the player and residents',()=>{
     const{sim,world}=setup();onlyJob(sim,'chop');
