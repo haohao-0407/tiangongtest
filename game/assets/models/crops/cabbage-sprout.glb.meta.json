@@ -1,0 +1,105 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "白菜-幼芽"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "cabbage-sprout.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:白菜-幼芽_mesh"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:白菜-幼芽_mesh": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1ef5e-43fb-73a6-96e2-89c4b804d30d",
+          "slotName": "白菜-幼芽_mat",
+          "sourceKey": "material:白菜-幼芽_mat"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1ef5e-43fb-73a6-96e2-89c38a4f10a6",
+      "kind": "mesh",
+      "name": "白菜-幼芽_mesh",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:白菜-幼芽_mesh"
+    },
+    {
+      "guid": "01a1ef5e-43fb-73a6-96e2-89c4b804d30d",
+      "kind": "material",
+      "name": "白菜-幼芽_mat",
+      "sourceIndex": 0,
+      "sourceKey": "material:白菜-幼芽_mat"
+    },
+    {
+      "guid": "01a1ef5e-43fb-73a6-96e2-89c5dad9cb47",
+      "kind": "scene",
+      "name": "Scene",
+      "sourceIndex": 0,
+      "sourceKey": "scene:Scene"
+    },
+    {
+      "guid": "01a1ef5e-43fb-73a6-96e2-89c67385a217",
+      "kind": "texture",
+      "name": "白菜-幼芽",
+      "sourceIndex": 0,
+      "sourceKey": "texture:白菜-幼芽"
+    },
+    {
+      "guid": "01a1ef5e-43fb-73a6-96e2-89c7478dd1d1",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

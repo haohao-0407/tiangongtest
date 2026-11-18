@@ -1,0 +1,143 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "白菜-成熟"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "cabbage-mature.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:白菜-成熟_mesh.001"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:白菜-成熟_mesh.001": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1ef5e-72c5-7f18-ab02-d7a13f8e0c70",
+          "slotName": "材质.003",
+          "sourceKey": "material:材质.003"
+        },
+        {
+          "defaultMaterialGuid": "01a1ef5e-72c5-7f18-ab02-d7a21c582286",
+          "slotName": "材质.004",
+          "sourceKey": "material:材质.004"
+        },
+        {
+          "defaultMaterialGuid": "01a1ef5e-72c5-7f18-ab02-d7a34d3f2dcb",
+          "slotName": "材质.005",
+          "sourceKey": "material:材质.005"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1ef5e-72c5-7f18-ab02-d7a047d3c329",
+      "kind": "mesh",
+      "name": "白菜-成熟_mesh.001",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:白菜-成熟_mesh.001"
+    },
+    {
+      "guid": "01a1ef5e-72c5-7f18-ab02-d7a13f8e0c70",
+      "kind": "material",
+      "name": "材质.003",
+      "sourceIndex": 0,
+      "sourceKey": "material:材质.003"
+    },
+    {
+      "guid": "01a1ef5e-72c5-7f18-ab02-d7a21c582286",
+      "kind": "material",
+      "name": "材质.004",
+      "sourceIndex": 1,
+      "sourceKey": "material:材质.004"
+    },
+    {
+      "guid": "01a1ef5e-72c5-7f18-ab02-d7a34d3f2dcb",
+      "kind": "material",
+      "name": "材质.005",
+      "sourceIndex": 2,
+      "sourceKey": "material:材质.005"
+    },
+    {
+      "guid": "01a1ef5e-72c5-7f18-ab02-d7a42fc7f7f0",
+      "kind": "scene",
+      "name": "Scene",
+      "sourceIndex": 0,
+      "sourceKey": "scene:Scene"
+    },
+    {
+      "guid": "01a1ef5e-72c5-7f18-ab02-d7a5741b74e1",
+      "kind": "texture",
+      "name": "白菜-成熟-内叶",
+      "sourceIndex": 0,
+      "sourceKey": "texture:白菜-成熟-内叶"
+    },
+    {
+      "guid": "01a1ef5e-72c5-7f18-ab02-d7a6391a6289",
+      "kind": "texture",
+      "name": "白菜-成熟-中叶",
+      "sourceIndex": 1,
+      "sourceKey": "texture:白菜-成熟-中叶"
+    },
+    {
+      "guid": "01a1ef5e-72c5-7f18-ab02-d7a75cda0ccd",
+      "kind": "texture",
+      "name": "白菜-成熟-外叶",
+      "sourceIndex": 2,
+      "sourceKey": "texture:白菜-成熟-外叶"
+    },
+    {
+      "guid": "01a1ef5e-72c5-7f18-ab02-d7a8e0f747b4",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

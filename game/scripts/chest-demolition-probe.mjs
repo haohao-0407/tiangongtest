@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { tsImport } from 'tsx/esm/api';
+import { possessResident } from './select-resident.mjs';
 
 const READ = 'voxel.world';
 const dot = (a, b) => a.reduce((sum, value, i) => sum + value * b[i], 0);
@@ -24,6 +26,17 @@ export default async function chestDemolition(play) {
     assert.equal((await advance()).hoverBuildingId, building.id, '鼠标指向箱盖时应命中整座木箱');
   };
 
+  const { VoxelWorld }=await tsImport('../assets/voxel/model.ts',import.meta.url);
+  const { ColonySimulation }=await tsImport('../assets/colony/simulation.ts',import.meta.url);
+  const world=new VoxelWorld((await read()).seed);
+  const fixture=new ColonySimulation(world).serialize();
+  const residentId=fixture.colonists[0].id;
+  fixture.colonists[0].position=[125.5,6,125.5];
+  fixture.speed=0;
+  await page.evaluate(data=>localStorage.setItem('homestead.colony.v2',data),JSON.stringify({version:2,voxel:world.serialize(),colony:fixture}));
+  await play.reload();
+  await play.waitFor(s=>s.colony.speed===0&&s.colony.colonists[0].position[0]===125.5,{read:READ,timeoutMs:10000});
+
   await page.locator('[data-menu="sandbox"]').click();
   await page.locator('[data-menu="inspect"]').click();
   const god = await advance();
@@ -38,9 +51,7 @@ export default async function chestDemolition(play) {
   await play.screenshot('chest-structure-inspector');
   await page.locator('#inspector-close').click();
 
-  await page.mouse.click(1000, 350);
-  await page.keyboard.press('KeyR');
-  const character = await advance();
+  const character = await possessResident(play,residentId);
   assert.equal(character.camera.mode, 'character');
   await aim(character, chest);
   assert.equal((await advance()).status, '按住左键拆除木箱');
@@ -95,10 +106,8 @@ export default async function chestDemolition(play) {
   assert.ok(await page.locator('#pause-menu').isVisible());
   await page.keyboard.press('Escape');
   assert.equal((await advance(.6)).colony.speed,1);
-  await page.mouse.click(1000,350);
-  await advance(.4);
-  await page.keyboard.press('KeyR');
-  const collected = await advance();
+  await possessResident(play,residentId);
+  const collected = await advance(.9);
   const carried = collected.player.bag.findIndex(item => item?.resource === 'building:chest');
   assert.ok(carried >= 0, '拆下的箱体应能捡进快捷栏');
   await page.keyboard.press(`Digit${carried + 1}`);

@@ -28,8 +28,9 @@ import {
   PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN, CHOP_WORK,
   type BuildingKind, type ColonyCommand, type ChestView,
 } from '../colony/contracts.ts';
+import { CropCards } from '../colony/crop-cards.ts';
 import { buildingDimensions, type BuildingPart } from '../colony/buildings.ts';
-import { raycastBuilding, buildingProtectingVoxel, findPlayerSpawn } from '../colony/interaction.ts';
+import { raycastBuilding, buildingProtectingVoxel } from '../colony/interaction.ts';
 
 type Point = [number, number, number];
 const PALETTE = [5, 3, 4, 6, 1, 2, 10];
@@ -47,7 +48,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let voxels = new VoxelWorld();
       let colony = new ColonySimulation(voxels);
       let colonyState = colony.snapshot();
-      const colonyView = new ColonyView(world, assets, () => voxels);
+      const cropCards = await CropCards.create(world, assets);
+      const colonyView = new ColonyView(world, assets, () => voxels, cropCards);
       const terrainView = new TerrainPlanView(world, assets, () => voxels);
       const pcgView = new PcgView(world, assets);
       const treeView = new TreeView(world, assets);
@@ -63,9 +65,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let selected = 5, mode: 'build' | 'remove' = 'build', uiHover = false;
       // 右键拖动平移：水平和垂直各自可反转，灵敏度可调（都在暂停 → 设置里）
       let invertPanX = false, invertPanY = false, panSensitivity = 0.009;
-      // 玩家三条基础数值，照 Unity 的 PlayerVitals。
-      // 血的用途等战斗系统上了再接；体力先给跳跃扣费，金币直接映射银币存量。
-      const vitals = { health: 100, maxHealth: 100, stamina: 100, maxStamina: 100 };
+      const vitals = { maxHealth: 100, stamina: 100, maxStamina: 100 };
 
       // 仓库里右键「聚焦」时，相机要飞过去的点
       let focusTarget: Point | null = null;
@@ -104,7 +104,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
 
       // ---- 玩家角色 ----
       // 不进 simulation：殖民地那套需求/工作/优先级对"你"没有意义，
-      // 玩家就是玩家，不是第四个居民。位置只活在表现层。
+      // 物理控制器在附身时接管村民的姿态。
       // 碰撞不挂物理引擎，和 Unity 那边一个思路——直接查体素，
       // 规则可预测，也不会出现"人贴着墙缝钻过去"。
       // 角色碰撞：AABB 包围盒 + 分轴扫掠，和 Unity 的 CharacterController 一个路数。
@@ -126,7 +126,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       };
       player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z));
       const connectPlayerOccupancy = () => colony.setExternalOccupancySampler((x,y,z,w,h,d) =>
-        player.x + PLAYER_HALF > x && player.x - PLAYER_HALF < x+w && player.z + PLAYER_HALF > z && player.z - PLAYER_HALF < z+d && player.y + PLAYER_HEIGHT > y && player.y < y+h);
+        followId!==null && player.x + PLAYER_HALF > x && player.x - PLAYER_HALF < x+w && player.z + PLAYER_HALF > z && player.z - PLAYER_HALF < z+d && player.y + PLAYER_HEIGHT > y && player.y < y+h);
       connectPlayerOccupancy();
 
       const nearChest = (hitX?: number, hitZ?: number) => {
@@ -147,6 +147,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         const px = Math.floor(player.x), pz = Math.floor(player.z);
         let best: { id: string; dist: number } | null = null;
         for (const p of colonyState.colonists) {
+          if(p.id===followId)continue;
           const cx = Math.floor(p.position[0]), cz = Math.floor(p.position[2]);
           const d = Math.abs(cx - px) + Math.abs(cz - pz);
           if (d > 1) continue;
@@ -228,7 +229,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         if (cameraSystemAdded) world.removeSystem(Update, CAMERA_SYSTEM).unwrap();
         if (editSystemAdded) world.removeSystem(Update, EDIT_SYSTEM).unwrap();
         world.removeResource('voxel:read');
-        colonyView.dispose(); terrainView.dispose(); pcgView.dispose(); treeView.dispose();
+        colonyView.dispose(); terrainView.dispose(); pcgView.dispose(); treeView.dispose(); cropCards?.dispose();
         for (const entity of entities) world.despawn(entity).unwrap();
         for (const handle of ownedHandles) assets.release(handle).unwrap();
         ownedHandles.clear();
@@ -310,22 +311,21 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         status: demolitionHint ?? status, lastEdit, buildRotation, selectedBuildingId, hoverBuildingId, hoverBuildingPart: hoverBuildingPart ? {...hoverBuildingPart} : null,
         selectedTreeId, hoverTreeId, hoverTreePart, trees: voxels.getTrees(), treeModel: treeView.read(),
         camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
-        player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
+        player: followId ? { id:followId, name:colony.controlledColonist?.name, x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
           // 给验收用：当前是不是嵌在实心方块里
           embedded: blocked(player.x, player.z, player.y),
-          parts: colonyView.playerEntityCount,
           bag: colonyState.playerBag,
           bagSelected: colonyState.bagSelected,
           constructionId: colony.playerConstructionId,
           demolitionHint,
-          vitals: { ...vitals, gold: Math.floor((colonyState.resources as Record<string, number>).silver ?? 0) },
+          vitals: { ...vitals, health: colony.controlledColonist?.health??0, gold: Math.floor((colonyState.resources as Record<string, number>).silver ?? 0) },
           chest: firstChestPosition(),
           nearChest: viewMode === 'character' ? nearChest()?.id ?? null : null,
           nearColonist: viewMode === 'character' ? (nearColonist()?.id ?? null) : null,
           // 靠近提示用：贴着箱子还是贴着人
           nearHint: viewMode !== 'character' ? null
             : nearChest() ? 'chest'
-            : nearColonist() ? 'follower' : null },
+            : nearColonist() ? 'follower' : null } : null,
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth], worldSize: [voxels.width, voxels.height, voxels.depth],
         terrain: { target: terrainTarget, size: terrainSize, shape: terrainShape, sample: terrainSample, preview: { ...terrainPreview }, minHeight: 1, maxHeight: voxels.height - 2 }, buildHeight,
         pcg: pcgView.read(),
@@ -346,7 +346,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         const allowTrees = (trees: readonly TreeInstance[]) => {
           const occupied = trees.some(tree => treeParts(tree).some(part =>
             colonyState.buildings.some(b => overlaps(part.min, part.max, [b.x,b.y,b.z], [b.x+b.w,b.y+b.h,b.z+b.d])) ||
-            overlaps(part.min, part.max, [player.x-PLAYER_HALF,player.y,player.z-PLAYER_HALF], [player.x+PLAYER_HALF,player.y+PLAYER_HEIGHT,player.z+PLAYER_HALF]) ||
+            followId!==null && overlaps(part.min, part.max, [player.x-PLAYER_HALF,player.y,player.z-PLAYER_HALF], [player.x+PLAYER_HALF,player.y+PLAYER_HEIGHT,player.z+PLAYER_HALF]) ||
             colonyState.colonists.some(p=>overlaps(part.min,part.max,[p.position[0]-.28,p.position[1],p.position[2]-.28],[p.position[0]+.28,p.position[1]+1.8,p.position[2]+.28]))));
           if(occupied){status='树木原位置已被设施或人物占用，暂时无法恢复';refreshState=true;}
           return !occupied;
@@ -406,8 +406,6 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         const nextWorld = VoxelWorld.deserialize(parsed?.version === 2 ? parsed.voxel : text);
         const nextColony = new ColonySimulation(nextWorld);
         if (parsed?.version === 2) nextColony.load(parsed.colony);
-        const nextSpawn=findPlayerSpawn(nextWorld,(x,y,z)=>nextColony.blocksVoxel(x,y,z)||treesBlockBox(nextWorld,[x,y,z],[x+1,y+1,z+1]));
-        if(!nextSpawn)throw new Error('存档中没有可供玩家安全站立的空间，未载入。');
         voxels = nextWorld; colony = nextColony; colonyState = colony.snapshot();
         connectPlayerOccupancy(); selectedBuildingId = null; hoverBuildingId = null; hoverBuildingPart = null; buildRotation = 0;
         selectedTreeId = null; hoverTreeId = null; hoverTreePart = null;
@@ -416,7 +414,6 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         cancelStroke(); terrainTarget = clamp(terrainTarget, 1, voxels.height - 2); buildHeight = null; viewMode = 'god'; followId = null;
         for (const entry of chunks.values()) { world.despawn(entry.entity).unwrap(); entities.delete(entry.entity); release(entry.handle); }
         chunks.clear();
-        [player.x,player.y,player.z]=nextSpawn; player.grounded = true; player.vy = 0;
         lastTerrainRevision = -1; lastEdit = null; tool = 'inspect'; crop = 'rice'; home(); changed('已恢复地图、居民、任务和生产进度');
         godReturn = { target: [...target], yaw, pitch, distance };
         port?.postMessage({ type: 'voxel:loaded', data: JSON.stringify({ version: 2, voxel: voxels.serialize(), colony: colony.serialize() }) });
@@ -431,7 +428,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             cancelStroke(); terrainSample = false;
             tool = c.value; hoverKey = '';
             if(tool.startsWith('sandbox:')) {mode = tool.endsWith('remove')?'remove':'build';execute({action:'speed',value:0});status='沙盒编辑 · 已暂停居民模拟，材料无限';}
-            else status = tool==='inspect'?'点击居民或设施查看详情':tool==='place-chest'?'点击空地放置木箱':tool.startsWith('build:')?'安放建筑蓝图 · R 旋转 · 先整平地基，再施工':tool==='demolish'?'点击任一部分拆除整座设施 · 拆下后可拾取':tool==='interact'?'点击门的任一部分开关门':tool==='level'?'等高整地 · 拖动规划，松开下达蓝图 · Shift 点击取样':tool.startsWith('zone:')?'点击地面规划 3 × 3 区域':'点击地面下达工作订单';
+            else status = tool==='inspect'?'左键选择村民，按 R 附身':tool==='place-chest'?'点击空地放置木箱':tool.startsWith('build:')?'安放建筑蓝图 · R 旋转 · 先整平地基，再施工':tool==='demolish'?'点击任一部分拆除整座设施 · 拆下后可拾取':tool==='interact'?'点击门的任一部分开关门':tool==='level'?'等高整地 · 拖动规划，松开下达蓝图 · Shift 点击取样':tool.startsWith('zone:')?'点击地面规划 3 × 3 区域':'点击地面下达工作订单';
           }
           if (c.action === 'rotateBuild') rotateBuild();
           if (c.action === 'clearSelection') { execute({action:'select'}); selectedBuildingId=null; }
@@ -497,11 +494,11 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             terrainView.clear(); pcgView.clear();
             viewMode = 'god'; followId = null; terrainTarget = clamp(terrainTarget, 1, voxels.height - 2);
             for (const entry of chunks.values()) { world.despawn(entry.entity).unwrap(); entities.delete(entry.entity); release(entry.handle); } chunks.clear();
-            player.x = voxels.width / 2; player.z = voxels.depth / 2; player.y = voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z)); player.grounded = true; player.vy = 0;
             lastEdit = null; lastTerrainRevision = -1; tool = 'inspect'; crop = 'rice'; home(); changed('新的和平殖民地已生成');
             godReturn = { target: [...target], yaw, pitch, distance };
           }
           if (c.action === 'save') {
+            if(followId)colony.updateControlledPose([player.x,player.y,player.z],player.facing,vitals.stamina);
             pcgView.update(voxels, colony.renderState().buildings);
             port?.postMessage({ type: 'voxel:save', data: JSON.stringify({version:2,voxel:voxels.serialize(),colony:colony.serialize()}) });
           }
@@ -523,7 +520,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           const input = world.getResource<InputSnapshot>(INPUT_SNAPSHOT_RESOURCE_KEY);
           const dt = Math.min(world.getResource(Time).delta, 0.1);
           const constructionId = colony.playerConstructionId;
-          colony.tick(dt, [player.x, player.y, player.z]); publishElapsed += dt; simViewElapsed += dt;
+          colony.tick(dt); publishElapsed += dt; simViewElapsed += dt;
           if (constructionId && !colony.playerConstructionId) {
             colonyState = colony.snapshot();
             refreshState = true;
@@ -552,15 +549,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               id:'placement-preview',kind:previewKind,x:hoverCell[0],y:buildHeight??hoverCell[1],z:hoverCell[2],
               ...buildingDimensions(previewKind,buildRotation),rotation:buildRotation,doorOpen:false,complete:true,progress:0,
             }:null;
-            // player 是给云影用的：renderState() 只管殖民地模拟，没有玩家。
             colonyView.update({ ...renderState, selectedBuildingId, buildPreview,
-              player: { x: player.x, y: player.y, z: player.z, facing: player.facing, moving: false, grounded: player.grounded },
+              controlledColonistId: followId,
               colonists: renderState.colonists.map(p => ({ ...p,
               position: [p.position[0], pcgView.walkHeight(p.position[0], p.position[2], p.position[1]), p.position[2]] as Point,
             })) }, world.getResource(Time).elapsed);
             if (voxels.revision !== lastTerrainRevision) {
               updateChunks(); lastTerrainRevision = voxels.revision;
-              if (player.grounded) player.y = groundUnder(player.x, player.z, Math.max(player.y, voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z))), Infinity);
+              if (followId && player.grounded) player.y = groundUnder(player.x, player.z, Math.max(player.y, voxels.terrainHeight(Math.floor(player.x), Math.floor(player.z))), Infinity);
             }
           }
           if (publishElapsed >= 0.4) {
@@ -580,22 +576,32 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             // ---- R 切换视角 ----
             if (k.justPressedCode('KeyR') && tool.startsWith('build:')) rotateBuild();
             else if (k.justPressedCode('KeyR')) {
-              if (viewMode === 'god') {
-                // 先存俯视构图，切回来才能原样还原
-                godReturn = { target: [...target] as Point, yaw, pitch, distance };
-                viewMode = 'character';
-                followId = 'player';
-                // 站到玩家背后看过去
-                yaw = player.facing + Math.PI;
-                pitch = 0.36;
-                distance = 12;
-                status = '玩家视角 · WASD 移动 / 空格跳跃 / R 切回俯视';
+              if (viewMode==='god') {
+                const resident=tool==='inspect' ? colony.possessColonist(colonyState.selectedColonistId) : null;
+                if(!resident){status='左键选中村民，再按 R 附身';}
+                else {
+                  godReturn={target:[...target],yaw,pitch,distance};
+                  viewMode='character';followId=resident.id;
+                  [player.x,player.y,player.z]=resident.position;
+                  player.y=pcgView.walkHeight(player.x,player.z,player.y);
+                  player.facing=resident.facing;player.vy=0;player.grounded=true;player.moving=false;
+                  vitals.stamina=resident.stamina;
+                  yaw=player.facing+Math.PI; pitch=.36; distance=12;
+                  target=[player.x,player.y+1.1,player.z];
+                  status='已附身'+resident.name+' · 再按 R 返回俯视';
+                  selectedBuildingId=null;selectedTreeId=null;hoverKey='';
+                  waitForLeftRelease=input.mouse.button(0);
+                  colonyState=colony.snapshot();
+                }
               } else {
-                colony.stopPlayerConstruction();
-                viewMode = 'god'; followId = null;
-                target = [...godReturn.target] as Point;
-                yaw = godReturn.yaw; pitch = godReturn.pitch; distance = godReturn.distance;
-                status = '俯视视角 · R 切到玩家';
+                const ground=groundUnder(player.x,player.z,player.y+.01,Infinity);
+                colony.updateControlledPose([player.x,ground>=1?ground:player.y,player.z],player.facing,vitals.stamina);
+                colony.releaseControl();
+                viewMode='god';followId=null;
+                target=[...godReturn.target];yaw=godReturn.yaw;pitch=godReturn.pitch;distance=godReturn.distance;
+                status='已返回俯视 · 左键选中村民，按 R 附身';
+                demolitionHint=null;hoverKey='';
+                colonyState=colony.snapshot();
               }
               refreshState = true;
             }
@@ -714,8 +720,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           eye = [target[0] + Math.sin(yaw) * horizontal, target[1] + Math.sin(pitch) * distance, target[2] + Math.cos(yaw) * horizontal];
           const rotation = quat.fromLookAt(quat.create(), eye, target, [0, 1, 0]);
           world.set(camera, Transform, { pos: eye, quat: [rotation[0]!, rotation[1]!, rotation[2]!, rotation[3]!] }).unwrap();
-          // 玩家每帧单独更新，不跟殖民地的 20Hz 快照走
-          colonyView.updatePlayer(player, world.getResource(Time).elapsed);
+          if(followId){
+            colony.updateControlledPose([player.x,player.y,player.z],player.facing,vitals.stamina);
+            const resident=colony.controlledColonist!;
+            const index=colonyState.colonists.findIndex(person=>person.id===followId);
+            colonyView.drawResident(resident,index,world.getResource(Time).elapsed,player.moving,player.grounded,true);
+          }
         },
       }).unwrap();
       cameraSystemAdded = true;
@@ -876,7 +886,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               playerChop = null;
             }
             // 体力回复：手上没在砍就慢慢回，站着回得更快（这里不区分，先统一）
-            if (!(viewMode === 'character' && input.mouse.button(0) && playerChop)) {
+            if (followId && !(input.mouse.button(0) && playerChop)) {
               vitals.stamina = Math.min(vitals.maxStamina, vitals.stamina + Math.min(world.getResource(Time).delta, 0.1) * PLAYER_STAMINA_REGEN);
             }
             if(hoverBuildingId!==(objectHit?.building.id??null)||hoverBuildingPart?.role!==objectHit?.part.role)refreshState=true;
@@ -974,8 +984,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }else{
                 const o=r?Array.from(ray.getOrigin(vec3.create(),r))as Point:[0,0,0]as Point;
                 const d=r?Array.from(ray.getDirection(vec3.create(),r))as Point:[0,0,0]as Point;
-                const picks=colonyState.colonists.map(p=>{const v=[p.position[0]-o[0],p.position[1]+.8-o[1],p.position[2]-o[2]];const t=v[0]!*d[0]+v[1]!*d[1]+v[2]!*d[2];return{p,t,dist:Math.hypot(v[0]!-d[0]*t,v[1]!-d[1]*t,v[2]!-d[2]*t)};}).filter(q=>q.t>0&&q.t<(hit?.distance??1200)&&q.dist<.8).sort((a,b)=>a.t-b.t);
-                const pawn=picks[0]?.p??colonyState.colonists.find(p=>Math.hypot(p.position[0]-(x+.5),p.position[2]-(z+.5))<1.1);
+                const picks=colonyState.colonists.filter(p=>p.id!==followId).map(p=>{const v=[p.position[0]-o[0],p.position[1]+.8-o[1],p.position[2]-o[2]];const t=v[0]!*d[0]+v[1]!*d[1]+v[2]!*d[2];return{p,t,dist:Math.hypot(v[0]!-d[0]*t,v[1]!-d[1]*t,v[2]!-d[2]*t)};}).filter(q=>q.t>0&&q.t<(hit?.distance??1200)&&q.dist<.8).sort((a,b)=>a.t-b.t);
+                const pawn=picks[0]?.p??colonyState.colonists.find(p=>p.id!==followId&&Math.hypot(p.position[0]-(x+.5),p.position[2]-(z+.5))<1.1);
                 if(pawn&&((!objectHit&&!treeHit)||(picks[0]?.t??Infinity)<Math.min(objectHit?.distance??Infinity,treeHit?.distance??Infinity)))execute({action:'select',colonistId:pawn.id});
                 else if(treeHit && viewMode === 'god'){execute({action:'select'});selectedTreeId=treeHit.tree.id;status=`整棵树木 · 树干、分枝与树冠共用一个物体 · 高 ${treeHit.tree.trunkHeight+2} 格`;refreshState=true;}
                 else {

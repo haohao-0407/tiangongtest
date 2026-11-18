@@ -4,13 +4,16 @@ import { createBoxGeometry } from '@forgeax/engine/geometry';
 import { Materials, MeshFilter, MeshRenderer, ShadowParticipation } from '@forgeax/engine/render';
 import { Name, Transform } from '@forgeax/engine/scene';
 import { RenderQueue, type AssetHandle } from '@forgeax/engine/types';
+import type { CropCards } from './crop-cards.ts';
 import type { VoxelWorld } from '../voxel/model.ts';
 import { BUILDING_DEFS, buildingItemKind, type BuildingKind } from './contracts.ts';
 import { buildingDimensions } from './buildings.ts';
 
 type V3=[number,number,number];
+type Rotation=[number,number,number,number];
+const IDENTITY:Rotation=[0,0,0,1];
 type Part={p:V3;s:V3;c:string;shadow?:boolean};
-type RenderPawn={id:string;name:string;position:V3;health:number;task?:string;job?:string;carrying?:Partial<Record<string,number>>};
+type RenderPawn={id:string;name:string;position:V3;health:number;facing?:number;task?:string;job?:string;carrying?:Partial<Record<string,number>>};
 type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;h?:number;rotation?:number;doorOpen?:boolean;complete:boolean;progress:number;powered?:boolean;phase?:string};
 export type ColonyRenderState={
   colonists:RenderPawn[]; buildings:RenderBuilding[];
@@ -20,15 +23,14 @@ export type ColonyRenderState={
   selectedColonistId?:string|null;
   selectedBuildingId?:string|null;
   buildPreview?:RenderBuilding|null;
-  /** 玩家角色。不属于殖民地模拟，只在这里画出来。 */
-  player?:{x:number;y:number;z:number;facing:number;moving:boolean;grounded:boolean};
+  controlledColonistId?:string|null;
 };
 const COLORS:Record<string,string>={
   wood:'#a97943',dirt:'#845a3a',stone:'#9ca9a5',steel:'#899fae',food:'#e4bc63',meal:'#d4834b',medicine:'#ecf4dd',cloth:'#c2b3d9',silver:'#e5d69b',components:'#d0ad45',
   dark:'#2e4247',cream:'#f0ddba',blanket:'#568b9b',white:'#fff3d5',green:'#63935e',gold:'#e5c66f',blue:'#4d7d96',black:'#233135',
   shirt0:'#e0a160',shirt1:'#6b9ba5',shirt2:'#b17f91',shirt3:'#849d60',skin:'#e5b48a',hair:'#60483e',light:'#c5e4cd',soil:'#7e563b',
   blueprint:'#75cece',zoneFarm:'#90bd65',zoneStock:'#75baca',selected:'#ecd78c',health:'#9fc174',bad:'#c56b55',
-  playerBody:'#e8b44a',playerHair:'#4a3a2c',playerMark:'#ffd76e',
+  playerMark:'#ffd76e',
 };
 const rgba=(hex:string):[number,number,number,number]=>{
   const n=parseInt(hex.slice(1),16);const f=(v:number)=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4;
@@ -41,7 +43,9 @@ export class ColonyView {
   private materials=new Map<string,AssetHandle<'material'>>();
   private groups=new Map<string,{signature:string;entities:EntityHandle[];transforms:number[][]}>();
   private pawnPositions=new Map<string,V3>();
-  constructor(private world:World,private assets:AssetRegistry,private terrain:()=>VoxelWorld){
+  constructor(private world:World,private assets:AssetRegistry,private terrain:()=>VoxelWorld,
+    /** 2.5D 卡片作物；加载失败时为 null，作物退回方块表现。 */
+    private readonly cropCards?:Pick<CropCards,'update'>){
     this.cube=assets.create(createBoxGeometry(1,1,1).unwrap()).unwrap();
   }
   private material(key:string):AssetHandle<'material'>{
@@ -53,19 +57,19 @@ export class ColonyView {
     const value=translucent?Materials.unlit(c,{queue:RenderQueue.Transparent,renderState:{depthWriteEnabled:false,cullMode:'none',blend:{color:{srcFactor:'src-alpha',dstFactor:'one-minus-src-alpha',operation:'add'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha',operation:'add'}}}}):Materials.standard({baseColor:c,roughness:.86,metallic:key==='steel'?.3:0});
     const handle=this.assets.create(value).unwrap();this.materials.set(key,handle);return handle;
   }
-  private put(key:string,parts:Part[],active:Set<string>,signature=''){
-    active.add(key);let group=this.groups.get(key);
+  private put(key:string,parts:Part[],active?:Set<string>,signature='',rotation=IDENTITY){
+    active?.add(key);let group=this.groups.get(key);
     const sig=signature||parts.map(p=>p.c).join('|');
     if(group&&(group.signature!==sig||group.entities.length!==parts.length)){for(const e of group.entities)this.world.despawn(e).unwrap();this.groups.delete(key);group=undefined;}
     if(!group){
-      group={signature:sig,transforms:parts.map(p=>[...p.p,...p.s]),entities:parts.map((p,i)=>this.world.spawn(
-        {component:Name,data:{value:`${key}/${i}`}},{component:Transform,data:{pos:p.p,scale:p.s}},
+      group={signature:sig,transforms:parts.map(p=>[...p.p,...p.s,...rotation]),entities:parts.map((p,i)=>this.world.spawn(
+        {component:Name,data:{value:`${key}/${i}`}},{component:Transform,data:{pos:p.p,scale:p.s,quat:rotation}},
         {component:MeshFilter,data:{assetHandle:this.cube}},{component:MeshRenderer,data:{materials:[this.material(p.c)]}},
         {component:ShadowParticipation,data:{cast:p.shadow!==false,receive:true}},
       ).unwrap())};this.groups.set(key,group);
     }else for(let i=0;i<parts.length;i++){
-      const p=parts[i]!,next=[...p.p,...p.s];
-      if(next.some((n,j)=>n!==group!.transforms[i]![j])){this.world.set(group.entities[i]!,Transform,{pos:p.p,scale:p.s}).unwrap();group.transforms[i]=next;}
+      const p=parts[i]!,next=[...p.p,...p.s,...rotation];
+      if(next.some((n,j)=>n!==group!.transforms[i]![j])){this.world.set(group.entities[i]!,Transform,{pos:p.p,scale:p.s,quat:rotation}).unwrap();group.transforms[i]=next;}
     }
   }
   /**
@@ -184,22 +188,13 @@ export class ColonyView {
     // 云影：真云在天上，靠引擎的方向光阴影投到地面。
     // 不再画贴地的半透明平板——那样看起来是雾，不是影子。
     this.renderClouds(time,active);
-    for(const [i,p]of state.colonists.entries()){
-      const [x,y,z]=p.position;
-      const old=this.pawnPositions.get(p.id);const moving=old&&Math.hypot(x-old[0],z-old[2])>.003;
-      this.pawnPositions.set(p.id,[x,y,z]);const swing=moving?Math.sin(time*11+i)*.09:0;
-      const parts:Part[]=[
-        {p:[x-.13,y+.22+swing,z],s:[.18,.44,.24],c:'dark'}, {p:[x+.13,y+.22-swing,z],s:[.18,.44,.24],c:'dark'},
-        {p:[x,y+.69,z],s:[.5,.55,.3],c:`shirt${i%4}`}, {p:[x,y+1.12,z],s:[.4,.4,.37],c:'skin'},
-        {p:[x,y+1.34,z-.02],s:[.43,.12,.4],c:'hair'},
-        {p:[x-.1,y+1.14,z+.19],s:[.045,.055,.025],c:'black'},{p:[x+.1,y+1.14,z+.19],s:[.045,.055,.025],c:'black'},
-        {p:[x-.32,y+.65-swing,z],s:[.13,.43,.19],c:'skin'},{p:[x+.32,y+.65+swing,z],s:[.13,.43,.19],c:'skin'},
-      ];
-      const carried=Object.entries(p.carrying??{}).find(([,amount])=>(amount??0)>0);
-      if(carried)parts.push({p:[x,y+.7,z+.37],s:[.42,.35,.3],c:COLORS[carried[0]]?carried[0]:'wood'});
-      if(state.selectedColonistId===p.id)parts.push({p:[x,y+.025,z],s:[.94,.045,.94],c:'selected',shadow:false});
-      if(p.health<80)parts.push({p:[x,y+1.65,z],s:[.65*Math.max(.05,p.health/100),.07,.07],c:p.health>35?'health':'bad',shadow:false});
-      this.put(`居民/${p.id}`,parts,active);
+    for(const [i,resident] of state.colonists.entries()){
+      const key='居民/'+resident.id;
+      active.add(key);
+      if(resident.id===state.controlledColonistId)continue;
+      const old=this.pawnPositions.get(resident.id);
+      const moving=!!old&&Math.hypot(resident.position[0]-old[0],resident.position[2]-old[2])>.003;
+      this.drawResident(resident,i,time,moving,resident.id===state.selectedColonistId,false);
     }
     for(const b of state.buildPreview?[...state.buildings,state.buildPreview]:state.buildings){
       // Completed walls are composed by the shared semantic voxel renderer.
@@ -217,13 +212,17 @@ export class ColonyView {
       }
       this.put(`区域/${zone.id}`,parts,active);
     }
+    // 2.5D 卡片接管之后，方块只画翻好的土，植株交给 CropCards
+    this.cropCards?.update(state.crops);
     for(const p of state.crops){
-      const g=Math.max(.01,Math.min(1,p.growth)),x=p.x+.5,y=p.y,z=p.z+.5;
+      const x=p.x+.5,y=p.y,z=p.z+.5;
       const parts:Part[]=[{p:[x,y+.025,z],s:[.84,.05,.84],c:'soil',shadow:false}];
-      if(p.planted===false){this.put(`作物/${p.id??`${p.x},${p.z}`}`,parts,active);continue;}
-      for(const [dx,dz]of[[-.22,-.2],[.22,-.2],[-.22,.2],[.22,.2]]){
-        parts.push({p:[x+dx,y+.12+g*.3,z+dz],s:[.08,.2+g*.6,.08],c:'green'});
-        if(g>.2)parts.push({p:[x+dx,y+.25+g*.42,z+dz],s:[.22,.14+g*.13,.18],c:g>.8?'gold':'green'});
+      if(!this.cropCards&&p.planted!==false){
+        const g=Math.max(.01,Math.min(1,p.growth));
+        for(const [dx,dz]of[[-.22,-.2],[.22,-.2],[-.22,.2],[.22,.2]]){
+          parts.push({p:[x+dx,y+.12+g*.3,z+dz],s:[.08,.2+g*.6,.08],c:'green'});
+          if(g>.2)parts.push({p:[x+dx,y+.25+g*.42,z+dz],s:[.22,.14+g*.13,.18],c:g>.8?'gold':'green'});
+        }
       }
       this.put(`作物/${p.id??`${p.x},${p.z}`}`,parts,active);
     }
@@ -251,68 +250,26 @@ export class ColonyView {
     }
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }
-  dispose(){this.disposePlayer();for(const g of this.groups.values())for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.clear();for(const m of this.materials.values())this.assets.release(m).unwrap();this.materials.clear();this.assets.release(this.cube).unwrap();}
+  dispose(){for(const g of this.groups.values())for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.clear();for(const m of this.materials.values())this.assets.release(m).unwrap();this.materials.clear();this.assets.release(this.cube).unwrap();}
 
-  // ---- 玩家角色 ----
-  // 玩家每帧都在动，不能跟着殖民地那套 20Hz 的快照刷新，
-  // 否则走起来一顿一顿的。这里单独维护一组实体，只更新 Transform。
-
-  private playerEntities:EntityHandle[]=[];
-  private playerParts:Part[]=[];
-  private playerFacing=Number.NaN;
-
-  /** 每帧调，只改位置/姿态，不重建实体。 */
-  updatePlayer(p:{x:number;y:number;z:number;facing:number;moving:boolean;grounded:boolean},time:number){
-    const [x,y,z]=[p.x,p.y,p.z];
-    const swing=p.moving?Math.sin(time*11)*.09:0;
-    // 整个人绕 Y 轴转：先在「朝 +Z」的局部坐标里摆好，再按 facing 旋到世界。
-    // 之前只挪眼睛的位置，身体还是固定朝向，看着像块不动的砖。
-    const cos=Math.cos(p.facing),sin=Math.sin(p.facing);
-    const rot=(lx:number,ly:number,lz:number):V3=>[x+lx*cos+lz*sin,y+ly,z-lx*sin+lz*cos];
-    // 光有位置旋转不够——躯干和头在中心（lx=lz=0），位置根本不变，
-    // 方块本身又是轴对齐的，转起来就像上半身钉死了。
-    // 这里给每个方块真的加一个绕 Y 的旋转，人整体才会跟着转。
-    const spin:[number,number,number,number]=[0,Math.sin(p.facing/2),0,Math.cos(p.facing/2)];
-    const facingChanged=Math.abs(p.facing-this.playerFacing)>1e-4;
-    this.playerFacing=p.facing;
+  drawResident(resident:RenderPawn,index:number,time:number,moving:boolean,selected:boolean,controlled:boolean){
+    const [x,y,z]=resident.position, facing=resident.facing??0;
+    this.pawnPositions.set(resident.id,resident.position);
+    const swing=moving?Math.sin(time*11+index)*.09:0;
+    const cos=Math.cos(facing),sin=Math.sin(facing);
+    const at=(dx:number,dy:number,dz:number):V3=>[x+dx*cos+dz*sin,y+dy,z-dx*sin+dz*cos];
     const parts:Part[]=[
-      {p:rot(-.13,.22+swing,0),s:[.18,.44,.24],c:'dark'},   // 左腿
-      {p:rot(.13,.22-swing,0),s:[.18,.44,.24],c:'dark'},    // 右腿
-      {p:rot(0,.69,0),s:[.32,.55,.52],c:'playerBody'},      // 躯干（前后厚、左右窄）
-      {p:rot(0,1.12,0),s:[.4,.4,.37],c:'skin'},             // 头
-      {p:rot(0,1.34,0),s:[.43,.12,.4],c:'playerHair'},      // 头发
-      {p:rot(-.1,1.14,.19),s:[.05,.055,.028],c:'black'},    // 左眼
-      {p:rot(.1,1.14,.19),s:[.05,.055,.028],c:'black'},     // 右眼
-      {p:rot(-.33,.65-swing,0),s:[.19,.43,.19],c:'skin'},   // 左臂
-      {p:rot(.33,.65+swing,0),s:[.19,.43,.19],c:'skin'},    // 右臂
-      {p:[x,y+1.9,z],s:[.22,.22,.22],c:'playerMark',shadow:false},  // 头顶标记不跟着转
+      {p:at(-.13,.22+swing,0),s:[.18,.44,.24],c:'dark'}, {p:at(.13,.22-swing,0),s:[.18,.44,.24],c:'dark'},
+      {p:at(0,.69,0),s:[.5,.55,.3],c:'shirt'+index%4}, {p:at(0,1.12,0),s:[.4,.4,.37],c:'skin'},
+      {p:at(0,1.34,-.02),s:[.43,.12,.4],c:'hair'},
+      {p:at(-.1,1.14,.19),s:[.045,.055,.025],c:'black'}, {p:at(.1,1.14,.19),s:[.045,.055,.025],c:'black'},
+      {p:at(-.32,.65-swing,0),s:[.13,.43,.19],c:'skin'}, {p:at(.32,.65+swing,0),s:[.13,.43,.19],c:'skin'},
     ];
-    // 落地光晕固定占第 11 格，不落地时缩成 0 隐藏。
-    // 早先按部件数量决定要不要重建，结果落地/起跳各 10、11 个来回切，
-    // 旧实体没被干净回收，屏幕上就叠出两套人。
-    // 现在数量恒定为 11：建一次，之后只改位置和缩放。
-    parts.push({p:[x,y+.025,z],s:p.grounded?[.72,.03,.72]:[0,0,0],c:'playerMark',shadow:false});
-
-    if(this.playerEntities.length===0){
-      this.playerParts=parts.map(q=>({p:[...q.p] as V3,s:[...q.s] as V3,c:q.c,shadow:q.shadow}));
-      this.playerEntities=parts.map((part,i)=>this.world.spawn(
-        {component:Name,data:{value:`player/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s,quat:spin}},
-        {component:MeshFilter,data:{assetHandle:this.cube}},{component:MeshRenderer,data:{materials:[this.material(part.c)]}},
-        {component:ShadowParticipation,data:{cast:part.shadow!==false,receive:true}},
-      ).unwrap());
-      return;
-    }
-    for(let i=0;i<parts.length;i++){
-      const next=parts[i]!,prev=this.playerParts[i]!;
-      if(next.p.some((n,j)=>n!==prev.p[j])||next.s.some((n,j)=>n!==prev.s[j])||facingChanged){
-        this.world.set(this.playerEntities[i]!,Transform,{pos:next.p,scale:next.s,quat:spin}).unwrap();
-        prev.p=next.p;prev.s=next.s;
-      }
-      if(next.c!==prev.c)this.world.set(this.playerEntities[i]!,MeshRenderer,{materials:[this.material(next.c)]}).unwrap();
-    }
+    const carried=Object.entries(resident.carrying??{}).find(([,amount])=>(amount??0)>0);
+    if(carried)parts.push({p:at(0,.7,.37),s:[.42,.35,.3],c:COLORS[carried[0]]?carried[0]:'wood'});
+    if(selected)parts.push({p:at(0,.025,0),s:[.94,.045,.94],c:'selected',shadow:false});
+    if(controlled)parts.push({p:at(0,1.9,0),s:[.19,.19,.19],c:'playerMark',shadow:false});
+    if(resident.health<80)parts.push({p:at(0,1.65,0),s:[.65*Math.max(.05,resident.health/100),.07,.07],c:resident.health>35?'health':'bad',shadow:false});
+    this.put('居民/'+resident.id,parts,undefined,'',[0,Math.sin(facing/2),0,Math.cos(facing/2)]);
   }
-
-  get playerEntityCount(){return this.playerEntities.length;}
-
-  disposePlayer(){for(const e of this.playerEntities)this.world.despawn(e).unwrap();this.playerEntities=[];this.playerParts=[];}
 }

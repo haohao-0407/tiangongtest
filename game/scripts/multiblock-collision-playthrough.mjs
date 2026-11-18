@@ -1,3 +1,4 @@
+import { possessResident } from './select-resident.mjs';
 // A real player, real resident-built door, and real movement inputs.
 // pnpm exec forgeax project play scripts/multiblock-collision-playthrough.mjs --require-ui --json
 import assert from 'node:assert/strict';
@@ -73,7 +74,9 @@ export default async function multiblockCollisionPlaythrough(play) {
         await play.mouse.click(point); await advance(.05); focused = true; break;
       }
       assert.ok(focused, 'A visible empty map point must accept normal keyboard focus.');
-      await play.page.keyboard.press('KeyR'); await advance(0.4);
+      if(enabled)await possessResident(play);
+      else await play.page.keyboard.press('KeyR');
+      await advance(0.4);
       await wait((s) => s.camera.mode === expected);
     }
   };

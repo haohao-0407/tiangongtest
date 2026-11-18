@@ -1,0 +1,105 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "白菜-生长"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "cabbage-growing.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:白菜-生长_mesh"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:白菜-生长_mesh": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1ef5e-5b6e-7701-a335-10fb4b34b266",
+          "slotName": "白菜-生长_mat",
+          "sourceKey": "material:白菜-生长_mat"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1ef5e-5b6d-74c1-b200-4248d75d2d41",
+      "kind": "mesh",
+      "name": "白菜-生长_mesh",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:白菜-生长_mesh"
+    },
+    {
+      "guid": "01a1ef5e-5b6e-7701-a335-10fb4b34b266",
+      "kind": "material",
+      "name": "白菜-生长_mat",
+      "sourceIndex": 0,
+      "sourceKey": "material:白菜-生长_mat"
+    },
+    {
+      "guid": "01a1ef5e-5b6e-7701-a335-10fcfbafc46a",
+      "kind": "scene",
+      "name": "Scene",
+      "sourceIndex": 0,
+      "sourceKey": "scene:Scene"
+    },
+    {
+      "guid": "01a1ef5e-5b6e-7701-a335-10fda5636a8a",
+      "kind": "texture",
+      "name": "白菜-生长",
+      "sourceIndex": 0,
+      "sourceKey": "texture:白菜-生长"
+    },
+    {
+      "guid": "01a1ef5e-5b6e-7701-a335-10fe7e569553",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

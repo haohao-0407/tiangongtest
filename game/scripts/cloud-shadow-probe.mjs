@@ -1,11 +1,11 @@
+import { possessResident } from './select-resident.mjs';
 // 云影：玩家视角下能看到贴地的暗斑，并且会随时间漂移。
 const READ = 'voxel.world';
 
 export default async function cloudShadow(play) {
   const advance = (s) => play.advance(s, { read: READ, stepSeconds: 0.05 });
   await advance(1.0);
-  await play.page.mouse.click(640, 300);
-  await play.page.keyboard.press('KeyR');
+  await possessResident(play);
   await advance(1.2);
   await play.screenshot('cloud-a');
 

@@ -29,7 +29,7 @@
     </div>
   </div>
 
-  <div id="vitals" class="vitals">
+  <div id="vitals" class="vitals"><strong id="controlled-resident" class="controlled-resident"></strong>
     <div class="vital-bar health"><i id="vital-health"></i></div>
     <div class="vital-bar stamina"><i id="vital-stamina"></i></div>
     <div class="vital-gold"><span id="vital-gold">0</span></div>
@@ -52,13 +52,13 @@
   </aside>
   <aside id="help" class="help panel" data-interactive hidden>
     <div class="panel-heading"><h2>慢慢建立一座家园</h2><button id="help-close" class="close" aria-label="关闭帮助">×</button></div><p>在规划面板选择等高整地，设定目标标高后拖涂或框选。松开左键生成蓝图，居民按整地优先级填挖；按 Shift 点击地面可以取样高度。</p><p>建筑自动附带地基整平任务，先整平，再施工。缺材料、地面被占用或走不到时会等待；可在规划与建造面板查看原因并取消剩余工程。</p>
-    <div class="help-row"><kbd>左键</kbd><span>查看 / 执行当前规划</span></div><div class="help-row"><kbd>W A S D</kbd><span>移动视角</span></div><div class="help-row"><kbd>Q / E</kbd><span>旋转视角</span></div><div class="help-row"><kbd>滚轮</kbd><span>缩放</span></div><div class="help-row"><kbd>中键拖动</kbd><span>环绕观察</span></div><div class="help-row"><kbd>F</kbd><span>回到家园</span></div><div class="help-row"><kbd>R</kbd><span>建造时旋转，其他时切换视角</span></div><p class="muted">选择门或床的任一部分可查看整个物体；门可在详情中开关，设施可整体拆除。沙盒保留无限材料与方块撤销，独立于居民工作。此版本没有战斗。</p>
+    <div class="help-row"><kbd>左键</kbd><span>查看 / 执行当前规划</span></div><div class="help-row"><kbd>W A S D</kbd><span>移动视角</span></div><div class="help-row"><kbd>Q / E</kbd><span>旋转视角</span></div><div class="help-row"><kbd>滚轮</kbd><span>缩放</span></div><div class="help-row"><kbd>中键拖动</kbd><span>环绕观察</span></div><div class="help-row"><kbd>F</kbd><span>回到家园</span></div><div class="help-row"><kbd>R</kbd><span>建造时旋转；选中村民后附身，再按返回俯视</span></div><p class="muted">选择门或床的任一部分可查看整个物体；门可在详情中开关，设施可整体拆除。沙盒保留无限材料与方块撤销，独立于居民工作。此版本没有战斗。</p>
   </aside>
   <section id="workspace" class="workspace panel" data-interactive hidden><div class="panel-heading"><div><span id="panel-kicker" class="eyebrow">家园管理</span><h2 id="panel-title"></h2></div><button id="panel-close" class="close" aria-label="收起面板">×</button></div><div id="panel-content" class="panel-content"></div></section>
   <aside id="terrain-toolbar" class="terrain-toolbar panel" data-interactive aria-label="等高整地工具" hidden></aside>
   <aside id="build-toolbar" class="build-toolbar panel" data-interactive aria-label="建筑旋转工具" hidden></aside>
   <footer class="bottom-area"><div class="selection-info"><span class="status-dot"></span><span id="status">居民正在准备安家…</span><span id="cell"></span></div>
-        <div class="footer-hint"><span id="tool-hint">查看模式 · 左键选择居民或地块</span><span id="quick-save">本机存档</span></div>
+        <div class="footer-hint"><span id="tool-hint">查看模式 · 左键选中村民，按 R 附身</span><span id="quick-save">本机存档</span></div>
 </footer>
   <div id="interact-hint" class="interact-hint" hidden>
     <span id="demolition-hint" hidden></span>

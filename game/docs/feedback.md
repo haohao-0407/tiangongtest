@@ -11,3 +11,5 @@
 - 2026-11-11 / SDK 0.4.19 / pnpm 12.15.0：模板没有声明 `packages`，pnpm 安装记录默认为 `["."]`，而 `project check` 的依赖闭包检查把省略配置当作 `[]`，返回 `project-pnpm-workspace-state-stale`。在源码 `pnpm-workspace.yaml` 显式声明唯一根包 `packages: ['.']`，与实际单包工程保持一致；不修改安装记录或 SDK。
 
 - 2026-11-10 / SDK 0.4.19 / Windows：`project new D:\tiangongtest --template game-3d --json` 在空的现有工作目录返回 `project-create-failed`, reason `EPERM: operation not permitted, mkdir 'D:\'`。同一官方命令以 `D:\tiangongtest\game` 为目标成功。采用工作区内子目录，未修改 SDK。
+
+- 2026-11-19 / Engine 0.5.0 / glTF 透明裁剪：glTF `MASK` 默认材质的 `alphaCutoff` 为 0.5，`alphaMode` 为 0（保留采样 Alpha）。在 WebGPU 浏览器以相同机位测试，FXAA、关闭抗锯齿和 TAA 都能复现叶片剪影上的亮边。仅将材质输出模式置为 1（通过裁剪后输出不透明）即可消除亮边，透明区域与阴影轮廓仍正常。项目在加载作物网格时应用该设置，原贴图、采样器和深度写入沿用导入结果。

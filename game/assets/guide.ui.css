@@ -226,3 +226,5 @@
 
 /* 建造面板的分类小标题 */
 .build-group-title{margin:12px 0 6px;font-size:11px;font-weight:600;color:#5d6b52;letter-spacing:.06em}
+
+.controlled-resident{display:block;color:#fffce7;text-shadow:0 1px 4px #1e3d27;font-size:12px;padding-bottom:3px}

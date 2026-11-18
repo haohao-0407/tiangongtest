@@ -46,8 +46,11 @@ describe('one authoritative object across rotated three-dimensional cells',()=>{
     expect(sim.snapshot().resources).toEqual(before);
     expect(sim.snapshot().items).toEqual([expect.objectContaining({resource:`building:${kind}`,amount:1})]);
     expect(sim.snapshot().buildings).toHaveLength(0);for(const p of buildingParts(object))expect(sim.blocksVoxel(p.x,p.y,p.z)).toBe(false);
+    const residentId=sim.snapshot().colonists[0]!.id;
+    sim.possessColonist(residentId);
     sim.tick(.75,[19.5,6,20.5]);
     sim.load(sim.serialize());
+    sim.possessColonist(residentId);
     const slot=sim.snapshot().playerBag.findIndex(stack=>stack?.resource===`building:${kind}`);
     expect(slot).toBeGreaterThanOrEqual(0);
     sim.selectBagSlot(slot);

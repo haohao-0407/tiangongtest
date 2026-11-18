@@ -34,6 +34,8 @@ describe('finite steel ore mining',()=>{
     sim.command({action:'designate',kind:'mine',x:22,z:20});
     const position:[number,number,number]=[21.5,6,19.5];
     const initial=sim.snapshot().resources;
+    const id=sim.snapshot().colonists[0]!.id;
+    sim.possessColonist(id);
     sim.selectBagSlot(8);
     expect(sim.playerHarvestTerrain([20,5,20],BLOCK.Grass,position).ok).toBe(true);
     expect(sim.playerHarvestTerrain([21,5,20],BLOCK.Stone,position).ok).toBe(false);
@@ -47,6 +49,7 @@ describe('finite steel ore mining',()=>{
     const restoredWorld=VoxelWorld.deserialize(world.serialize()),restored=new ColonySimulation(restoredWorld);
     restored.load(sim.serialize());
     expect(restoredWorld.get(22,5,20)).toBe(BLOCK.Air);
+    restored.possessColonist(id);
     restored.tick(.75,[21.5,6,20.5]);
     expect(restored.snapshot().playerBag).toEqual(expect.arrayContaining([
       {resource:'dirt',count:1},{resource:'stone',count:8},{resource:'steel',count:STEEL_ORE_YIELD},

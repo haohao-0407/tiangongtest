@@ -15,6 +15,11 @@ function freeCell(sim:ColonySimulation,world:VoxelWorld) {
   }throw new Error('fixture lacks a free clearing cell');
 }
 const raw = (sim:ColonySimulation):any => sim.serialize();
+const chooseFirst = (sim:ColonySimulation) => {
+  const id=sim.snapshot().colonists[0]!.id;
+  sim.command({action:'select',colonistId:id});
+  return id;
+};
 
 describe('peaceful colony and fixed-step persistence',()=>{
   it('starts with real residents, facilities, stores and growing jobs',()=>{
@@ -53,9 +58,56 @@ describe('peaceful colony and fixed-step persistence',()=>{
 });
 
 describe('inventory reservation, work and walking',()=>{
+  it('takes over a real resident, requeues their job and keeps their live position and ninth slot',()=>{
+    const {sim}=setup();
+    onlyJob(sim,'haul');
+    for(let i=0;i<60&&!sim.snapshot().colonists.some(person=>person.jobId);i++)sim.tick(.25);
+    const before=sim.snapshot();
+    const person=before.colonists.find(resident=>resident.jobId)!;
+    const other=before.colonists.find(resident=>resident.id!==person.id)!;
+    expect(person).toBeDefined();
+    expect(sim.possessColonist(person.id)?.position).toEqual(person.position);
+    expect(sim.snapshot().colonists.find(resident=>resident.id===person.id)?.jobId).toBeNull();
+    const slot={kind:'follower',id:person.id,slot:8} as const;
+    expect(sim.transferInventory({kind:'warehouse'},slot,'stone',2).ok).toBe(true);
+    sim.selectBagSlot(8);
+    const next:[number,number,number]=[person.position[0]+.2,person.position[1],person.position[2]];
+    sim.updateControlledPose(next,1.2,67);
+    sim.tick(.75);
+    expect(sim.snapshot().playerBag[8]).toEqual({resource:'stone',count:2});
+    expect(sim.snapshot().colonists.find(resident=>resident.id===person.id)).toMatchObject({position:next,jobId:null,stamina:67});
+    expect(sim.possessColonist(other.id)).toBeNull();
+    sim.releaseControl();
+    expect(sim.snapshot().colonists.find(resident=>resident.id===person.id)?.position).toEqual(next);
+    expect(sim.possessColonist(other.id)?.bag[8]).toBeNull();
+    expect(sim.transferInventory({kind:'player',id:person.id,slot:8},{kind:'warehouse'},'stone',2).ok).toBe(false);
+    sim.releaseControl();
+    sim.load(sim.serialize());
+    expect(sim.controlledColonist).toBeNull();
+    expect(sim.possessColonist(person.id)).toMatchObject({bagSelected:8,facing:1.2,stamina:67});
+    expect(sim.snapshot().playerBag[8]).toEqual({resource:'stone',count:2});
+  });
+
+  it('keeps orders assigned to the named recipient when control changes',()=>{
+    const{sim}=setup();onlyJob(sim,'haul');
+    const [first,second]=sim.snapshot().colonists;
+    sim.possessColonist(first!.id);
+    const order=sim.requestDelivery('steel',2);
+    expect(order.ok).toBe(true);
+    sim.releaseControl();sim.possessColonist(second!.id);
+    const pending=()=>sim.snapshot().jobs.find(job=>job.id===order.id);
+    expect(pending()?.recipientId).toBe(first!.id);
+    for(let i=0;i<400&&pending();i++)sim.tick(.25);
+    expect(pending()).toBeUndefined();
+    expect(sim.snapshot().colonists[0]!.bag).toContainEqual({resource:'steel',count:2});
+    expect(sim.snapshot().playerBag.every(slot=>slot?.resource!=='steel')).toBe(true);
+  });
+
   it('reserves warehouse goods, walks to storage and delivers the requested quantity to the moving player', () => {
     const { sim, world } = setup();
     onlyJob(sim, 'haul');
+    const recipientId=chooseFirst(sim);
+    sim.possessColonist(recipientId);
     const before = sim.snapshot();
     const order = sim.requestDelivery('steel', 7);
     const pending = () => sim.snapshot().jobs.find(job => job.id === order.id);
@@ -76,6 +128,7 @@ expect(sim.snapshot().playerBag.slice(TOOL_KINDS.length).every(stack => stack ==
 
     const restored = new ColonySimulation(world);
     restored.load(sim.serialize());
+    restored.possessColonist(recipientId);
     for (let i = 0; i < 240 && restored.snapshot().jobs.some(job => job.id === order.id); i++) restored.tick(.25, nextPlayer);
     const finished = restored.snapshot();
     expect(finished.jobs.some(job => job.id === order.id)).toBe(false);
@@ -89,11 +142,12 @@ expect(finished.playerBag[TOOL_KINDS.length]).toEqual({ resource: 'steel', count
   it('keeps undelivered goods reserved when the player fills their bag and refunds them on cancellation', () => {
     const { sim } = setup();
     onlyJob(sim, 'haul');
+    chooseFirst(sim);
     const before = sim.snapshot().resources.silver;
     const order = sim.requestDelivery('silver', 3);
     expect(order.ok).toBe(true);
     const remaining = raw(sim);
-    remaining.playerBag = Array.from({ length: 9 }, () => ({ resource: 'cloth', count: 99 }));
+    remaining.colonists[0].bag = Array.from({ length: 9 }, () => ({ resource: 'cloth', count: 99 }));
     sim.load(remaining);
     const player = sim.snapshot().colonists[0]!.position;
     const pending = () => sim.snapshot().jobs.find(job => job.id === order.id);
@@ -109,6 +163,7 @@ expect(finished.playerBag[TOOL_KINDS.length]).toEqual({ resource: 'steel', count
 
   it('keeps overflow in its source and rejects incompatible or stale slots', () => {
     const { sim } = setup();
+    chooseFirst(sim);
     const warehouse = { kind: 'warehouse' } as const;
     // 0 和 1 被工具占着（锤子、木斧），从 2 起才是空槽
     const first = { kind: 'player', slot: TOOL_KINDS.length } as const;
@@ -140,13 +195,14 @@ expect(finished.playerBag[TOOL_KINDS.length]).toEqual({ resource: 'steel', count
     sim.load(old);
     const restored = sim.snapshot();
     expect(restored.resources).toEqual(old.resources);
-    expect(restored.playerBag).toEqual([{ resource: 'hammer', count: 1 }, ...Array(8).fill(null)]);
+    expect(restored.chests.find(chest=>chest.id==='chest-legacy-player')?.slots[0]).toEqual({resource:HAMMER,count:1});
     expect(restored.chests[0]!.slots).toEqual(Array(20).fill(null));
     expect(restored.colonists.every(resident => resident.bag[0] === null)).toBe(true);
   });
 
   it('treats the hammer as ordinary cargo: it can be stored, and is not conjured back', () => {
     const { sim } = setup();
+    chooseFirst(sim);
     // 锤子放进仓库
     const stored = sim.transferInventory({ kind: 'player', slot: 0 }, { kind: 'warehouse' }, HAMMER, 1);
     expect(stored.ok).toBe(true);
@@ -161,6 +217,7 @@ expect(finished.playerBag[TOOL_KINDS.length]).toEqual({ resource: 'steel', count
   it('builds with the selected hammer at twice the resident rate, with the existing material reservation', () => {
     const { sim, world } = setup();
     onlyJob(sim, 'construct');
+    sim.possessColonist(chooseFirst(sim));
     const before = sim.snapshot();
     expect(before.playerBag[0]).toEqual({ resource: 'hammer', count: 1 });
     const site = freeCell(sim, world);
@@ -322,12 +379,14 @@ describe('resident needs and civilian production',()=>{
   });
   it('spills a chest onto the ground when it is demolished',()=>{
     const{sim}=setup();
+    chooseFirst(sim);
     const chest=sim.snapshot().chests[0]!;
     sim.transferInventory({kind:'warehouse'},{kind:'chest',id:chest.id,slot:0},'wood',10);
     sim.transferInventory({kind:'warehouse'},{kind:'chest',id:chest.id,slot:1},'stone',4);
     sim.transferInventory({kind:'player',slot:0},{kind:'chest',id:chest.id,slot:2},HAMMER,1);
     const legacy=raw(sim);
     legacy.version=1;
+    legacy.playerBag=Array(9).fill(null);
     legacy.chests=sim.snapshot().chests;
     legacy.buildings=legacy.buildings.filter((building: { id: string })=>building.id!==chest.id);
     sim.load(legacy);
@@ -345,6 +404,7 @@ describe('resident needs and civilian production',()=>{
       {resource:'wood',amount:10},{resource:'stone',amount:4},{resource:HAMMER,amount:1},{resource:'building:chest',amount:1},
     ]);
     const foot:[number,number,number]=[chest.x+.5,building.y,chest.z+.5];
+    sim.possessColonist(chooseFirst(sim));
     sim.tick(.25,foot);
     expect(sim.snapshot().playerBag.some(slot=>slot?.resource===HAMMER)).toBe(false);
     sim.tick(.5,foot);
@@ -379,6 +439,7 @@ describe('resident needs and civilian production',()=>{
   });
   it('keeps a fresh drop on the ground until the pickup delay elapses',()=>{
     const{sim,world}=setup();
+    sim.possessColonist(chooseFirst(sim));
     // 找一块平地，把玩家放到旁边
     const spot=freeCell(sim,world);
     const player:[number,number,number]=[spot.x+.5,world.terrainHeight(spot.x,spot.z),spot.z+.5];

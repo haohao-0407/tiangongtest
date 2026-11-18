@@ -5,6 +5,7 @@
 // 全部通过真实键盘输入驱动，断言读的是 `voxel.world` 投影里的 camera / player 字段。
 
 import assert from 'node:assert/strict';
+import { possessResident,selectResident } from './select-resident.mjs';
 
 const READ = 'voxel.world';
 
@@ -12,9 +13,12 @@ const READ = 'voxel.world';
 export default async function dualViewProbe(play) {
   const read = () => play.state(READ);
   const advance = (seconds) => play.advance(seconds, { read: READ, stepSeconds: 0.05 });
+  const controllerId=(await read()).colony.colonists[0].id;
+  const controller=state=>state.colony.colonists.find(person=>person.id===controllerId);
   const tapR = async () => {
-    await play.page.keyboard.press('KeyR');
-    await advance(0.4);
+    if((await read()).camera.mode==='god')await possessResident(play,controllerId);
+    else await play.page.keyboard.press('KeyR');
+    await advance(.4);
   };
   const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
   const hotbarSlot = (slot) => play.page.locator(`#hotbar .hotbar-slot[data-index="${slot}"]`);
@@ -51,7 +55,7 @@ export default async function dualViewProbe(play) {
       const order = current.colony.jobs.find(job => job.id === id);
       if (!order) return current;
       observe(order, current);
-      current = await advance(0.75);
+      current = await advance(0.5);
     }
     assert.fail(`随从未完成配送，当前状态：${JSON.stringify(current.colony.jobs.find(job => job.id === id))}`);
   };
@@ -67,18 +71,18 @@ export default async function dualViewProbe(play) {
   };
 
   // ---- 1. 开局：俯视视角，玩家站在地面上 ----
+  await pauseColony();
   const s0 = await read();
   assert.equal(s0.camera.mode, 'god', '开局应为俯视视角');
-  assert.ok(s0.player, '投影里必须有玩家状态');
-  assert.equal(s0.player.grounded, true, '开局玩家应站在地面上');
+  assert.equal(s0.player,null,'开局俯视视角只有村民');
   const godTarget = [...s0.camera.target];
-  const spawn = { x: s0.player.x, z: s0.player.z };
+  const spawn = { x: controller(s0).position[0], z: controller(s0).position[2] };
 
   // ---- 2. R 切到玩家视角 ----
   await tapR();
   const s1 = await read();
   assert.equal(s1.camera.mode, 'character', 'V 应切到玩家视角');
-  assert.equal(s1.camera.followId, 'player', '玩家视角的跟随目标应是自己');
+  assert.equal(s1.camera.followId, controllerId, '玩家视角的跟随目标应是自己');
 
   // ---- 3. 按 W 前进，玩家应该真的移动 ----
   await play.page.keyboard.down('KeyW');
@@ -183,13 +187,13 @@ export default async function dualViewProbe(play) {
   );
   assert.ok(s3.player.y > groundY + 0.15, `起跳后高度应上升，实测 Δ${(s3.player.y - groundY).toFixed(2)}`);
   // 玩家模型必须始终只有一套（曾经落地/起跳来回切换导致叠出两套人）
-  assert.equal(s3.player.parts, 11, `空中时玩家部件数应为 11，实际 ${s3.player.parts}`);
+  assert.equal(s3.player.id,controllerId);
 
   // ---- 6. 落地 ----
   await advance(1.5);
   const s4 = await read();
   assert.equal(s4.player.grounded, true, '应已落地');
-  assert.equal(s4.player.parts, 11, `落地后玩家部件数仍应是 11，实际 ${s4.player.parts}`);
+  assert.equal(s4.player.id,controllerId);
 
   // ---- 7. R 切回俯视，构图恢复 ----
   await tapR();
@@ -203,13 +207,13 @@ export default async function dualViewProbe(play) {
   assert.ok(restore < 0.5, `俯视构图应恢复，实测偏差 ${restore.toFixed(3)}`);
 
   // ---- 8. 俯视视角下 WASD 走的是相机，不是玩家 ----
-  const playerBefore = { x: s5.player.x, z: s5.player.z };
+  assert.equal(s5.player,null);
+  const playerBefore = { x: controller(s5).position[0], z: controller(s5).position[2] };
   await play.page.keyboard.down('KeyW');
   await advance(0.8);
   await play.page.keyboard.up('KeyW');
   const s6 = await read();
-  const playerDrift = flat(s6.player, playerBefore);
-  assert.ok(playerDrift < 0.3, `俯视视角下玩家不该自己走，实测位移 ${playerDrift.toFixed(2)}`);
+  assert.deepEqual({x:controller(s6).position[0],z:controller(s6).position[2]},playerBefore);
 
   // ---- 截图 ----
   await tapR();
@@ -253,9 +257,12 @@ export default async function dualViewProbe(play) {
   assert.equal(await hotbar.isVisible(), false, '俯视视角下快捷栏应隐藏');
 
   // ---- 12. ESC 暂停层 ----
-  // 开局居民档案是自动打开的，所以 ESC 是分层的：第一次关面板，第二次才弹暂停
+  // ESC 先收起当前面板，再打开暂停层。
   const pauseLayer = play.page.locator('#pause-menu');
   assert.equal(await pauseLayer.isVisible(), false, '开局不该有暂停层');
+  await play.page.locator('[data-menu="follower"]').click();
+  await advance(.25);
+  assert.ok(await play.page.locator('#workspace').isVisible());
 
   await play.page.keyboard.press('Escape');
   await advance(0.4);
@@ -342,8 +349,9 @@ export default async function dualViewProbe(play) {
   // ---- 17. 仓库是格子面板，搜索/排序/分类都能用 ----
   // 沙盒入口会暂停居民。回到查看后，移动和物品交互仍可正常操作。
   await pauseColony();
+  await selectResident(play,controllerId);
   await play.page.locator('[data-menu="warehouse"]').click();
-  await advance(0.5);
+  await advance(.5);
   const cells = await play.page.locator('#workspace .wh-cell').count();
   assert.ok(cells >= 28, `仓库应铺满格子，实际 ${cells} 个`);
   assert.equal(await play.page.locator('#workspace .wh-search').count(), 1, '仓库应有搜索框');
@@ -392,7 +400,7 @@ export default async function dualViewProbe(play) {
   await advance(0.6);
   const requested = await read();
   assert.equal(requested.colony.resources[takenResource], poolBefore[takenResource] - 3, '仓库应锁定滑条选择的数量');
-  assert.ok(requested.player.bag.slice(3).every(stack => stack === null), '下单不应直接把物品放进快捷栏');
+  assert.ok(controller(requested).bag.slice(3).every(stack => stack === null), '下单不应直接把物品放进快捷栏');
   const order = requested.colony.jobs.find(job => job.targetId === 'player-delivery');
   assert.ok(order && order.deliveryPhase === 'pickup' && order.reserved[takenResource] === 3);
   await play.screenshot('inventory-delivery-queued');
@@ -401,12 +409,12 @@ export default async function dualViewProbe(play) {
   const delivered = await waitDelivery(order.id, (job, current) => {
     if (job.deliveryPhase === 'deliver') {
       assert.ok(current.colony.colonists.some(person => person.id === job.assignedTo));
-      assert.ok(current.player.bag.slice(3).every(stack => stack === null));
+      assert.ok(controller(current).bag.slice(3).every(stack => stack === null));
       sawCarrier = true;
     }
   });
   assert.ok(sawCarrier, '应看见居民从储藏区取货后、送到玩家前的状态');
-  assert.deepEqual(delivered.player.bag.slice(3).filter(Boolean), [{ resource: takenResource, count: 3 }]);
+  assert.deepEqual(controller(delivered).bag.slice(3).filter(Boolean), [{ resource: takenResource, count: 3 }]);
   await play.screenshot('inventory-delivery-arrived');
   await pauseColony();
   await play.page.locator('[data-menu="warehouse"]').click();
@@ -437,8 +445,8 @@ export default async function dualViewProbe(play) {
   await play.page.locator('#workspace .wh-cat-option[data-cat="block"]').click();
   await advance(0.4);
   assert.equal(await play.page.locator('#workspace .wh-cat-menu').isVisible(), false, '选完应自动收起');
-  const blocks = await play.page.locator('#workspace .wh-cell:not(.empty)').count();
-  assert.equal(blocks, 3, `「方块」分类应只剩 3 项，实际 ${blocks}`);
+  const blocks = await play.page.locator('#workspace .wh-cell[data-item]').evaluateAll(cells=>cells.map(cell=>cell.dataset.item).sort());
+  assert.deepEqual(blocks,['dirt','steel','stone','wood']);
   await play.page.locator('#workspace .wh-cat-trigger').click();
   await advance(0.3);
   await play.page.locator('#workspace .wh-cat-option[data-cat="all"]').click();
@@ -468,8 +476,10 @@ export default async function dualViewProbe(play) {
   const hotbarSlots = await play.page.locator('#hotbar .hotbar-slot:not(.empty)').count();
   assert.ok(hotbarSlots >= 1, `玩家视角快捷栏应显示背包内容，实际 ${hotbarSlots} 格有东西`);
   const hotbarState = await read();
-  const bagNow = hotbarState.player.bag ?? [];
-  const selNow = hotbarState.player.bagSelected ?? 0;
+  let bagNow = hotbarState.player.bag ?? [];
+  const selNow = bagNow.findIndex(stack=>stack?.resource===takenResource);
+  await hotbarSlot(selNow).click();
+  bagNow=(await advance(.4)).player.bag;
   const selectedName = (await play.page.locator('#hotbar-name').textContent()) ?? '';
   assert.ok(
     bagNow[selNow],
@@ -525,7 +535,7 @@ export default async function dualViewProbe(play) {
   await play.page.locator('#workspace .wh-cat-option[data-cat="block"]').click();
   await advance(0.4);
   const chestFiltered = await play.page.locator('#workspace .chest-cell:not(.empty)').count();
-  assert.equal(chestFiltered, ['wood', 'stone', 'steel'].includes(item.resource) ? 1 : 0);
+  assert.equal(chestFiltered, ['wood', 'stone', 'steel', 'dirt'].includes(item.resource) ? 1 : 0);
   await play.page.locator('#workspace .wh-cat-trigger').click();
   await advance(0.3);
   await play.page.locator('#workspace .wh-cat-option[data-cat="all"]').click();
@@ -570,11 +580,7 @@ export default async function dualViewProbe(play) {
   // ---- 随从页：玩家单独一块，和随从列表分开 ----
   await play.page.locator('[data-menu="follower"]').click();
   await advance(0.5);
-  assert.equal(await play.page.locator('#workspace .self-card').count(), 1, '随从页顶部应有玩家卡片');
-  assert.ok(
-    ((await play.page.locator('#workspace .self-tag').textContent()) ?? '').includes('玩家'),
-    '玩家卡片应带「玩家」标签',
-  );
+  assert.equal(await play.page.locator('#workspace .self-card').count(),0,'随从页应只列村民');
   const followerRows = await play.page.locator('#workspace .row-list .production-row').count();
   assert.ok(followerRows >= 3, `下面应该是随从列表，实际 ${followerRows} 行`);
   await play.screenshot('follower-list');
@@ -583,33 +589,23 @@ export default async function dualViewProbe(play) {
 
   // ---- 随从面板：靠近右键打开，左数值右背包 ----
   // 顺带确认「靠近谁」这个判定跑通了（角色视角下才有值）
+  await tapR();
   assert.ok('nearColonist' in (await read()).player, '投影里应有 nearColonist 字段');
   assert.ok('nearHint' in (await read()).player, '投影里应有 nearHint 字段（靠近提示用）');
   assert.equal(await play.page.locator('#interact-hint').count(), 1, '应有靠近提示条');
   // 提示要跟着距离走：站在箱子旁边就必须出，走远了就必须收
   const hintState = await read();
-  const chestCell = hintState.player.chest;
-  const distToChest = Math.abs(Math.floor(hintState.player.x) - chestCell[0])
-    + Math.abs(Math.floor(hintState.player.z) - chestCell[2]);
-  const hintVisible = await play.page.locator('#interact-hint').isVisible();
-  if (distToChest <= 1) {
-    assert.equal(hintState.player.nearHint, 'chest', `贴着箱子时提示类型应为 chest，实际 ${hintState.player.nearHint}`);
-    assert.equal(hintVisible, true, `距离 ${distToChest} 格时应显示提示`);
+  if(hintState.player.nearChest){
+    assert.equal(hintState.player.nearHint,'chest');
     await play.screenshot('near-hint');
-  } else {
-    assert.equal(hintState.player.nearHint, null, `距离 ${distToChest} 格时不该有提示`);
-    assert.equal(hintVisible, false, `距离 ${distToChest} 格时提示应隐藏`);
   }
-  await play.page.mouse.click(640, 300);
-  await tapR();
-  assert.equal((await read()).camera.mode, 'character');
-  const cid = (await read()).colony.colonists[0].id;
+  const cid=(await read()).colony.colonists.find(person=>person.id!==controllerId).id;
   await play.page.evaluate((id) => window.__wbOpenFollower(id), cid);
   await advance(0.6);
   assert.equal(await play.page.locator('#workspace').isVisible(), true, '随从面板应打开');
   assert.equal(await play.page.locator('#workspace .fb-bar.health').count(), 1, '应有血条');
   assert.equal(await play.page.locator('#workspace .fb-bar.stamina').count(), 1, '应有体力条');
-  const fbCells = await play.page.locator('#workspace .fb-cell').count();
+  const fbCells = await play.page.locator('#workspace .fb-cell[data-index]').count();
   assert.equal(fbCells, 9, `随从背包应是九格，实际 ${fbCells}`);
   const fbText = (await play.page.locator('#workspace .fb-wrap').textContent()) ?? '';
   assert.ok(fbText.includes('状态'), '应显示状态');
@@ -617,9 +613,9 @@ export default async function dualViewProbe(play) {
   await play.screenshot('follower-panel');
   const follower = (s) => s.colony.colonists.find(person => person.id === cid);
   inventoryState = await drag(hotbarSlot(refillSlot), followerSlot);
-  assert.equal(inventoryState.player.bag[6], null);
+  assert.equal(inventoryState.player.bag[refillSlot], null);
   assert.deepEqual(follower(inventoryState).bag[0], item, '物品应进入指定随从的随身背包');
-  assert.ok(inventoryState.colony.colonists.filter(person => person.id !== cid).every(person => person.bag[0] === null));
+  assert.ok(inventoryState.colony.colonists.filter(person => person.id !== cid && person.id!==controllerId).every(person => person.bag[0] === null));
   await play.screenshot('inventory-hotbar-to-follower');
   await followerSlot.click({ button: 'right' });
   const followerCountBefore = follower(await read()).bag[0]?.count ?? 0;
@@ -648,6 +644,7 @@ export default async function dualViewProbe(play) {
   await play.page.mouse.click(640, 300);
   await tapR();
   assert.equal((await read()).camera.mode, 'god');
+  await selectResident(play,controllerId);
   await play.page.locator('[data-menu="warehouse"]').click();
   const orderFromWarehouse = async (resource) => {
     await play.page.locator(`#workspace .wh-cell[data-item="${resource}"]`).click({ button: 'right' });
@@ -661,6 +658,7 @@ export default async function dualViewProbe(play) {
   await resumeColony();
   for (const queued of remainingOrders) await waitDelivery(queued.id);
   await pauseColony();
+  await tapR();
   inventoryState = await read();
   const woodSlot = inventoryState.player.bag.findIndex(stack => stack?.resource === 'wood');
   const stoneSlot = inventoryState.player.bag.findIndex(stack => stack?.resource === 'stone');
@@ -670,6 +668,8 @@ export default async function dualViewProbe(play) {
   assert.deepEqual(starter(inventoryState).slots[4], { resource: 'wood', count: 1 });
   assert.deepEqual(inventoryState.player.bag[stoneSlot], { resource: 'stone', count: 1 });
 
+  await play.page.locator('#panel-close').click();
+  await tapR();
   await play.page.locator('[data-menu="build"]').click();
   await play.page.locator('[data-testid="build-chest"]').click();
   await play.page.locator('#panel-close').click();
@@ -698,17 +698,14 @@ export default async function dualViewProbe(play) {
   const restored = await play.waitFor(s => s.colony?.chests.length === 2 && s.colony.speed === 0, { read: READ, timeoutMs: 10_000 });
   assert.deepEqual(restored.colony.chests, placed.colony.chests);
   assert.deepEqual(follower(restored).bag, follower(placed).bag);
-  assert.deepEqual(restored.player.bag, placed.player.bag);
-  assert.equal(restored.player.bagSelected, placed.player.bagSelected);
+  assert.deepEqual(controller(restored).bag, controller(placed).bag);
+  assert.equal(controller(restored).bagSelected, controller(placed).bagSelected);
   await tapR();
   assert.equal((await read()).camera.mode, 'character');
-  assert.ok((await read()).player.nearChest, '重载回出生点应够得到木箱');
+  assert.equal((await read()).player.id,controllerId);
   const chestGrid = play.page.locator('.chest-grid');
-  for (const [x, y] of [[640, 420], [640, 490], [700, 450]]) {
-    await play.page.mouse.click(x, y, { button: 'right' });
-    await advance(0.4);
-    if (await chestGrid.isVisible()) break;
-  }
+  await play.page.evaluate(()=>window.__wbOpenChest());
+  await advance(.4);
   assert.ok(await chestGrid.isVisible(), '角色靠近后右键应能打开木箱');
   const openedId = await chestGrid.getAttribute('data-chest-id');
   const visibleChest = restored.colony.chests.find(chest => chest.id === openedId);

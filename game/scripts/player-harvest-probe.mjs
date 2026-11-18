@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { possessResident } from './select-resident.mjs';
 import { tsImport } from 'tsx/esm/api';
 
 const { VoxelWorld, BLOCK } = await tsImport('../assets/voxel/model.ts', import.meta.url);
@@ -17,7 +18,10 @@ export default async function playerHarvest(play) {
   const dirt = [123,5,126], stone = [124,5,126], ore = [125,5,126];
   world.edit([dirt,stone,ore].map(([x,y,z],i)=>({x,y,z,block:[BLOCK.Dirt,BLOCK.Stone,BLOCK.SteelOre][i]})));
   const colony = new ColonySimulation(world);
-  const data = JSON.stringify({version:2,voxel:world.serialize(),colony:colony.serialize()});
+  const fixture=colony.serialize();
+  fixture.colonists[0].position=[125.5,6,125.5];
+  for(const job of Object.keys(fixture.colonists[0].priorities))fixture.colonists[0].priorities[job]=0;
+  const data = JSON.stringify({version:2,voxel:world.serialize(),colony:fixture});
   await page.evaluate(({key,value})=>localStorage.setItem(key,value),{key:SAVE,value:data});
   await play.reload();
   const initial = await play.waitFor(s=>s.seed===world.seed && s.colony?.buildings.length, {read:READ,timeoutMs:10000});
@@ -53,8 +57,7 @@ export default async function playerHarvest(play) {
     await play.screenshot(screenshot);
   };
 
-  await page.mouse.click(1000,350);
-  await page.keyboard.press('KeyR');
+  await possessResident(play,fixture.colonists[0].id);
   assert.equal((await advance()).camera.mode,'character');
   await page.keyboard.press('Digit9');
   await advance();
@@ -76,13 +79,15 @@ export default async function playerHarvest(play) {
     assert.ok(collected.player.bag.some(item=>item?.resource===resource),`快捷栏应拾取${resource}`);
   }
   await play.screenshot('mined-materials-in-hotbar');
-  await page.waitForFunction(({key,count})=>{
+  const residentId=fixture.colonists[0].id;
+  await page.waitForFunction(({key,count,id})=>{
     const data=JSON.parse(localStorage.getItem(key)??'null');
     const voxel=typeof data?.voxel==='string' ? JSON.parse(data.voxel) : data?.voxel;
-    return voxel?.edits?.length>=count && data?.colony.playerBag.some(item=>item?.resource==='steel');
-  },{key:SAVE,count:(await read()).edits},{timeout:10000});
+    const resident=data?.colony.colonists.find(person=>person.id===id);
+    return voxel?.edits?.length>=count && resident?.bag.some(item=>item?.resource==='steel');
+  },{key:SAVE,count:(await read()).edits,id:residentId},{timeout:10000});
   await play.reload();
-  const restored=await play.waitFor(s=>s.seed===world.seed && s.colony?.playerBag.some(item=>item?.resource==='steel'),{read:READ,timeoutMs:10000});
+  const restored=await play.waitFor(s=>s.seed===world.seed && s.colony.colonists.find(person=>person.id===residentId)?.bag.some(item=>item?.resource==='steel'),{read:READ,timeoutMs:10000});
   assert.equal(restored.minerals.steelOre.cells,initial.minerals.steelOre.cells-1);
   await play.screenshot('mined-ground-and-inventory-restored');
   return {minedCells:3,remainingOre:restored.minerals.steelOre.cells};
