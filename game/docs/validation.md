@@ -1,5 +1,13 @@
 # 本地验收记录
 
+## 2026-11-16：ForgeAX MCP 的 Engine 0.5.0 本地适配
+
+- 基于官方 `@forgeax/game@0.4.2` 建立独立本地副本，标识为 `0.4.2-engine.0.5.0.local.1`；使用真实 npm `@forgeax/engine-sdk@0.5.0`、pnpm 12.15.0 和 Engine commit `9e2cad3cfea08269cb30e21beb0a0cce1b323722`，不移除精确发布身份与 Preview 归属校验。另补全 Windows 进程启动时间查询和现有 Engine Skill junction 的识别。
+- 真实 stdio MCP 握手通过，列出 4 个工具、2 个资源。当前项目状态报告正确的 Engine/commit、当前路由块、已安装的插件指南及 22/22 项 Engine authoring Skills。临时声明 Engine 0.4.8 的项目仍被 `engine_release_mismatch` 拒绝。
+- `forgeax_run_current_game` 通过项目实际安装的 Engine 0.5.0 CLI 构建并返回 `preview.status: ready`，包含当前游戏 root、Engine commit、build digest、instance ID；第二次调用验证现有 Preview 的身份并复用。测试 MCP 退出后停止它创建的 Preview。原版首次适配时暴露的 Windows `preview_process_identity_unavailable` 失败已保留于问题记录。
+- Codex ForgeAX 条目通过安装器的真实握手后切换到本地入口；原配置备份为 `~/.codex/config.toml.bak.latest`。当前已运行的旧 MCP 不会热更新，需要重启 Codex。适配脚本为 `tools/forgeax-plugin-0.5.0.mjs`，本机 JSON 证据在 `.launcher/forgeax-plugin-0.5.0/verification.json`；[维护与回退说明](forgeax-plugin-0.5.0.md)。
+- 本轮未修改玩法或游戏依赖，未重做玩法浏览器验收，也不据此宣称可选原生 View、扩展面板或云资产服务兼容。`D:\forgeax-engine` 的导出清单标识为 0.6.0 开发快照，本轮未修改或使用该源码代替已发布的 0.5.0。
+
 ## 2026-11-15：地表钢矿脉
 
 - 新地图使用生成器 v3，新增独立钢矿方块。默认 250 × 250 地图目标 24 条矿脉，每条 6–16 格，同标高四邻接相连，矿脉间留白；候选必须是裸露干燥地表，避开中央营地和树冠投影。样本种子均生成 24 条，默认种子共 284 个矿格；合法区域不足的小地图允许少生成，尚未实现总产量或开局附近产量硬保底。

@@ -1,0 +1,1352 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "Head",
+        "Neck",
+        "Hand.L",
+        "Forearm.L",
+        "UpperArm.L",
+        "Shoulder.L",
+        "Hand.R",
+        "Forearm.R",
+        "UpperArm.R",
+        "Shoulder.R",
+        "Chest",
+        "Spine",
+        "Toe.L",
+        "Foot.L",
+        "Shin.L",
+        "Thigh.L",
+        "Toe.R",
+        "Foot.R",
+        "Shin.R",
+        "Thigh.R",
+        "Hips",
+        "Root",
+        "Villager-01",
+        "Villager-02",
+        "Villager-03",
+        "Villager-04",
+        "Villager-05",
+        "Villager-06",
+        "Villager-07",
+        "Villager-08",
+        "Villager-09",
+        "Villager-10",
+        "Villager-11",
+        "Villager-12",
+        "Villager-13",
+        "Villager-14",
+        "Villager-15",
+        "Villager-16",
+        "Villager-17",
+        "Villager-18",
+        "Villager-19",
+        "Villager-20",
+        "Villager-21",
+        "Villager-22",
+        "Villager_Rig"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "villagers.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-01"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-02"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-03"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-04"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-05"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-06"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-07"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-08"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-09"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-10"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-11"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-12"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-13"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-14"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-15"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-16"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-17"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-18"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-19"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-20"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-21"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-22"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:Villager-01": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-02": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-03": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-04": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-05": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-06": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-07": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-08": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-09": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-10": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-11": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-12": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-13": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-14": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-15": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-16": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-17": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-18": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-19": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-20": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-21": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    },
+    "mesh:Villager-22": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+          "slotName": "Villager palette",
+          "sourceKey": "material:Villager palette"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1f3ed-f774-71ee-a837-8ee2402be09e",
+      "kind": "mesh",
+      "name": "Villager-01",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:Villager-01"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edef9fff2ca7",
+      "kind": "mesh",
+      "name": "Villager-02",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:Villager-02"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edf0fa8c27af",
+      "kind": "mesh",
+      "name": "Villager-03",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:Villager-03"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edf10f06783a",
+      "kind": "mesh",
+      "name": "Villager-04",
+      "sourceIndex": 3,
+      "sourceKey": "mesh:Villager-04"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edf21673e836",
+      "kind": "mesh",
+      "name": "Villager-05",
+      "sourceIndex": 4,
+      "sourceKey": "mesh:Villager-05"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edf338c2b96e",
+      "kind": "mesh",
+      "name": "Villager-06",
+      "sourceIndex": 5,
+      "sourceKey": "mesh:Villager-06"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edf4d6064be3",
+      "kind": "mesh",
+      "name": "Villager-07",
+      "sourceIndex": 6,
+      "sourceKey": "mesh:Villager-07"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edf5514ee7bc",
+      "kind": "mesh",
+      "name": "Villager-08",
+      "sourceIndex": 7,
+      "sourceKey": "mesh:Villager-08"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edf6e647ceff",
+      "kind": "mesh",
+      "name": "Villager-09",
+      "sourceIndex": 8,
+      "sourceKey": "mesh:Villager-09"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edf7e6b3af07",
+      "kind": "mesh",
+      "name": "Villager-10",
+      "sourceIndex": 9,
+      "sourceKey": "mesh:Villager-10"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edf85b2fb24e",
+      "kind": "mesh",
+      "name": "Villager-11",
+      "sourceIndex": 10,
+      "sourceKey": "mesh:Villager-11"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edf9bdbac7b4",
+      "kind": "mesh",
+      "name": "Villager-12",
+      "sourceIndex": 11,
+      "sourceKey": "mesh:Villager-12"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edfa096b6c03",
+      "kind": "mesh",
+      "name": "Villager-13",
+      "sourceIndex": 12,
+      "sourceKey": "mesh:Villager-13"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edfb0c17b077",
+      "kind": "mesh",
+      "name": "Villager-14",
+      "sourceIndex": 13,
+      "sourceKey": "mesh:Villager-14"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edfc5ac84283",
+      "kind": "mesh",
+      "name": "Villager-15",
+      "sourceIndex": 14,
+      "sourceKey": "mesh:Villager-15"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edfda300906a",
+      "kind": "mesh",
+      "name": "Villager-16",
+      "sourceIndex": 15,
+      "sourceKey": "mesh:Villager-16"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edfef7ee0bad",
+      "kind": "mesh",
+      "name": "Villager-17",
+      "sourceIndex": 16,
+      "sourceKey": "mesh:Villager-17"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-edff3d81f2aa",
+      "kind": "mesh",
+      "name": "Villager-18",
+      "sourceIndex": 17,
+      "sourceKey": "mesh:Villager-18"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee0054e5b767",
+      "kind": "mesh",
+      "name": "Villager-19",
+      "sourceIndex": 18,
+      "sourceKey": "mesh:Villager-19"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee01bfa92332",
+      "kind": "mesh",
+      "name": "Villager-20",
+      "sourceIndex": 19,
+      "sourceKey": "mesh:Villager-20"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee023b57cfde",
+      "kind": "mesh",
+      "name": "Villager-21",
+      "sourceIndex": 20,
+      "sourceKey": "mesh:Villager-21"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee03f62ab60a",
+      "kind": "mesh",
+      "name": "Villager-22",
+      "sourceIndex": 21,
+      "sourceKey": "mesh:Villager-22"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee04fcd36c41",
+      "kind": "material",
+      "name": "Villager palette",
+      "sourceIndex": 0,
+      "sourceKey": "material:Villager palette"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee05f8254bb7",
+      "kind": "scene",
+      "name": "Villager-01",
+      "sourceIndex": 0,
+      "sourceKey": "scene:Villager-01"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee1b0aed29ef",
+      "kind": "skeleton",
+      "sourceIndex": 0,
+      "sourceKey": "skeleton"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee1c7dc164d3",
+      "kind": "skin",
+      "sourceIndex": 0,
+      "sourceKey": "skin"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee1d09dc9f8e",
+      "kind": "animation-clip",
+      "name": "Walk_Backward",
+      "sourceIndex": 0,
+      "sourceKey": "animation-clip:Walk_Backward"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee1ef2d32238",
+      "kind": "animation-clip",
+      "name": "Walk_Forward",
+      "sourceIndex": 1,
+      "sourceKey": "animation-clip:Walk_Forward"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee1f7cb4646f",
+      "kind": "animation-clip",
+      "name": "Walk_Left",
+      "sourceIndex": 2,
+      "sourceKey": "animation-clip:Walk_Left"
+    },
+    {
+      "guid": "01a1f3ed-f776-777e-a0d8-ee202c6ef25c",
+      "kind": "animation-clip",
+      "name": "Walk_Right",
+      "sourceIndex": 3,
+      "sourceKey": "animation-clip:Walk_Right"
+    }
+  ]
+}

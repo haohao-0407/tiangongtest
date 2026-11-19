@@ -2,8 +2,9 @@ import type { World, EntityHandle } from '@forgeax/engine/ecs';
 import type { AssetRegistry } from '@forgeax/engine/assets-runtime';
 import { createBoxGeometry } from '@forgeax/engine/geometry';
 import { Materials, MeshFilter, MeshRenderer, ShadowParticipation } from '@forgeax/engine/render';
-import { Name, Transform } from '@forgeax/engine/scene';
+import { ChildOf, Name, Transform } from '@forgeax/engine/scene';
 import { RenderQueue, type AssetHandle } from '@forgeax/engine/types';
+import { CharacterView, residentOutfit, type CharacterAssets } from './character-view.ts';
 import type { VoxelWorld } from '../voxel/model.ts';
 import { BUILDING_DEFS, type BuildingKind } from './contracts.ts';
 
@@ -25,9 +26,9 @@ export type ColonyRenderState={
 const COLORS:Record<string,string>={
   wood:'#a97943',stone:'#9ca9a5',steel:'#899fae',food:'#e4bc63',meal:'#d4834b',medicine:'#ecf4dd',cloth:'#c2b3d9',silver:'#e5d69b',components:'#d0ad45',
   dark:'#2e4247',cream:'#f0ddba',blanket:'#568b9b',white:'#fff3d5',green:'#63935e',gold:'#e5c66f',blue:'#4d7d96',black:'#233135',
-  shirt0:'#e0a160',shirt1:'#6b9ba5',shirt2:'#b17f91',shirt3:'#849d60',skin:'#e5b48a',hair:'#60483e',light:'#c5e4cd',soil:'#7e563b',
+  light:'#c5e4cd',soil:'#7e563b',
   blueprint:'#75cece',zoneFarm:'#90bd65',zoneStock:'#75baca',selected:'#ecd78c',health:'#9fc174',bad:'#c56b55',
-  playerBody:'#e8b44a',playerHair:'#4a3a2c',playerMark:'#ffd76e',
+  playerMark:'#ffd76e',
 };
 const rgba=(hex:string):[number,number,number,number]=>{
   const n=parseInt(hex.slice(1),16);const f=(v:number)=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4;
@@ -39,8 +40,8 @@ export class ColonyView {
   private cube:AssetHandle<'mesh'>;
   private materials=new Map<string,AssetHandle<'material'>>();
   private groups=new Map<string,{signature:string;entities:EntityHandle[];transforms:number[][]}>();
-  private pawnPositions=new Map<string,V3>();
-  constructor(private world:World,private assets:AssetRegistry,private terrain:()=>VoxelWorld){
+  private residents = new Map<string, CharacterView>();
+  constructor(private world:World,private assets:AssetRegistry,private terrain:()=>VoxelWorld, private characters:CharacterAssets){
     this.cube=assets.create(createBoxGeometry(1,1,1).unwrap()).unwrap();
   }
   private material(key:string):AssetHandle<'material'>{
@@ -67,22 +68,26 @@ export class ColonyView {
   }
   update(state:ColonyRenderState,time:number){
     const active=new Set<string>();
-    for(const [i,p]of state.colonists.entries()){
-      const [x,y,z]=p.position;
-      const old=this.pawnPositions.get(p.id);const moving=old&&Math.hypot(x-old[0],z-old[2])>.003;
-      this.pawnPositions.set(p.id,[x,y,z]);const swing=moving?Math.sin(time*11+i)*.09:0;
-      const parts:Part[]=[
-        {p:[x-.13,y+.22+swing,z],s:[.18,.44,.24],c:'dark'}, {p:[x+.13,y+.22-swing,z],s:[.18,.44,.24],c:'dark'},
-        {p:[x,y+.69,z],s:[.5,.55,.3],c:`shirt${i%4}`}, {p:[x,y+1.12,z],s:[.4,.4,.37],c:'skin'},
-        {p:[x,y+1.34,z-.02],s:[.43,.12,.4],c:'hair'},
-        {p:[x-.1,y+1.14,z+.19],s:[.045,.055,.025],c:'black'},{p:[x+.1,y+1.14,z+.19],s:[.045,.055,.025],c:'black'},
-        {p:[x-.32,y+.65-swing,z],s:[.13,.43,.19],c:'skin'},{p:[x+.32,y+.65+swing,z],s:[.13,.43,.19],c:'skin'},
-      ];
-      const carried=Object.entries(p.carrying??{}).find(([,amount])=>(amount??0)>0);
-      if(carried)parts.push({p:[x,y+.7,z+.37],s:[.42,.35,.3],c:COLORS[carried[0]]?carried[0]:'wood'});
+    const present = new Set(state.colonists.map(p => p.id));
+    for (const [id, actor] of this.residents) if (!present.has(id)) {
+      actor.dispose();
+      this.residents.delete(id);
+    }
+    for (const p of state.colonists) {
+      let actor = this.residents.get(p.id);
+      if (!actor) {
+        actor = new CharacterView(this.world, this.assets, this.characters, residentOutfit(p.id));
+        this.residents.set(p.id, actor);
+      }
+      actor.updateResident(p.position, time);
+      const [x,y,z] = p.position, scale = actor.scale;
+      const parts: Part[] = [];
+      const carried = Object.entries(p.carrying ?? {}).find(([, amount]) => (amount ?? 0) > 0);
+      if (carried) parts.push({p:[x+Math.sin(actor.facing)*.45*scale,y+.87*scale,z+Math.cos(actor.facing)*.45*scale],
+        s:[.42*scale,.35*scale,.3*scale],c:COLORS[carried[0]]?carried[0]:'wood'});
       if(state.selectedColonistId===p.id)parts.push({p:[x,y+.025,z],s:[.94,.045,.94],c:'selected',shadow:false});
-      if(p.health<80)parts.push({p:[x,y+1.65,z],s:[.65*Math.max(.05,p.health/100),.07,.07],c:p.health>35?'health':'bad',shadow:false});
-      this.put(`居民/${p.id}`,parts,active);
+      if(p.health<80)parts.push({p:[x,y+1.8*scale+.15,z],s:[.65*Math.max(.05,p.health/100),.07,.07],c:p.health>35?'health':'bad',shadow:false});
+      if (parts.length) this.put(`居民/${p.id}`, parts, active);
     }
     for(const b of state.buildPreview?[...state.buildings,state.buildPreview]:state.buildings){
       // Completed walls are composed by the shared semantic voxel renderer.
@@ -159,69 +164,36 @@ export class ColonyView {
     }
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }
-  dispose(){this.disposePlayer();this.updateChests([]);for(const g of this.groups.values())for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.clear();for(const m of this.materials.values())this.assets.release(m).unwrap();this.materials.clear();this.assets.release(this.cube).unwrap();}
+  dispose(){this.player?.actor.dispose();this.player=null;for(const actor of this.residents.values())actor.dispose();this.residents.clear();this.updateChests([]);for(const g of this.groups.values())for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.clear();for(const m of this.materials.values())this.assets.release(m).unwrap();this.materials.clear();this.assets.release(this.cube).unwrap();}
 
-  // ---- 玩家角色 ----
-  // 玩家每帧都在动，不能跟着殖民地那套 20Hz 的快照刷新，
-  // 否则走起来一顿一顿的。这里单独维护一组实体，只更新 Transform。
-
-  private playerEntities:EntityHandle[]=[];
-  private playerParts:Part[]=[];
+  private player: {actor:CharacterView; ground:EntityHandle; grounded:boolean} | null = null;
   private chestEntities = new Map<string, { pos: V3; parts: EntityHandle[] }>();
-  private playerFacing=Number.NaN;
 
-  /** 每帧调，只改位置/姿态，不重建实体。 */
-  updatePlayer(p:{x:number;y:number;z:number;facing:number;moving:boolean;grounded:boolean},time:number){
-    const [x,y,z]=[p.x,p.y,p.z];
-    const swing=p.moving?Math.sin(time*11)*.09:0;
-    // 整个人绕 Y 轴转：先在「朝 +Z」的局部坐标里摆好，再按 facing 旋到世界。
-    // 之前只挪眼睛的位置，身体还是固定朝向，看着像块不动的砖。
-    const cos=Math.cos(p.facing),sin=Math.sin(p.facing);
-    const rot=(lx:number,ly:number,lz:number):V3=>[x+lx*cos+lz*sin,y+ly,z-lx*sin+lz*cos];
-    // 光有位置旋转不够——躯干和头在中心（lx=lz=0），位置根本不变，
-    // 方块本身又是轴对齐的，转起来就像上半身钉死了。
-    // 这里给每个方块真的加一个绕 Y 的旋转，人整体才会跟着转。
-    const spin:[number,number,number,number]=[0,Math.sin(p.facing/2),0,Math.cos(p.facing/2)];
-    const facingChanged=Math.abs(p.facing-this.playerFacing)>1e-4;
-    this.playerFacing=p.facing;
-    const parts:Part[]=[
-      {p:rot(-.13,.22+swing,0),s:[.18,.44,.24],c:'dark'},   // 左腿
-      {p:rot(.13,.22-swing,0),s:[.18,.44,.24],c:'dark'},    // 右腿
-      {p:rot(0,.69,0),s:[.32,.55,.52],c:'playerBody'},      // 躯干（前后厚、左右窄）
-      {p:rot(0,1.12,0),s:[.4,.4,.37],c:'skin'},             // 头
-      {p:rot(0,1.34,0),s:[.43,.12,.4],c:'playerHair'},      // 头发
-      {p:rot(-.1,1.14,.19),s:[.05,.055,.028],c:'black'},    // 左眼
-      {p:rot(.1,1.14,.19),s:[.05,.055,.028],c:'black'},     // 右眼
-      {p:rot(-.33,.65-swing,0),s:[.19,.43,.19],c:'skin'},   // 左臂
-      {p:rot(.33,.65+swing,0),s:[.19,.43,.19],c:'skin'},    // 右臂
-      {p:[x,y+1.9,z],s:[.22,.22,.22],c:'playerMark',shadow:false},  // 头顶标记不跟着转
-    ];
-    // 落地光晕固定占第 11 格，不落地时缩成 0 隐藏。
-    // 早先按部件数量决定要不要重建，结果落地/起跳各 10、11 个来回切，
-    // 旧实体没被干净回收，屏幕上就叠出两套人。
-    // 现在数量恒定为 11：建一次，之后只改位置和缩放。
-    parts.push({p:[x,y+.025,z],s:p.grounded?[.72,.03,.72]:[0,0,0],c:'playerMark',shadow:false});
-
-    if(this.playerEntities.length===0){
-      this.playerParts=parts.map(q=>({p:[...q.p] as V3,s:[...q.s] as V3,c:q.c,shadow:q.shadow}));
-      this.playerEntities=parts.map((part,i)=>this.world.spawn(
-        {component:Name,data:{value:`player/${i}`}},{component:Transform,data:{pos:part.p,scale:part.s,quat:spin}},
-        {component:MeshFilter,data:{assetHandle:this.cube}},{component:MeshRenderer,data:{materials:[this.material(part.c)]}},
-        {component:ShadowParticipation,data:{cast:part.shadow!==false,receive:true}},
-      ).unwrap());
-      return;
+  updatePlayer(p:{x:number;y:number;z:number;facing:number;moving:boolean;grounded:boolean}){
+    if (!this.player) {
+      const actor = new CharacterView(this.world, this.assets, this.characters, 1);
+      const marker = (name:string, y:number, scale:V3) => this.world.spawn(
+        {component:Name,data:{value:name}}, {component:ChildOf,data:{parent:actor.root}},
+        {component:Transform,data:{pos:[0,y,0],scale}},
+        {component:MeshFilter,data:{assetHandle:this.cube}},
+        {component:MeshRenderer,data:{materials:[this.material('playerMark')]}},
+        {component:ShadowParticipation,data:{cast:false,receive:true}},
+      ).unwrap();
+      marker('player/overhead', 2.08, [.22,.22,.22]);
+      this.player = {actor, ground:marker('player/ground', .025, [.72,.03,.72]), grounded:true};
     }
-    for(let i=0;i<parts.length;i++){
-      const next=parts[i]!,prev=this.playerParts[i]!;
-      if(next.p.some((n,j)=>n!==prev.p[j])||next.s.some((n,j)=>n!==prev.s[j])||facingChanged){
-        this.world.set(this.playerEntities[i]!,Transform,{pos:next.p,scale:next.s,quat:spin}).unwrap();
-        prev.p=next.p;prev.s=next.s;
-      }
-      if(next.c!==prev.c)this.world.set(this.playerEntities[i]!,MeshRenderer,{materials:[this.material(next.c)]}).unwrap();
+    this.player.actor.updatePlayer([p.x,p.y,p.z], p.facing, p.moving && p.grounded);
+    if (p.grounded !== this.player.grounded) {
+      this.world.set(this.player.ground, Transform, {scale:p.grounded?[.72,.03,.72]:[0,0,0]}).unwrap();
+      this.player.grounded = p.grounded;
     }
   }
 
-  get playerEntityCount(){return this.playerEntities.length;}
+  get playerEntityCount(){return this.player ? this.player.actor.meshCount + 2 : 0;}
+  readCharacters() {
+    return { player:this.player?.actor.read() ?? null,
+      residents:[...this.residents].map(([id, actor]) => ({id, ...actor.read()})) };
+  }
 
   updateChests(chests: readonly { id: string; pos: V3 }[]) {
     for (const [id, chest] of this.chestEntities) {
@@ -252,5 +224,4 @@ export class ColonyView {
     ).unwrap());
   }
 
-  disposePlayer(){for(const e of this.playerEntities)this.world.despawn(e).unwrap();this.playerEntities=[];this.playerParts=[];}
 }

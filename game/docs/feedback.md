@@ -1,5 +1,9 @@
 # Engine / SDK feedback
 
+- 2026-11-19 / Engine 0.5.0 的 glTF 导入器为多场景 GLB 生成了不同的场景 GUID，但 `importSceneSubAsset` 构建各场景时都取了 `doc.defaultSceneIndex`。在游戏里实例化三套不同编号的居民场景，显示的都是第一套网格。人物资源改用一个骨架场景，并按造型给实例的 `MeshFilter` 绑定对应的已导入网格。
+
+- 2026-11-16 / ForgeAX MCP 0.4.2 / Windows：将独立本地副本完整绑定至已发布 Engine/SDK 0.5.0 后，真实 MCP 构建通过，但启动 Preview 返回 `preview_process_identity_unavailable`。插件 `processStartIdentity()` 只读取 Linux `/proc/<pid>/stat` 或运行 Unix `ps -o lstart= -p <pid>`，没有 Windows 实现。本地适配增加 Windows PowerShell `Get-Process.StartTime` 的 UTC ticks 查询；不移除进程启动身份、Engine commit、构建摘要或 Preview 归属校验。原 npm 插件和引擎源码不修改；本地脚本、验证范围与回退方法见 `forgeax-plugin-0.5.0.md`。
+
 - 2026-11-14 / Engine 0.5.0 升级：官方 MCP 插件 0.4.2 的 `forgeax_run_current_game` 仍返回 `engine_release_mismatch: game declares @forgeax/engine=0.5.0, expected 0.4.8`。插件未发布匹配版本，保留原插件配置；0.5.0 的检查与浏览器验收使用项目安装的同版本官方 CLI，不能声称 MCP Preview 已通过。
 
 - 2026-11-14 / Engine 0.5.0 官方依赖：`pnpm peers check` 报告 DeepSeek Harness 的 `dsh-agent`、`dsh-llm`、`dsh-session` 安装为 `0.1.0-rc.6`，而部分 `dsh-user-approval`、`dsh-tools`、`dsh-system-prompt` 依赖要求 `^0.1.0-rc.8`。未改写引擎随包依赖或添加覆盖；项目 TypeScript、105 项测试和浏览器构建通过。该警告不等于这些 Harness 功能已验证，游戏运行证据单独记录在 `validation.md`。

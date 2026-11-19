@@ -12,6 +12,7 @@ import {
   TONEMAP_ACES_FILMIC, ShadowParticipation,
 } from '@forgeax/engine/render';
 import { Name, PROPAGATE_TRANSFORMS_SYSTEM, Transform } from '@forgeax/engine/scene';
+import { skinningPlugin } from '@forgeax/engine/skinning';
 import { RenderQueue, type AssetHandle } from '@forgeax/engine/types';
 import { assetGuid, guidText, PACKAGE_IDS, SUN_OUTGOING_DIRECTION } from '../shared/asset-refs.ts';
 import { BLOCK, BLOCKS, VoxelWorld } from './model.ts';
@@ -22,6 +23,7 @@ import { treeParts, type TreeInstance } from './trees.ts';
 import { overlaps, raycastTree, treesBlockBox, treeSupportHeight, treeProtectingVoxel } from './tree-interaction.ts';
 import { ColonySimulation } from '../colony/simulation.ts';
 import { ColonyView } from '../colony/view.ts';
+import type { CharacterAssets } from '../colony/character-view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
 import { BUILDING_DEFS, HAMMER, type BuildingKind, type ColonyCommand, type ChestView } from '../colony/contracts.ts';
 import { buildingDimensions, type BuildingPart } from '../colony/buildings.ts';
@@ -33,17 +35,18 @@ const CAMERA_SYSTEM = 'voxel-camera';
 const EDIT_SYSTEM = 'voxel-edit';
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
-export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
+export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: string; outfits: string[]; walks: string[] }> = {
   name: 'voxel-homestead',
   inject: ['world', 'assets', 'gameHost'],
   async apply(ctx, config) {
+    ctx.plugin(skinningPlugin());
     const world = ctx.world, assets = ctx.assets!, host = ctx.gameHost!;
     const port = host.port;
     await ctx.effect(async function* () {
       let voxels = new VoxelWorld();
       let colony = new ColonySimulation(voxels);
       let colonyState = colony.snapshot();
-      const colonyView = new ColonyView(world, assets, () => voxels);
+      let colonyView: ColonyView;
       const terrainView = new TerrainPlanView(world, assets, () => voxels);
       const pcgView = new PcgView(world, assets);
       const treeView = new TreeView(world, assets);
@@ -146,7 +149,6 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         return best;
       };
 
-      syncChests();
 
       /** AABB 覆盖到的格子范围，四个方向都用这个，别再用中心格近似。 */
       const boxCells = (cx: number, cz: number, footY: number) => ({
@@ -221,7 +223,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         if (cameraSystemAdded) world.removeSystem(Update, CAMERA_SYSTEM).unwrap();
         if (editSystemAdded) world.removeSystem(Update, EDIT_SYSTEM).unwrap();
         world.removeResource('voxel:read');
-        colonyView.dispose(); terrainView.dispose(); pcgView.dispose(); treeView.dispose();
+        colonyView?.dispose(); terrainView.dispose(); pcgView.dispose(); treeView.dispose();
         for (const entity of entities) world.despawn(entity).unwrap();
         for (const handle of ownedHandles) assets.release(handle).unwrap();
         ownedHandles.clear();
@@ -262,6 +264,13 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         castShadow: true, shadowDistance: 100,
       } }).unwrap());
       const sky = own((await assets.load(config.environment ?? guidText(assetGuid(PACKAGE_IDS.environment, 'environment/daylight')), 'equirect')).unwrap());
+      const characters: CharacterAssets = {
+        scene: own((await assets.load(config.scene, 'scene')).unwrap()), outfits: [], walks: [],
+      };
+      for (const guid of config.outfits) characters.outfits.push(own((await assets.load(guid, 'mesh')).unwrap()));
+      for (const guid of config.walks) characters.walks.push(own((await assets.load(guid, 'animation-clip')).unwrap()));
+      colonyView = new ColonyView(world, assets, () => voxels, characters);
+      syncChests();
       const ambientEntity = track(world.spawn({ component: Name, data: { value: '柔和天光' } }, { component: Skylight, data: {
         equirect: sky, color: [1, 0.96, 0.86], intensity: 0.85,
       } }).unwrap());
@@ -298,6 +307,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         undo: tool.startsWith('sandbox:') && voxels.canUndo, redo: tool.startsWith('sandbox:') && voxels.canRedo, hoverCell: hoverCell ? [...hoverCell] : null,
         status, lastEdit, buildRotation, selectedBuildingId, hoverBuildingId, hoverBuildingPart: hoverBuildingPart ? {...hoverBuildingPart} : null,
         selectedTreeId, hoverTreeId, hoverTreePart, trees: voxels.getTrees(), treeModel: treeView.read(),
+        characters: colonyView.readCharacters(),
         camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
         player: { x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
           // 给验收用：当前是不是嵌在实心方块里
@@ -704,7 +714,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           const rotation = quat.fromLookAt(quat.create(), eye, target, [0, 1, 0]);
           world.set(camera, Transform, { pos: eye, quat: [rotation[0]!, rotation[1]!, rotation[2]!, rotation[3]!] }).unwrap();
           // 玩家每帧单独更新，不跟殖民地的 20Hz 快照走
-          colonyView.updatePlayer(player, world.getResource(Time).elapsed);
+          colonyView.updatePlayer(player);
         },
       }).unwrap();
       cameraSystemAdded = true;
