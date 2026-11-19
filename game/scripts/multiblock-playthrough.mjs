@@ -273,22 +273,23 @@ export default async function multiblockPlaythrough(play) {
     const before = clone((await read()).colony.resources);
     await click('building-demolish');
     const after = await wait((s) => !buildingBy(s, bed.id));
-    assert.equal(after.colony.resources.wood, before.wood + 6);
-    assert.equal(after.colony.resources.cloth, before.cloth + 1);
+    assert.deepEqual(after.colony.resources, before);
+    assert.equal(after.colony.items.filter(item => item.resource === 'building:bed' && item.x === bed.x && item.z === bed.z).length, 1);
     assert.ok(!after.colony.jobs.some((j) => j.targetId === bed.id));
     await inspect();
     assert.ok(await hoverGround(bed.x, bed.z, bed.y));
     assert.ok(await hoverGround(otherCell[0], otherCell[2], bed.y));
     await capture('multiblock-11-whole-bed-demolished-both-cells-clear');
   });
-  await play.step('door-upper-half-demolishes-both-parts-and-refunds-once', async () => {
+  await play.step('door-upper-half-demolishes-both-parts-and-drops-one-door', async () => {
     const door = buildingBy(await read(), doorId);
     await chooseTool('plan', 'tool-demolish', 'demolish');
     const hover = await hoverPart(door.id, [door.x, door.y + 1, door.z]);
     const before = (await read()).colony.resources.wood;
     await play.mouse.click(hover.point);
     const after = await wait((state) => !buildingBy(state, door.id));
-    assert.equal(after.colony.resources.wood, before + 4);
+    assert.equal(after.colony.resources.wood, before);
+    assert.equal(after.colony.items.filter(item => item.resource === 'building:door' && item.x === door.x && item.z === door.z).length, 1);
     assert.ok(!after.colony.jobs.some((job) => job.targetId === door.id));
     await inspect();
     assert.ok(await hoverGround(door.x, door.z, door.y), 'Removing the upper half must remove the entire door.');
@@ -309,6 +310,6 @@ export default async function multiblockPlaythrough(play) {
   });
   return { requirements: ['four-bed-rotations', 'button-and-keyboard-rotation', 'two-cell-bed-blueprints', 'two-high-door-blueprint',
     'resident-construction', 'upper-door-part-selection', 'door-open-close', 'map-door-interaction', 'save-load-reload-rotation-parts-open-state',
-    'second-bed-cell-selection', 'whole-bed-demolition', 'whole-door-demolition-from-upper-half', 'single-material-refund', 'rotation-toolbar-two-viewports'],
+    'second-bed-cell-selection', 'whole-bed-demolition', 'whole-door-demolition-from-upper-half', 'single-facility-drop', 'rotation-toolbar-two-viewports'],
   beds, doorId, remainingBeds: (await read()).colony.buildings.filter((b) => beds.includes(b.id)).length };
 }

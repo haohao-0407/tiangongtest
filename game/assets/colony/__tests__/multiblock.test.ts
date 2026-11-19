@@ -1,6 +1,6 @@
 import {describe,expect,it} from 'vitest';
 import {BLOCK,VoxelWorld} from '../../voxel/model.ts';
-import {ColonySimulation,BUILDING_DEFS,JOB_TYPES,type BuildingKind,type BuildingView,type BuildingRotation} from '../simulation.ts';
+import {ColonySimulation,JOB_TYPES,type BuildingKind,type BuildingView,type BuildingRotation} from '../simulation.ts';
 import {buildingDimensions,buildingParts} from '../buildings.ts';
 
 function setup(){
@@ -37,15 +37,29 @@ describe('one authoritative object across rotated three-dimensional cells',()=>{
     expect(heads.map(p=>[p!.x,p!.z])).toEqual([[20,20],[21,20],[20,21],[20,20]]);
     expect(buildingParts(fixture('bed',20,20,3))[1]).toMatchObject({x:21,z:20,role:'bed-foot'});
   });
-  it.each(['bed','medicalBed','door'] as const)('demolishes completed %s from its second cell exactly once with a single refund',(kind:BuildingKind)=>{
+  it.each(['bed','medicalBed','door'] as const)('can collect and place a completed %s dismantled from either cell',(kind:BuildingKind)=>{
     const{sim}=setup(),object=fixture(kind,20,20,1);install(sim,object);
     const before=sim.snapshot().resources,part=buildingParts(object)[1]!;
     expect(sim.blocksVoxel(part.x,part.y,part.z)).toBe(true);
     expect(sim.command({action:'demolish',x:part.x,y:part.y,z:part.z}).ok).toBe(true);
-    const after=sim.snapshot().resources;
-    for(const [resource,amount] of Object.entries(BUILDING_DEFS[kind].cost))expect(after[resource as keyof typeof after]-before[resource as keyof typeof before]).toBe(Math.floor(amount*.5));
-    expect(sim.command({action:'demolish',...part}).ok).toBe(false);expect(sim.snapshot().resources).toEqual(after);
+    expect(sim.command({action:'demolish',...part}).ok).toBe(false);
+    expect(sim.snapshot().resources).toEqual(before);
+    expect(sim.snapshot().items).toEqual([expect.objectContaining({resource:`building:${kind}`,amount:1})]);
     expect(sim.snapshot().buildings).toHaveLength(0);for(const p of buildingParts(object))expect(sim.blocksVoxel(p.x,p.y,p.z)).toBe(false);
+    const residentId=sim.snapshot().colonists[0]!.id;
+    sim.possessColonist(residentId);
+    sim.tick(.75,[19.5,6,20.5]);
+    sim.load(sim.serialize());
+    sim.possessColonist(residentId);
+    const slot=sim.snapshot().playerBag.findIndex(stack=>stack?.resource===`building:${kind}`);
+    expect(slot).toBeGreaterThanOrEqual(0);
+    sim.selectBagSlot(slot);
+    expect(sim.placeCarriedBuilding(20,20,1,[7,6,7]).ok).toBe(false);
+    expect(sim.snapshot().playerBag[slot]?.count).toBe(1);
+    expect(sim.placeCarriedBuilding(20,20,1,[19.5,6,20.5]).ok).toBe(true);
+    expect(sim.snapshot().playerBag[slot]).toBeNull();
+    expect(sim.snapshot().buildings[0]).toMatchObject({kind,complete:true,rotation:1});
+    expect(sim.snapshot().resources).toEqual(before);
   });
   it('rejects out-of-map rotations and upper-door obstructions without changing state or inventory',()=>{
     const{sim,world}=setup();

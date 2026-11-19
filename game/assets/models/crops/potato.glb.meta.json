@@ -1,0 +1,247 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "potato-sprout",
+        "potato-growing",
+        "potato-mature"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "potato.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:potato-sprout"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:potato-growing"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:potato-mature"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:potato-growing": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-d782-75ad-b80e-85a19f1f8df1",
+          "slotName": "potato-growing-leaves",
+          "sourceKey": "material:potato-growing-leaves"
+        }
+      ]
+    },
+    "mesh:potato-mature": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-d782-75ad-b80e-85a2437aa71d",
+          "slotName": "potato-mature-leaves",
+          "sourceKey": "material:potato-mature-leaves"
+        }
+      ]
+    },
+    "mesh:potato-sprout": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-d782-75ad-b80e-85a0beff348c",
+          "slotName": "potato-sprout-leaves",
+          "sourceKey": "material:potato-sprout-leaves"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1efcb-d782-75ad-b80e-859df6b36747",
+      "kind": "mesh",
+      "name": "potato-sprout",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:potato-sprout"
+    },
+    {
+      "guid": "01a1efcb-d782-75ad-b80e-859e8bc59880",
+      "kind": "mesh",
+      "name": "potato-growing",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:potato-growing"
+    },
+    {
+      "guid": "01a1efcb-d782-75ad-b80e-859ff1b31f14",
+      "kind": "mesh",
+      "name": "potato-mature",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:potato-mature"
+    },
+    {
+      "guid": "01a1efcb-d782-75ad-b80e-85a0beff348c",
+      "kind": "material",
+      "name": "potato-sprout-leaves",
+      "sourceIndex": 0,
+      "sourceKey": "material:potato-sprout-leaves"
+    },
+    {
+      "guid": "01a1efcb-d782-75ad-b80e-85a19f1f8df1",
+      "kind": "material",
+      "name": "potato-growing-leaves",
+      "sourceIndex": 1,
+      "sourceKey": "material:potato-growing-leaves"
+    },
+    {
+      "guid": "01a1efcb-d782-75ad-b80e-85a2437aa71d",
+      "kind": "material",
+      "name": "potato-mature-leaves",
+      "sourceIndex": 2,
+      "sourceKey": "material:potato-mature-leaves"
+    },
+    {
+      "guid": "01a1efcb-d782-75ad-b80e-85a306360dcb",
+      "kind": "scene",
+      "name": "potato-growth-stages",
+      "sourceIndex": 0,
+      "sourceKey": "scene:potato-growth-stages"
+    },
+    {
+      "guid": "01a1efcb-d782-75ad-b80e-85a4de1b6636",
+      "kind": "texture",
+      "name": "土豆-幼芽十字交叉",
+      "sourceIndex": 0,
+      "sourceKey": "texture:土豆-幼芽十字交叉"
+    },
+    {
+      "guid": "01a1efcb-d782-75ad-b80e-85a5afad86df",
+      "kind": "texture",
+      "name": "土豆-生长十字交叉",
+      "sourceIndex": 1,
+      "sourceKey": "texture:土豆-生长十字交叉"
+    },
+    {
+      "guid": "01a1efcb-d782-75ad-b80e-85a676703945",
+      "kind": "texture",
+      "name": "土豆-成熟十字交叉",
+      "sourceIndex": 2,
+      "sourceKey": "texture:土豆-成熟十字交叉"
+    },
+    {
+      "guid": "01a1efcb-d783-730f-894a-2aecafb82337",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { possessResident } from './select-resident.mjs';
 
 const READ = 'voxel.world';
 const dot = (a, b) => a.reduce((sum, value, i) => sum + value * b[i], 0);
@@ -18,10 +19,12 @@ export default async function playerConstruction(play) {
     return [(.5 + dot(relative, right) / (2 * depth * width / height)) * width, (.5 - dot(relative, up) / (2 * depth)) * height];
   };
   const initial = await read();
-  assert.deepEqual(initial.player.bag[0], { resource: 'hammer', count: 1 });
+  const builderId=initial.colony.colonists[0].id;
+  assert.deepEqual(initial.colony.colonists[0].bag[0], { resource: 'hammer', count: 1 });
   const woodInColony = s => s.colony.resources.wood
     + s.colony.items.filter(item => item.resource === 'wood').reduce((sum, item) => sum + item.amount, 0)
-    + s.colony.colonists.reduce((sum, resident) => sum + (resident.carrying.wood ?? 0), 0);
+    + s.colony.colonists.reduce((sum,resident)=>sum+(resident.carrying.wood??0)
+      +resident.bag.reduce((bag,stack)=>bag+(stack?.resource==='wood'?stack.count:0),0),0);
 
   await play.page.locator('[data-menu="sandbox"]').click();
   await play.page.locator('[data-menu="inspect"]').click();
@@ -32,11 +35,12 @@ export default async function playerConstruction(play) {
   assert.equal(planning.tool, 'build:floor');
   assert.equal(planning.colony.speed, 0);
   const originalIds = new Set(planning.colony.buildings.map(building => building.id));
-  const origin = [Math.floor(planning.player.x), Math.floor(planning.player.z)];
+  const [px,py,pz]=planning.colony.colonists.find(person=>person.id===builderId).position;
+  const origin = [Math.floor(px),Math.floor(pz)];
   let blueprint;
   for (const [dx, dz] of [[0, 2], [1, 1], [-1, 1], [2, 1], [-2, 1], [1, -1], [-1, -1]]) {
     const x = origin[0] + dx, z = origin[1] + dz;
-    const point = project(planning, [x + .5, planning.player.y + .02, z + .5]);
+    const point = project(planning, [x + .5, py + .02, z + .5]);
     await play.page.mouse.move(...point);
     const hovered = await advance(.15);
     if (hovered.hoverCell?.[0] !== x || hovered.hoverCell?.[2] !== z || hovered.hoverBuildingId) continue;
@@ -49,8 +53,7 @@ export default async function playerConstruction(play) {
   assert.equal(blueprint.reserved.wood, 3);
   const target = (s) => s.colony.buildings.find(building => building.id === blueprint.id);
   await play.page.locator('[data-menu="inspect"]').click();
-  await play.page.mouse.click(1020, 310);
-  await play.page.keyboard.press('KeyR');
+  await possessResident(play,builderId);
   const character = await advance();
   assert.equal(character.camera.mode, 'character');
   const hammer = play.page.locator('#hotbar [data-item="hammer"]');
@@ -101,6 +104,6 @@ export default async function playerConstruction(play) {
   await play.reload();
   const restored = await play.waitFor(s => s.colony?.buildings.some(building => building.id === blueprint.id && building.complete),
     { read: READ, timeoutMs: 10000 });
-  assert.deepEqual(restored.player.bag[0], { resource: 'hammer', count: 1 });
+  assert.deepEqual(restored.colony.colonists.find(person=>person.id===builderId).bag[0], { resource: 'hammer', count: 1 });
   return { blueprintId: blueprint.id, progressAfterFirstStep: target(working).progress };
 }

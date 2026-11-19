@@ -96,6 +96,9 @@
 .wh-cell{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#f7f9f0;border:1px solid #c9d4b8;border-radius:4px;overflow:hidden}
 .wh-cell.empty{background:#e2e8d5;border-color:#d3dcc6}
 .wh-icon{font-size:18px;line-height:1}
+.item-sprite{width:32px;height:32px;object-fit:contain;image-rendering:pixelated;pointer-events:none}
+.hotbar-slot .item-sprite{width:25px;height:25px}
+.resource .item-sprite{width:14px;height:14px}
 .wh-count{position:absolute;right:3px;bottom:2px;font-size:9px;line-height:1;color:#3d4a36;font-weight:600}
 .wh-label{position:absolute;left:3px;top:2px;font-size:8px;line-height:1;color:#7c8a72}
 
@@ -226,3 +229,7 @@
 
 /* 建造面板的分类小标题 */
 .build-group-title{margin:12px 0 6px;font-size:11px;font-weight:600;color:#5d6b52;letter-spacing:.06em}
+
+.controlled-resident{display:block;color:#fffce7;text-shadow:0 1px 4px #1e3d27;font-size:12px;padding-bottom:3px}
+
+.crop-options{flex-wrap:wrap}

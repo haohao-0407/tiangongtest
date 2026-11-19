@@ -1,0 +1,530 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "cabbage-seed",
+        "tomato-seed",
+        "sugarcane-seed",
+        "leek-seed",
+        "potato-seed",
+        "wheat-seed",
+        "corn-seed"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "seed-items.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:cabbage-seed"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:tomato-seed"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:sugarcane-seed"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:leek-seed"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:potato-seed"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:wheat-seed"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:corn-seed"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:cabbage-seed": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3fb-2a1f-7238-8ac3-050689c93c0e",
+          "slotName": "cabbage-seed-pixels",
+          "sourceKey": "material:cabbage-seed-pixels"
+        }
+      ]
+    },
+    "mesh:corn-seed": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3fb-2a1f-7238-8ac3-050c2393a379",
+          "slotName": "corn-seed-pixels",
+          "sourceKey": "material:corn-seed-pixels"
+        }
+      ]
+    },
+    "mesh:leek-seed": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3fb-2a1f-7238-8ac3-0509bf0f2b34",
+          "slotName": "leek-seed-pixels",
+          "sourceKey": "material:leek-seed-pixels"
+        }
+      ]
+    },
+    "mesh:potato-seed": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3fb-2a1f-7238-8ac3-050ae7b94217",
+          "slotName": "potato-seed-pixels",
+          "sourceKey": "material:potato-seed-pixels"
+        }
+      ]
+    },
+    "mesh:sugarcane-seed": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3fb-2a1f-7238-8ac3-050830d2fd24",
+          "slotName": "sugarcane-seed-pixels",
+          "sourceKey": "material:sugarcane-seed-pixels"
+        }
+      ]
+    },
+    "mesh:tomato-seed": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3fb-2a1f-7238-8ac3-050770caa0c7",
+          "slotName": "tomato-seed-pixels",
+          "sourceKey": "material:tomato-seed-pixels"
+        }
+      ]
+    },
+    "mesh:wheat-seed": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f3fb-2a1f-7238-8ac3-050b73a3ae21",
+          "slotName": "wheat-seed-pixels",
+          "sourceKey": "material:wheat-seed-pixels"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-04ff43534a5d",
+      "kind": "mesh",
+      "name": "cabbage-seed",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:cabbage-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-0500af905f71",
+      "kind": "mesh",
+      "name": "tomato-seed",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:tomato-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-050119a3cf20",
+      "kind": "mesh",
+      "name": "sugarcane-seed",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:sugarcane-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-0502ef916604",
+      "kind": "mesh",
+      "name": "leek-seed",
+      "sourceIndex": 3,
+      "sourceKey": "mesh:leek-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-05034adfa5ea",
+      "kind": "mesh",
+      "name": "potato-seed",
+      "sourceIndex": 4,
+      "sourceKey": "mesh:potato-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-05043a3917b5",
+      "kind": "mesh",
+      "name": "wheat-seed",
+      "sourceIndex": 5,
+      "sourceKey": "mesh:wheat-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-05053e8b8930",
+      "kind": "mesh",
+      "name": "corn-seed",
+      "sourceIndex": 6,
+      "sourceKey": "mesh:corn-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-050689c93c0e",
+      "kind": "material",
+      "name": "cabbage-seed-pixels",
+      "sourceIndex": 0,
+      "sourceKey": "material:cabbage-seed-pixels"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-050770caa0c7",
+      "kind": "material",
+      "name": "tomato-seed-pixels",
+      "sourceIndex": 1,
+      "sourceKey": "material:tomato-seed-pixels"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-050830d2fd24",
+      "kind": "material",
+      "name": "sugarcane-seed-pixels",
+      "sourceIndex": 2,
+      "sourceKey": "material:sugarcane-seed-pixels"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-0509bf0f2b34",
+      "kind": "material",
+      "name": "leek-seed-pixels",
+      "sourceIndex": 3,
+      "sourceKey": "material:leek-seed-pixels"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-050ae7b94217",
+      "kind": "material",
+      "name": "potato-seed-pixels",
+      "sourceIndex": 4,
+      "sourceKey": "material:potato-seed-pixels"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-050b73a3ae21",
+      "kind": "material",
+      "name": "wheat-seed-pixels",
+      "sourceIndex": 5,
+      "sourceKey": "material:wheat-seed-pixels"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-050c2393a379",
+      "kind": "material",
+      "name": "corn-seed-pixels",
+      "sourceIndex": 6,
+      "sourceKey": "material:corn-seed-pixels"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-050d94e051eb",
+      "kind": "scene",
+      "sourceIndex": 0,
+      "sourceKey": "scene"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-050eb4cd7d76",
+      "kind": "texture",
+      "name": "cabbage-seed",
+      "sourceIndex": 0,
+      "sourceKey": "texture:cabbage-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-050fff841717",
+      "kind": "texture",
+      "name": "tomato-seed",
+      "sourceIndex": 1,
+      "sourceKey": "texture:tomato-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-0510246ec548",
+      "kind": "texture",
+      "name": "sugarcane-seed",
+      "sourceIndex": 2,
+      "sourceKey": "texture:sugarcane-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-05112fb54fab",
+      "kind": "texture",
+      "name": "leek-seed",
+      "sourceIndex": 3,
+      "sourceKey": "texture:leek-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-05122fe822e8",
+      "kind": "texture",
+      "name": "potato-seed",
+      "sourceIndex": 4,
+      "sourceKey": "texture:potato-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-051321851431",
+      "kind": "texture",
+      "name": "wheat-seed",
+      "sourceIndex": 5,
+      "sourceKey": "texture:wheat-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-0514ad0fec4b",
+      "kind": "texture",
+      "name": "corn-seed",
+      "sourceIndex": 6,
+      "sourceKey": "texture:corn-seed"
+    },
+    {
+      "guid": "01a1f3fb-2a1f-7238-8ac3-05157b068f82",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

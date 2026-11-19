@@ -1,6 +1,7 @@
-import type { BuildingView, Position } from './contracts.ts';
+import type { BuildingView, CropView, Position } from './contracts.ts';
 import { buildingParts } from './buildings.ts';
 import type { VoxelWorld } from '../voxel/model.ts';
+import { rayBox } from '../voxel/tree-interaction.ts';
 
 /** Picking uses the same cells as placement and collision, including a door's upper half. */
 export function raycastBuilding(buildings: readonly BuildingView[], origin: Position, direction: Position, limit = Infinity) {
@@ -17,6 +18,23 @@ export function raycastBuilding(buildings: readonly BuildingView[], origin: Posi
       }
     }
     if (near <= far && (!nearest || near < nearest.distance)) nearest = { building, part, distance: near };
+  }
+  return nearest;
+}
+
+/** The picking volume covers the planted tile and the visible stem above it. */
+export function raycastCrop(crops: readonly CropView[], origin: Position, direction: Position, limit: number): CropView | null {
+  let nearest: CropView | null = null;
+  let nearestDistance = limit;
+  for (const crop of crops) {
+    if (!crop.planted) continue;
+    const { x, y, z, growth } = crop;
+    const height = growth < .4 ? .35 : growth < .75 ? .8 : 1.25;
+    const distance = rayBox(origin, direction, [x + .02, y, z + .02], [x + .98, y + height, z + .98], nearestDistance);
+    if (distance !== null && distance < nearestDistance) {
+      nearest = crop;
+      nearestDistance = distance;
+    }
   }
   return nearest;
 }

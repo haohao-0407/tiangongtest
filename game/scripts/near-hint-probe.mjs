@@ -1,3 +1,4 @@
+import { possessResident } from './select-resident.mjs';
 // 开局就够得着箱子：切进角色视角，提示必须自己冒出来。
 const READ = 'voxel.world';
 
@@ -5,8 +6,8 @@ export default async function nearHint(play) {
   const advance = (s) => play.advance(s, { read: READ, stepSeconds: 0.05 });
   await advance(0.8);
 
-  const beforeView = (await play.state(READ)).player.nearHint;
-  await play.page.keyboard.press('KeyR');
+  const beforeView = (await play.state(READ)).player?.nearHint??null;
+  await possessResident(play);
   await advance(1.0);
 
   const st = (await play.state(READ)).player;

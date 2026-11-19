@@ -43,7 +43,8 @@ export default async function treePlaythrough(play) {
       await click('menu-inspect'); await wait(state => state.tool === 'inspect');
     }
     await focusMap();
-    await play.page.keyboard.press(value === 0 ? 'Space' : ({ 1: 'Digit1', 3: 'Digit2', 6: 'Digit3' })[value]);
+    // 空格只用于跳跃，速度一律点按钮（暂停也不再绑空格）
+    await play.page.locator(`[data-testid="speed-${value}"]`).click();
     return wait(state => state.colony.speed === value);
   };
   const choose = async (menu, id, tool) => {
@@ -117,9 +118,8 @@ export default async function treePlaythrough(play) {
     await play.page.locator('#game-options').waitFor({ state: 'visible' });
     await play.page.locator('#options-world').click();
     await play.page.locator('#settings').waitFor({ state: 'visible' });
-    // Leaving the pause menu resumes at 1x. Pause with Space while keeping this panel open.
+    // 空格不再绑暂停，暂停只能从速度按钮走（那会关掉面板，所以这里不再验证「开着面板暂停」）
     await wait(state => state.colony.speed === 1);
-    await speed(0);
     assert.ok(await play.page.locator('#settings').isVisible());
   };
 

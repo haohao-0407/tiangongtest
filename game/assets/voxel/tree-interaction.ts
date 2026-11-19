@@ -11,7 +11,7 @@ function geometry(tree: TreeInstance) {
 export function overlaps(min: Point, max: Point, otherMin: Point, otherMax: Point): boolean {
   return min.every((n, i) => n < otherMax[i]! - 1e-6 && max[i]! > otherMin[i]! + 1e-6);
 }
-function rayBox(origin: Point, direction: Point, min: Point, max: Point, limit: number): number | null {
+export function rayBox(origin: Point, direction: Point, min: Point, max: Point, limit: number): number | null {
   let near = 0, far = limit;
   for (let i = 0; i < 3; i++) {
     if (Math.abs(direction[i]!) < 1e-8) {

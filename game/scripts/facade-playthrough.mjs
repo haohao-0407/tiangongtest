@@ -1,3 +1,4 @@
+import { possessResident } from './select-resident.mjs';
 // Official owner-browser acceptance: imported terrain contains no architectural source nodes.
 // All walls, entrances, extensions and removals below are ordinary player mouse input.
 // pnpm exec forgeax project play scripts/facade-playthrough.mjs --require-ui --headless true --backend auto --timeout-ms 300000 --json
@@ -180,7 +181,7 @@ export default async function facadePlaythrough(play) {
     return state;
   };
   await play.step('player-walks-through-reserved-entrance', async () => {
-    await closeUi(); await play.keyboard.press('KeyR'); await wait(s => s.camera.mode === 'character');
+    await closeUi(); await possessResident(play);
     const start = await read();
     await walkTo(start.player.x, 12.5); await walkTo(15, 12.5);
     const crossed = await walkTo(15, 8.5);

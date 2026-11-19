@@ -1,6 +1,7 @@
 import {describe,expect,it} from 'vitest';
 import {BLOCK,VoxelWorld} from '../../voxel/model.ts';
 import {ColonySimulation,JOB_TYPES,STEEL_ORE_YIELD} from '../simulation.ts';
+import type { CropView } from '../contracts.ts';
 
 function setup(generatorVersion:1|2|3=3){
   const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion,seed:'ore-colony',size:[48,24,48],edits:[]}));
@@ -27,6 +28,96 @@ const loose=(sim:ColonySimulation,resource:string)=>sim.snapshot().items.filter(
 const mining=(sim:ColonySimulation)=>sim.snapshot().jobs.filter(job=>job.type==='mine');
 
 describe('finite steel ore mining',()=>{
+  it('lets the player collect dirt by hand and stone or steel with the pickaxe exactly once',()=>{
+    const{world,sim}=setup();
+    world.set(21,5,20,BLOCK.Stone);
+    world.set(22,5,20,BLOCK.SteelOre);
+    sim.command({action:'designate',kind:'mine',x:22,z:20});
+    const position:[number,number,number]=[21.5,6,19.5];
+    const initial=sim.snapshot().resources;
+    const id=sim.snapshot().colonists[0]!.id;
+    sim.possessColonist(id);
+    sim.selectBagSlot(8);
+    expect(sim.playerHarvestTerrain([20,5,20],BLOCK.Grass,position).ok).toBe(false);
+    expect(sim.playerHarvestTerrain([20,5,20],BLOCK.Grass,[20.5,6,19.5]).ok).toBe(true);
+    expect(sim.playerHarvestTerrain([21,5,20],BLOCK.Stone,position).ok).toBe(false);
+    expect(sim.playerHarvestTerrain([22,5,20],BLOCK.SteelOre,position).ok).toBe(false);
+    sim.selectBagSlot(2);
+    expect(sim.playerHarvestTerrain([21,5,20],BLOCK.Stone,position).ok).toBe(true);
+    expect(sim.playerHarvestTerrain([22,5,20],BLOCK.SteelOre,position).ok).toBe(false);
+    expect(sim.playerHarvestTerrain([22,5,20],BLOCK.SteelOre,[21.5,6,20.5]).ok).toBe(true);
+    expect(sim.playerHarvestTerrain([22,5,20],BLOCK.SteelOre,position).ok).toBe(false);
+    expect(mining(sim)).toHaveLength(0);
+    expect(sim.snapshot().resources).toEqual(initial);
+    const restoredWorld=VoxelWorld.deserialize(world.serialize()),restored=new ColonySimulation(restoredWorld);
+    restored.load(sim.serialize());
+    expect(restoredWorld.get(22,5,20)).toBe(BLOCK.Air);
+    restored.possessColonist(id);
+    restored.tick(.75,[21.5,6,20.5]);
+    expect(restored.snapshot().playerBag).toEqual(expect.arrayContaining([
+      {resource:'dirt',count:1},{resource:'stone',count:8},{resource:'steel',count:STEEL_ORE_YIELD},
+    ]));
+    expect(restored.snapshot().bagSelected).toBe(2);
+  });
+
+  it('plants one nearby seed, saves it and refunds overlapping villager sowing work', () => {
+    const { world, sim } = setup();
+    const saved: any = sim.serialize();
+    const resident = saved.colonists[0];
+    resident.position = [20.5, 6, 20.5];
+    resident.bag[3] = { resource: 'tomatoSeed', count: 2 };
+    sim.load(saved);
+
+    expect(sim.command({ action: 'designate', kind: 'farm', crop: 'cabbage', x: 21, z: 20 }).ok).toBe(true);
+    const scheduled: any = sim.serialize();
+    const grow = scheduled.jobs.find((job: any) => job.type === 'grow');
+    grow.reserved.cabbageSeed = 1;
+    scheduled.resources.cabbageSeed--;
+    sim.load(scheduled);
+    sim.possessColonist(resident.id);
+    sim.selectBagSlot(3);
+
+    expect(sim.playerPlantCrop([21, 5, 21]).ok).toBe(false);
+    expect(sim.snapshot().playerBag[3]?.count).toBe(2);
+    expect(sim.playerPlantCrop([21, 5, 20]).ok).toBe(true);
+    expect(sim.playerPlantCrop([21, 5, 20]).ok).toBe(false);
+    expect(sim.snapshot().playerBag[3]?.count).toBe(1);
+    expect(sim.snapshot().jobs.some(job => job.id === grow.id)).toBe(false);
+    expect(sim.snapshot().resources.cabbageSeed).toBe(saved.resources.cabbageSeed);
+
+    expect(sim.playerPlantCrop([20, 5, 21]).ok).toBe(true);
+    expect(sim.snapshot().playerBag[3]).toBeNull();
+    expect(sim.snapshot().zones).toContainEqual(expect.objectContaining({
+      kind: 'farm', crop: 'tomato', x: 20, z: 21, w: 1, d: 1,
+    }));
+    const restored = new ColonySimulation(world);
+    restored.load(sim.serialize());
+    expect(restored.snapshot().crops).toEqual(sim.snapshot().crops);
+
+    const withMatureCrop = restored.serialize() as { crops: CropView[] };
+    const mature = withMatureCrop.crops.find(crop => crop.x === 21 && crop.z === 20)!;
+    const young = withMatureCrop.crops.find(crop => crop.x === 20 && crop.z === 21)!;
+    mature.growth = 1;
+    restored.load(withMatureCrop);
+    restored.command({ action: 'designate', kind: 'harvest', x: mature.x, z: mature.z });
+    expect(restored.snapshot().jobs.some(job => job.targetId === mature.id && job.type === 'harvest')).toBe(true);
+    expect(restored.playerBreakCrop(mature.id).ok).toBe(false);
+    restored.possessColonist(resident.id);
+    restored.updateControlledPose([20.5, 6, 21.5], 0, 100);
+    expect(restored.playerBreakCrop(mature.id).ok).toBe(false);
+    expect(restored.playerBreakCrop(young.id).ok).toBe(true);
+    expect(loose(restored, 'tomato')).toBe(0);
+    expect(loose(restored, 'tomatoSeed')).toBe(1);
+    restored.updateControlledPose([20.5, 6, 20.5], 0, 100);
+    expect(restored.playerBreakCrop(mature.id).ok).toBe(true);
+    expect(restored.playerBreakCrop(mature.id).ok).toBe(false);
+    expect(loose(restored, 'tomato')).toBe(6);
+    expect(loose(restored, 'tomatoSeed')).toBe(2);
+    expect(restored.snapshot().crops.find(crop => crop.id === mature.id)).toMatchObject({ planted: false, growth: 0 });
+    expect(restored.snapshot().jobs.some(job => job.targetId === mature.id && job.type === 'harvest')).toBe(false);
+    expect(world.get(21, 5, 20)).toBe(BLOCK.Grass);
+  });
+
   it('walks beside ore, completes real work, drops steel and then hauls it into storage',()=>{
     const{world,sim}=setup();world.set(20,5,20,BLOCK.SteelOre);enable(sim,'mine');
     const steel=sim.snapshot().resources.steel,stone=sim.snapshot().resources.stone;

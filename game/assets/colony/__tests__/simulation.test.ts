@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BLOCK, VoxelWorld } from '../../voxel/model.ts';
-import { BUILDING_DEFS, ColonySimulation, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES } from '../simulation.ts';
+import { BUILDING_DEFS, ColonySimulation, CROP_KINDS, CROP_SEEDS, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES, SUPPLY_TYPES, TOOL_KINDS, needsPickaxe } from '../simulation.ts';
 
 function setup(seed='colony-test') { const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed,size:[48,24,48],edits:[]}));return {world,sim:new ColonySimulation(world)}; }
 function run(sim:ColonySimulation,seconds:number) { for(let i=0;i<seconds*4;i++)sim.tick(.25); }
@@ -15,6 +15,11 @@ function freeCell(sim:ColonySimulation,world:VoxelWorld) {
   }throw new Error('fixture lacks a free clearing cell');
 }
 const raw = (sim:ColonySimulation):any => sim.serialize();
+const chooseFirst = (sim:ColonySimulation) => {
+  const id=sim.snapshot().colonists[0]!.id;
+  sim.command({action:'select',colonistId:id});
+  return id;
+};
 
 describe('peaceful colony and fixed-step persistence',()=>{
   it('starts with real residents, facilities, stores and growing jobs',()=>{
@@ -26,6 +31,31 @@ describe('peaceful colony and fixed-step persistence',()=>{
     expect(s.zones.map(z=>z.kind)).toEqual(expect.arrayContaining(['farm','stockpile']));
     expect(s.jobs.some(j=>j.type==='grow')).toBe(true);
     expect(s.colonists.every(c=>Object.values(c.priorities).every(p=>p>=0&&p<=4))).toBe(true);
+  });
+  it('supplies ten samples per new item and preserves stock and transfers on later loads', () => {
+    const { sim, world } = setup();
+    const legacySave = raw(sim);
+    for (const resource of SUPPLY_TYPES) {
+      expect(legacySave.resources[resource]).toBe(10);
+      delete legacySave.resources[resource];
+      delete legacySave.trade.stock[resource];
+      delete legacySave.trade.prices[resource];
+    }
+    const restored = new ColonySimulation(world);
+    restored.load(legacySave);
+    const supplied = restored.snapshot();
+    for (const resource of SUPPLY_TYPES) {
+      expect(supplied.resources[resource]).toBe(10);
+      expect(supplied.trade.stock[resource]).toBe(0);
+      expect(supplied.trade.prices[resource]).toBe(0);
+    }
+    const chest = { kind: 'chest', id: supplied.chests[0]!.id, slot: 0 } as const;
+    expect(restored.transferInventory({ kind: 'warehouse' }, chest, 'milk', 10).ok).toBe(true);
+    expect(restored.command({ action: 'trade', resource: 'egg', amount: 1, buy: false }).ok).toBe(false);
+    restored.load(restored.serialize());
+    expect(restored.snapshot().resources.milk).toBe(0);
+    expect(restored.snapshot().resources.egg).toBe(10);
+    expect(restored.snapshot().chests[0]!.slots[0]).toEqual({ resource: 'milk', count: 10 });
   });
   it('pauses every simulation quantity and saves an exact restartable state',()=>{
     const{sim,world}=setup();run(sim,12.5);sim.command({action:'speed',value:0});
@@ -53,9 +83,56 @@ describe('peaceful colony and fixed-step persistence',()=>{
 });
 
 describe('inventory reservation, work and walking',()=>{
+  it('takes over a real resident, requeues their job and keeps their live position and ninth slot',()=>{
+    const {sim}=setup();
+    onlyJob(sim,'haul');
+    for(let i=0;i<60&&!sim.snapshot().colonists.some(person=>person.jobId);i++)sim.tick(.25);
+    const before=sim.snapshot();
+    const person=before.colonists.find(resident=>resident.jobId)!;
+    const other=before.colonists.find(resident=>resident.id!==person.id)!;
+    expect(person).toBeDefined();
+    expect(sim.possessColonist(person.id)?.position).toEqual(person.position);
+    expect(sim.snapshot().colonists.find(resident=>resident.id===person.id)?.jobId).toBeNull();
+    const slot={kind:'follower',id:person.id,slot:8} as const;
+    expect(sim.transferInventory({kind:'warehouse'},slot,'stone',2).ok).toBe(true);
+    sim.selectBagSlot(8);
+    const next:[number,number,number]=[person.position[0]+.2,person.position[1],person.position[2]];
+    sim.updateControlledPose(next,1.2,67);
+    sim.tick(.75);
+    expect(sim.snapshot().playerBag[8]).toEqual({resource:'stone',count:2});
+    expect(sim.snapshot().colonists.find(resident=>resident.id===person.id)).toMatchObject({position:next,jobId:null,stamina:67});
+    expect(sim.possessColonist(other.id)).toBeNull();
+    sim.releaseControl();
+    expect(sim.snapshot().colonists.find(resident=>resident.id===person.id)?.position).toEqual(next);
+    expect(sim.possessColonist(other.id)?.bag[8]).toBeNull();
+    expect(sim.transferInventory({kind:'player',id:person.id,slot:8},{kind:'warehouse'},'stone',2).ok).toBe(false);
+    sim.releaseControl();
+    sim.load(sim.serialize());
+    expect(sim.controlledColonist).toBeNull();
+    expect(sim.possessColonist(person.id)).toMatchObject({bagSelected:8,facing:1.2,stamina:67});
+    expect(sim.snapshot().playerBag[8]).toEqual({resource:'stone',count:2});
+  });
+
+  it('keeps orders assigned to the named recipient when control changes',()=>{
+    const{sim}=setup();onlyJob(sim,'haul');
+    const [first,second]=sim.snapshot().colonists;
+    sim.possessColonist(first!.id);
+    const order=sim.requestDelivery('steel',2);
+    expect(order.ok).toBe(true);
+    sim.releaseControl();sim.possessColonist(second!.id);
+    const pending=()=>sim.snapshot().jobs.find(job=>job.id===order.id);
+    expect(pending()?.recipientId).toBe(first!.id);
+    for(let i=0;i<400&&pending();i++)sim.tick(.25);
+    expect(pending()).toBeUndefined();
+    expect(sim.snapshot().colonists[0]!.bag).toContainEqual({resource:'steel',count:2});
+    expect(sim.snapshot().playerBag.every(slot=>slot?.resource!=='steel')).toBe(true);
+  });
+
   it('reserves warehouse goods, walks to storage and delivers the requested quantity to the moving player', () => {
     const { sim, world } = setup();
     onlyJob(sim, 'haul');
+    const recipientId=chooseFirst(sim);
+    sim.possessColonist(recipientId);
     const before = sim.snapshot();
     const order = sim.requestDelivery('steel', 7);
     const pending = () => sim.snapshot().jobs.find(job => job.id === order.id);
@@ -63,21 +140,25 @@ describe('inventory reservation, work and walking',()=>{
     const nextPlayer = before.colonists[2]!.position;
     expect(order.ok).toBe(true);
     expect(sim.snapshot().resources.steel).toBe(before.resources.steel - 7);
-    expect(sim.snapshot().playerBag.slice(1).every(stack => stack === null)).toBe(true);
+    // slot 0/1 是锤子和木斧，空槽从 2 开始
+expect(sim.snapshot().playerBag.slice(TOOL_KINDS.length).every(stack => stack === null)).toBe(true);
     expect(pending()?.targetId).toBe(PLAYER_DELIVERY_TARGET);
     for (let i = 0; i < 200 && pending()?.deliveryPhase === 'pickup'; i++) sim.tick(.25, originalPlayer);
     const traveling = pending();
     expect(traveling?.deliveryPhase).toBe('deliver');
     const carrier = sim.snapshot().colonists.find(person => person.id === traveling?.assignedTo)!;
     expect([Math.floor(carrier.position[0]), Math.floor(carrier.position[2])]).toEqual([traveling!.x, traveling!.z]);
-    expect(sim.snapshot().playerBag.slice(1).every(stack => stack === null)).toBe(true);
+    // slot 0/1 是锤子和木斧，空槽从 2 开始
+expect(sim.snapshot().playerBag.slice(TOOL_KINDS.length).every(stack => stack === null)).toBe(true);
 
     const restored = new ColonySimulation(world);
     restored.load(sim.serialize());
+    restored.possessColonist(recipientId);
     for (let i = 0; i < 240 && restored.snapshot().jobs.some(job => job.id === order.id); i++) restored.tick(.25, nextPlayer);
     const finished = restored.snapshot();
     expect(finished.jobs.some(job => job.id === order.id)).toBe(false);
-    expect(finished.playerBag[1]).toEqual({ resource: 'steel', count: 7 });
+    // 送货落在第一个空槽——0/1 是工具，所以是 2
+expect(finished.playerBag[TOOL_KINDS.length]).toEqual({ resource: 'steel', count: 7 });
     expect(finished.resources.steel).toBe(before.resources.steel - 7);
     const arrived = finished.colonists.find(person => person.id === carrier.id)!;
     expect(Math.hypot(arrived.position[0] - nextPlayer[0], arrived.position[2] - nextPlayer[2])).toBeLessThanOrEqual(1.5);
@@ -86,11 +167,12 @@ describe('inventory reservation, work and walking',()=>{
   it('keeps undelivered goods reserved when the player fills their bag and refunds them on cancellation', () => {
     const { sim } = setup();
     onlyJob(sim, 'haul');
+    chooseFirst(sim);
     const before = sim.snapshot().resources.silver;
     const order = sim.requestDelivery('silver', 3);
     expect(order.ok).toBe(true);
     const remaining = raw(sim);
-    remaining.playerBag = Array.from({ length: 9 }, () => ({ resource: 'cloth', count: 99 }));
+    remaining.colonists[0].bag = Array.from({ length: 9 }, () => ({ resource: 'cloth', count: 99 }));
     sim.load(remaining);
     const player = sim.snapshot().colonists[0]!.position;
     const pending = () => sim.snapshot().jobs.find(job => job.id === order.id);
@@ -106,16 +188,18 @@ describe('inventory reservation, work and walking',()=>{
 
   it('keeps overflow in its source and rejects incompatible or stale slots', () => {
     const { sim } = setup();
+    chooseFirst(sim);
     const warehouse = { kind: 'warehouse' } as const;
-    const first = { kind: 'player', slot: 1 } as const;
-    const second = { kind: 'player', slot: 2 } as const;
+    // 0 和 1 被工具占着（锤子、木斧），从 2 起才是空槽
+    const first = { kind: 'player', slot: TOOL_KINDS.length } as const;
+    const second = { kind: 'player', slot: TOOL_KINDS.length + 1 } as const;
     const chest = { kind: 'chest', id: sim.snapshot().chests[0]!.id, slot: 3 } as const;
     expect(sim.transferInventory(warehouse, first, 'wood', 98).ok).toBe(true);
     expect(sim.transferInventory(warehouse, second, 'wood', 12).ok).toBe(true);
     expect(sim.transferInventory(first, chest, 'wood', 98).ok).toBe(true);
     expect(sim.transferInventory(second, chest, 'wood', 12).ok).toBe(true);
     expect(sim.snapshot().chests[0]!.slots[3]).toEqual({ resource: 'wood', count: 99 });
-    expect(sim.snapshot().playerBag[2]).toEqual({ resource: 'wood', count: 11 });
+    expect(sim.snapshot().playerBag[TOOL_KINDS.length + 1]).toEqual({ resource: 'wood', count: 11 });
     expect(sim.snapshot().resources.wood).toBe(30);
     expect(sim.transferInventory(first, chest, 'wood', 98).ok).toBe(false);
     expect(sim.transferInventory(warehouse, first, 'stone', 1).ok).toBe(true);
@@ -127,6 +211,8 @@ describe('inventory reservation, work and walking',()=>{
   it('opens saves made before personal and chest inventories existed', () => {
     const { sim } = setup();
     const old = raw(sim);
+    old.version = 1;
+    old.buildings = old.buildings.filter((building: { kind: string }) => building.kind !== 'chest');
     delete old.chests;
     delete old.playerBag;
     delete old.bagSelected;
@@ -134,13 +220,14 @@ describe('inventory reservation, work and walking',()=>{
     sim.load(old);
     const restored = sim.snapshot();
     expect(restored.resources).toEqual(old.resources);
-    expect(restored.playerBag).toEqual([{ resource: 'hammer', count: 1 }, ...Array(8).fill(null)]);
+    expect(restored.chests.find(chest=>chest.id==='chest-legacy-player')?.slots[0]).toEqual({resource:HAMMER,count:1});
     expect(restored.chests[0]!.slots).toEqual(Array(20).fill(null));
     expect(restored.colonists.every(resident => resident.bag[0] === null)).toBe(true);
   });
 
   it('treats the hammer as ordinary cargo: it can be stored, and is not conjured back', () => {
     const { sim } = setup();
+    chooseFirst(sim);
     // 锤子放进仓库
     const stored = sim.transferInventory({ kind: 'player', slot: 0 }, { kind: 'warehouse' }, HAMMER, 1);
     expect(stored.ok).toBe(true);
@@ -155,6 +242,7 @@ describe('inventory reservation, work and walking',()=>{
   it('builds with the selected hammer at twice the resident rate, with the existing material reservation', () => {
     const { sim, world } = setup();
     onlyJob(sim, 'construct');
+    sim.possessColonist(chooseFirst(sim));
     const before = sim.snapshot();
     expect(before.playerBag[0]).toEqual({ resource: 'hammer', count: 1 });
     const site = freeCell(sim, world);
@@ -282,8 +370,128 @@ describe('resident needs and civilian production',()=>{
   it('plants, grows, harvests, hauls and cooks through real work queues',()=>{
     const{sim}=setup();run(sim,220);const s=sim.snapshot();
     expect(s.metrics.harvested).toBeGreaterThan(0);expect(s.metrics.hauled).toBeGreaterThan(22);expect(s.metrics.cooked).toBeGreaterThan(0);
-    expect(s.crops.some(c=>c.planted)).toBe(true);expect(s.resources.food+s.items.filter(i=>i.resource==='food').reduce((n,i)=>n+i.amount,0)).toBeGreaterThan(10);
+    expect(s.crops.some(c=>c.planted)).toBe(true);expect(s.resources.cabbage+s.items.filter(i=>i.resource==='cabbage').reduce((n,i)=>n+i.amount,0)).toBeGreaterThan(10);
     expect(RESOURCE_TYPES.every(r=>s.resources[r]>=0&&Number.isInteger(s.resources[r]))).toBe(true);
+  });
+  it('preserves planted varieties through save and harvests each crop as its own item', () => {
+    const world = new VoxelWorld();
+    const sim = new ColonySimulation(world);
+    const kinds = CROP_KINDS;
+    const starterCrops = new Set(sim.snapshot().crops.map(crop => crop.id));
+    expect(sim.command({ action: 'designate', kind: 'farm', crop: 'corn', x: 127, z: 134 }).ok).toBe(false);
+    const unlocked = raw(sim);
+    unlocked.research.completed.push('agriculture');
+    sim.load(unlocked);
+    onlyJob(sim, 'harvest');
+    for (const [index, crop] of kinds.entries()) {
+      expect(sim.command({ action: 'designate', kind: 'farm', crop, x: 121 + index, z: 134 }).ok).toBe(true);
+    }
+    expect(sim.command({ action: 'designate', kind: 'farm', crop: 'unknown', x: 128, z: 134 }).ok).toBe(false);
+
+    const ready = sim.snapshot().crops.filter(crop => !starterCrops.has(crop.id));
+    expect(ready.map(crop => crop.kind)).toEqual(kinds);
+    expect(ready.every(crop => !crop.planted && crop.growth === 0)).toBe(true);
+    const saved = raw(sim);
+    for (const crop of saved.crops) {
+      if (!starterCrops.has(crop.id)) Object.assign(crop, { planted: true, growth: .99 });
+    }
+    const restored = new ColonySimulation(world);
+    restored.load(saved);
+    run(restored, 90);
+    const after = restored.snapshot();
+    for (const crop of ready) {
+      expect(after.crops.find(existing => existing.id === crop.id)).toMatchObject({ kind: crop.kind, planted: false, growth: 0 });
+      expect(after.items.some(item => item.resource === crop.kind && item.x === crop.x && item.z === crop.z)).toBe(true);
+      expect(after.items.some(item => item.resource === crop.kind + 'Seed' && item.x === crop.x && item.z === crop.z)).toBe(true);
+    }
+  });
+  it('replaces retired rice fields and seeds in a save without losing growth or seed reservations', () => {
+    const { sim, world } = setup();
+    const saved = raw(sim);
+    const crop = saved.crops[0];
+    crop.kind = 'rice';
+    crop.planted = true;
+    crop.growth = .64;
+    for (const zone of saved.zones) zone.crop = 'rice';
+    saved.resources.riceSeed = 4;
+    saved.trade.stock.riceSeed = 2;
+    saved.trade.prices.riceSeed = 2;
+    saved.colonists[0].bag[3] = { resource: 'riceSeed', count: 5 };
+    saved.buildings.find((b: any) => b.kind === 'chest').storage[0] = { resource: 'riceSeed', count: 3 };
+    saved.items[0].resource = 'riceSeed';
+    const job = saved.jobs.find((j: any) => j.type === 'grow' && j.targetId !== crop.id);
+    job.label = '播种水稻';
+    job.reserved = { riceSeed: 1 };
+
+    sim.load(saved);
+    const upgraded = sim.snapshot();
+    expect(upgraded.crops.find(c => c.id === crop.id)).toMatchObject({ kind: 'cabbage', growth: .64, planted: true });
+    expect(upgraded.zones.every(zone => zone.crop === 'cabbage')).toBe(true);
+    expect(upgraded.resources.cabbageSeed).toBe(13);
+    expect(upgraded.trade.stock.cabbageSeed).toBe(2);
+    expect(upgraded.colonists[0]!.bag[3]).toEqual({ resource: 'cabbageSeed', count: 5 });
+    expect(upgraded.buildings.find(b => b.kind === 'chest')!.storage![0]).toEqual({ resource: 'cabbageSeed', count: 3 });
+    expect(upgraded.items[0]!.resource).toBe('cabbageSeed');
+    expect(upgraded.jobs.find(j => j.id === job.id)).toMatchObject({ label: '播种白菜', reserved: { cabbageSeed: 1 } });
+
+    const restored = new ColonySimulation(world);
+    restored.load(sim.serialize());
+    expect(restored.snapshot()).toEqual(upgraded);
+  });
+  it('can cook with cabbage when generic raw food runs out', () => {
+    const { sim } = setup();
+    onlyJob(sim, 'cook');
+    const saved = raw(sim);
+    saved.resources.food = 0;
+    sim.load(saved);
+    run(sim, 40);
+    const cooked = sim.snapshot();
+    expect(cooked.metrics.cooked).toBeGreaterThan(0);
+    expect(cooked.resources.cabbage).toBeLessThan(saved.resources.cabbage);
+  });
+  it('grants seeds to old saves once, blocks empty farms and preserves or refunds the reserved seed', () => {
+    const world = new VoxelWorld();
+    const sim = new ColonySimulation(world);
+    const legacy = raw(sim);
+    for (const seed of CROP_SEEDS) {
+      expect(legacy.resources[seed]).toBe(9);
+      delete legacy.resources[seed];
+      delete legacy.trade.stock[seed];
+      delete legacy.trade.prices[seed];
+    }
+    sim.load(legacy);
+    for (const seed of CROP_SEEDS) expect(sim.snapshot().resources[seed]).toBe(9);
+
+    const seedless = raw(sim);
+    seedless.resources.cabbageSeed = 0;
+    seedless.resources.tomatoSeed = 0;
+    sim.load(seedless);
+    onlyJob(sim, 'grow');
+    const zone = sim.command({ action: 'designate', kind: 'farm', crop: 'tomato', x: 121, z: 134, w: 2 });
+    expect(zone.ok).toBe(true);
+    run(sim, 10);
+    expect(sim.snapshot().resources.tomatoSeed).toBe(0);
+    expect(sim.snapshot().crops.filter(crop => crop.kind === 'tomato').every(crop => !crop.planted)).toBe(true);
+    expect(sim.snapshot().jobs.some(job => job.state === 'blocked' && job.label === '缺少番茄种子包')).toBe(true);
+
+    const onePack = raw(sim);
+    onePack.resources.tomatoSeed = 1;
+    sim.load(onePack);
+    for (let i = 0; i < 40 && sim.snapshot().resources.tomatoSeed > 0; i++) sim.tick(.25);
+    const inProgress = sim.snapshot();
+    expect(inProgress.resources.tomatoSeed).toBe(0);
+    expect(inProgress.jobs.filter(job => job.reserved.tomatoSeed === 1)).toHaveLength(1);
+    const reserved = sim.serialize();
+    const cancelled = new ColonySimulation(world);
+    cancelled.load(reserved);
+    expect(cancelled.command({ action: 'cancel', id: zone.id }).ok).toBe(true);
+    expect(cancelled.snapshot().resources.tomatoSeed).toBe(1);
+
+    sim.load(reserved);
+    run(sim, 40);
+    const sown = sim.snapshot();
+    expect(sown.crops.filter(crop => crop.kind === 'tomato' && crop.planted)).toHaveLength(1);
+    expect(sown.resources.tomatoSeed).toBe(0);
   });
   it('production targets include ground and carried products, so no hauling does not cause overproduction',()=>{
     const{sim}=setup();onlyJob(sim,'cook');run(sim,100);const s=sim.snapshot();
@@ -295,6 +503,139 @@ describe('resident needs and civilian production',()=>{
     const{sim}=setup();onlyJob(sim,'doctor');const data=raw(sim);data.colonists[0].disease=65;data.colonists[0].health=60;sim.load(data);const before=sim.snapshot();
     run(sim,50);const after=sim.snapshot();expect(after.metrics.treated).toBeGreaterThan(0);expect(after.colonists[0]!.disease).toBeLessThan(20);
     expect(after.resources.medicine).toBeLessThan(before.resources.medicine);expect(after.colonists[0]!.health).toBeGreaterThan(before.colonists[0]!.health);
+  });
+  it('lets the player fell a tree directly and clears the queued chop',()=>{
+    const{sim,world}=setup();onlyJob(sim,'chop');
+    const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40)!;
+    expect(tree).toBeDefined();
+    // 先挂一个随从的砍伐任务，模拟「玩家抢先砍了同一棵」
+    expect(sim.command({action:'designate',kind:'chop',id:tree.id}).ok).toBe(true);
+    expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.targetId===tree.id)).toBe(true);
+    const before=sim.snapshot().items.filter(i=>i.resource==='wood').reduce((n,i)=>n+i.amount,0);
+    const result=sim.playerFellTree(tree.id);
+    expect(result.ok).toBe(true);
+    expect(result.wood).toBe(tree.trunkHeight*6);
+    expect(world.getTree(tree.id)).toBeUndefined();
+    // 掉落进世界，不是直接进仓库
+    expect(sim.snapshot().items.filter(i=>i.resource==='wood').reduce((n,i)=>n+i.amount,0)).toBe(before+tree.trunkHeight*6);
+    // 那条随从任务必须被清掉，否则居民会守着一棵不存在的树
+    expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.targetId===tree.id)).toBe(false);
+    expect(sim.playerFellTree(tree.id).ok).toBe(false);
+  });
+  it('spills a chest onto the ground when it is demolished',()=>{
+    const{sim}=setup();
+    chooseFirst(sim);
+    const chest=sim.snapshot().chests[0]!;
+    sim.transferInventory({kind:'warehouse'},{kind:'chest',id:chest.id,slot:0},'wood',10);
+    sim.transferInventory({kind:'warehouse'},{kind:'chest',id:chest.id,slot:1},'stone',4);
+    sim.transferInventory({kind:'player',slot:0},{kind:'chest',id:chest.id,slot:2},HAMMER,1);
+    const legacy=raw(sim);
+    legacy.version=1;
+    legacy.playerBag=Array(9).fill(null);
+    legacy.chests=sim.snapshot().chests;
+    legacy.buildings=legacy.buildings.filter((building: { id: string })=>building.id!==chest.id);
+    sim.load(legacy);
+    expect(sim.snapshot().chests[0]).toEqual({ ...chest, slots: legacy.chests[0].slots });
+    const building=sim.snapshot().buildings.find(b=>b.id===chest.id)!;
+    expect(sim.buildingAtVoxel(chest.x,building.y,chest.z)?.kind).toBe('chest');
+    const before=new Set(sim.snapshot().items.map(item=>item.id));
+    const result=sim.command({action:'demolish',id:chest.id});
+    expect(result.ok).toBe(true);
+    sim.load(sim.serialize());
+    const after=sim.snapshot();
+    expect(after.chests).toEqual([]);
+    expect(after.buildings.some(b=>b.id===chest.id)).toBe(false);
+    expect(after.items.filter(i=>!before.has(i.id)).map(({resource,amount})=>({resource,amount}))).toEqual([
+      {resource:'wood',amount:10},{resource:'stone',amount:4},{resource:HAMMER,amount:1},{resource:'building:chest',amount:1},
+    ]);
+    const foot:[number,number,number]=[chest.x+.5,building.y,chest.z+.5];
+    sim.possessColonist(chooseFirst(sim));
+    sim.tick(.25,foot);
+    expect(sim.snapshot().playerBag.some(slot=>slot?.resource===HAMMER)).toBe(false);
+    sim.tick(.5,foot);
+    expect(sim.snapshot().playerBag).toContainEqual({resource:HAMMER,count:1});
+  });
+  it('requires a pickaxe only for stone or metal buildings',()=>{
+    // 石造/金属：徒手拆不动
+    expect(needsPickaxe(BUILDING_DEFS.forgery)).toBe(true);
+    expect(needsPickaxe(BUILDING_DEFS.stove)).toBe(true);
+    expect(needsPickaxe(BUILDING_DEFS.wall)).toBe(true);
+    expect(needsPickaxe(BUILDING_DEFS.solar)).toBe(true);
+    // 木造/布造：徒手就能拆
+    expect(needsPickaxe(BUILDING_DEFS.bed)).toBe(false);
+    expect(needsPickaxe(BUILDING_DEFS.table)).toBe(false);
+    expect(needsPickaxe(BUILDING_DEFS.fence)).toBe(false);
+    expect(needsPickaxe(BUILDING_DEFS.floor)).toBe(false);
+  });
+  it('shares one chop progress between the player and residents',()=>{
+    const{sim,world}=setup();onlyJob(sim,'chop');
+    const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40)!;
+    // 玩家先砍掉一半工作量
+    const half=sim.playerChipTree(tree.id,8);
+    expect(half.felled).toBe(false);
+    expect(half.progress).toBeCloseTo(.5,1);
+    // 进度确实落在 job 上，随从看到的是同一条
+    const job=sim.snapshot().jobs.find(j=>j.type==='chop'&&j.targetId===tree.id)!;
+    expect(job).toBeDefined();
+    expect(job.progress).toBe(8);
+    // 剩下的交给随从，他只需要再干一半的活
+    run(sim,90);
+    expect(world.getTree(tree.id)).toBeUndefined();
+  });
+  it('keeps a fresh drop on the ground until the pickup delay elapses',()=>{
+    const{sim,world}=setup();
+    sim.possessColonist(chooseFirst(sim));
+    // 找一块平地，把玩家放到旁边
+    const spot=freeCell(sim,world);
+    const player:[number,number,number]=[spot.x+.5,world.terrainHeight(spot.x,spot.z),spot.z+.5];
+    // 玩家脚下掉一份木材
+    const before=sim.snapshot().items.length;
+    (sim as unknown as {drop:(r:string,n:number,x:number,z:number)=>void}).drop('wood',5,spot.x,spot.z);
+    expect(sim.snapshot().items.length).toBe(before+1);
+    // 0.3 秒：还在地上，捡不起来
+    for(let i=0;i<2;i++)sim.tick(.15,player);
+    expect(sim.snapshot().items.some(i=>i.resource==='wood'&&i.amount===5)).toBe(true);
+    // 过了 0.5 秒：被玩家捡走
+    for(let i=0;i<4;i++)sim.tick(.15,player);
+    expect(sim.snapshot().items.some(i=>i.resource==='wood'&&i.amount===5)).toBe(false);
+    expect(sim.snapshot().playerBag.some(slot=>slot?.resource==='wood')).toBe(true);
+  });
+  it('shows what happens when the player fells a tree a resident is already chopping',()=>{
+    const{sim,world}=setup();onlyJob(sim,'chop');
+    const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40)!;
+    expect(sim.command({action:'designate',kind:'chop',id:tree.id}).ok).toBe(true);
+    // 让随从跑到树旁并砍一会儿，但别砍完整棵
+    run(sim,10);
+    const midway=sim.snapshot();
+    const job=midway.jobs.find(j=>j.type==='chop'&&j.targetId===tree.id)!;
+    expect(job).toBeDefined();
+    expect(job.progress).toBeGreaterThan(0);          // 确实已经砍进去一部分
+    expect(job.progress).toBeLessThan(job.work);      // 但还没砍完
+    const workerId=job.assignedTo;
+
+    // 玩家此刻亲手把树砍倒
+    expect(sim.playerFellTree(tree.id).ok).toBe(true);
+
+    const after=sim.snapshot();
+    // 这棵树的伐木任务被清掉，随从从任务里释放出来
+    expect(after.jobs.some(j=>j.type==='chop'&&j.targetId===tree.id)).toBe(false);
+    const worker=after.colonists.find(c=>c.id===workerId)!;
+    expect(worker.jobId).toBeNull();
+    // 而且没有卡在原地：后续还会被派去干别的（这里只验他没被锁死）
+    run(sim,40);
+    const later=sim.snapshot();
+    expect(later.colonists.find(c=>c.id===workerId)!.jobId !== undefined).toBe(true);
+  });
+  it('spends resident stamina on chopping beyond the natural drain',()=>{
+    const{sim,world}=setup();onlyJob(sim,'chop');
+    const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40)!;
+    const before=sim.snapshot().colonists.map(c=>c.rest);
+    expect(sim.command({action:'designate',kind:'chop',id:tree.id}).ok).toBe(true);
+    run(sim,90);
+    const after=sim.snapshot().colonists;
+    // 自然衰减约 0.07/秒，砍一棵的额外开销固定 8 点，所以掉得明显更多。
+    const spent=after.reduce((sum,c,i)=>sum+(before[i]!-c.rest),0)/Math.max(1,after.length);
+    expect(spent).toBeGreaterThan(3);
   });
   it('extracts resources only after completing a tree or mining job',()=>{
     const{sim,world}=setup();onlyJob(sim,'chop');

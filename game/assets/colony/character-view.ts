@@ -17,7 +17,7 @@ export interface CharacterAssets {
 
 export function residentOutfit(id: string): number {
   const serial = Number(id.split('-').pop());
-  return 2 + (Number.isSafeInteger(serial) && serial >= 0 ? serial % 21 : 0);
+  return Number.isSafeInteger(serial) && serial >= 0 ? (serial + 1) % 22 + 1 : 2;
 }
 
 function outfitScale(outfit: number): number {
@@ -87,8 +87,8 @@ export class CharacterView {
     }
   }
 
-  updateResident(pos: Point, time: number) {
-    let facing = this.facing;
+  updateResident(pos: Point, time: number, initialFacing: number) {
+    let facing = this.position ? this.facing : initialFacing;
     if (this.position) {
       const dx = pos[0] - this.position[0], dz = pos[2] - this.position[2];
       if (Math.hypot(dx, dz) > 0.003) {

@@ -1,3 +1,4 @@
+import { possessResident } from './select-resident.mjs';
 // Structural PCG acceptance in ForgeAX's owner browser.
 // The fixture is an ordinary imported terrain save with NO Road/Brick nodes.
 // Every PCG source node is then placed/removed with real player mouse input.
@@ -223,8 +224,7 @@ export default async function pcgPlaythrough(play) {
 
   await play.step('player-walks-up-generated-stairs-without-jumping', async () => {
     await closeUi();
-    await play.keyboard.press('KeyR');
-    await wait(s => s.camera.mode === 'character');
+    await possessResident(play);
     // Use the actual safe spawn and approach along the clear north corridor,
     // before turning onto the low road; the center chest is east of spawn.
     const start = await read();
@@ -243,16 +243,13 @@ export default async function pcgPlaythrough(play) {
     await sandbox(6);
     await place([11, 5, 18], 5, 6);
     const edited = await settled();
-    assert.ok(Math.abs(edited.player.y - standing.player.y) < 1 / 32,
-      'An unrelated coarse edit must not snap a player off the generated road surface to the coarse terrain height.');
-    assert.equal(edited.player.embedded, false);
-    assert.equal(edited.player.grounded, true);
+    assert.deepEqual(edited.colony.colonists[0].position,standing.colony.colonists[0].position,
+      'An unrelated coarse edit must preserve the resident position after returning to God view.');
     await history('Control+KeyZ', s => s.pcg.windows === standing.pcg.windows && s.pcg.stairs === standing.pcg.stairs);
-    await play.keyboard.press('KeyR');
-    await wait(s => s.camera.mode === 'character');
+    await possessResident(play);
     await walkTo(20.5, ROAD_Z + .5);
     const returned = await walkTo(19.5, ROAD_Z + .5);
-    assert.ok(Math.abs(returned.player.y - standing.player.y) < 1 / 32);
+    assert.ok(Math.abs(returned.player.y - standing.colony.colonists[0].position[1]) < 1 / 32);
     await capture('pcg-10b-player-surface-survives-unrelated-edit');
     await play.keyboard.press('KeyR');
     await wait(s => s.camera.mode === 'god');

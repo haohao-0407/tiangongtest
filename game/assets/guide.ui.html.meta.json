@@ -3,7 +3,36 @@
   "kind": "external-asset-package",
   "importer": "ui",
   "source": "guide.ui.html",
-  "importSettings": {},
+  "importSettings": {
+    "resources": [
+      "ui/crop-icons/blueberry.png",
+      "ui/crop-icons/cabbage.png",
+      "ui/crop-icons/corn.png",
+      "ui/crop-icons/leek.png",
+      "ui/crop-icons/potato.png",
+      "ui/crop-icons/sugarcane.png",
+      "ui/crop-icons/tomato.png",
+      "ui/crop-icons/wheat.png",
+      "ui/dish-icons/blueberryPie.png",
+      "ui/dish-icons/bread.png",
+      "ui/dish-icons/friedEgg.png",
+      "ui/dish-icons/pancake.png",
+      "ui/dish-icons/pasta.png",
+      "ui/dish-icons/perfectBreakfast.png",
+      "ui/dish-icons/pizza.png",
+      "ui/dish-icons/salad.png",
+      "ui/seed-icons/cabbageSeed.png",
+      "ui/seed-icons/cornSeed.png",
+      "ui/seed-icons/leekSeed.png",
+      "ui/seed-icons/potatoSeed.png",
+      "ui/seed-icons/sugarcaneSeed.png",
+      "ui/seed-icons/tomatoSeed.png",
+      "ui/seed-icons/wheatSeed.png",
+      "ui/supply-icons/egg.png",
+      "ui/supply-icons/milk.png",
+      "ui/supply-icons/oil.png"
+    ]
+  },
   "subAssets": [
     {
       "guid": "019fb7ce-3600-7000-8000-000000000001",
