@@ -1,0 +1,530 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "blueberry-wine",
+        "flour",
+        "cheese",
+        "chicken-meat",
+        "beef",
+        "pork",
+        "sugar"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "supply-items.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:blueberry-wine"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:flour"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:cheese"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:chicken-meat"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:beef"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:pork"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:sugar"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:beef": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f41a-056c-7471-80f2-fda344a41d08",
+          "slotName": "beef-pixels",
+          "sourceKey": "material:beef-pixels"
+        }
+      ]
+    },
+    "mesh:blueberry-wine": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f41a-056b-7fa4-adad-5491a9b88c43",
+          "slotName": "blueberry-wine-pixels",
+          "sourceKey": "material:blueberry-wine-pixels"
+        }
+      ]
+    },
+    "mesh:cheese": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f41a-056b-7fa4-adad-54933e3f4b10",
+          "slotName": "cheese-pixels",
+          "sourceKey": "material:cheese-pixels"
+        }
+      ]
+    },
+    "mesh:chicken-meat": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f41a-056c-7471-80f2-fda2e9bae7ae",
+          "slotName": "chicken-meat-pixels",
+          "sourceKey": "material:chicken-meat-pixels"
+        }
+      ]
+    },
+    "mesh:flour": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f41a-056b-7fa4-adad-549213d12369",
+          "slotName": "flour-pixels",
+          "sourceKey": "material:flour-pixels"
+        }
+      ]
+    },
+    "mesh:pork": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f41a-056c-7471-80f2-fda48747d203",
+          "slotName": "pork-pixels",
+          "sourceKey": "material:pork-pixels"
+        }
+      ]
+    },
+    "mesh:sugar": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f41a-056c-7471-80f2-fda5749a96ae",
+          "slotName": "sugar-pixels",
+          "sourceKey": "material:sugar-pixels"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1f41a-056b-7fa4-adad-548a24188318",
+      "kind": "mesh",
+      "name": "blueberry-wine",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:blueberry-wine"
+    },
+    {
+      "guid": "01a1f41a-056b-7fa4-adad-548b2ae46ec1",
+      "kind": "mesh",
+      "name": "flour",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:flour"
+    },
+    {
+      "guid": "01a1f41a-056b-7fa4-adad-548c9277b8b5",
+      "kind": "mesh",
+      "name": "cheese",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:cheese"
+    },
+    {
+      "guid": "01a1f41a-056b-7fa4-adad-548d6764b801",
+      "kind": "mesh",
+      "name": "chicken-meat",
+      "sourceIndex": 3,
+      "sourceKey": "mesh:chicken-meat"
+    },
+    {
+      "guid": "01a1f41a-056b-7fa4-adad-548ecdf554fa",
+      "kind": "mesh",
+      "name": "beef",
+      "sourceIndex": 4,
+      "sourceKey": "mesh:beef"
+    },
+    {
+      "guid": "01a1f41a-056b-7fa4-adad-548f92b44e99",
+      "kind": "mesh",
+      "name": "pork",
+      "sourceIndex": 5,
+      "sourceKey": "mesh:pork"
+    },
+    {
+      "guid": "01a1f41a-056b-7fa4-adad-54901049b389",
+      "kind": "mesh",
+      "name": "sugar",
+      "sourceIndex": 6,
+      "sourceKey": "mesh:sugar"
+    },
+    {
+      "guid": "01a1f41a-056b-7fa4-adad-5491a9b88c43",
+      "kind": "material",
+      "name": "blueberry-wine-pixels",
+      "sourceIndex": 0,
+      "sourceKey": "material:blueberry-wine-pixels"
+    },
+    {
+      "guid": "01a1f41a-056b-7fa4-adad-549213d12369",
+      "kind": "material",
+      "name": "flour-pixels",
+      "sourceIndex": 1,
+      "sourceKey": "material:flour-pixels"
+    },
+    {
+      "guid": "01a1f41a-056b-7fa4-adad-54933e3f4b10",
+      "kind": "material",
+      "name": "cheese-pixels",
+      "sourceIndex": 2,
+      "sourceKey": "material:cheese-pixels"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fda2e9bae7ae",
+      "kind": "material",
+      "name": "chicken-meat-pixels",
+      "sourceIndex": 3,
+      "sourceKey": "material:chicken-meat-pixels"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fda344a41d08",
+      "kind": "material",
+      "name": "beef-pixels",
+      "sourceIndex": 4,
+      "sourceKey": "material:beef-pixels"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fda48747d203",
+      "kind": "material",
+      "name": "pork-pixels",
+      "sourceIndex": 5,
+      "sourceKey": "material:pork-pixels"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fda5749a96ae",
+      "kind": "material",
+      "name": "sugar-pixels",
+      "sourceIndex": 6,
+      "sourceKey": "material:sugar-pixels"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fda666bb6610",
+      "kind": "scene",
+      "sourceIndex": 0,
+      "sourceKey": "scene"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fda7801bc355",
+      "kind": "texture",
+      "name": "blueberry-wine",
+      "sourceIndex": 0,
+      "sourceKey": "texture:blueberry-wine"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fda86c0655ed",
+      "kind": "texture",
+      "name": "flour",
+      "sourceIndex": 1,
+      "sourceKey": "texture:flour"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fda9ee7cf734",
+      "kind": "texture",
+      "name": "cheese",
+      "sourceIndex": 2,
+      "sourceKey": "texture:cheese"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fdaad55bae21",
+      "kind": "texture",
+      "name": "chicken-meat",
+      "sourceIndex": 3,
+      "sourceKey": "texture:chicken-meat"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fdab62bb8786",
+      "kind": "texture",
+      "name": "beef",
+      "sourceIndex": 4,
+      "sourceKey": "texture:beef"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fdac6de08554",
+      "kind": "texture",
+      "name": "pork",
+      "sourceIndex": 5,
+      "sourceKey": "texture:pork"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fdad54d6aec9",
+      "kind": "texture",
+      "name": "sugar",
+      "sourceIndex": 6,
+      "sourceKey": "texture:sugar"
+    },
+    {
+      "guid": "01a1f41a-056c-7471-80f2-fdae22db40d5",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

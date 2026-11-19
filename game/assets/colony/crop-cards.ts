@@ -3,7 +3,7 @@ import type { EntityHandle, World } from '@forgeax/engine/ecs';
 import { MeshFilter, MeshRenderer, ShadowParticipation } from '@forgeax/engine/render';
 import { Name, Transform } from '@forgeax/engine/scene';
 import type { AssetHandle } from '@forgeax/engine/types';
-import type { CropKind, CropSeed, CropType, CropView } from './contracts.ts';
+import type { CropKind, CropSeed, CropType, CropView, SupplyType } from './contracts.ts';
 
 type RenderCrop = Pick<CropView, 'x' | 'y' | 'z' | 'growth'> & Partial<Pick<CropView, 'id' | 'kind' | 'planted'>>;
 export const FARM_SOIL_HEIGHT = 0.05;
@@ -69,6 +69,16 @@ const SEED_ITEM_MESHES: Record<CropSeed, string> = {
   cornSeed: '01a1f3fb-2a1f-7238-8ac3-05053e8b8930',
 };
 
+const SUPPLY_ITEM_MESHES = {
+  blueberryWine: '01a1f41a-056b-7fa4-adad-548a24188318',
+  flour: '01a1f41a-056b-7fa4-adad-548b2ae46ec1',
+  cheese: '01a1f41a-056b-7fa4-adad-548c9277b8b5',
+  chickenMeat: '01a1f41a-056b-7fa4-adad-548d6764b801',
+  beef: '01a1f41a-056b-7fa4-adad-548ecdf554fa',
+  pork: '01a1f41a-056b-7fa4-adad-548f92b44e99',
+  sugar: '01a1f41a-056b-7fa4-adad-54901049b389',
+} satisfies Partial<Record<SupplyType, string>>;
+
 interface Entry {
   readonly entity: EntityHandle;
   mesh: AssetHandle<'mesh'>;
@@ -88,7 +98,7 @@ export class CropCards {
     const cards = new CropCards(world, assets);
     await Promise.all([
       ...(Object.keys(CROP_MESHES) as CropKind[]).map(kind => cards.load(kind)),
-      ...Object.entries({ ...PRODUCE_MESHES, ...SEED_ITEM_MESHES }).map(([kind, guid]) => cards.loadItem(kind, guid)),
+      ...Object.entries({ ...PRODUCE_MESHES, ...SEED_ITEM_MESHES, ...SUPPLY_ITEM_MESHES }).map(([kind, guid]) => cards.loadItem(kind, guid)),
     ]);
     return cards;
   }
@@ -108,7 +118,7 @@ export class CropCards {
     try {
       this.itemMeshes.set(kind, await this.loadCutoutMesh(guid));
     } catch (error) {
-      console.warn(`作物物品图 ${kind} 加载失败。`, error);
+      console.warn(`物品贴图 ${kind} 加载失败。`, error);
     }
   }
 
