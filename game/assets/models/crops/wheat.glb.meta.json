@@ -1,0 +1,247 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "wheat-sprout",
+        "wheat-growing",
+        "wheat-mature"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "wheat.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:wheat-sprout"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:wheat-growing"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:wheat-mature"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:wheat-growing": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-c3cc-7103-908e-046aed335cba",
+          "slotName": "wheat-growing-leaves",
+          "sourceKey": "material:wheat-growing-leaves"
+        }
+      ]
+    },
+    "mesh:wheat-mature": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-c3cc-7103-908e-046b8061802b",
+          "slotName": "wheat-mature-leaves",
+          "sourceKey": "material:wheat-mature-leaves"
+        }
+      ]
+    },
+    "mesh:wheat-sprout": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-c3cc-7103-908e-0469d489a203",
+          "slotName": "wheat-sprout-leaves",
+          "sourceKey": "material:wheat-sprout-leaves"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1efcb-c3cb-7911-ac1f-909234baf751",
+      "kind": "mesh",
+      "name": "wheat-sprout",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:wheat-sprout"
+    },
+    {
+      "guid": "01a1efcb-c3cc-7103-908e-0467e1370a3e",
+      "kind": "mesh",
+      "name": "wheat-growing",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:wheat-growing"
+    },
+    {
+      "guid": "01a1efcb-c3cc-7103-908e-04681ed8904e",
+      "kind": "mesh",
+      "name": "wheat-mature",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:wheat-mature"
+    },
+    {
+      "guid": "01a1efcb-c3cc-7103-908e-0469d489a203",
+      "kind": "material",
+      "name": "wheat-sprout-leaves",
+      "sourceIndex": 0,
+      "sourceKey": "material:wheat-sprout-leaves"
+    },
+    {
+      "guid": "01a1efcb-c3cc-7103-908e-046aed335cba",
+      "kind": "material",
+      "name": "wheat-growing-leaves",
+      "sourceIndex": 1,
+      "sourceKey": "material:wheat-growing-leaves"
+    },
+    {
+      "guid": "01a1efcb-c3cc-7103-908e-046b8061802b",
+      "kind": "material",
+      "name": "wheat-mature-leaves",
+      "sourceIndex": 2,
+      "sourceKey": "material:wheat-mature-leaves"
+    },
+    {
+      "guid": "01a1efcb-c3cc-7103-908e-046cbe430d20",
+      "kind": "scene",
+      "name": "wheat-growth-stages",
+      "sourceIndex": 0,
+      "sourceKey": "scene:wheat-growth-stages"
+    },
+    {
+      "guid": "01a1efcb-c3cc-7103-908e-046da88cb3ce",
+      "kind": "texture",
+      "name": "小麦-幼芽井字摆放",
+      "sourceIndex": 0,
+      "sourceKey": "texture:小麦-幼芽井字摆放"
+    },
+    {
+      "guid": "01a1efcb-c3cc-7103-908e-046e3e594f5f",
+      "kind": "texture",
+      "name": "小麦-生长井字摆放",
+      "sourceIndex": 1,
+      "sourceKey": "texture:小麦-生长井字摆放"
+    },
+    {
+      "guid": "01a1efcb-c3cc-7103-908e-046ff2459f20",
+      "kind": "texture",
+      "name": "小麦-成熟井字摆放",
+      "sourceIndex": 2,
+      "sourceKey": "texture:小麦-成熟井字摆放"
+    },
+    {
+      "guid": "01a1efcb-c3cc-7103-908e-0470168db915",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

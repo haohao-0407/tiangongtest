@@ -4,7 +4,7 @@ import { treeProtectingVoxel } from '../voxel/tree-interaction.ts';
 import {buildingDimensions,buildingParts,buildingBlocksMovement} from './buildings.ts';
 import {buildingProtectingVoxel} from './interaction.ts';
 import {
-  BUILDING_DEFS, RESEARCH_DEFS, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES,
+  BUILDING_DEFS, CROP_DEFS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropSeed, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, isCropKind, type CropKind,
   CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET, PLAYER_STAMINA_REGEN,
   PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace, isToolKind, isResource, buildingItemKind, itemName,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
@@ -19,6 +19,8 @@ const STEP = 0.25;
 export const DAY_SECONDS = 360;
 export const STEEL_ORE_YIELD = 12;
 const SPEEDS = [0, 1, 3, 6];
+const STARTER_SEED_PACKS = 9;
+const SEED_PACK_PRICE = 2;
 const EMPTY_RESOURCES = (): Resources => Object.fromEntries(RESOURCE_TYPES.map((r) => [r, 0])) as Resources;
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
@@ -95,7 +97,7 @@ export class ColonySimulation {
       version: 3, type: 'peaceful-colony', worldSeed: world.seed, time: DAY_SECONDS / 3, accumulator: 0,
       rng: seed >>> 0 || 1, nextId: 1, speed: 1, decision: 0, lastDay: 1, spoilage: 0,
       resources: {
-        ...EMPTY_RESOURCES(), wood: 140, stone: 110, steel: 60, food: 40, meal: 14, medicine: 12, cloth: 30, silver: 120, components: 8,
+        ...EMPTY_RESOURCES(), ...Object.fromEntries(CROP_SEEDS.map(seed => [seed, STARTER_SEED_PACKS])), wood: 140, stone: 110, steel: 60, food: 40, meal: 14, medicine: 12, cloth: 30, silver: 120, components: 8,
         // 新导入的农作物和料理，先各给 10 个，方便试拖动和分类
         wheat: 10, corn: 10, blueberry: 10, sugarcane: 10, cabbage: 10, leek: 10, potato: 10, tomato: 10,
         friedEgg: 10, bread: 10, salad: 10, pasta: 10, pancake: 10, blueberryPie: 10, pizza: 10, perfectBreakfast: 10,
@@ -104,7 +106,7 @@ export class ColonySimulation {
       research: { active: null, progress: {}, completed: [] },
       power: { generation: 0, demand: 0, stored: 0, capacity: 0, supplied: 0, coldStorage: false },
       trade: { available: true, leavesAt: DAY_SECONDS / 3 + 120, stock: { ...EMPTY_RESOURCES(), wood: 40, stone: 30, steel: 25, food: 35, meal: 12, medicine: 10, cloth: 20, silver: 500, components: 6 },
-        prices: { ...EMPTY_RESOURCES(), wood: 2, stone: 2, steel: 4, food: 3, meal: 7, medicine: 12, cloth: 4, silver: 1, components: 18, dirt: 1 } },
+        prices: { ...EMPTY_RESOURCES(), ...Object.fromEntries(CROP_SEEDS.map(seed => [seed, SEED_PACK_PRICE])), wood: 2, stone: 2, steel: 4, food: 3, meal: 7, medicine: 12, cloth: 4, silver: 1, components: 18, dirt: 1 } },
       bills: { meal: 16, medicine: 8, components: 4 },
       metrics: { jobsCompleted: 0, built: 0, harvested: 0, hauled: 0, cooked: 0, researched: 0, treated: 0, spoiled: 0, distanceWalked: 0 },
       selectedColonistId: null, weather: '晴朗', temperature: 22,
@@ -116,8 +118,8 @@ export class ColonySimulation {
     const midX=Math.floor(world.width/2)+3,midZ=Math.floor(world.depth/2)+3;
     const centre = this.closestOpen(midX, midZ) ?? [midX+.5, 6, midZ+.5];
     const cx = Math.floor(centre[0]), cz = Math.floor(centre[2]);
-    this.addZone('stockpile', Math.max(1, cx - 4), cz - 1, 3, 3, 'rice');
-    this.addZone('farm', cx - 2, cz + 3, 3, 3, 'rice');
+    this.addZone('stockpile', Math.max(1, cx - 4), cz - 1, 3, 3, DEFAULT_CROP);
+    this.addZone('farm', cx - 2, cz + 3, 3, 3, DEFAULT_CROP);
     for (const [kind, dx, dz] of [
       ['bed', 1, -3], ['bed', 2, -3], ['bed', 3, -3], ['table', 1, -1],
       ['stove', 3, -1], ['workbench', 4, -1], ['researchDesk', 4, 1],
@@ -402,7 +404,7 @@ export class ColonySimulation {
     for (const crop of this.s.crops) if (crop.planted && crop.growth < 1) {
       const ideal = this.s.temperature >= 8 && this.s.temperature <= 32;
       const light = this.hour() >= 5 && this.hour() < 21 ? 1 : 0.25;
-      crop.growth = Math.min(1, crop.growth + dt / (crop.kind === 'corn' ? 200 : 115) * (ideal ? 1 : 0.2) * light * (this.s.weather === '细雨' ? 1.15 : 1));
+      crop.growth = Math.min(1, crop.growth + dt / CROP_DEFS[crop.kind].growthSeconds * (ideal ? 1 : 0.2) * light * (this.s.weather === '细雨' ? 1.15 : 1));
     }
     this.s.spoilage += dt * (this.s.power.coldStorage ? 0.12 : this.s.temperature > 30 ? 2 : 1);
     if (this.s.spoilage >= 95) {
@@ -827,8 +829,10 @@ export class ColonySimulation {
     this.validCell(c.x,c.z); const x=c.x!, z=c.z!, w=c.w??1, d=c.d??1;
     if (!Number.isInteger(w)||!Number.isInteger(d)||w<1||d<1||w>this.world.width||d>this.world.depth||x+w>this.world.width||z+d>this.world.depth) throw new Error('区域必须位于地图内。');
     if (c.kind === 'farm' || c.kind === 'stockpile') {
-      const crop = c.crop === 'corn' ? 'corn' : 'rice';
-      if (crop === 'corn' && !this.s.research.completed.includes('agriculture')) throw new Error('玉米需要精耕农业研究。');
+      const crop = c.kind === 'farm' ? c.crop ?? DEFAULT_CROP : DEFAULT_CROP;
+      if (!isCropKind(crop)) throw new Error('未知作物。');
+      const { name, requires } = CROP_DEFS[crop];
+      if (requires && !this.s.research.completed.includes(requires)) throw new Error(`${name}需要先完成${RESEARCH_DEFS[requires]!.name}研究。`);
       if (this.s.zones.some((zone) => x < zone.x+zone.w && x+w > zone.x && z < zone.z+zone.d && z+d > zone.z)) throw new Error('区域不能相互重叠。');
       const cells: [number,number][]=[];
       for(let zz=z;zz<z+d;zz++)for(let xx=x;xx<x+w;xx++)cells.push([xx,zz]);
@@ -847,7 +851,7 @@ export class ColonySimulation {
           && !this.s.jobs.some(j=>j.type==='mine'&&j.x===xx&&j.z===zz)) {this.addJob('mine',`rock:${xx}:${zz}:${y}`,xx,y,zz,19,block===BLOCK.SteelOre?'开采钢矿':'开采地表');added++;}
       } else if(c.kind==='harvest') {
         for(const crop of this.s.crops.filter(p=>p.x===xx&&p.z===zz&&p.planted&&p.growth>=0.95)) {
-          if(!this.s.jobs.some(j=>j.type==='harvest'&&j.targetId===crop.id)){this.addJob('harvest',crop.id,xx,crop.y,zz,6,'收获作物');added++;}
+          if(!this.s.jobs.some(j=>j.type==='harvest'&&j.targetId===crop.id)){this.addJob('harvest',crop.id,xx,crop.y,zz,6,'收获'+CROP_DEFS[crop.kind].name);added++;}
         }
       } else throw new Error('未知区域或采集指令。');
     }
@@ -876,7 +880,7 @@ export class ColonySimulation {
     if(existing){if(label==='砍伐树木')existing.label=label;return false;}
     this.addJob('chop',tree.id,tree.x,tree.y,tree.z,16,label);return true;
   }
-  private addZone(kind:'farm'|'stockpile',x:number,z:number,w:number,d:number,crop:'rice'|'corn'):ZoneView {
+  private addZone(kind:'farm'|'stockpile',x:number,z:number,w:number,d:number,crop:CropKind):ZoneView {
     const zone:ZoneView={id:this.id('zone'),kind,x,y:Math.max(1,this.groundY(x,z)),z,w,d,crop};this.s.zones.push(zone);
     if(kind==='farm')this.terrainIndexDirty=true;
     if(kind==='farm')for(let zz=z;zz<z+d;zz++)for(let xx=x;xx<x+w;xx++) {
@@ -1097,6 +1101,12 @@ export class ColonySimulation {
     if(existing){existing.amount+=amount;existing.age=Math.min(existing.age,30);}
     else this.s.items.push({id:this.id('item'),resource,amount,x:xx,y:pos[1],z:zz,age:0,reservedBy:null,...(scatter?{scatter:true}:{}),...(playerOnly?{playerOnly:true}:{})});
   }
+  private rawFoodCost(amount: number): Partial<Resources> {
+    const food = Math.min(amount, this.s.resources.food);
+    const cabbage = amount - food;
+    return { ...(food ? { food } : {}), ...(cabbage ? { cabbage } : {}) };
+  }
+
   private afford(cost:Partial<Resources>):boolean{return RESOURCE_TYPES.every(r=>this.s.resources[r]>=(cost[r]??0));}
   private take(cost:Partial<Resources>):void{for(const r of RESOURCE_TYPES)this.s.resources[r]-=cost[r]??0;}
   private give(cost:Partial<Resources>):void{for(const r of RESOURCE_TYPES)this.s.resources[r]+=cost[r]??0;}
@@ -1115,8 +1125,8 @@ export class ColonySimulation {
     const has=(type:JobType,target:string)=>this.s.jobs.some(j=>j.type===type&&j.targetId===target);
     for(const b of this.s.buildings)if(!b.complete&&b.phase!=='preparingTerrain'&&!b.blockedReason&&!has('construct',b.id))this.addJob('construct',b.id,b.x,b.y,b.z,BUILDING_DEFS[b.kind].work,`建造${BUILDING_DEFS[b.kind].name}`).progress=b.progress*BUILDING_DEFS[b.kind].work;
     for(const crop of this.s.crops){
-      if(!crop.planted&&!has('grow',crop.id))this.addJob('grow',crop.id,crop.x,crop.y,crop.z,5,'播种'+(crop.kind==='corn'?'玉米':'水稻'));
-      if(crop.planted&&crop.growth>=1&&!has('harvest',crop.id))this.addJob('harvest',crop.id,crop.x,crop.y,crop.z,6,'收获'+(crop.kind==='corn'?'玉米':'水稻'));
+      if(!crop.planted&&!has('grow',crop.id))this.addJob('grow',crop.id,crop.x,crop.y,crop.z,5,'播种'+CROP_DEFS[crop.kind].name);
+      if(crop.planted&&crop.growth>=1&&!has('harvest',crop.id))this.addJob('harvest',crop.id,crop.x,crop.y,crop.z,6,'收获'+CROP_DEFS[crop.kind].name);
     }
     if(this.storageTarget())for(const item of this.s.items)if(isResource(item.resource)&&!item.playerOnly&&!item.reservedBy&&!has('haul',item.id))this.addJob('haul',item.id,item.x,item.y,item.z,1,'搬运物资');
     const complete=(kind:BuildingKind)=>this.s.buildings.find(b=>b.complete&&b.kind===kind);
@@ -1179,8 +1189,8 @@ export class ColonySimulation {
       return false;
     };
     if(kind==='eat'){
-      const resource=this.s.resources.meal>0?'meal':this.s.resources.food>0?'food':null;if(!resource)return false;
-      reserved[resource]=1;
+      reserved = this.s.resources.meal > 0 ? { meal: 1 } : this.rawFoodCost(1);
+      if (!this.afford(reserved)) return false;
       if(!useBuildings(['table'])){target=this.storageTarget(c.position);if(target)path=this.path(c.position,target);}
     }else if(kind==='sleep'||kind==='patient'){
       bed=useBuildings(kind==='patient'?['medicalBed','bed']:['bed'],true);
@@ -1322,13 +1332,24 @@ export class ColonySimulation {
         job.assignedTo = c.id; job.state = 'working'; c.jobId = job.id;
         return true;
       }
+      const crop = job.type === 'grow' ? this.s.crops.find(plant => plant.id === job.targetId) : undefined;
+      if (job.type === 'grow' && (!crop || crop.planted)) {
+        this.removeJob(job, true);
+        continue;
+      }
       let cost:Partial<Resources>={};
       if(!Object.keys(job.reserved).length){
-        if(job.type==='cook')cost={food:2};
-        if(job.type==='craft')cost=job.resource==='components'?{steel:4,wood:2}:{food:2,cloth:1};
+        if (crop) cost = { [cropSeed(crop.kind)]: 1 };
+        if(job.type==='cook')cost=this.rawFoodCost(2);
+        if(job.type==='craft')cost=job.resource==='components'?{steel:4,wood:2}:{...this.rawFoodCost(2),cloth:1};
         if(job.type==='doctor')cost={medicine:1};
       }
-      if(!this.afford(cost)){job.state='blocked';continue;}
+      if (!this.afford(cost)) {
+        job.state = 'blocked';
+        if (crop) job.label = `缺少${RESOURCE_NAMES[cropSeed(crop.kind)]}`;
+        continue;
+      }
+      if (crop) job.label = `播种${CROP_DEFS[crop.kind].name}`;
       if(job.type==='haul'){
         const item=this.s.items.find(i=>i.id===job.targetId);if(!item||item.reservedBy&&item.reservedBy!==job.id)continue;
         if(!this.storageTarget())continue;
@@ -1425,9 +1446,32 @@ export class ColonySimulation {
     if(job.type==='terraform'){
       if(this.finishTerraform(c,job)){c.skills.terraform=Math.min(20,c.skills.terraform+.05);this.s.metrics.jobsCompleted++;c.task='完成一层填挖';}return;
     }else if(job.type==='grow'){
-      const crop=this.s.crops.find(p=>p.id===job.targetId);if(crop){crop.planted=true;crop.growth=0;}
+      const crop = this.s.crops.find(p => p.id === job.targetId);
+      if (!crop || crop.planted) { this.removeJob(job, true); return; }
+      const seed = cropSeed(crop.kind);
+      // 升级前已开工的播种任务还没有预留种子，完成前补扣一次。
+      if (!job.reserved[seed]) {
+        if (this.s.resources[seed] < 1) {
+          this.releasePerson(c);
+          job.state = 'blocked';
+          job.label = `缺少${RESOURCE_NAMES[seed]}`;
+          return;
+        }
+        this.s.resources[seed]--;
+      }
+      crop.planted = true;
+      crop.growth = 0;
     }else if(job.type==='harvest'){
-      const crop=this.s.crops.find(p=>p.id===job.targetId);if(crop?.planted){const yieldAmount=(crop.kind==='corn'?12:6)+Math.floor(c.skills.harvest/5);this.drop('food',yieldAmount,crop.x,crop.z);crop.planted=false;crop.growth=0;this.s.metrics.harvested+=yieldAmount;}
+      const crop = this.s.crops.find(p => p.id === job.targetId);
+      if (crop?.planted) {
+        const { produce, yieldCount } = CROP_DEFS[crop.kind];
+        const yieldAmount = yieldCount + Math.floor(c.skills.harvest / 5);
+        this.drop(produce, yieldAmount, crop.x, crop.z);
+        this.drop(cropSeed(crop.kind), 1, crop.x, crop.z);
+        crop.planted = false;
+        crop.growth = 0;
+        this.s.metrics.harvested += yieldAmount;
+      }
     }else if(job.type==='cook'){
       this.drop('meal',3,job.x,job.z);this.s.metrics.cooked+=3;
     }else if(job.type==='craft'){
@@ -1582,10 +1626,61 @@ export class ColonySimulation {
     const legacyChests=s.version===1?(s.chests??[this.starterChest()]):[];
     // Legacy objects are upgraded together, on the private copy, before any live state changes.
     s.terrainPlans??=[];
-    // 老存档没有作物/料理这些新资源，缺的补 0，否则面板上会显示 NaN
-    for (const r of RESOURCE_TYPES) if (typeof s.resources?.[r] !== 'number') s.resources[r] = 0;
-    if(s.trade?.stock&&s.trade?.prices){s.trade.stock.dirt??=0;s.trade.prices.dirt??=1;}
     const oldBag=legacy ? s.playerBag??[{ resource: HAMMER, count: 1 }, ...emptySlots(PLAYER_SLOTS-1)] : undefined;
+
+    // 水稻原来共用白菜的外观。保留田格、生长进度、种子库存和预留量。
+    const migrateSeedAmounts = (amounts: (Partial<Resources> & { riceSeed?: number }) | undefined) => {
+      if (!amounts || !Object.hasOwn(amounts, 'riceSeed')) return;
+      const old = amounts.riceSeed;
+      const current = amounts.cabbageSeed ?? 0;
+      if (typeof old !== 'number' || !Number.isSafeInteger(old) || old < 0
+        || !Number.isSafeInteger(current) || current < 0) fail();
+      amounts.cabbageSeed = current + old!;
+      delete amounts.riceSeed;
+    };
+    const migrateSeedItem = (stack: { resource?: unknown } | null | undefined) => {
+      if (stack?.resource === 'riceSeed') stack.resource = 'cabbageSeed';
+    };
+    const migrateSeedSlots = (slots: unknown) => {
+      if (Array.isArray(slots)) for (const slot of slots) migrateSeedItem(slot);
+    };
+    migrateSeedAmounts(s.resources);
+    migrateSeedAmounts(s.trade?.stock);
+    if (s.trade?.prices) delete (s.trade.prices as Partial<Resources> & { riceSeed?: number }).riceSeed;
+    migrateSeedSlots(oldBag);
+    if (Array.isArray(legacyChests)) for (const chest of legacyChests) migrateSeedSlots(chest?.slots);
+    if (Array.isArray(s.buildings)) for (const building of s.buildings) migrateSeedSlots(building?.storage);
+    if (Array.isArray(s.zones)) for (const zone of s.zones) {
+      if (zone && (zone.crop as string) === 'rice') zone.crop = DEFAULT_CROP;
+    }
+    if (Array.isArray(s.crops)) for (const crop of s.crops) {
+      if (crop && (crop.kind as string) === 'rice') crop.kind = DEFAULT_CROP;
+    }
+    if (Array.isArray(s.colonists)) for (const person of s.colonists) {
+      migrateSeedSlots(person?.bag);
+      migrateSeedAmounts(person?.carrying);
+      migrateSeedAmounts(person?.personal?.reserved);
+      if (typeof person?.task === 'string') person.task = person.task.replaceAll('水稻', '白菜');
+    }
+    if (Array.isArray(s.items)) for (const item of s.items) migrateSeedItem(item);
+    if (Array.isArray(s.jobs)) for (const job of s.jobs) {
+      migrateSeedItem(job);
+      migrateSeedAmounts(job?.reserved);
+      if (typeof job?.label === 'string') job.label = job.label.replaceAll('水稻', '白菜');
+    }
+
+    // 老存档没有作物/料理这些新资源，缺的补 0，否则面板上会显示 NaN
+    if (s.resources && typeof s.resources === 'object') {
+      for (const seed of CROP_SEEDS) if (!Object.hasOwn(s.resources, seed)) s.resources[seed] = STARTER_SEED_PACKS;
+      for (const r of RESOURCE_TYPES) if (!Object.hasOwn(s.resources, r)) s.resources[r] = 0;
+    }
+    if(s.trade?.stock&&s.trade?.prices){
+      s.trade.stock.dirt??=0;s.trade.prices.dirt??=1;
+      for (const seed of CROP_SEEDS) {
+        s.trade.stock[seed] ??= 0;
+        s.trade.prices[seed] ??= SEED_PACK_PRICE;
+      }
+    }
     const legacyBuildings=new Set<string>();
     if(Array.isArray(s.buildings))for(const b of s.buildings)if(b&&typeof b==='object'){
       if(b.rotation===undefined&&b.h===undefined){legacyBuildings.add(b.id);b.rotation=0;b.h=BUILDING_DEFS[b.kind]?.height??1;if(b.kind==='door')b.doorOpen??=false;}
@@ -1654,14 +1749,14 @@ export class ColonySimulation {
       if(b.complete&&buildingParts(b).some(p=>this.world.get(p.x,p.y,p.z)!==BLOCK.Air))fail();
       for(const p of buildingParts(b)){const key=`${p.x},${p.y},${p.z}`;if(occupied.has(key))fail();occupied.add(key);}
     }
-    for(const z of s.zones)if(!location(z)||!['farm','stockpile'].includes(z.kind)||!integer(z.w,1,this.world.width)||!integer(z.d,1,this.world.depth)||z.x+z.w>this.world.width||z.z+z.d>this.world.depth||!['rice','corn'].includes(z.crop))fail();
+    for(const z of s.zones)if(!location(z)||!['farm','stockpile'].includes(z.kind)||!integer(z.w,1,this.world.width)||!integer(z.d,1,this.world.depth)||z.x+z.w>this.world.width||z.z+z.d>this.world.depth||!isCropKind(z.crop))fail();
     const targets=new Map<number,number>();
     for(const p of s.terrainPlans){
       if(!integer(p.target,1,this.world.height-2)||!list(p.cells,area)||!p.cells.length||!finite(p.initialWork)||!finite(p.remainingCut)||!finite(p.remainingFill)||!finite(p.progress,0,1)||!['queued','working','blocked','completed'].includes(p.state)||p.blockedReason!==undefined&&!text(p.blockedReason)||p.buildingId!==undefined&&!buildingIds.has(p.buildingId))fail();
       const seen=new Set<number>();for(const cell of p.cells){if(!Array.isArray(cell)||cell.length!==2||!integer(cell[0],0,this.world.width-1)||!integer(cell[1],0,this.world.depth-1))fail();const key=this.cellKey(cell[0],cell[1]);if(seen.has(key))fail();seen.add(key);if(p.state!=='completed'){if(targets.has(key)&&targets.get(key)!==p.target)fail();targets.set(key,p.target);}}
       if(p.buildingId){const b=s.buildings.find(b=>b.id===p.buildingId)!;if(b.terrainPlanId!==p.id||b.y!==p.target||p.cells.length!==b.w*b.d||p.cells.some(([x,z])=>x<b.x||z<b.z||x>=b.x+b.w||z>=b.z+b.d))fail();}
     }
-    for(const p of s.crops)if(!location(p)||!['rice','corn'].includes(p.kind)||typeof p.planted!=='boolean'||!finite(p.growth,0,1))fail();
+    for(const p of s.crops)if(!location(p)||!isCropKind(p.kind)||typeof p.planted!=='boolean'||!finite(p.growth,0,1))fail();
     for(const chest of legacyChests){
       if(buildingIds.has(chest.id))fail();
       const position=this.findBuildingPosition('chest',chest.x,chest.z,s.buildings,0,undefined,s.crops);

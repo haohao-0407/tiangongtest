@@ -2,8 +2,8 @@ import type { GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
   BUILDING_DEFS, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
-  RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, inventorySpace, isResource, itemName,
-  type ColonyCommand, type ColonySnapshot, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource,
+  CROP_DEFS, CROP_KINDS, CROP_TYPES, DEFAULT_CROP, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, cropSeed, inventorySpace, isCropSeed, isResource, itemName,
+  type ColonyCommand, type ColonySnapshot, type CropSeed, type CropType, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource,
 } from '../colony/contracts.ts';
 import { buildingDimensions } from '../colony/buildings.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
@@ -43,10 +43,8 @@ const BUILD_ICONS: Record<string, string> = {
   // 农业
   hydroponics: '❋', sprinkler: '☂', greenhouseWall: '▢', scarecrow: 'ᛉ', compostBin: '♻',
 };
-const RESOURCE_ICONS: Record<Resource, string> = {
+const RESOURCE_ICONS: Record<Exclude<Resource, CropSeed | CropType>, string> = {
   wood: '▰', stone: '◆', steel: '▱', dirt: '▩', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙',
-  // 农作物
-  wheat: '🌾', corn: '🌽', blueberry: '🫐', sugarcane: '🎋', cabbage: '🥬', leek: '🧅', potato: '🥔', tomato: '🍅',
   // 料理
   friedEgg: '🍳', bread: '🍞', salad: '🥗', pasta: '🍝', pancake: '🥞', blueberryPie: '🥧', pizza: '🍕', perfectBreakfast: '🍱',
 };
@@ -59,6 +57,17 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   if (!mounted.ok) throw mounted.error;
   const ui = mounted.value, shadow = ui.host.shadowRoot!, port = host.presentationPort ?? host.port;
   const doc = host.uiRoot.ownerDocument, win = doc.defaultView!;
+  const cropIcons = new Map<string, string>();
+  try {
+    for (const crop of CROP_TYPES) {
+      const icon = ui.resourceUrl(`ui/crop-icons/${crop}.png`);
+      if (!icon.ok) throw icon.error;
+      cropIcons.set(crop, icon.value);
+    }
+  } catch (error) {
+    ui.dispose();
+    throw error;
+  }
   const releases: (() => void)[] = [];
   const get = <T extends HTMLElement>(id: string) => shadow.getElementById(id) as T;
   const make = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?: string): HTMLElementTagNameMap[K] => {
@@ -266,7 +275,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const grid = make('div', 'planning-tools');
     const entries = [
       ['level', '等高整地', '涂抹或框选，将选区填挖到同一标高。', 'tool-level'],
-      ['zone:farm', '农田', '种植、照料与收获食物。', 'tool-zone-farm'], ['zone:stockpile', '仓储', '搬运散落物资，集中保管。', 'tool-zone-stockpile'],
+      ['zone:farm', '农田', '每格播种消耗 1 包对应种子。', 'tool-zone-farm'], ['zone:stockpile', '仓储', '搬运散落物资，集中保管。', 'tool-zone-stockpile'],
       ['chop', '伐木', '点击任一部分，整棵砍伐获取木材。', 'tool-chop'], ['mine', '采矿', '地表钢矿产出钢铁，普通石块产出石材。', 'tool-mine'],
       ['harvest', '收获', '标记成熟作物。', 'tool-harvest'], ['cancel', '取消规划', '移除未完成的规划或工作。', 'tool-cancel'],
       ['interact', '开关门', '点击门的任一部分开关；关闭时阻挡通行。', 'tool-interact'], ['demolish', '整体拆除', '点击物体任一部分，拆下整座设施后可拾取。', 'tool-demolish'],
@@ -291,10 +300,18 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       if (active.length > 8) list.append(note(`显示前 8 项，共 ${active.length} 项未完成整地。`));
       section.append(list); root.append(section);
     }
-    const crops = make('div', 'schedule-row'); crops.append(make('span', '', '农田作物'));
-    for (const [id, name] of [['rice', '稻米'], ['corn', '玉米']] as const) {
-      const b = button(name, `crop-${id}`); b.dataset.crop = id; b.classList.toggle('active', (state?.crop ?? 'rice') === id);
-      b.disabled = id === 'corn' && !c.research.completed.includes('agriculture'); if (b.disabled) b.title = '需完成精耕农业研究'; crops.append(b);
+    const crops = make('div', 'schedule-row crop-options'); crops.append(make('span', '', '农田作物'));
+    for (const id of CROP_KINDS) {
+      const { name, requires } = CROP_DEFS[id];
+      const b = button(name, `crop-${id}`);
+      b.dataset.crop = id;
+      b.title = `仓库有 ${c.resources[cropSeed(id)]} 包种子`;
+      b.classList.toggle('active', (state?.crop ?? DEFAULT_CROP) === id);
+      if (requires && !c.research.completed.includes(requires)) {
+        b.disabled = true;
+        b.title = `需完成${RESEARCH_DEFS[requires]!.name}研究`;
+      }
+      crops.append(b);
     }
     root.append(crops);
     const counts = make('p', 'panel-note', `农田 ${c.zones.filter(z => z.kind === 'farm').length} 片 · 仓储 ${c.zones.filter(z => z.kind === 'stockpile').length} 片 · 待执行 ${c.jobs.filter(j => j.state === 'queued').length} · 进行中 ${c.jobs.filter(j => j.state === 'working').length} · 受阻 ${c.jobs.filter(j => j.state === 'blocked').length}`); counts.style.marginTop = '12px'; root.append(counts);
@@ -547,7 +564,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     [HAMMER]: 'tool', [AXE]: 'tool', [PICKAXE]: 'tool',
   };
   const CATEGORY_NAMES: Record<string, string> = {
-    all: '全部', block: '方块', item: '非方块', crop: '作物', dish: '料理', tool: '工具', building: '设施',
+    all: '全部', block: '方块', item: '非方块', crop: '作物', seed: '种子', dish: '料理', tool: '工具', building: '设施',
   };
 
   /**
@@ -556,7 +573,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
    * 别直接索引 RESOURCE_NAMES / CATEGORY_OF，否则加个新物品就会崩。
    */
   const nameOf = itemName;
-  const categoryOf = (resource: string) => buildingItemKind(resource) ? 'building' : CATEGORY_OF[resource] ?? 'item';
+  const categoryOf = (resource: string) => buildingItemKind(resource) ? 'building' : isCropSeed(resource) ? 'seed' : CATEGORY_OF[resource] ?? 'item';
 
   function renderWarehouse(c: ColonySnapshot, root: HTMLElement) {
     const recipient=c.colonists.find(person=>person.id===c.selectedColonistId);
@@ -583,9 +600,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     /** 只重画网格。搜索框不能跟着重建，否则每敲一个字就丢焦点。 */
     const drawGrid = () => {
       const items = RESOURCE_TYPES
-        .filter((r) => whCategory === 'all' || CATEGORY_OF[r] === whCategory)
+        .filter((r) => whCategory === 'all' || categoryOf(r) === whCategory)
         .filter((r) => !whQuery || RESOURCE_NAMES[r].includes(whQuery))
-        .map((r) => ({ kind: r, name: RESOURCE_NAMES[r], icon: RESOURCE_ICONS[r], count: Math.floor(c.resources[r]) }))
+        .map((r) => ({ kind: r, name: RESOURCE_NAMES[r], count: Math.floor(c.resources[r]) }))
         // 照 Unity 的 ChestWindow：按显示名的字典序排，不是按数量。
         // 同名（理论上不会）才拿数量兜底，保证顺序稳定、不会每帧跳。
         .sort((a, b) => {
@@ -602,7 +619,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         const cell = make('div', `wh-cell${item ? '' : ' empty'}${item && item.kind === whSelected ? ' selected' : ''}`);
         if (item) {
           cell.title = `${item.name} · ${item.count}`;
-          cell.append(make('span', 'wh-icon', item.icon));
+          cell.append(itemIcon(item.kind, 'wh-icon'));
           if (item.count > 0) cell.append(make('span', 'wh-count', String(item.count)));
           cell.append(make('span', 'wh-label', item.name));
           cell.dataset.item = item.kind;
@@ -792,7 +809,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (!stack) return;
     cell.dataset.item = stack.resource;
     cell.title = nameOf(stack.resource) + ' · ' + stack.count;
-    cell.append(make('span', 'wh-icon', iconOf(stack.resource)), make('span', 'wh-count', String(stack.count)));
+    cell.append(itemIcon(stack.resource, 'wh-icon'), make('span', 'wh-count', String(stack.count)));
     cell.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -820,7 +837,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
           if (!shellEl || Math.hypot(point.clientX - clientX, point.clientY - clientY) < 6) return;
           closeItemMenu();
           ghost = make('div', 'drag-ghost');
-          ghost.append(make('span', 'wh-icon', iconOf(stack.resource)), make('span', 'wh-count', String(stack.count)));
+          ghost.append(itemIcon(stack.resource, 'wh-icon'), make('span', 'wh-count', String(stack.count)));
           shellEl.append(ghost);
         }
         const frame = shellEl!.getBoundingClientRect();
@@ -906,10 +923,21 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
   /** 工具类物品的图标。资源表里没有它们，单独挂一份。加新工具往这里补一行。 */
   const TOOL_ICONS: Record<string, string> = { [HAMMER]: '🔨', [AXE]: '🪓', [PICKAXE]: '⛏️' };
-  const iconOf = (resource: InventoryItem) => {
+  function itemIcon(resource: InventoryItem, className = ''): HTMLElement {
+    const url = cropIcons.get(resource);
+    if (url) {
+      const icon = make('img', `${className} item-sprite`.trim());
+      icon.src = url;
+      icon.alt = '';
+      icon.draggable = false;
+      return icon;
+    }
     const building = buildingItemKind(resource);
-    return building ? BUILD_ICONS[building] ?? '▧' : TOOL_ICONS[resource] ?? RESOURCE_ICONS[resource as Resource] ?? '·';
-  };
+    const glyph = building ? BUILD_ICONS[building] ?? '▧'
+      : isCropSeed(resource) ? '✦'
+      : TOOL_ICONS[resource] ?? RESOURCE_ICONS[resource as keyof typeof RESOURCE_ICONS] ?? '·';
+    return make('span', className, glyph);
+  }
 
   function renderHotbar() {
     const bar = get('hotbar');
@@ -939,7 +967,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       } else if (item) {
         const res = item.resource;
         slot.dataset.item = res;
-        slot.append(make('span', '', iconOf(res)));
+        slot.append(itemIcon(res));
         slot.append(make('span', 'hotbar-count', String(item.count)));
         slot.title = `${nameOf(res)} · ${item.count}`;
         attachInventoryDrag(slot, item, location);
@@ -1128,7 +1156,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const blob = new Blob([data], { type: 'application/json;charset=utf-8' }), url = URL.createObjectURL(blob), link = doc.createElement('a');
     link.href = url; link.download = `森屿-${(state?.seed ?? '家园').replace(/[<>:"/\\|?*]/g, '_')}.json`; doc.body.append(link); link.click(); link.remove(); win.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
-  for (const resource of RESOURCE_TYPES) { const el = make('div', 'resource'); el.id = `resource-${resource}`; el.append(make('span', 'resource-symbol', RESOURCE_ICONS[resource]), make('span', '', RESOURCE_NAMES[resource]), make('b', '', '—')); get('resources').append(el); }
+  for (const resource of RESOURCE_TYPES) { const el = make('div', 'resource'); el.id = `resource-${resource}`; el.append(itemIcon(resource, 'resource-symbol'), make('span', '', RESOURCE_NAMES[resource]), make('b', '', '—')); get('resources').append(el); }
   for (const b of shadow.querySelectorAll<HTMLElement>('[data-speed]')) b.dataset.testid = `speed-${b.dataset.speed}`;
   for (const b of shadow.querySelectorAll<HTMLElement>('[data-menu]')) b.dataset.testid = `menu-${b.dataset.menu}`;
   on(shadow, 'change', (event) => {

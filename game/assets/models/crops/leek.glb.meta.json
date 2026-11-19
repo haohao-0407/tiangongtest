@@ -1,0 +1,247 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "leek-sprout",
+        "leek-growing",
+        "leek-mature"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "leek.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:leek-sprout"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:leek-growing"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:leek-mature"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:leek-growing": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-e930-7b8d-9078-aa2638252b78",
+          "slotName": "leek-growing-leaves",
+          "sourceKey": "material:leek-growing-leaves"
+        }
+      ]
+    },
+    "mesh:leek-mature": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-e930-7b8d-9078-aa275245a891",
+          "slotName": "leek-mature-leaves",
+          "sourceKey": "material:leek-mature-leaves"
+        }
+      ]
+    },
+    "mesh:leek-sprout": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-e930-7b8d-9078-aa254663ddd7",
+          "slotName": "leek-sprout-leaves",
+          "sourceKey": "material:leek-sprout-leaves"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1efcb-e930-7b8d-9078-aa228f81bd5d",
+      "kind": "mesh",
+      "name": "leek-sprout",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:leek-sprout"
+    },
+    {
+      "guid": "01a1efcb-e930-7b8d-9078-aa23966d85d9",
+      "kind": "mesh",
+      "name": "leek-growing",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:leek-growing"
+    },
+    {
+      "guid": "01a1efcb-e930-7b8d-9078-aa24cf1a9f58",
+      "kind": "mesh",
+      "name": "leek-mature",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:leek-mature"
+    },
+    {
+      "guid": "01a1efcb-e930-7b8d-9078-aa254663ddd7",
+      "kind": "material",
+      "name": "leek-sprout-leaves",
+      "sourceIndex": 0,
+      "sourceKey": "material:leek-sprout-leaves"
+    },
+    {
+      "guid": "01a1efcb-e930-7b8d-9078-aa2638252b78",
+      "kind": "material",
+      "name": "leek-growing-leaves",
+      "sourceIndex": 1,
+      "sourceKey": "material:leek-growing-leaves"
+    },
+    {
+      "guid": "01a1efcb-e930-7b8d-9078-aa275245a891",
+      "kind": "material",
+      "name": "leek-mature-leaves",
+      "sourceIndex": 2,
+      "sourceKey": "material:leek-mature-leaves"
+    },
+    {
+      "guid": "01a1efcb-e930-7b8d-9078-aa28528a6976",
+      "kind": "scene",
+      "name": "leek-growth-stages",
+      "sourceIndex": 0,
+      "sourceKey": "scene:leek-growth-stages"
+    },
+    {
+      "guid": "01a1efcb-e930-7b8d-9078-aa293a9c80e0",
+      "kind": "texture",
+      "name": "韭葱-幼芽",
+      "sourceIndex": 0,
+      "sourceKey": "texture:韭葱-幼芽"
+    },
+    {
+      "guid": "01a1efcb-e930-7b8d-9078-aa2a57b0e244",
+      "kind": "texture",
+      "name": "韭葱-生长",
+      "sourceIndex": 1,
+      "sourceKey": "texture:韭葱-生长"
+    },
+    {
+      "guid": "01a1efcb-e930-7b8d-9078-aa2bb11db491",
+      "kind": "texture",
+      "name": "韭葱-成熟十字交叉",
+      "sourceIndex": 2,
+      "sourceKey": "texture:韭葱-成熟十字交叉"
+    },
+    {
+      "guid": "01a1efcb-e930-7b8d-9078-aa2cf13e9cbe",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

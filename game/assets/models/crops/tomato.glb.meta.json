@@ -1,0 +1,247 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "tomato-sprout",
+        "tomato-growing",
+        "tomato-mature"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "tomato.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:tomato-sprout"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:tomato-growing"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:tomato-mature"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:tomato-growing": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-9b50-7041-bcd4-66c3b4daf11d",
+          "slotName": "tomato-growing-leaves",
+          "sourceKey": "material:tomato-growing-leaves"
+        }
+      ]
+    },
+    "mesh:tomato-mature": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-9b50-7041-bcd4-66c4b390ace9",
+          "slotName": "tomato-mature-leaves",
+          "sourceKey": "material:tomato-mature-leaves"
+        }
+      ]
+    },
+    "mesh:tomato-sprout": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-9b50-7041-bcd4-66c23a5db30a",
+          "slotName": "tomato-sprout-leaves",
+          "sourceKey": "material:tomato-sprout-leaves"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1efcb-9b4f-7df1-a36e-6564deb21faa",
+      "kind": "mesh",
+      "name": "tomato-sprout",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:tomato-sprout"
+    },
+    {
+      "guid": "01a1efcb-9b50-7041-bcd4-66c03a5b3ab3",
+      "kind": "mesh",
+      "name": "tomato-growing",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:tomato-growing"
+    },
+    {
+      "guid": "01a1efcb-9b50-7041-bcd4-66c17092bef9",
+      "kind": "mesh",
+      "name": "tomato-mature",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:tomato-mature"
+    },
+    {
+      "guid": "01a1efcb-9b50-7041-bcd4-66c23a5db30a",
+      "kind": "material",
+      "name": "tomato-sprout-leaves",
+      "sourceIndex": 0,
+      "sourceKey": "material:tomato-sprout-leaves"
+    },
+    {
+      "guid": "01a1efcb-9b50-7041-bcd4-66c3b4daf11d",
+      "kind": "material",
+      "name": "tomato-growing-leaves",
+      "sourceIndex": 1,
+      "sourceKey": "material:tomato-growing-leaves"
+    },
+    {
+      "guid": "01a1efcb-9b50-7041-bcd4-66c4b390ace9",
+      "kind": "material",
+      "name": "tomato-mature-leaves",
+      "sourceIndex": 2,
+      "sourceKey": "material:tomato-mature-leaves"
+    },
+    {
+      "guid": "01a1efcb-9b50-7041-bcd4-66c5d4131e99",
+      "kind": "scene",
+      "name": "tomato-growth-stages",
+      "sourceIndex": 0,
+      "sourceKey": "scene:tomato-growth-stages"
+    },
+    {
+      "guid": "01a1efcb-9b50-7041-bcd4-66c6b1022da5",
+      "kind": "texture",
+      "name": "番茄-幼芽十字交叉",
+      "sourceIndex": 0,
+      "sourceKey": "texture:番茄-幼芽十字交叉"
+    },
+    {
+      "guid": "01a1efcb-9b50-7041-bcd4-66c7e8b8dfc2",
+      "kind": "texture",
+      "name": "番茄-生长十字",
+      "sourceIndex": 1,
+      "sourceKey": "texture:番茄-生长十字"
+    },
+    {
+      "guid": "01a1efcb-9b50-7041-bcd4-66c846c366af",
+      "kind": "texture",
+      "name": "番茄-成熟十字",
+      "sourceIndex": 2,
+      "sourceKey": "texture:番茄-成熟十字"
+    },
+    {
+      "guid": "01a1efcb-9b50-7041-bcd4-66c92759aa49",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

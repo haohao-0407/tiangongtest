@@ -1,0 +1,602 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "blueberry",
+        "cabbage",
+        "corn",
+        "leek",
+        "potato",
+        "sugarcane",
+        "tomato",
+        "wheat"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "produce.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:blueberry"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:cabbage"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:corn"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:leek"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:potato"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:sugarcane"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:tomato"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:wheat"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:blueberry": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efdb-b95a-728a-a024-f380a2361ced",
+          "slotName": "blueberry-item-pixels",
+          "sourceKey": "material:blueberry-item-pixels"
+        }
+      ]
+    },
+    "mesh:cabbage": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efdb-b95a-728a-a024-f38165f595db",
+          "slotName": "cabbage-item-pixels",
+          "sourceKey": "material:cabbage-item-pixels"
+        }
+      ]
+    },
+    "mesh:corn": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efdb-b95a-728a-a024-f382624449f6",
+          "slotName": "corn-item-pixels",
+          "sourceKey": "material:corn-item-pixels"
+        }
+      ]
+    },
+    "mesh:leek": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efdb-b95a-728a-a024-f3833d6da952",
+          "slotName": "leek-item-pixels",
+          "sourceKey": "material:leek-item-pixels"
+        }
+      ]
+    },
+    "mesh:potato": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efdb-b95a-728a-a024-f3844b1f2ba5",
+          "slotName": "potato-item-pixels",
+          "sourceKey": "material:potato-item-pixels"
+        }
+      ]
+    },
+    "mesh:sugarcane": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efdb-b95a-728a-a024-f385e5522929",
+          "slotName": "sugarcane-item-pixels",
+          "sourceKey": "material:sugarcane-item-pixels"
+        }
+      ]
+    },
+    "mesh:tomato": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efdb-b95a-728a-a024-f386855cf7d6",
+          "slotName": "tomato-item-pixels",
+          "sourceKey": "material:tomato-item-pixels"
+        }
+      ]
+    },
+    "mesh:wheat": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efdb-b95a-728a-a024-f387b107ee75",
+          "slotName": "wheat-item-pixels",
+          "sourceKey": "material:wheat-item-pixels"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1efdb-b959-71b1-8ad3-626e46b86571",
+      "kind": "mesh",
+      "name": "blueberry",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:blueberry"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f379aab2575d",
+      "kind": "mesh",
+      "name": "cabbage",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:cabbage"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f37ab37d2a39",
+      "kind": "mesh",
+      "name": "corn",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:corn"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f37bb4b5d99b",
+      "kind": "mesh",
+      "name": "leek",
+      "sourceIndex": 3,
+      "sourceKey": "mesh:leek"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f37c1b678212",
+      "kind": "mesh",
+      "name": "potato",
+      "sourceIndex": 4,
+      "sourceKey": "mesh:potato"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f37d509080e4",
+      "kind": "mesh",
+      "name": "sugarcane",
+      "sourceIndex": 5,
+      "sourceKey": "mesh:sugarcane"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f37ef58dcc91",
+      "kind": "mesh",
+      "name": "tomato",
+      "sourceIndex": 6,
+      "sourceKey": "mesh:tomato"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f37ffe23b2c3",
+      "kind": "mesh",
+      "name": "wheat",
+      "sourceIndex": 7,
+      "sourceKey": "mesh:wheat"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f380a2361ced",
+      "kind": "material",
+      "name": "blueberry-item-pixels",
+      "sourceIndex": 0,
+      "sourceKey": "material:blueberry-item-pixels"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f38165f595db",
+      "kind": "material",
+      "name": "cabbage-item-pixels",
+      "sourceIndex": 1,
+      "sourceKey": "material:cabbage-item-pixels"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f382624449f6",
+      "kind": "material",
+      "name": "corn-item-pixels",
+      "sourceIndex": 2,
+      "sourceKey": "material:corn-item-pixels"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f3833d6da952",
+      "kind": "material",
+      "name": "leek-item-pixels",
+      "sourceIndex": 3,
+      "sourceKey": "material:leek-item-pixels"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f3844b1f2ba5",
+      "kind": "material",
+      "name": "potato-item-pixels",
+      "sourceIndex": 4,
+      "sourceKey": "material:potato-item-pixels"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f385e5522929",
+      "kind": "material",
+      "name": "sugarcane-item-pixels",
+      "sourceIndex": 5,
+      "sourceKey": "material:sugarcane-item-pixels"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f386855cf7d6",
+      "kind": "material",
+      "name": "tomato-item-pixels",
+      "sourceIndex": 6,
+      "sourceKey": "material:tomato-item-pixels"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f387b107ee75",
+      "kind": "material",
+      "name": "wheat-item-pixels",
+      "sourceIndex": 7,
+      "sourceKey": "material:wheat-item-pixels"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f388eb1fce11",
+      "kind": "scene",
+      "name": "produce",
+      "sourceIndex": 0,
+      "sourceKey": "scene:produce"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f389c47009fb",
+      "kind": "texture",
+      "name": "blueberry",
+      "sourceIndex": 0,
+      "sourceKey": "texture:blueberry"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f38a52ae51b7",
+      "kind": "texture",
+      "name": "cabbage",
+      "sourceIndex": 1,
+      "sourceKey": "texture:cabbage"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f38bf6adabd6",
+      "kind": "texture",
+      "name": "corn",
+      "sourceIndex": 2,
+      "sourceKey": "texture:corn"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f38c0332c5bd",
+      "kind": "texture",
+      "name": "leek",
+      "sourceIndex": 3,
+      "sourceKey": "texture:leek"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f38dfcef9974",
+      "kind": "texture",
+      "name": "potato",
+      "sourceIndex": 4,
+      "sourceKey": "texture:potato"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f38efd6de06a",
+      "kind": "texture",
+      "name": "sugarcane",
+      "sourceIndex": 5,
+      "sourceKey": "texture:sugarcane"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f38fc9070ed6",
+      "kind": "texture",
+      "name": "tomato",
+      "sourceIndex": 6,
+      "sourceKey": "texture:tomato"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f39032012e08",
+      "kind": "texture",
+      "name": "wheat",
+      "sourceIndex": 7,
+      "sourceKey": "texture:wheat"
+    },
+    {
+      "guid": "01a1efdb-b95a-728a-a024-f391beaa5a28",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

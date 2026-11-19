@@ -4,21 +4,21 @@ import { createBoxGeometry } from '@forgeax/engine/geometry';
 import { Materials, MeshFilter, MeshRenderer, ShadowParticipation } from '@forgeax/engine/render';
 import { Name, Transform } from '@forgeax/engine/scene';
 import { RenderQueue, type AssetHandle } from '@forgeax/engine/types';
-import type { CropCards } from './crop-cards.ts';
+import { FARM_SOIL_HEIGHT, type CropCards } from './crop-cards.ts';
 import type { VoxelWorld } from '../voxel/model.ts';
-import { BUILDING_DEFS, buildingItemKind, type BuildingKind } from './contracts.ts';
+import { BUILDING_DEFS, buildingItemKind, isCropSeed, type BuildingKind, type CropKind, type PlayerInventorySlot } from './contracts.ts';
 import { buildingDimensions } from './buildings.ts';
 
 type V3=[number,number,number];
 type Rotation=[number,number,number,number];
 const IDENTITY:Rotation=[0,0,0,1];
-type Part={p:V3;s:V3;c:string;shadow?:boolean};
-type RenderPawn={id:string;name:string;position:V3;health:number;facing?:number;task?:string;job?:string;carrying?:Partial<Record<string,number>>};
+type Part = { p: V3; s: V3; shadow?: boolean } & ({ c: string; mesh?: undefined } | { mesh: AssetHandle<'mesh'>; c?: undefined });
+type RenderPawn={id:string;name:string;position:V3;health:number;facing?:number;task?:string;job?:string;bag?:readonly PlayerInventorySlot[];bagSelected?:number;carrying?:Partial<Record<string,number>>};
 type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;h?:number;rotation?:number;doorOpen?:boolean;complete:boolean;progress:number;powered?:boolean;phase?:string};
 export type ColonyRenderState={
   colonists:RenderPawn[]; buildings:RenderBuilding[];
   zones:{id:string;kind:string;x:number;z:number;w:number;d:number}[];
-  crops:{id?:string;x:number;y:number;z:number;growth:number;kind?:string;planted?:boolean}[];
+  crops:{id?:string;x:number;y:number;z:number;growth:number;kind?:CropKind;planted?:boolean}[];
   items:{id:string;resource:string;amount:number;x:number;y:number;z:number;age?:number;scatter?:boolean}[];
   selectedColonistId?:string|null;
   selectedBuildingId?:string|null;
@@ -30,7 +30,7 @@ const COLORS:Record<string,string>={
   dark:'#2e4247',cream:'#f0ddba',blanket:'#568b9b',white:'#fff3d5',green:'#63935e',gold:'#e5c66f',blue:'#4d7d96',black:'#233135',
   shirt0:'#e0a160',shirt1:'#6b9ba5',shirt2:'#b17f91',shirt3:'#849d60',skin:'#e5b48a',hair:'#60483e',light:'#c5e4cd',soil:'#7e563b',
   blueprint:'#75cece',zoneFarm:'#90bd65',zoneStock:'#75baca',selected:'#ecd78c',health:'#9fc174',bad:'#c56b55',
-  playerMark:'#ffd76e',
+  playerMark:'#ffd76e', seedPack:'#ba955c',
 };
 const rgba=(hex:string):[number,number,number,number]=>{
   const n=parseInt(hex.slice(1),16);const f=(v:number)=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4;
@@ -44,8 +44,7 @@ export class ColonyView {
   private groups=new Map<string,{signature:string;entities:EntityHandle[];transforms:number[][]}>();
   private pawnPositions=new Map<string,V3>();
   constructor(private world:World,private assets:AssetRegistry,private terrain:()=>VoxelWorld,
-    /** 2.5D 卡片作物；加载失败时为 null，作物退回方块表现。 */
-    private readonly cropCards?:Pick<CropCards,'update'>){
+    private readonly cropCards?:Pick<CropCards,'update'|'hasModel'|'itemMesh'>){
     this.cube=assets.create(createBoxGeometry(1,1,1).unwrap()).unwrap();
   }
   private material(key:string):AssetHandle<'material'>{
@@ -59,12 +58,12 @@ export class ColonyView {
   }
   private put(key:string,parts:Part[],active?:Set<string>,signature='',rotation=IDENTITY){
     active?.add(key);let group=this.groups.get(key);
-    const sig=signature||parts.map(p=>p.c).join('|');
+    const sig=signature||parts.map(p=>p.mesh??p.c).join('|');
     if(group&&(group.signature!==sig||group.entities.length!==parts.length)){for(const e of group.entities)this.world.despawn(e).unwrap();this.groups.delete(key);group=undefined;}
     if(!group){
       group={signature:sig,transforms:parts.map(p=>[...p.p,...p.s,...rotation]),entities:parts.map((p,i)=>this.world.spawn(
         {component:Name,data:{value:`${key}/${i}`}},{component:Transform,data:{pos:p.p,scale:p.s,quat:rotation}},
-        {component:MeshFilter,data:{assetHandle:this.cube}},{component:MeshRenderer,data:{materials:[this.material(p.c)]}},
+        {component:MeshFilter,data:{assetHandle:p.mesh??this.cube}},{component:MeshRenderer,data:{materials:p.mesh===undefined?[this.material(p.c)]:[]}},
         {component:ShadowParticipation,data:{cast:p.shadow!==false,receive:true}},
       ).unwrap())};this.groups.set(key,group);
     }else for(let i=0;i<parts.length;i++){
@@ -216,8 +215,8 @@ export class ColonyView {
     this.cropCards?.update(state.crops);
     for(const p of state.crops){
       const x=p.x+.5,y=p.y,z=p.z+.5;
-      const parts:Part[]=[{p:[x,y+.025,z],s:[.84,.05,.84],c:'soil',shadow:false}];
-      if(!this.cropCards&&p.planted!==false){
+      const parts:Part[]=[{p:[x,y+FARM_SOIL_HEIGHT/2,z],s:[.84,FARM_SOIL_HEIGHT,.84],c:'soil',shadow:false}];
+      if(!this.cropCards?.hasModel(p.kind)&&p.planted!==false){
         const g=Math.max(.01,Math.min(1,p.growth));
         for(const [dx,dz]of[[-.22,-.2],[.22,-.2],[-.22,.2],[.22,.2]]){
           parts.push({p:[x+dx,y+.12+g*.3,z+dz],s:[.08,.2+g*.6,.08],c:'green'});
@@ -232,21 +231,37 @@ export class ColonyView {
       // age 就是「存在了多久」，0.45 秒后弹跳结束；正好和「0.5 秒后才能捡」对上，
       // 所以看得见它弹，而不是刚出现就没了。
       const age=item.age??99; const POP=0.45, t=Math.min(age,POP), k=t/POP;
-      let hx=0,hz=0,hop=0;
-      if(age<POP||item.scatter){
-        let hash=0;for(let i=0;i<item.id.length;i++)hash=(hash*31+item.id.charCodeAt(i))|0;
-        const angle=(hash>>>0)*2.399963229728653;
-        const spread=item.scatter ? .42*k : .42*(1-k);
-        hx=Math.cos(angle)*spread; hz=Math.sin(angle)*spread;
-        hop=Math.sin(k*Math.PI)*0.6;         // 抛物线：起跳、最高点、落地
+      let hash = 0;
+      for (let i = 0; i < item.id.length; i++) hash = (hash * 31 + item.id.charCodeAt(i)) | 0;
+      const phase = ((hash >>> 0) * 2.399963229728653) % (2 * Math.PI);
+      const spread = item.scatter ? .42 * k : .42 * (1 - k);
+      const bounce = Math.sin(k * Math.PI) * .6;
+      const bob = (.085 + Math.sin(time * 3.2 + phase) * .045) * k;
+      const x = item.x + .5 + Math.cos(phase) * spread;
+      const y = item.y + bounce + bob;
+      const z = item.z + .5 + Math.sin(phase) * spread;
+      const yaw = time * 1.5 + phase;
+      const rotation: Rotation = [0, Math.sin(yaw / 2), 0, Math.cos(yaw / 2)];
+      const key = `物资/${item.id}`;
+      const buildingKind = buildingItemKind(item.resource);
+      if (buildingKind) {
+        const dimensions = buildingDimensions(buildingKind);
+        const miniature = { id: item.id, kind: buildingKind, x: x - dimensions.w / 2, y: y + .02,
+          z: z - dimensions.d / 2, ...dimensions, complete: true, progress: 1 };
+        const parts = this.buildingGeometry(miniature, .56 / Math.max(dimensions.w, dimensions.h, dimensions.d));
+        const cos = Math.cos(yaw), sin = Math.sin(yaw);
+        for (const part of parts) {
+          const dx = part.p[0] - x, dz = part.p[2] - z;
+          part.p[0] = x + dx * cos + dz * sin;
+          part.p[2] = z - dx * sin + dz * cos;
+        }
+        this.put(key, parts, active, '', rotation);
+      } else {
+        const mesh = this.cropCards?.itemMesh(item.resource);
+        const p: V3 = [x, y + scale / 2, z], s: V3 = [scale, scale, scale];
+        const part: Part = mesh ? { p, s, mesh } : { p, s, c: isCropSeed(item.resource) ? 'seedPack' : COLORS[item.resource] ? item.resource : 'gold' };
+        this.put(key, [part], active, '', rotation);
       }
-      const x=item.x+.5+hx,y=item.y+hop,z=item.z+.5+hz;
-      const buildingKind=buildingItemKind(item.resource);
-      if(buildingKind){
-        const dimensions=buildingDimensions(buildingKind);
-        const miniature={id:item.id,kind:buildingKind,x:x-dimensions.w/2,y:y+.06,z:z-dimensions.d/2,...dimensions,complete:true,progress:1};
-        this.put(`物资/${item.id}`,this.buildingGeometry(miniature,.56/Math.max(dimensions.w,dimensions.h,dimensions.d)),active);
-      }else this.put(`物资/${item.id}`,[{p:[x,y+scale/2,z],s:[scale,scale,scale],c:COLORS[item.resource]?item.resource:'gold'}],active);
     }
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }
@@ -265,8 +280,16 @@ export class ColonyView {
       {p:at(-.1,1.14,.19),s:[.045,.055,.025],c:'black'}, {p:at(.1,1.14,.19),s:[.045,.055,.025],c:'black'},
       {p:at(-.32,.65-swing,0),s:[.13,.43,.19],c:'skin'}, {p:at(.32,.65+swing,0),s:[.13,.43,.19],c:'skin'},
     ];
-    const carried=Object.entries(resident.carrying??{}).find(([,amount])=>(amount??0)>0);
-    if(carried)parts.push({p:at(0,.7,.37),s:[.42,.35,.3],c:COLORS[carried[0]]?carried[0]:'wood'});
+    const held = controlled ? resident.bag?.[resident.bagSelected ?? 0]?.resource : undefined;
+    const heldMesh = held && this.cropCards?.itemMesh(held);
+    if (heldMesh) parts.push({ p: at(.48, .6 + swing, .12), s: [.43, .43, .43], mesh: heldMesh, shadow: false });
+
+    const carried = Object.entries(resident.carrying ?? {}).find(([, amount]) => (amount ?? 0) > 0);
+    if (carried && !heldMesh) {
+      const mesh = this.cropCards?.itemMesh(carried[0]);
+      const p = at(0, .7, .37);
+      parts.push(mesh ? { p, s: [.42, .42, .42], mesh } : { p, s: [.42, .35, .3], c: COLORS[carried[0]] ? carried[0] : 'wood' });
+    }
     if(selected)parts.push({p:at(0,.025,0),s:[.94,.045,.94],c:'selected',shadow:false});
     if(controlled)parts.push({p:at(0,1.9,0),s:[.19,.19,.19],c:'playerMark',shadow:false});
     if(resident.health<80)parts.push({p:at(0,1.65,0),s:[.65*Math.max(.05,resident.health/100),.07,.07],c:resident.health>35?'health':'bad',shadow:false});

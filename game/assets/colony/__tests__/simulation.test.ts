@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BLOCK, VoxelWorld } from '../../voxel/model.ts';
-import { BUILDING_DEFS, ColonySimulation, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES, TOOL_KINDS, needsPickaxe } from '../simulation.ts';
+import { BUILDING_DEFS, ColonySimulation, CROP_KINDS, CROP_SEEDS, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES, TOOL_KINDS, needsPickaxe } from '../simulation.ts';
 
 function setup(seed='colony-test') { const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed,size:[48,24,48],edits:[]}));return {world,sim:new ColonySimulation(world)}; }
 function run(sim:ColonySimulation,seconds:number) { for(let i=0;i<seconds*4;i++)sim.tick(.25); }
@@ -345,8 +345,128 @@ describe('resident needs and civilian production',()=>{
   it('plants, grows, harvests, hauls and cooks through real work queues',()=>{
     const{sim}=setup();run(sim,220);const s=sim.snapshot();
     expect(s.metrics.harvested).toBeGreaterThan(0);expect(s.metrics.hauled).toBeGreaterThan(22);expect(s.metrics.cooked).toBeGreaterThan(0);
-    expect(s.crops.some(c=>c.planted)).toBe(true);expect(s.resources.food+s.items.filter(i=>i.resource==='food').reduce((n,i)=>n+i.amount,0)).toBeGreaterThan(10);
+    expect(s.crops.some(c=>c.planted)).toBe(true);expect(s.resources.cabbage+s.items.filter(i=>i.resource==='cabbage').reduce((n,i)=>n+i.amount,0)).toBeGreaterThan(10);
     expect(RESOURCE_TYPES.every(r=>s.resources[r]>=0&&Number.isInteger(s.resources[r]))).toBe(true);
+  });
+  it('preserves planted varieties through save and harvests each crop as its own item', () => {
+    const world = new VoxelWorld();
+    const sim = new ColonySimulation(world);
+    const kinds = CROP_KINDS;
+    const starterCrops = new Set(sim.snapshot().crops.map(crop => crop.id));
+    expect(sim.command({ action: 'designate', kind: 'farm', crop: 'corn', x: 127, z: 134 }).ok).toBe(false);
+    const unlocked = raw(sim);
+    unlocked.research.completed.push('agriculture');
+    sim.load(unlocked);
+    onlyJob(sim, 'harvest');
+    for (const [index, crop] of kinds.entries()) {
+      expect(sim.command({ action: 'designate', kind: 'farm', crop, x: 121 + index, z: 134 }).ok).toBe(true);
+    }
+    expect(sim.command({ action: 'designate', kind: 'farm', crop: 'unknown', x: 128, z: 134 }).ok).toBe(false);
+
+    const ready = sim.snapshot().crops.filter(crop => !starterCrops.has(crop.id));
+    expect(ready.map(crop => crop.kind)).toEqual(kinds);
+    expect(ready.every(crop => !crop.planted && crop.growth === 0)).toBe(true);
+    const saved = raw(sim);
+    for (const crop of saved.crops) {
+      if (!starterCrops.has(crop.id)) Object.assign(crop, { planted: true, growth: .99 });
+    }
+    const restored = new ColonySimulation(world);
+    restored.load(saved);
+    run(restored, 90);
+    const after = restored.snapshot();
+    for (const crop of ready) {
+      expect(after.crops.find(existing => existing.id === crop.id)).toMatchObject({ kind: crop.kind, planted: false, growth: 0 });
+      expect(after.items.some(item => item.resource === crop.kind && item.x === crop.x && item.z === crop.z)).toBe(true);
+      expect(after.items.some(item => item.resource === crop.kind + 'Seed' && item.x === crop.x && item.z === crop.z)).toBe(true);
+    }
+  });
+  it('replaces retired rice fields and seeds in a save without losing growth or seed reservations', () => {
+    const { sim, world } = setup();
+    const saved = raw(sim);
+    const crop = saved.crops[0];
+    crop.kind = 'rice';
+    crop.planted = true;
+    crop.growth = .64;
+    for (const zone of saved.zones) zone.crop = 'rice';
+    saved.resources.riceSeed = 4;
+    saved.trade.stock.riceSeed = 2;
+    saved.trade.prices.riceSeed = 2;
+    saved.colonists[0].bag[3] = { resource: 'riceSeed', count: 5 };
+    saved.buildings.find((b: any) => b.kind === 'chest').storage[0] = { resource: 'riceSeed', count: 3 };
+    saved.items[0].resource = 'riceSeed';
+    const job = saved.jobs.find((j: any) => j.type === 'grow' && j.targetId !== crop.id);
+    job.label = '播种水稻';
+    job.reserved = { riceSeed: 1 };
+
+    sim.load(saved);
+    const upgraded = sim.snapshot();
+    expect(upgraded.crops.find(c => c.id === crop.id)).toMatchObject({ kind: 'cabbage', growth: .64, planted: true });
+    expect(upgraded.zones.every(zone => zone.crop === 'cabbage')).toBe(true);
+    expect(upgraded.resources.cabbageSeed).toBe(13);
+    expect(upgraded.trade.stock.cabbageSeed).toBe(2);
+    expect(upgraded.colonists[0]!.bag[3]).toEqual({ resource: 'cabbageSeed', count: 5 });
+    expect(upgraded.buildings.find(b => b.kind === 'chest')!.storage![0]).toEqual({ resource: 'cabbageSeed', count: 3 });
+    expect(upgraded.items[0]!.resource).toBe('cabbageSeed');
+    expect(upgraded.jobs.find(j => j.id === job.id)).toMatchObject({ label: '播种白菜', reserved: { cabbageSeed: 1 } });
+
+    const restored = new ColonySimulation(world);
+    restored.load(sim.serialize());
+    expect(restored.snapshot()).toEqual(upgraded);
+  });
+  it('can cook with cabbage when generic raw food runs out', () => {
+    const { sim } = setup();
+    onlyJob(sim, 'cook');
+    const saved = raw(sim);
+    saved.resources.food = 0;
+    sim.load(saved);
+    run(sim, 40);
+    const cooked = sim.snapshot();
+    expect(cooked.metrics.cooked).toBeGreaterThan(0);
+    expect(cooked.resources.cabbage).toBeLessThan(saved.resources.cabbage);
+  });
+  it('grants seeds to old saves once, blocks empty farms and preserves or refunds the reserved seed', () => {
+    const world = new VoxelWorld();
+    const sim = new ColonySimulation(world);
+    const legacy = raw(sim);
+    for (const seed of CROP_SEEDS) {
+      expect(legacy.resources[seed]).toBe(9);
+      delete legacy.resources[seed];
+      delete legacy.trade.stock[seed];
+      delete legacy.trade.prices[seed];
+    }
+    sim.load(legacy);
+    for (const seed of CROP_SEEDS) expect(sim.snapshot().resources[seed]).toBe(9);
+
+    const seedless = raw(sim);
+    seedless.resources.cabbageSeed = 0;
+    seedless.resources.tomatoSeed = 0;
+    sim.load(seedless);
+    onlyJob(sim, 'grow');
+    const zone = sim.command({ action: 'designate', kind: 'farm', crop: 'tomato', x: 121, z: 134, w: 2 });
+    expect(zone.ok).toBe(true);
+    run(sim, 10);
+    expect(sim.snapshot().resources.tomatoSeed).toBe(0);
+    expect(sim.snapshot().crops.filter(crop => crop.kind === 'tomato').every(crop => !crop.planted)).toBe(true);
+    expect(sim.snapshot().jobs.some(job => job.state === 'blocked' && job.label === '缺少番茄种子包')).toBe(true);
+
+    const onePack = raw(sim);
+    onePack.resources.tomatoSeed = 1;
+    sim.load(onePack);
+    for (let i = 0; i < 40 && sim.snapshot().resources.tomatoSeed > 0; i++) sim.tick(.25);
+    const inProgress = sim.snapshot();
+    expect(inProgress.resources.tomatoSeed).toBe(0);
+    expect(inProgress.jobs.filter(job => job.reserved.tomatoSeed === 1)).toHaveLength(1);
+    const reserved = sim.serialize();
+    const cancelled = new ColonySimulation(world);
+    cancelled.load(reserved);
+    expect(cancelled.command({ action: 'cancel', id: zone.id }).ok).toBe(true);
+    expect(cancelled.snapshot().resources.tomatoSeed).toBe(1);
+
+    sim.load(reserved);
+    run(sim, 40);
+    const sown = sim.snapshot();
+    expect(sown.crops.filter(crop => crop.kind === 'tomato' && crop.planted)).toHaveLength(1);
+    expect(sown.resources.tomatoSeed).toBe(0);
   });
   it('production targets include ground and carried products, so no hauling does not cause overproduction',()=>{
     const{sim}=setup();onlyJob(sim,'cook');run(sim,100);const s=sim.snapshot();

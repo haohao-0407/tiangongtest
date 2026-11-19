@@ -3,9 +3,17 @@ export type Position = [number, number, number];
 // 牛奶、糖、油不属于农作物（用户已剔除），它们以后作为加工产物再补。
 export const CROP_TYPES = ['wheat','corn','blueberry','sugarcane','cabbage','leek','potato','tomato'] as const;
 export const DISH_TYPES = ['friedEgg','bread','salad','pasta','pancake','blueberryPie','pizza','perfectBreakfast'] as const;
+export const CROP_KINDS = ['cabbage', 'tomato', 'sugarcane', 'wheat', 'potato', 'leek', 'corn'] as const;
+export type CropKind = typeof CROP_KINDS[number];
+export const DEFAULT_CROP: CropKind = 'cabbage';
+export const isCropKind = (value: unknown): value is CropKind => (CROP_KINDS as readonly unknown[]).includes(value);
+export type CropSeed = `${CropKind}Seed`;
+export const cropSeed = (crop: CropKind): CropSeed => `${crop}Seed`;
+export const CROP_SEEDS = CROP_KINDS.map(cropSeed);
+export const isCropSeed = (value: unknown): value is CropSeed => (CROP_SEEDS as readonly unknown[]).includes(value);
 export const RESOURCE_TYPES = [
   'wood','stone','steel','food','meal','medicine','cloth','silver','components',
-  ...CROP_TYPES, ...DISH_TYPES, 'dirt',
+  ...CROP_TYPES, ...CROP_SEEDS, ...DISH_TYPES, 'dirt',
 ] as const;
 export type CropType = typeof CROP_TYPES[number];
 export type DishType = typeof DISH_TYPES[number];
@@ -64,6 +72,8 @@ export interface ChestView { id: string; x: number; z: number; slots: PlayerInve
 export const RESOURCE_NAMES: Record<Resource,string> = {
   wood:'木材',stone:'石材',steel:'钢铁',food:'生食',meal:'熟食',medicine:'药品',cloth:'布料',silver:'银币',components:'零件',dirt:'泥土',
   wheat:'小麦',corn:'玉米',blueberry:'蓝莓',sugarcane:'甘蔗',cabbage:'白菜',leek:'韭葱',potato:'土豆',tomato:'番茄',
+  cabbageSeed:'白菜种子包', tomatoSeed:'番茄种子包', sugarcaneSeed:'甘蔗种子包',
+  wheatSeed:'小麦种子包', potatoSeed:'土豆种子包', leekSeed:'韭葱种子包', cornSeed:'玉米种子包',
   friedEgg:'煎鸡蛋',bread:'面包',salad:'沙拉',pasta:'意大利面',pancake:'薄煎饼',blueberryPie:'蓝莓千层酥',pizza:'披萨',perfectBreakfast:'完美早餐',
 };
 
@@ -182,7 +192,21 @@ export const RESEARCH_DEFS: Record<string,ResearchDefinition> = {
 };
 export const SCHEDULES = {balanced:'均衡作息',day:'日班',night:'夜班',rest:'休养'} as const;
 export type Schedule = keyof typeof SCHEDULES;
-export type CropKind = 'rice'|'corn';
+export const CROP_DEFS: Record<CropKind, {
+  name: string;
+  produce: Resource;
+  growthSeconds: number;
+  yieldCount: number;
+  requires?: string;
+}> = {
+  cabbage: { name: RESOURCE_NAMES.cabbage, produce: 'cabbage', growthSeconds: 115, yieldCount: 6 },
+  tomato: { name: RESOURCE_NAMES.tomato, produce: 'tomato', growthSeconds: 115, yieldCount: 6 },
+  sugarcane: { name: RESOURCE_NAMES.sugarcane, produce: 'sugarcane', growthSeconds: 115, yieldCount: 6 },
+  wheat: { name: RESOURCE_NAMES.wheat, produce: 'wheat', growthSeconds: 115, yieldCount: 6 },
+  potato: { name: RESOURCE_NAMES.potato, produce: 'potato', growthSeconds: 115, yieldCount: 6 },
+  leek: { name: RESOURCE_NAMES.leek, produce: 'leek', growthSeconds: 115, yieldCount: 6 },
+  corn: { name: RESOURCE_NAMES.corn, produce: 'corn', growthSeconds: 200, yieldCount: 12, requires: 'agriculture' },
+};
 export interface ColonyCommand {action:string;value?:unknown;kind?:string;x?:number;y?:number;z?:number;rotation?:number;w?:number;d?:number;cells?:[number,number][];id?:string;colonistId?:string;job?:string;resource?:string;amount?:number;buy?:boolean;target?:number;crop?:string}
 export interface CommandResult {ok:boolean;message:string;id?:string}
 export interface ColonistView {id:string;name:string;traits:string[];skills:Record<JobType,number>;priorities:Record<JobType,number>;schedule:Schedule;position:Position;health:number;hunger:number;rest:number;recreation:number;mood:number;disease:number;task:string;jobId:string|null;color:Position;carrying:Partial<Resources>;bag:PlayerInventorySlot[];bagSelected:number;stamina:number;facing:number;comfort:number}

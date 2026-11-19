@@ -26,7 +26,7 @@ import { TerrainPlanView } from '../colony/terrain-view.ts';
 import {
   BUILDING_DEFS, HAMMER, AXE, PICKAXE, buildingItemKind, needsPickaxe, PLAYER_DEMOLISH_RATE, PLAYER_DEMOLISH_RATE_TOOL, PLAYER_CHOP_REACH, PLAYER_BUILD_REACH, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
   PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN, CHOP_WORK,
-  type BuildingKind, type ColonyCommand, type ChestView,
+  CROP_DEFS, DEFAULT_CROP, RESEARCH_DEFS, isCropKind, type CropKind, type BuildingKind, type ColonyCommand, type ChestView,
 } from '../colony/contracts.ts';
 import { CropCards } from '../colony/crop-cards.ts';
 import { buildingDimensions, type BuildingPart } from '../colony/buildings.ts';
@@ -89,7 +89,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let previewKey = '';
       type Stroke = { target: number; shape: 'brush' | 'rectangle'; size: number; start: [number, number]; last: [number, number]; cells: Map<number, [number, number]> };
       let stroke: Stroke | null = null;
-      let crop: 'rice' | 'corn' = 'rice';
+      let crop: CropKind = DEFAULT_CROP;
       let status = '和平殖民地 · 规划家园，照顾每一位居民';
       let target: Point = [voxels.width / 2 + 3, 5, voxels.depth / 2 + 3], yaw = Math.PI / 4, pitch = 0.82, distance = 47;
 
@@ -229,7 +229,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         if (cameraSystemAdded) world.removeSystem(Update, CAMERA_SYSTEM).unwrap();
         if (editSystemAdded) world.removeSystem(Update, EDIT_SYSTEM).unwrap();
         world.removeResource('voxel:read');
-        colonyView.dispose(); terrainView.dispose(); pcgView.dispose(); treeView.dispose(); cropCards?.dispose();
+        colonyView.dispose(); terrainView.dispose(); pcgView.dispose(); treeView.dispose(); cropCards.dispose();
         for (const entity of entities) world.despawn(entity).unwrap();
         for (const handle of ownedHandles) assets.release(handle).unwrap();
         ownedHandles.clear();
@@ -414,7 +414,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
         cancelStroke(); terrainTarget = clamp(terrainTarget, 1, voxels.height - 2); buildHeight = null; viewMode = 'god'; followId = null;
         for (const entry of chunks.values()) { world.despawn(entry.entity).unwrap(); entities.delete(entry.entity); release(entry.handle); }
         chunks.clear();
-        lastTerrainRevision = -1; lastEdit = null; tool = 'inspect'; crop = 'rice'; home(); changed('已恢复地图、居民、任务和生产进度');
+        lastTerrainRevision = -1; lastEdit = null; tool = 'inspect'; crop = DEFAULT_CROP; home(); changed('已恢复地图、居民、任务和生产进度');
         godReturn = { target: [...target], yaw, pitch, distance };
         port?.postMessage({ type: 'voxel:loaded', data: JSON.stringify({ version: 2, voxel: voxels.serialize(), colony: colony.serialize() }) });
       };
@@ -447,9 +447,11 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             buildHeight = c.value; hoverKey = ''; previewKey = '';
           }
           if (c.action === 'colony' && c.command && typeof c.command === 'object') execute(c.command);
-          if (c.action === 'crop' && (c.value === 'rice' || c.value === 'corn')) {
-            if (c.value === 'corn' && !colonyState.research.completed.includes('agriculture')) status = '玉米需要先完成精耕农业研究';
-            else { crop = c.value; status = crop === 'corn' ? '新农田将种植玉米' : '新农田将种植水稻'; }
+          const chosenCrop: unknown = c.value;
+          if (c.action === 'crop' && isCropKind(chosenCrop)) {
+            const { name, requires } = CROP_DEFS[chosenCrop];
+            if (requires && !colonyState.research.completed.includes(requires)) status = `${name}需要先完成${RESEARCH_DEFS[requires]!.name}研究`;
+            else { crop = chosenCrop; status = `新农田将种植${name}`; }
           }
           if (c.action === 'focus' && typeof c.id === 'string') {const pawn=colonyState.colonists.find(p=>p.id===c.id);if(pawn){target=[...pawn.position];target[1]-=1;}}
           if (c.action === 'hover') uiHover = c.value === true;
@@ -494,7 +496,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             terrainView.clear(); pcgView.clear();
             viewMode = 'god'; followId = null; terrainTarget = clamp(terrainTarget, 1, voxels.height - 2);
             for (const entry of chunks.values()) { world.despawn(entry.entity).unwrap(); entities.delete(entry.entity); release(entry.handle); } chunks.clear();
-            lastEdit = null; lastTerrainRevision = -1; tool = 'inspect'; crop = 'rice'; home(); changed('新的和平殖民地已生成');
+            lastEdit = null; lastTerrainRevision = -1; tool = 'inspect'; crop = DEFAULT_CROP; home(); changed('新的和平殖民地已生成');
             godReturn = { target: [...target], yaw, pitch, distance };
           }
           if (c.action === 'save') {

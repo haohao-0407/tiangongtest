@@ -1,0 +1,247 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "sugarcane-sprout",
+        "sugarcane-growing",
+        "sugarcane-mature"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "sugarcane.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:sugarcane-sprout"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:sugarcane-growing"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:sugarcane-mature"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:sugarcane-growing": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-b062-700a-90cc-a9ac454e3693",
+          "slotName": "sugarcane-growing-leaves",
+          "sourceKey": "material:sugarcane-growing-leaves"
+        }
+      ]
+    },
+    "mesh:sugarcane-mature": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-b062-700a-90cc-a9ad77847956",
+          "slotName": "sugarcane-mature-leaves",
+          "sourceKey": "material:sugarcane-mature-leaves"
+        }
+      ]
+    },
+    "mesh:sugarcane-sprout": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-b062-700a-90cc-a9abd74b44ad",
+          "slotName": "sugarcane-sprout-leaves",
+          "sourceKey": "material:sugarcane-sprout-leaves"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1efcb-b062-700a-90cc-a9a8d3edff82",
+      "kind": "mesh",
+      "name": "sugarcane-sprout",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:sugarcane-sprout"
+    },
+    {
+      "guid": "01a1efcb-b062-700a-90cc-a9a991778e7f",
+      "kind": "mesh",
+      "name": "sugarcane-growing",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:sugarcane-growing"
+    },
+    {
+      "guid": "01a1efcb-b062-700a-90cc-a9aa1d397ccc",
+      "kind": "mesh",
+      "name": "sugarcane-mature",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:sugarcane-mature"
+    },
+    {
+      "guid": "01a1efcb-b062-700a-90cc-a9abd74b44ad",
+      "kind": "material",
+      "name": "sugarcane-sprout-leaves",
+      "sourceIndex": 0,
+      "sourceKey": "material:sugarcane-sprout-leaves"
+    },
+    {
+      "guid": "01a1efcb-b062-700a-90cc-a9ac454e3693",
+      "kind": "material",
+      "name": "sugarcane-growing-leaves",
+      "sourceIndex": 1,
+      "sourceKey": "material:sugarcane-growing-leaves"
+    },
+    {
+      "guid": "01a1efcb-b062-700a-90cc-a9ad77847956",
+      "kind": "material",
+      "name": "sugarcane-mature-leaves",
+      "sourceIndex": 2,
+      "sourceKey": "material:sugarcane-mature-leaves"
+    },
+    {
+      "guid": "01a1efcb-b062-700a-90cc-a9ae54829a0f",
+      "kind": "scene",
+      "name": "sugarcane-growth-stages",
+      "sourceIndex": 0,
+      "sourceKey": "scene:sugarcane-growth-stages"
+    },
+    {
+      "guid": "01a1efcb-b062-700a-90cc-a9afdb68e175",
+      "kind": "texture",
+      "name": "甘蔗-幼芽井字摆放",
+      "sourceIndex": 0,
+      "sourceKey": "texture:甘蔗-幼芽井字摆放"
+    },
+    {
+      "guid": "01a1efcb-b063-7407-ba82-e7a19effe606",
+      "kind": "texture",
+      "name": "甘蔗-生长井字摆放",
+      "sourceIndex": 1,
+      "sourceKey": "texture:甘蔗-生长井字摆放"
+    },
+    {
+      "guid": "01a1efcb-b063-7407-ba82-e7a29375f71c",
+      "kind": "texture",
+      "name": "甘蔗-成熟井字摆放",
+      "sourceIndex": 2,
+      "sourceKey": "texture:甘蔗-成熟井字摆放"
+    },
+    {
+      "guid": "01a1efcb-b063-7407-ba82-e7a3d7fe4691",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

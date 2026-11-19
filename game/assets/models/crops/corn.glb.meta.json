@@ -1,0 +1,247 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "corn-sprout",
+        "corn-growing",
+        "corn-mature"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "corn.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:corn-sprout"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:corn-growing"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:corn-mature"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:corn-growing": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-fe50-713a-9a12-f869a15ff55f",
+          "slotName": "corn-growing-leaves",
+          "sourceKey": "material:corn-growing-leaves"
+        }
+      ]
+    },
+    "mesh:corn-mature": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-fe50-713a-9a12-f86ab39336a2",
+          "slotName": "corn-mature-leaves",
+          "sourceKey": "material:corn-mature-leaves"
+        }
+      ]
+    },
+    "mesh:corn-sprout": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1efcb-fe50-713a-9a12-f868c501e527",
+          "slotName": "corn-sprout-leaves",
+          "sourceKey": "material:corn-sprout-leaves"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1efcb-fe4f-79f8-9615-e9cb82e0c2b2",
+      "kind": "mesh",
+      "name": "corn-sprout",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:corn-sprout"
+    },
+    {
+      "guid": "01a1efcb-fe50-713a-9a12-f86698743d1e",
+      "kind": "mesh",
+      "name": "corn-growing",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:corn-growing"
+    },
+    {
+      "guid": "01a1efcb-fe50-713a-9a12-f8676b152b61",
+      "kind": "mesh",
+      "name": "corn-mature",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:corn-mature"
+    },
+    {
+      "guid": "01a1efcb-fe50-713a-9a12-f868c501e527",
+      "kind": "material",
+      "name": "corn-sprout-leaves",
+      "sourceIndex": 0,
+      "sourceKey": "material:corn-sprout-leaves"
+    },
+    {
+      "guid": "01a1efcb-fe50-713a-9a12-f869a15ff55f",
+      "kind": "material",
+      "name": "corn-growing-leaves",
+      "sourceIndex": 1,
+      "sourceKey": "material:corn-growing-leaves"
+    },
+    {
+      "guid": "01a1efcb-fe50-713a-9a12-f86ab39336a2",
+      "kind": "material",
+      "name": "corn-mature-leaves",
+      "sourceIndex": 2,
+      "sourceKey": "material:corn-mature-leaves"
+    },
+    {
+      "guid": "01a1efcb-fe50-713a-9a12-f86b406b98f9",
+      "kind": "scene",
+      "name": "corn-growth-stages",
+      "sourceIndex": 0,
+      "sourceKey": "scene:corn-growth-stages"
+    },
+    {
+      "guid": "01a1efcb-fe50-713a-9a12-f86cc58e4ca5",
+      "kind": "texture",
+      "name": "玉米-幼芽",
+      "sourceIndex": 0,
+      "sourceKey": "texture:玉米-幼芽"
+    },
+    {
+      "guid": "01a1efcb-fe50-713a-9a12-f86dc32e8b83",
+      "kind": "texture",
+      "name": "玉米-生长",
+      "sourceIndex": 1,
+      "sourceKey": "texture:玉米-生长"
+    },
+    {
+      "guid": "01a1efcb-fe50-713a-9a12-f86e9cb910af",
+      "kind": "texture",
+      "name": "玉米-成熟十字交叉",
+      "sourceIndex": 2,
+      "sourceKey": "texture:玉米-成熟十字交叉"
+    },
+    {
+      "guid": "01a1efcb-fe50-713a-9a12-f86fb55e7d7c",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}
