@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BLOCK, VoxelWorld } from '../../voxel/model.ts';
-import { BUILDING_DEFS, ColonySimulation, CROP_KINDS, CROP_SEEDS, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES, SUPPLY_TYPES, TOOL_KINDS, needsPickaxe } from '../simulation.ts';
+import { BUILDING_DEFS, ColonySimulation, CROP_KINDS, CROP_SEEDS, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES, SUPPLY_TYPES, TOOL_KINDS } from '../simulation.ts';
 
 function setup(seed='colony-test') { const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed,size:[48,24,48],edits:[]}));return {world,sim:new ColonySimulation(world)}; }
 function run(sim:ColonySimulation,seconds:number) { for(let i=0;i<seconds*4;i++)sim.tick(.25); }
@@ -342,7 +342,10 @@ describe('resident needs and civilian production',()=>{
     // Full-size starter beds now extend into this enclosure's north wall.
     for(const[x,z]of[[27,26],[29,26],[28,25],[28,27]]){
       const existing=sim.snapshot().buildings.find(b=>x>=b.x&&x<b.x+b.w&&z>=b.z&&z<b.z+b.d);
-      if(existing)expect(sim.command({action:'demolish',id:existing.id}).ok).toBe(true);
+      if(existing){
+        expect(sim.command({action:'demolish',id:existing.id}).ok).toBe(true);
+        for(let i=0;i<240&&sim.buildingAtVoxel(x,existing.y,z);i++)sim.tick(.25);
+      }
       expect(sim.command({action:'build',kind:'wall',x,z}).ok).toBe(true);
     }
     run(sim,65);expect(sim.snapshot().buildings.filter(b=>b.kind==='wall'&&b.complete)).toHaveLength(4);
@@ -539,9 +542,12 @@ describe('resident needs and civilian production',()=>{
     const building=sim.snapshot().buildings.find(b=>b.id===chest.id)!;
     expect(sim.buildingAtVoxel(chest.x,building.y,chest.z)?.kind).toBe('chest');
     const before=new Set(sim.snapshot().items.map(item=>item.id));
+    onlyJob(sim,'construct');
     const result=sim.command({action:'demolish',id:chest.id});
     expect(result.ok).toBe(true);
     sim.load(sim.serialize());
+    expect(sim.snapshot().chests[0]!.slots).toEqual(legacy.chests[0].slots);
+    for(let i=0;i<240&&sim.buildingAtVoxel(chest.x,building.y,chest.z);i++)sim.tick(.25);
     const after=sim.snapshot();
     expect(after.chests).toEqual([]);
     expect(after.buildings.some(b=>b.id===chest.id)).toBe(false);
@@ -554,18 +560,6 @@ describe('resident needs and civilian production',()=>{
     expect(sim.snapshot().playerBag.some(slot=>slot?.resource===HAMMER)).toBe(false);
     sim.tick(.5,foot);
     expect(sim.snapshot().playerBag).toContainEqual({resource:HAMMER,count:1});
-  });
-  it('requires a pickaxe only for stone or metal buildings',()=>{
-    // 石造/金属：徒手拆不动
-    expect(needsPickaxe(BUILDING_DEFS.forgery)).toBe(true);
-    expect(needsPickaxe(BUILDING_DEFS.stove)).toBe(true);
-    expect(needsPickaxe(BUILDING_DEFS.wall)).toBe(true);
-    expect(needsPickaxe(BUILDING_DEFS.solar)).toBe(true);
-    // 木造/布造：徒手就能拆
-    expect(needsPickaxe(BUILDING_DEFS.bed)).toBe(false);
-    expect(needsPickaxe(BUILDING_DEFS.table)).toBe(false);
-    expect(needsPickaxe(BUILDING_DEFS.fence)).toBe(false);
-    expect(needsPickaxe(BUILDING_DEFS.floor)).toBe(false);
   });
   it('shares one chop progress between the player and residents',()=>{
     const{sim,world}=setup();onlyJob(sim,'chop');

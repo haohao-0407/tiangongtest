@@ -19,3 +19,5 @@
 - 2026-11-19 / Engine 0.5.0 / glTF 透明裁剪：glTF `MASK` 默认材质的 `alphaCutoff` 为 0.5，`alphaMode` 为 0（保留采样 Alpha）。在 WebGPU 浏览器以相同机位测试，FXAA、关闭抗锯齿和 TAA 都能复现叶片剪影上的亮边。仅将材质输出模式置为 1（通过裁剪后输出不透明）即可消除亮边，透明区域与阴影轮廓仍正常。项目在加载作物网格时应用该设置，原贴图、采样器和深度写入沿用导入结果。
 
 - 2026-11-19 / Engine 0.5.0 / Windows UI 资源热更新：修改 `assets/guide.ui.html` 和 `assets/guide.ui.css` 后，两次 `project play --require-ui` 启动均在加载 `ui/guide` 时返回 `asset-package-invalid`，原因是 `publication generation`。`asset inspect` 仍能解析原 GUID。项目撤回这两处资源变动，使用已有 UI 插件挂载破坏进度控件。
+
+- 2026-11-19 / Engine 0.5.0、本地 ForgeAX 插件。在已有静态 Preview 运行时重新构建，构建成功，`forgeax_run_current_game` 和 `forgeax-game preview stop` 均返回 `preview_ownership_unverified: preview_static_digest_mismatch`。状态查询确认原进程的启动身份仍匹配。插件的静态服务回退检查将当前提供的 forgeax-dist.json 摘要与启动时记录的摘要比较，构建更新后两者可能不同。

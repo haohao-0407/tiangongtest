@@ -185,7 +185,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   });
 
   const showTool = (tool: string) => {
-    const hints: Record<string, string> = { inspect: '查看模式 · 左键选中村民，按 R 附身', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '整体拆除 · 点击物体任一部分 · 拆下后可拾取', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树干或树冠，安排整棵砍伐', mine: '采矿规划 · 点击地表钢矿或石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
+    const hints: Record<string, string> = { inspect: '查看模式 · 左键选中村民，按 R 附身', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '拆除任务 · 点击设施任一部分，居民按建造优先级接单', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树干或树冠，安排整棵砍伐', mine: '采矿规划 · 点击地表钢矿或石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
     if (state?.selected === 10) hints['sandbox:build'] = '铺设道路 · 左键替换地表 · 路沿与台阶随连接自动更新';
     else if (state?.selected === 6) hints['sandbox:build'] = '砖墙 · 三格起宽、两格高自动排窗组 · 留空作入口 · 增删保留有效窗位';
     get('tool-hint').textContent = tool === 'level'
@@ -222,7 +222,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     root.append(note('点击选择建筑，用 R 或旋转按钮调整朝向。床头床尾、门的上下部分作为整体放置；先整平地基，再由居民施工。'));
     root.append(buildControls); syncBuildControls();
     const actions = make('div', 'building-tool-actions');
-    actions.append(toolButton('⌖ 查看物体', 'inspect', 'tool-inspect'), toolButton('↔ 开关门', 'interact', 'tool-interact'), toolButton('⌫ 整体拆除', 'demolish', 'tool-demolish', 'danger'));
+    actions.append(toolButton('⌖ 查看物体', 'inspect', 'tool-inspect'), toolButton('↔ 开关门', 'interact', 'tool-interact'), toolButton('⌫ 拆除任务', 'demolish', 'tool-demolish', 'danger'));
     root.append(actions);
     const foundation = make('div', 'foundation-controls'), autoLabel = make('label', 'foundation-auto'), auto = make('input');
     auto.type = 'checkbox'; auto.id = 'build-height-auto'; auto.dataset.testid = 'build-height-auto'; auto.checked = state?.buildHeight == null;
@@ -288,7 +288,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       ['zone:farm', '农田', '每格播种消耗 1 包对应种子。', 'tool-zone-farm'], ['zone:stockpile', '仓储', '搬运散落物资，集中保管。', 'tool-zone-stockpile'],
       ['chop', '伐木', '点击任一部分，整棵砍伐获取木材。', 'tool-chop'], ['mine', '采矿', '地表钢矿产出钢铁，普通石块产出石材。', 'tool-mine'],
       ['harvest', '收获', '标记成熟作物。', 'tool-harvest'], ['cancel', '取消规划', '移除未完成的规划或工作。', 'tool-cancel'],
-      ['interact', '开关门', '点击门的任一部分开关；关闭时阻挡通行。', 'tool-interact'], ['demolish', '整体拆除', '点击物体任一部分，拆下整座设施后可拾取。', 'tool-demolish'],
+      ['interact', '开关门', '点击门的任一部分开关；关闭时阻挡通行。', 'tool-interact'], ['demolish', '拆除任务', '点击设施任一部分，居民按建造优先级前往拆除。', 'tool-demolish'],
     ];
     for (const [tool, name, detail, id] of entries) { const b = toolButton('', tool!, id!); b.append(make('strong', '', name), make('span', '', detail)); grid.append(b); }
     root.append(grid);
@@ -1044,15 +1044,20 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   function renderBuildingInspector(c: ColonySnapshot, force = false) {
     const b = c.buildings.find(building => building.id === selectedBuilding);
     if (!b) { selectedBuilding = null; get('inspector').hidden = true; return; }
-    const characterView = state?.camera?.mode === 'character';
-    const stamp = JSON.stringify(['building', b, characterView]);
+    const demolition = c.jobs.find(job => job.type === 'demolish' && job.targetId === b.id);
+    const worker = demolition?.assignedTo && c.colonists.find(p => p.id === demolition.assignedTo);
+    const progress = demolition ? workPercent(demolition.progress, demolition.work) : 0;
+    const stamp = JSON.stringify(['building', b, demolition?.id, demolition?.state, worker && worker.name, progress]);
     if (!force && stamp === lastInspectorStamp) return;
     lastInspectorStamp = stamp;
     get('inspector-kicker').textContent = '整体设施';
     get('resident-name').textContent = BUILDING_DEFS[b.kind].name;
     const root = clear(get('resident-content')), details = make('div', 'building-inspector');
     details.dataset.testid = 'building-inspector'; details.dataset.buildingId = b.id;
-    details.append(make('div', 'resident-activity', `${buildingPhase(b.phase)}${b.complete ? '' : ` · ${percent(b.progress * 100)}%`}`));
+    const activity = demolition
+      ? [demolition.state === 'blocked' ? '拆除受阻 · 等待可达的工作位置' : worker ? `${worker.name}负责拆除` : '等待居民拆除', `${progress}%`].join(' · ')
+      : `${buildingPhase(b.phase)}${b.complete ? '' : ` · ${percent(b.progress * 100)}%`}`;
+    details.append(make('div', 'resident-activity', activity));
     const measurements = make('p', 'building-dimensions', `占地 ${b.w} × ${b.d} 格 · 高 ${b.h} 格 · 朝向 ${orientationText(b.rotation)}`);
     measurements.dataset.testid = 'building-dimensions'; details.append(measurements);
     details.append(make('p', 'panel-note', `位置 [${b.x}, ${b.y}, ${b.z}] · 点击任一部分都选中整个物体。`));
@@ -1067,8 +1072,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       toggle.disabled = !b.complete; actions.append(toggle);
       details.append(note('上下两格同步开关。门口有人时不能关门。'));
     }
-    if (characterView && b.complete) actions.append(note('靠近一格内，按住左键拆除。'));
-    else actions.append(button(b.complete ? '拆除整座设施' : '取消整座蓝图', 'building-demolish', { action: 'demolish', id: b.id }, 'danger'));
+    if (demolition) actions.append(button('取消拆除任务', 'building-cancel-demolition', { action: 'cancel', id: demolition.id }));
+    else actions.append(button(b.complete ? '发布拆除任务' : '取消整座蓝图', 'building-demolish', { action: b.complete ? 'demolish' : 'cancel', id: b.id }, 'danger'));
     details.append(actions, note(b.storage ? '箱体和箱内物品会分别掉落，拾取后可重新放置空箱。'
       : b.complete ? '拆下的整座设施会掉在地上，可拾取并重新放置。' : '取消返还尚未使用的预约建材，已经完成的整地保留。'));
     root.append(details);
@@ -1333,7 +1338,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (state.seed !== lastWorldSeed) { lastWorldSeed = state.seed; get<HTMLInputElement>('seed').value = state.seed; }
     get('world-size').textContent = state.worldSize ? `当前地图 ${state.worldSize[0]} × ${state.worldSize[2]} 格 · 新地图默认 250 × 250` : '新地图默认 250 × 250 格';
     const c = state.colony;
-    latestStamp = JSON.stringify([state.seed, state.revision, state.edits, state.manualCropEdits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase, b.rotation, b.doorOpen]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.playerBag, c.bagSelected, c.chests, c.colonists.map(p => [p.id, p.priorities, p.schedule, p.bag,p.bagSelected]),c.controlledColonistId,state.player&&[state.player.x,state.player.y,state.player.z].map(n=>Math.round(n*10)),warehouseDeliveries(c)]]);
+    latestStamp = JSON.stringify([state.seed, state.revision, state.edits, state.manualCropEdits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase, b.rotation, b.doorOpen]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.playerBag, c.bagSelected, c.chests, c.colonists.map(p => [p.id, p.priorities, p.schedule, p.bag,p.bagSelected]),c.jobs.filter(j => j.type === 'demolish').map(j => j.id),c.controlledColonistId,state.player&&[state.player.x,state.player.y,state.player.z].map(n=>Math.round(n*10)),warehouseDeliveries(c)]]);
     if (c?.finale) latestStamp+=`/晚会/${c.finale.phase}/${Math.floor(c.finale.elapsed/3)}`;
     updateItemAmount();
     if (c) renderColony(c); else renderPanel();

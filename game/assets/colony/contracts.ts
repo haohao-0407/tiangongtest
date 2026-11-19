@@ -46,13 +46,6 @@ export const PLAYER_WORK_REACH = 1;            // 角色到目标格中心的水
 export const PLAYER_CHOP_STAMINA = 12;         // 空手砍一棵扣多少体力
 export const PLAYER_CHOP_STAMINA_AXE = 8;      // 木斧扣得少
 export const PLAYER_STAMINA_REGEN = 2;         // 静立每秒回多少
-/**
- * 拆建筑的工作量速度（每秒）。
- * 和砍树用同一套换算：空手 16/6、拿对工具 16/4。
- */
-export const PLAYER_DEMOLISH_RATE = CHOP_WORK / PLAYER_CHOP_SECONDS;
-export const PLAYER_DEMOLISH_RATE_TOOL = CHOP_WORK / PLAYER_CHOP_SECONDS_AXE;
-
 /** 掉落物落地的 0.5 秒内不许捡：看得见它弹一下，而不是瞬间消失。 */
 export const ITEM_PICKUP_DELAY = 0.5;
 /** 玩家自动拾取的水平距离（格）。 */
@@ -89,7 +82,8 @@ export const RESOURCE_PRICES: Partial<Record<Resource, number>> = {
 };
 export const JOB_TYPES = ['terraform','construct','grow','harvest','haul','cook','chop','mine','research','doctor','craft'] as const;
 export type JobType = typeof JOB_TYPES[number];
-export const JOB_NAMES: Record<JobType,string> = {terraform:'整地',construct:'建造',grow:'种植',harvest:'收获',haul:'搬运',cook:'烹饪',chop:'伐木',mine:'采矿',research:'研究',doctor:'医疗',craft:'制作'};
+export type OrderType = JobType | 'demolish';
+export const JOB_NAMES: Record<OrderType,string> = {terraform:'整地',construct:'建造',demolish:'拆除',grow:'种植',harvest:'收获',haul:'搬运',cook:'烹饪',chop:'伐木',mine:'采矿',research:'研究',doctor:'医疗',craft:'制作'};
 export type BuildingKind =
   // 原有 12 种
   | 'bed'|'table'|'stove'|'workbench'|'researchDesk'|'solar'|'battery'|'cooler'|'medicalBed'|'wall'|'door'|'floor'
@@ -163,12 +157,6 @@ export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
   scarecrow:{id:'scarecrow',name:'稻草人',description:'防鸟，减少作物损失。',cost:{wood:6,cloth:2},work:12,power:0,blocking:true,color:[0.74,0.62,0.36],category:'agriculture'},
   compostBin:{id:'compostBin',name:'堆肥箱',description:'秸秆转化成肥料。',cost:{wood:10},work:16,power:0,blocking:true,color:[0.50,0.42,0.28],category:'agriculture'},
 };
-/**
- * 这栋建筑徒手拆不拆得动。
- *
- * 判据是建材：石头/钢铁/零件占大头的就算「硬结构」，必须拿镐子。
- * 木头的、布的都是徒手就能拆（这样不用给 45 种建筑一个个标）。
- */
 export function buildingItemKind(item: string | undefined): BuildingKind | undefined {
   if (!item?.startsWith('building:')) return;
   const kind = item.slice('building:'.length);
@@ -180,12 +168,6 @@ export function itemName(item: InventoryItem): string {
   if (isResource(item)) return RESOURCE_NAMES[item];
   const kind = buildingItemKind(item);
   return kind ? BUILDING_DEFS[kind].name : item;
-}
-
-export function needsPickaxe(def: BuildingDefinition): boolean {
-  const hard = (def.cost.stone ?? 0) + (def.cost.steel ?? 0) + (def.cost.components ?? 0) * 2;
-  const soft = (def.cost.wood ?? 0) + (def.cost.cloth ?? 0) + (def.cost.food ?? 0);
-  return hard > soft;
 }
 
 export interface ResearchDefinition {id:string;name:string;description:string;work:number;requires?:string;unlocks:string[]}
@@ -221,7 +203,7 @@ export interface TerrainPlanView {id:string;target:number;cells:[number,number][
 export interface ZoneView {id:string;kind:'farm'|'stockpile';x:number;y:number;z:number;w:number;d:number;crop:CropKind}
 export interface CropView {id:string;kind:CropKind;x:number;y:number;z:number;growth:number;planted:boolean}
 export interface ItemView {id:string;resource:InventoryItem;amount:number;x:number;y:number;z:number;age:number;reservedBy:string|null;scatter?:boolean;playerOnly?:boolean}
-export interface JobView {id:string;type:JobType;targetId:string;x:number;y:number;z:number;progress:number;work:number;state:'queued'|'working'|'blocked';assignedTo:string|null;reserved:Partial<Resources>;label:string;recipientId?:string;deliveryPhase?:'pickup'|'deliver'}
+export interface JobView {id:string;type:OrderType;targetId:string;x:number;y:number;z:number;progress:number;work:number;state:'queued'|'working'|'blocked';assignedTo:string|null;reserved:Partial<Resources>;label:string;recipientId?:string;deliveryPhase?:'pickup'|'deliver'}
 export interface ColonyEvent {id:string;time:number;day:number;hour:number;type:'info'|'weather'|'health'|'trade'|'research'|'arrival';text:string}
 export interface RoomView {id:number;cells:[number,number][];enclosed:boolean;comfort:number;temperature:number}
 export type FinalePhase = 'gathering' | 'show' | 'departing';
