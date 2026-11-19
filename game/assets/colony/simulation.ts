@@ -2,6 +2,8 @@ import { BLOCK, BLOCKS, VoxelWorld } from '../voxel/model.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
 import { treeProtectingVoxel } from '../voxel/tree-interaction.ts';
 import {buildingDimensions,buildingParts,buildingBlocksMovement} from './buildings.ts';
+import { DUSK_SECONDS, PAN_SECONDS, FINALE_SECONDS, gatheringSpot, plazaObstacle, smooth } from './plaza.ts';
+import type { FinalePhase, FinaleView } from './contracts.ts';
 import {buildingProtectingVoxel} from './interaction.ts';
 import {
   BUILDING_DEFS, CROP_DEFS, CROP_KINDS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropSeed, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, SUPPLY_TYPES, isCropKind, isCropSeed, isSupplyType, type CropKind,
@@ -47,7 +49,10 @@ type Colonist = ColonistView & { path: Position[]; personal: Personal | null; de
 type TerrainPlan = TerrainPlanView & {initialWork:number};
 type Earthwork = {x:number;z:number;target:number;height:number;plans:string[];blockedReason?:string};
 type Job = JobView & { phase: 'work'|'pickup'|'deliver'; resource?: Resource; amount: number; destination: Position | null };
+type FinaleGuest = {id:string; home:Position; seat:Position; task:string; facing:number; arrived:boolean};
+type Finale = {buildingId:string; phase:FinalePhase; elapsed:number; startTime:number; nightTime:number; guests:FinaleGuest[]};
 type SavedState = {
+  finale?:Finale;
   version: 3; type: 'peaceful-colony'; worldSeed: string; time: number; accumulator: number; rng: number;
   nextId: number; speed: number; decision: number; lastDay: number; spoilage: number;
   resources: Resources; colonists: Colonist[]; buildings: BuildingView[]; zones: ZoneView[];
@@ -59,7 +64,92 @@ type SavedState = {
 
 /** All quantities and work reservations have one owner; no runtime/browser API is needed. */
 export class ColonySimulation {
+  private readonly processionPaths = new Map<string,Position[]>();
   private controlled: Colonist | null = null;
+  get finale(): FinaleView | undefined {
+    const f=this.s.finale;
+    return f && {buildingId:f.buildingId,phase:f.phase,elapsed:f.elapsed+this.s.accumulator,guests:f.guests.length,
+      arrived:f.guests.filter(g=>g.arrived).length};
+  }
+
+  private beginFinale(b:BuildingView):void {
+    this.releaseControl();
+    this.processionPaths.clear();
+    const hour=this.hour(), start=this.s.time;
+    const nightTime=start+(hour<5 || hour>=21.5 ? 0 : (21.5-hour)*DAY_SECONDS/24);
+    const guests=this.s.colonists.map((c,i):FinaleGuest=>{
+      const [x,,z]=c.position;
+      const home=this.walkable(Math.floor(x),Math.floor(z)) ? c.position : this.closestOpen(x,z)??c.position;
+      return {id:c.id,home:[...home],seat:gatheringSpot(b,i),task:c.task,facing:c.facing,arrived:false};
+    });
+    this.s.finale={buildingId:b.id, phase:'gathering',elapsed:0,startTime:start,nightTime,guests};
+    this.event('info','篝火晚会广场落成，居民受邀赴宴。');
+  }
+
+  // Jobs and their reservations stay with their owners. The procession walks a
+  // separate route so the worker can resume their original route after returning.
+  private walkGuest(c:Colonist, goal:Position, dt:number):boolean {
+    let route=this.processionPaths.get(c.id);
+    if (!route) {
+      const path=this.path(c.position,goal);
+      // An isolated island can have no walkable connection to the venue.
+      if (path===null) { c.position=[...goal]; return true; }
+      route=[...path,goal];
+      this.processionPaths.set(c.id,route);
+    }
+    let remaining=dt*3.4;
+    while (route.length && remaining>0) {
+      const next=route[0]!, dx=next[0]-c.position[0], dz=next[2]-c.position[2];
+      const distance=Math.hypot(dx,dz);
+      if (distance>.001) c.facing=Math.atan2(dx,dz);
+      const walked=Math.min(distance,remaining);
+      if (distance<=remaining) { c.position=[...next]; route.shift(); remaining-=distance; }
+      else {
+        const t=remaining/distance;
+        c.position=[c.position[0]+dx*t,c.position[1]+(next[1]-c.position[1])*t,c.position[2]+dz*t];
+        remaining=0;
+      }
+      this.s.metrics.distanceWalked+=walked;
+    }
+    return route.length===0;
+  }
+
+  private tickFinale(f:Finale,dt:number):void {
+    f.elapsed+=dt;
+    if (f.phase==='gathering') {
+      this.s.time=f.startTime+(f.nightTime-f.startTime)*smooth(f.elapsed/DUSK_SECONDS);
+      if (f.elapsed<DUSK_SECONDS+PAN_SECONDS) return;
+    }
+    for (const guest of f.guests) {
+      const c=this.s.colonists.find(person=>person.id===guest.id)!;
+      if (f.phase==='departing') {
+        c.task='晚会散场';
+        if (!guest.arrived) guest.arrived=this.walkGuest(c,guest.home,dt);
+      } else {
+        if (!guest.arrived) guest.arrived=this.walkGuest(c,guest.seat,dt);
+        c.task=guest.arrived?'围坐篝火旁':'前往篝火晚会';
+        if (guest.arrived) {
+          const b=this.s.buildings.find(b=>b.id===f.buildingId)!;
+          c.facing=Math.atan2(b.x+b.w/2-c.position[0],b.z+b.d/2-c.position[2]);
+        }
+      }
+    }
+    if (f.phase==='gathering' && f.guests.every(g=>g.arrived)) {
+      f.phase='show'; f.elapsed=0;
+    } else if (f.phase==='show' && f.elapsed>=FINALE_SECONDS) {
+      f.phase='departing'; f.elapsed=0;
+      for (const guest of f.guests) guest.arrived=false;
+      this.processionPaths.clear();
+      this.event('info','篝火晚会落幕，居民陆续返回。');
+    } else if (f.phase==='departing' && f.elapsed>=2 && f.guests.every(g=>g.arrived)) {
+      for (const guest of f.guests) {
+        const c=this.s.colonists.find(person=>person.id===guest.id)!;
+        c.task=guest.task; c.facing=guest.facing;
+      }
+      this.processionPaths.clear();
+      delete this.s.finale;
+    }
+  }
   private deliveryMessage: string | undefined;
   private playerBuild: { id: string; rate: number } | null = null;
   private walkSurface: ((x:number,z:number,fallback:number)=>number) | undefined;
@@ -204,7 +294,7 @@ export class ColonySimulation {
 
   possessColonist(id: string | null): ColonistView | null {
     const resident=this.s.colonists.find(person=>person.id===id);
-    if(!resident || this.controlled)return null;
+    if(!resident || this.controlled || this.s.finale)return null;
     this.releasePerson(resident);
     this.controlled=resident;
     this.s.selectedColonistId=resident.id;
@@ -390,13 +480,14 @@ export class ColonySimulation {
     if (!Number.isFinite(realSeconds) || realSeconds < 0 || realSeconds > 600) throw new RangeError('模拟步长必须为 0–600 秒。');
     if(playerPosition && this.controlled)this.controlled.position=playerPosition;
     this.syncWorld();
-    this.s.accumulator += realSeconds * this.s.speed;
+    this.s.accumulator += realSeconds * (this.s.finale && this.s.speed ? 1 : this.s.speed);
     while (this.s.accumulator + 1e-9 >= STEP) {
       this.s.accumulator = Math.max(0, this.s.accumulator - STEP);
       this.step(STEP);
     }
   }
   private step(dt: number): void {
+    if (this.s.finale) { this.tickFinale(this.s.finale,dt); return; }
     this.s.time += dt;
     this.syncWorld();
     if (this.day() !== this.s.lastDay) this.newDay();
@@ -448,7 +539,10 @@ export class ColonySimulation {
       this.refreshJobs();
     }
     this.updatePlayerConstruction(dt);
-    for (const c of this.s.colonists) this.updateColonist(c, dt);
+    for (const c of this.s.colonists) {
+      if (this.s.finale) break;
+      this.updateColonist(c, dt);
+    }
   }
 
   command(c: ColonyCommand): CommandResult {
@@ -459,6 +553,7 @@ export class ColonySimulation {
         if (typeof c.value !== 'number' || !SPEEDS.includes(c.value)) throw new Error('速度仅支持暂停、1、3、6 倍。');
         this.s.speed = c.value; return { ok:true, message:c.value === 0 ? '营地已暂停' : `${c.value} 倍速` };
       }
+      if (this.s.finale) return {ok:false,message:'篝火晚会进行中'};
       if (c.action === 'select') {
         const id = c.colonistId ?? null;
         if (id && !this.s.colonists.some((p) => p.id === id)) throw new Error('未找到这位居民。');
@@ -513,7 +608,11 @@ export class ColonySimulation {
     if(![x,y,z].every(Number.isInteger)||!this.world.inBounds(x,y,z))return undefined;
     return this.buildingVoxels.get(this.voxelKey(x,y,z));
   }
-  blocksVoxel(x:number,y:number,z:number):boolean {const b=this.buildingAtVoxel(x,y,z);return !!b&&buildingBlocksMovement(b);}
+  blocksVoxel(x:number,y:number,z:number):boolean {
+    const b=this.buildingAtVoxel(x,y,z);
+    if (b?.kind==='campfirePlaza') return b.complete && y===b.y && plazaObstacle(b,x,z);
+    return !!b&&buildingBlocksMovement(b);
+  }
   private footprint(b:Pick<BuildingView,'x'|'z'|'w'|'d'>):[number,number][]{const cells:[number,number][]=[];for(let z=b.z;z<b.z+b.d;z++)for(let x=b.x;x<b.x+b.w;x++)cells.push([x,z]);return cells;}
   private rebuildBuildings():void {
     this.buildingAt.clear();this.buildingVoxels.clear();this.blockedCells.clear();
@@ -521,7 +620,7 @@ export class ColonySimulation {
       for(const part of buildingParts(b))this.buildingVoxels.set(this.voxelKey(part.x,part.y,part.z),b);
       for(const[x,z]of this.footprint(b)){
         this.buildingAt.set(this.cellKey(x,z),b);
-        if(buildingBlocksMovement(b))this.blockedCells.add(this.cellKey(x,z));
+        if(buildingBlocksMovement(b) || (b.complete && b.kind==='campfirePlaza' && plazaObstacle(b,x,z)))this.blockedCells.add(this.cellKey(x,z));
       }
     }
   }
@@ -1396,6 +1495,7 @@ export class ColonySimulation {
       worker.skills.construct = Math.min(20, worker.skills.construct + .12);
       worker.task = '工作完成';
     }
+    if (building.kind==='campfirePlaza') this.beginFinale(building);
   }
   private assign(c:Colonist):boolean {
     const options=this.s.jobs.filter(j=>!j.assignedTo&&c.priorities[j.type]>0&&(j.type!=='doctor'||j.targetId!==c.id)
@@ -1661,7 +1761,7 @@ export class ColonySimulation {
       let stable=this.terrainCellViews.get(view.id);if(!stable){stable=cells.map(([x,z])=>Object.freeze([x,z]) as unknown as [number,number]);Object.freeze(stable);this.terrainCellViews.set(view.id,stable);}
       return {...view,cells:stable};
     });
-    return {...snapshot,terrainPlans};
+    return {...snapshot,terrainPlans,...(this.s.finale ? {finale:this.finale} : {})};
   }
   serialize():unknown{
     const state=copy(this.s);
@@ -1676,6 +1776,7 @@ export class ColonySimulation {
   }
   load(data:unknown):void {
     const validated=this.validate(data);
+    this.processionPaths.clear();
     // Older completed furniture was allowed to cut individual leaves. Its new complete
     // tree model must not grow back through that furniture when upgrading the save.
     const obstructingTrees=new Set<string>();
@@ -1802,6 +1903,15 @@ export class ColonySimulation {
       if(b.complete&&(b.phase!=='completed'||b.progress!==1||Object.keys(b.reserved).length)||!b.complete&&b.phase==='completed')fail();
       const slots=BUILDING_DEFS[b.kind].storageSlots;
       if(slots ? !b.complete||!inventory(b.storage,slots) : b.storage!==undefined)fail();
+    }
+    if (s.finale) {
+      const f=s.finale;
+      if (!s.buildings.some(b=>b.id===f.buildingId && b.kind==='campfirePlaza' && b.complete) ||
+        !['gathering','show','departing'].includes(f.phase) || !finite(f.elapsed) || !finite(f.startTime) ||
+        !finite(f.nightTime,f.startTime) || !Array.isArray(f.guests) || f.guests.length!==colonistIds.size ||
+        new Set(f.guests.map(g=>g.id)).size!==colonistIds.size ||
+        f.guests.some(g=>!colonistIds.has(g.id)||!position(g.home)||!position(g.seat)||!text(g.task)||
+          !Number.isFinite(g.facing)||typeof g.arrived!=='boolean')) fail();
     }
     const originalOccupied=new Set<string>();
     for(const b of s.buildings)for(const[x,z]of this.footprint(b)){const key=`${x},${z}`;if(originalOccupied.has(key))fail();originalOccupied.add(key);}

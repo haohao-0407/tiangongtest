@@ -71,9 +71,18 @@ function analyticDaylight(): EquirectAsset {
   };
 }
 
+function eveningSky():EquirectAsset {
+  const width=64,height=32,pixels=new Float32Array(width*height*4);
+  for (let y=0;y<height;y++) {
+    const horizon=Math.exp(-Math.abs((y+.5)/height-.5)*8);
+    for (let x=0;x<width;x++) pixels.set([.009+.035*horizon,.012+.037*horizon,.036+.06*horizon,1],(y*width+x)*4);
+  }
+  return {kind:'equirect',width,height,format:'rgba32float',data:new Uint8Array(pixels.buffer),colorSpace:'linear'};
+}
+
 export default definePack({
   schemaVersion: '2.0.0',
   packageId: PACKAGE_IDS.environment,
   name: 'Game 3D / Environment',
-  build: () => ok({ 'environment/daylight': analyticDaylight() }),
+  build: () => ok({ 'environment/daylight': analyticDaylight(),'environment/evening':eveningSky() }),
 });

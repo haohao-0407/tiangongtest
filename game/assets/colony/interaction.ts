@@ -6,18 +6,23 @@ import { rayBox } from '../voxel/tree-interaction.ts';
 /** Picking uses the same cells as placement and collision, including a door's upper half. */
 export function raycastBuilding(buildings: readonly BuildingView[], origin: Position, direction: Position, limit = Infinity) {
   let nearest: { building: BuildingView; part: ReturnType<typeof buildingParts>[number]; distance: number } | null = null;
-  for (const building of buildings) for (const part of buildingParts(building)) {
-    const min = [part.x, part.y, part.z], max = [part.x + 1, part.y + 1, part.z + 1];
-    let near = 0, far = limit;
-    for (let axis = 0; axis < 3; axis++) {
-      const o = origin[axis]!, d = direction[axis]!;
-      if (Math.abs(d) < 1e-8) { if (o < min[axis]! || o > max[axis]!) { far = -1; break; } }
-      else {
-        const a = (min[axis]! - o) / d, b = (max[axis]! - o) / d;
-        near = Math.max(near, Math.min(a, b)); far = Math.min(far, Math.max(a, b));
+  for (const building of buildings) {
+    if (building.kind==='campfirePlaza') {
+      // The reserved air above the paths must not intercept clicks on villagers.
+      const {x,y,z,w,d}=building;
+      const lo:Position=[x,y,z], hi:Position=[x+w,y+.11,z+d];
+      const distance=rayBox(origin,direction,lo,hi,nearest?.distance??limit);
+      if (distance!==null && (!nearest || distance<nearest.distance)) {
+        const cell=(axis:number,start:number,size:number)=>Math.max(start,Math.min(start+size-1,Math.floor(origin[axis]!+direction[axis]!*distance)));
+        nearest={building,part:{x:cell(0,x,w),y,z:cell(2,z,d),role:'plaza'},distance};
       }
+      continue;
     }
-    if (near <= far && (!nearest || near < nearest.distance)) nearest = { building, part, distance: near };
+    for (const part of buildingParts(building)) {
+      const {x,y,z}=part;
+      const distance=rayBox(origin,direction,[x,y,z],[x+1,y+1,z+1],nearest?.distance??limit);
+      if (distance!==null && (!nearest || distance<nearest.distance)) nearest={building,part,distance};
+    }
   }
   return nearest;
 }

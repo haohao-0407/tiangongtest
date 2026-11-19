@@ -82,6 +82,44 @@ describe('one authoritative object across rotated three-dimensional cells',()=>{
   });
 });
 
+describe('campfire finale',()=>{
+  it('levels a rotated site from an empty warehouse, gathers every resident, resumes a saved show and releases their work',()=>{
+    const {world,sim}=setup(), state=sim.serialize() as ReturnType<typeof JSON.parse>;
+    for (const key of Object.keys(state.resources)) state.resources[key]=0;
+    for (const c of state.colonists) {
+      c.priorities.construct=c.priorities.terraform=1;
+      c.skills.construct=18;c.hunger=c.rest=100;c.schedule='day';
+    }
+    sim.load(state);
+    world.set(18,6,19,BLOCK.Dirt);
+    const order=sim.command({action:'build',kind:'campfirePlaza',x:14,z:14,target:6,rotation:1});
+    expect(order.ok).toBe(true);
+    expect(sim.snapshot().buildings[0]).toMatchObject({w:22,d:26,phase:'preparingTerrain',progress:0});
+    for(let i=0;i<400 && !sim.finale;i++)sim.tick(.25);
+    expect(sim.finale?.phase).toBe('gathering');
+    expect(world.terrainHeight(18,19)).toBe(6);
+    const beforeShow=sim.serialize() as typeof state;
+    expect(beforeShow.resources).toEqual(state.resources);
+    sim.tick(5.5);
+    expect(sim.snapshot().colonists.map(c=>c.position)).toEqual(beforeShow.colonists.map((c:{position:number[]})=>c.position));
+    for(let i=0;i<400 && sim.finale?.phase!=='show';i++)sim.tick(.25);
+    expect(sim.finale).toMatchObject({phase:'show',arrived:3,guests:3});
+    expect(sim.snapshot().hour).toBeGreaterThanOrEqual(21);
+    sim.tick(5);
+    sim.load(sim.serialize());
+    expect(sim.finale).toMatchObject({phase:'show',elapsed:5});
+    sim.tick(9);expect(sim.finale?.phase).toBe('departing');
+    for(let i=0;i<400 && sim.finale;i++)sim.tick(.25);
+    expect(sim.finale).toBeUndefined();
+    const restored=sim.serialize() as typeof state;
+    for(const guest of beforeShow.finale.guests){
+      const c=restored.colonists.find((p:{id:string})=>p.id===guest.id);
+      expect(c.position).toEqual(guest.home);expect(c.task).toBe(guest.task);
+    }
+    sim.load(restored);sim.tick(2);expect(sim.finale).toBeUndefined();
+  });
+});
+
 describe('door state owns collision, routing and shelter',()=>{
   it('toggles either door half and changes both collision cells immediately',()=>{
     const{sim}=setup(),door=fixture('door',20,20,2);install(sim,door);

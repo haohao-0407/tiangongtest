@@ -8,7 +8,7 @@ import { viewportToWorld } from '@forgeax/engine/picking';
 import type { Plugin } from '@forgeax/engine/plugin';
 import {
   ANTIALIAS_FXAA, Camera, DirectionalLight, Materials, MeshFilter, MeshRenderer,
-  perspective, setActiveCamera, SkyboxBackground, Skylight, SKYBOX_MODE_CUBEMAP,
+  orthographic, perspective, setActiveCamera, SkyboxBackground, Skylight, SKYBOX_MODE_CUBEMAP,
   TONEMAP_ACES_FILMIC, ShadowParticipation,
 } from '@forgeax/engine/render';
 import { Name, PROPAGATE_TRANSFORMS_SYSTEM, Transform } from '@forgeax/engine/scene';
@@ -32,6 +32,7 @@ import {
 } from '../colony/contracts.ts';
 import { CropCards } from '../colony/crop-cards.ts';
 import { buildingDimensions, type BuildingPart } from '../colony/buildings.ts';
+import { DUSK_SECONDS, PAN_SECONDS, FINALE_SECONDS, smooth } from '../colony/plaza.ts';
 import { raycastBuilding, raycastCrop, buildingProtectingVoxel } from '../colony/interaction.ts';
 
 type Point = [number, number, number];
@@ -40,7 +41,7 @@ const CAMERA_SYSTEM = 'voxel-camera';
 const EDIT_SYSTEM = 'voxel-edit';
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
-export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: string; outfits: string[]; walks: string[]; buildings: Record<string,string> }> = {
+export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:string; scene: string; outfits: string[]; walks: string[]; buildings: Record<string,string>; plaza:Record<string,string> }> = {
   name: 'voxel-homestead',
   inject: ['world', 'assets', 'gameHost'],
   async apply(ctx, config) {
@@ -104,6 +105,16 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: st
       let followId: string | null = null;
       let godReturn = { target: [...target] as Point, yaw: Math.PI / 4, pitch: 0.82, distance: 47 };
       const FOLLOW_SMOOTH = 8;
+      type CameraPose={target:Point;yaw:number;pitch:number;distance:number};
+      let beforeFinale:(CameraPose & {resident:string|null})|null=null;
+      let screenBlend=0;
+      const blendPose=(from:CameraPose,to:CameraPose,t:number)=>{
+        target=from.target.map((v,i)=>v+(to.target[i]!-v)*t) as Point;
+        const delta=to.yaw-from.yaw;
+        yaw=from.yaw+Math.atan2(Math.sin(delta),Math.cos(delta))*t;
+        pitch=from.pitch+(to.pitch-from.pitch)*t;
+        distance=from.distance+(to.distance-from.distance)*t;
+      };
 
       // ---- 玩家角色 ----
       // 不进 simulation：殖民地那套需求/工作/优先级对"你"没有意义，
@@ -260,12 +271,13 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: st
         { component: MeshRenderer, data: { materials: [buildMaterial] } },
         { component: ShadowParticipation, data: { cast: false, receive: false } },
       ).unwrap());
+      const cameraStyle={antialias:ANTIALIAS_FXAA,tonemap:TONEMAP_ACES_FILMIC,exposure:1,
+        clearColor:[.55,.73,.76,1] as [number,number,number,number]};
       const camera = track(world.spawn(
         { component: Name, data: { value: '家园相机' } },
         { component: Transform, data: {} },
         { component: Camera, data: { ...perspective({ fov: Math.PI / 4, aspect: 16 / 9, near: 0.1, far: 1200 }),
-          antialias: ANTIALIAS_FXAA, tonemap: TONEMAP_ACES_FILMIC, exposure: 1,
-          clearColor: [0.55, 0.73, 0.76, 1] } },
+          ...cameraStyle } },
       ).unwrap());
       setActiveCamera(world, camera);
       const sunEntity = track(world.spawn({ component: Name, data: { value: '午后暖阳' } }, { component: DirectionalLight, data: {
@@ -292,12 +304,15 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: st
             scale: [horizontal, structure ? vertical : Math.min(horizontal, vertical), horizontal] });
         }
       }
-      colonyView = new ColonyView(world, assets, () => voxels, characters, cropCards, buildingModels, pcgView.windowedWalls);
+      const plazaMeshes=new Map<string,AssetHandle<'mesh'>>();
+      for (const [layer,guid] of Object.entries(config.plaza)) plazaMeshes.set(layer,own((await assets.load(guid,'mesh')).unwrap()));
+      colonyView = new ColonyView(world, assets, () => voxels, characters, cropCards, buildingModels, pcgView.windowedWalls,plazaMeshes);
       const ambientEntity = track(world.spawn({ component: Name, data: { value: '柔和天光' } }, { component: Skylight, data: {
         equirect: sky, color: [1, 0.96, 0.86], intensity: 0.85,
       } }).unwrap());
-      track(world.spawn({ component: SkyboxBackground, data: { equirect: sky, mode: SKYBOX_MODE_CUBEMAP } }).unwrap());
-      release(sky);
+      const evening=own((await assets.load(config.evening,'equirect')).unwrap());
+      const backdrop=track(world.spawn({ component: SkyboxBackground, data: { equirect: sky, mode: SKYBOX_MODE_CUBEMAP } }).unwrap());
+      let nightSky=false;
       host.setPointerLockAllowed?.(false);
 
       const updateChunks = () => {
@@ -355,6 +370,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: st
         chunks: chunks.size, dimensions: [voxels.width, voxels.height, voxels.depth], worldSize: [voxels.width, voxels.height, voxels.depth],
         terrain: { target: terrainTarget, size: terrainSize, shape: terrainShape, sample: terrainSample, preview: { ...terrainPreview }, minHeight: 1, maxHeight: voxels.height - 2 }, buildHeight,
         pcg: pcgView.read(),
+        finaleFade:screenBlend,
       });
       const publish = () => {
         const state = read();
@@ -447,6 +463,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: st
       receive = (event: MessageEvent) => {
         const c = event.data;
         if (stopped || c?.type !== 'voxel:command') return;
+        if (colony.finale && !['save','load','reset','hover'].includes(c.action)) return;
         try {
           if (c.action === 'select' && PALETTE.includes(c.block)) { selected = c.block; mode = 'build'; tool = 'sandbox:build'; execute({action:'speed',value:0}); status = `沙盒 · 已选择 ${BLOCKS[selected]!.name}`; }
           if (c.action === 'mode' && (c.value === 'build' || c.value === 'remove')) { mode = c.value; tool = `sandbox:${mode}`; execute({action:'speed',value:0}); }
@@ -557,6 +574,28 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: st
           const dt = Math.min(world.getResource(Time).delta, 0.1);
           const constructionId = colony.playerConstructionId;
           colony.tick(dt); publishElapsed += dt; simViewElapsed += dt;
+          const finale=colony.finale;
+          if (finale && !beforeFinale) {
+            beforeFinale={target:[...target],yaw,pitch,distance,resident:followId};
+            followId=null;viewMode='god';cancelStroke();tool='inspect';focusTarget=null;
+            playerDemolish=null;playerExcavation=null;hoverCell=null;
+            selectedBuildingId=null;selectedTreeId=null;hoverTreeId=null;
+            terrainView.clearPreview();world.set(cursor,Transform,{pos:[0,-100,0]}).unwrap();
+            colonyState=colony.snapshot();refreshState=true;
+          }
+          const size=host.drawingBufferSize?.();
+          const aspect=size && size.height ? size.width/size.height : 16/9;
+          if (!finale && beforeFinale) {
+            const prior=beforeFinale;beforeFinale=null;screenBlend=0;
+            target=[...prior.target];yaw=prior.yaw;pitch=prior.pitch;distance=prior.distance;
+            const resident=prior.resident && colony.possessColonist(prior.resident);
+            if (resident) {
+              followId=resident.id;viewMode='character';[player.x,player.y,player.z]=resident.position;
+              player.vy=0;player.grounded=true;player.moving=false;player.facing=resident.facing;
+            }
+            world.set(camera,Camera,{...perspective({fov:Math.PI/4,aspect,near:.1,far:1200}),...cameraStyle,bloom:0}).unwrap();
+            status='晚会散场，居民已恢复日常安排';colonyState=colony.snapshot();refreshState=true;
+          }
           if (constructionId && !colony.playerConstructionId) {
             colonyState = colony.snapshot();
             refreshState = true;
@@ -585,7 +624,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: st
               id:'placement-preview',kind:previewKind,x:hoverCell[0],y:buildHeight??hoverCell[1],z:hoverCell[2],
               ...buildingDimensions(previewKind,buildRotation),rotation:buildRotation,doorOpen:false,complete:true,progress:0,
             }:null;
-            colonyView.update({ ...renderState, selectedBuildingId, buildPreview,
+            colonyView.update({ ...renderState, selectedBuildingId, buildPreview, finale,
               controlledColonistId: followId,
               colonists: renderState.colonists.map(p => ({ ...p,
               position: [p.position[0], pcgView.walkHeight(p.position[0], p.position[2], p.position[1]), p.position[2]] as Point,
@@ -598,13 +637,38 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: st
           if (publishElapsed >= 0.4) {
             publishElapsed = 0; colonyState = colony.snapshot(); terrainView.update(colonyState.terrainPlans); refreshState = true;
             const day = Math.max(0, Math.sin((colonyState.hour-6)/12*Math.PI));
-            world.set(sunEntity,DirectionalLight,{intensity:0.45+day*2.75}).unwrap();
-            world.set(ambientEntity,Skylight,{intensity:0.38+day*0.47}).unwrap();
+            const afterSunset=colonyState.hour>=19.5 || colonyState.hour<5.5;
+            const atNight=afterSunset && colonyState.buildings.some(b=>b.kind==='campfirePlaza'&&b.complete);
+            if (nightSky!==atNight) {
+              nightSky=atNight;
+              const equirect=atNight?evening:sky;
+              world.set(backdrop,SkyboxBackground,{equirect}).unwrap();
+              world.set(ambientEntity,Skylight,{equirect}).unwrap();
+            }
+            const night=finale ? (finale.phase==='gathering'?smooth(finale.elapsed/DUSK_SECONDS):1) : Number(atNight);
+            world.set(sunEntity,DirectionalLight,{intensity:.45+day*2.75,color:[1-.46*night,.89-.23*night,.71+.29*night]}).unwrap();
+            world.set(ambientEntity,Skylight,{intensity:.38+day*.47,color:[1-.32*night,.96-.21*night,.86+.14*night]}).unwrap();
           }
           // 注意：外层不再用 !uiHover 包住整块。
           // 鼠标停在 HUD 上只该屏蔽「鼠标操作」，键盘走照常——
           // 否则玩家一边按 W 一边把鼠标划过快捷栏，人就会莫名其妙停住。
-          if (input) {
+          if (finale && beforeFinale) {
+            const b=colonyState.buildings.find(b=>b.id===finale.buildingId)!;
+            const entry=finale.phase==='gathering'?smooth((finale.elapsed-DUSK_SECONDS)/PAN_SECONDS):1;
+            const push=finale.phase==='show'?smooth(finale.elapsed/5.5):finale.phase==='departing'?1:0;
+            const exit=finale.phase==='departing'?smooth(finale.elapsed/2):0;
+            const halfHeight=Math.max(12.6,18.2/aspect)*(1-.11*push);
+            const shot:CameraPose={target:[b.x+b.w/2,b.y+1.8,b.z+b.d/2],yaw:Math.atan2(21,30)-b.rotation*Math.PI/2,
+              pitch:.69+.025*push,distance:halfHeight/Math.tan(Math.PI/8)};
+            blendPose(beforeFinale,shot,entry*(1-exit));
+            if(entry===1 && exit===0){
+              world.set(camera,Camera,{...orthographic({left:-halfHeight*aspect,right:halfHeight*aspect,top:halfHeight,bottom:-halfHeight,near:.1,far:1200}),...cameraStyle,bloom:1,bloomThreshold:1.3,bloomIntensity:.21}).unwrap();
+            }else{
+              world.set(camera,Camera,{...perspective({fov:Math.PI/4,aspect,near:.1,far:1200}),...cameraStyle,bloom:0}).unwrap();
+            }
+            screenBlend=finale.phase==='show'?smooth((finale.elapsed-(FINALE_SECONDS-.75))/.75)
+              :finale.phase==='departing'?1-smooth(finale.elapsed/1.1):0;
+          } else if (input) {
             const k = input.keyboard;
             const dx = Number(k.downCode('KeyD') || k.downCode('ArrowRight')) - Number(k.downCode('KeyA') || k.downCode('ArrowLeft'));
             const dz = Number(k.downCode('KeyS') || k.downCode('ArrowDown')) - Number(k.downCode('KeyW') || k.downCode('ArrowUp'));
@@ -773,7 +837,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: st
           if (!input?.mouse.button(0) || input.mouse.justReleased(0)) waitForLeftRelease = false;
           let nextDemolitionHint: string | null = null;
           let nextDestructionProgress: number | null = null;
-          if (input && !uiHover) {
+          if (input && !uiHover && !colony.finale) {
             const k = input.keyboard, ctrl = k.downCode('ControlLeft') || k.downCode('ControlRight') || k.downCode('MetaLeft') || k.downCode('MetaRight');
             const sandbox = tool.startsWith('sandbox:');
             if (sandbox && ctrl && k.justPressedCode('KeyZ')) editHistory(false);

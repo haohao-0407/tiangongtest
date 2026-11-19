@@ -1,0 +1,843 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 1,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "banquet",
+        "decor",
+        "flames",
+        "food",
+        "ground",
+        "hearth",
+        "lanterns",
+        "meteor",
+        "seating",
+        "sky",
+        "stage",
+        "title"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "campfire-plaza.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:banquet"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:decor"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:flames"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:food"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:ground"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:hearth"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:lanterns"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:meteor"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:seating"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:sky"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:stage"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:title"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:banquet": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a6f4668817c",
+          "slotName": "Plaza vertex palette",
+          "sourceKey": "material:Plaza vertex palette"
+        }
+      ]
+    },
+    "mesh:decor": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a6f4668817c",
+          "slotName": "Plaza vertex palette",
+          "sourceKey": "material:Plaza vertex palette"
+        }
+      ]
+    },
+    "mesh:flames": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a70677bc476",
+          "slotName": "Finale / white flame",
+          "sourceKey": "material:Finale / white flame"
+        },
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a717f1bf81f",
+          "slotName": "Finale / gold flame",
+          "sourceKey": "material:Finale / gold flame"
+        },
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a724a6ea022",
+          "slotName": "Finale / orange flame",
+          "sourceKey": "material:Finale / orange flame"
+        },
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a73a4306582",
+          "slotName": "Finale / red ember",
+          "sourceKey": "material:Finale / red ember"
+        }
+      ]
+    },
+    "mesh:food": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a6f4668817c",
+          "slotName": "Plaza vertex palette",
+          "sourceKey": "material:Plaza vertex palette"
+        }
+      ]
+    },
+    "mesh:ground": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a6f4668817c",
+          "slotName": "Plaza vertex palette",
+          "sourceKey": "material:Plaza vertex palette"
+        }
+      ]
+    },
+    "mesh:hearth": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a6f4668817c",
+          "slotName": "Plaza vertex palette",
+          "sourceKey": "material:Plaza vertex palette"
+        }
+      ]
+    },
+    "mesh:lanterns": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a6f4668817c",
+          "slotName": "Plaza vertex palette",
+          "sourceKey": "material:Plaza vertex palette"
+        },
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a74e784cc34",
+          "slotName": "灯芯",
+          "sourceKey": "material:灯芯"
+        }
+      ]
+    },
+    "mesh:meteor": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a75f03ec2b7",
+          "slotName": "Finale / meteor white gold",
+          "sourceKey": "material:Finale / meteor white gold"
+        },
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a76dba3a131",
+          "slotName": "Finale / meteor cyan trail",
+          "sourceKey": "material:Finale / meteor cyan trail"
+        },
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a77c5df117f",
+          "slotName": "Finale / meteor violet trail",
+          "sourceKey": "material:Finale / meteor violet trail"
+        }
+      ]
+    },
+    "mesh:seating": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a6f4668817c",
+          "slotName": "Plaza vertex palette",
+          "sourceKey": "material:Plaza vertex palette"
+        }
+      ]
+    },
+    "mesh:sky": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a6f4668817c",
+          "slotName": "Plaza vertex palette",
+          "sourceKey": "material:Plaza vertex palette"
+        },
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a78723db865",
+          "slotName": "Finale / warm star",
+          "sourceKey": "material:Finale / warm star"
+        },
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a7923b81abd",
+          "slotName": "Finale / icy star",
+          "sourceKey": "material:Finale / icy star"
+        }
+      ]
+    },
+    "mesh:stage": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a6f4668817c",
+          "slotName": "Plaza vertex palette",
+          "sourceKey": "material:Plaza vertex palette"
+        }
+      ]
+    },
+    "mesh:title": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a7a0b0f16e1",
+          "slotName": "Finale / THE END",
+          "sourceKey": "material:Finale / THE END"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1f460-8182-7e16-ab56-72fc8f08e651",
+      "kind": "mesh",
+      "name": "banquet",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:banquet"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a649f235ff1",
+      "kind": "mesh",
+      "name": "decor",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:decor"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a65fbce3e88",
+      "kind": "mesh",
+      "name": "flames",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:flames"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a66702d3a4d",
+      "kind": "mesh",
+      "name": "food",
+      "sourceIndex": 3,
+      "sourceKey": "mesh:food"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a67d1e65f22",
+      "kind": "mesh",
+      "name": "ground",
+      "sourceIndex": 4,
+      "sourceKey": "mesh:ground"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a6881d27c89",
+      "kind": "mesh",
+      "name": "hearth",
+      "sourceIndex": 5,
+      "sourceKey": "mesh:hearth"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a693d7a4da3",
+      "kind": "mesh",
+      "name": "lanterns",
+      "sourceIndex": 6,
+      "sourceKey": "mesh:lanterns"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a6ac5679e34",
+      "kind": "mesh",
+      "name": "meteor",
+      "sourceIndex": 7,
+      "sourceKey": "mesh:meteor"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a6b419c7348",
+      "kind": "mesh",
+      "name": "seating",
+      "sourceIndex": 8,
+      "sourceKey": "mesh:seating"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a6ca32e7fe3",
+      "kind": "mesh",
+      "name": "sky",
+      "sourceIndex": 9,
+      "sourceKey": "mesh:sky"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a6d1ca8f0a6",
+      "kind": "mesh",
+      "name": "stage",
+      "sourceIndex": 10,
+      "sourceKey": "mesh:stage"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a6ef7dab912",
+      "kind": "mesh",
+      "name": "title",
+      "sourceIndex": 11,
+      "sourceKey": "mesh:title"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a6f4668817c",
+      "kind": "material",
+      "name": "Plaza vertex palette",
+      "sourceIndex": 0,
+      "sourceKey": "material:Plaza vertex palette"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a70677bc476",
+      "kind": "material",
+      "name": "Finale / white flame",
+      "sourceIndex": 1,
+      "sourceKey": "material:Finale / white flame"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a717f1bf81f",
+      "kind": "material",
+      "name": "Finale / gold flame",
+      "sourceIndex": 2,
+      "sourceKey": "material:Finale / gold flame"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a724a6ea022",
+      "kind": "material",
+      "name": "Finale / orange flame",
+      "sourceIndex": 3,
+      "sourceKey": "material:Finale / orange flame"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a73a4306582",
+      "kind": "material",
+      "name": "Finale / red ember",
+      "sourceIndex": 4,
+      "sourceKey": "material:Finale / red ember"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a74e784cc34",
+      "kind": "material",
+      "name": "灯芯",
+      "sourceIndex": 5,
+      "sourceKey": "material:灯芯"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a75f03ec2b7",
+      "kind": "material",
+      "name": "Finale / meteor white gold",
+      "sourceIndex": 6,
+      "sourceKey": "material:Finale / meteor white gold"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a76dba3a131",
+      "kind": "material",
+      "name": "Finale / meteor cyan trail",
+      "sourceIndex": 7,
+      "sourceKey": "material:Finale / meteor cyan trail"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a77c5df117f",
+      "kind": "material",
+      "name": "Finale / meteor violet trail",
+      "sourceIndex": 8,
+      "sourceKey": "material:Finale / meteor violet trail"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a78723db865",
+      "kind": "material",
+      "name": "Finale / warm star",
+      "sourceIndex": 9,
+      "sourceKey": "material:Finale / warm star"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a7923b81abd",
+      "kind": "material",
+      "name": "Finale / icy star",
+      "sourceIndex": 10,
+      "sourceKey": "material:Finale / icy star"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a7a0b0f16e1",
+      "kind": "material",
+      "name": "Finale / THE END",
+      "sourceIndex": 11,
+      "sourceKey": "material:Finale / THE END"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a7bd674524d",
+      "kind": "scene",
+      "name": "Scene",
+      "sourceIndex": 0,
+      "sourceKey": "scene:Scene"
+    },
+    {
+      "guid": "01a1f460-8183-7a3b-9e64-2a7cf57304f6",
+      "kind": "scene",
+      "name": "篝火晚会 · 营地布局",
+      "sourceIndex": 1,
+      "sourceKey": "scene:篝火晚会 · 营地布局"
+    }
+  ]
+}

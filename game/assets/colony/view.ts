@@ -11,6 +11,9 @@ import type { WallPanel } from '../voxel/pcg/facade.ts';
 import { WALL_HEIGHT } from '../voxel/pcg/rules.ts';
 import { BUILDING_DEFS, buildingItemKind, isCropSeed, type BuildingKind, type CropKind, type PlayerInventorySlot } from './contracts.ts';
 import { buildingDimensions } from './buildings.ts';
+import { PLAZA_LAYERS, plazaPoint, smooth } from './plaza.ts';
+import type { FinaleView } from './contracts.ts';
+import { PointLight } from '@forgeax/engine/render';
 
 type V3=[number,number,number];
 type Rotation=[number,number,number,number];
@@ -21,7 +24,7 @@ type Part = { p: V3; s: V3; shadow?: boolean; rotation?: Rotation } &
 type RenderPawn={id:string;name:string;position:V3;health:number;facing?:number;task?:string;job?:string;bag?:readonly PlayerInventorySlot[];bagSelected?:number;carrying?:Partial<Record<string,number>>};
 type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;h?:number;rotation?:number;doorOpen?:boolean;complete:boolean;progress:number;powered?:boolean;phase?:string};
 export type ColonyRenderState={
-  colonists:RenderPawn[]; buildings:RenderBuilding[];
+  colonists:RenderPawn[]; buildings:RenderBuilding[]; finale?:FinaleView;
   zones:{id:string;kind:string;x:number;z:number;w:number;d:number}[];
   crops:{id?:string;x:number;y:number;z:number;growth:number;kind?:CropKind;planted?:boolean}[];
   items:{id:string;resource:string;amount:number;x:number;y:number;z:number;age?:number;scatter?:boolean}[];
@@ -48,9 +51,11 @@ export class ColonyView {
   private materials=new Map<string,AssetHandle<'material'>>();
   private groups=new Map<string,{signature:string;entities:EntityHandle[];transforms:number[][]}>();
   private residents = new Map<string, CharacterView>();
+  private plazaLights=new Map<string,EntityHandle[]>();
   constructor(private world:World, private assets:AssetRegistry, private terrain:()=>VoxelWorld,
     private characters:CharacterAssets, private readonly cropCards:Pick<CropCards,'update'|'hasModel'|'itemMesh'>,
-    private readonly buildingModels:ReadonlyMap<string,BuildingModel>, private readonly windowedWalls:ReadonlyMap<string,WallPanel[]>){
+    private readonly buildingModels:ReadonlyMap<string,BuildingModel>, private readonly windowedWalls:ReadonlyMap<string,WallPanel[]>,
+    private readonly plazaMeshes:ReadonlyMap<string,AssetHandle<'mesh'>>){
     this.cube=assets.create(createBoxGeometry(1,1,1).unwrap()).unwrap();
   }
   private material(key:string):AssetHandle<'material'>{
@@ -58,6 +63,10 @@ export class ColonyView {
     const cloudKeys=['cloudHigh','cloudHigh2'];
     const translucent=['blueprint','zoneFarm','zoneStock','selected'].includes(key);
     const c=cloudKeys.includes(key)?[0.93,0.95,0.97,1] as [number,number,number,number]:rgba(COLORS[key]??key);
+    if (key.startsWith('glow:')) {
+      const glow=this.assets.create(Materials.unlit(rgba(key.slice(5)))).unwrap();
+      this.materials.set(key,glow);return glow;
+    }
     if(translucent)c[3]=key==='blueprint'?.35:.28;
     const value=translucent?Materials.unlit(c,{queue:RenderQueue.Transparent,renderState:{depthWriteEnabled:false,cullMode:'none',blend:{color:{srcFactor:'src-alpha',dstFactor:'one-minus-src-alpha',operation:'add'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha',operation:'add'}}}}):Materials.standard({baseColor:c,roughness:.86,metallic:key==='steel'?.3:0});
     const handle=this.assets.create(value).unwrap();this.materials.set(key,handle);return handle;
@@ -140,6 +149,16 @@ export class ColonyView {
     const w=b.w??1,d=b.d??1,h=b.h??1,x=b.x+w/2,y=b.y,z=b.z+d/2;
     const rotation=b.rotation??0,ghost=b.id==='placement-preview';
     const parts:Part[]=[];
+    if (b.kind==='campfirePlaza') {
+      const q:Rotation=[0,Math.sin(-rotation*Math.PI/4),0,Math.cos(-rotation*Math.PI/4)];
+      for (const [layer,at] of PLAZA_LAYERS) if (ghost || b.complete || b.progress>=at) {
+        parts.push({mesh:this.plazaMeshes.get(layer)!,p:[x,y+.065*scale,z],s:[scale,scale,scale],rotation:rotation ? q : undefined,shadow:!ghost});
+      }
+      if (!b.complete && !ghost) {
+        parts.push({p:[x,y+.031,z],s:[w,.055,d],c:'blueprint',shadow:false});
+      }
+      return parts;
+    }
     const model=this.buildingModels.get(b.kind==='door'&&b.doorOpen?'doorOpen':b.kind);
     if(model && (b.complete || ghost)){
       const angle=-rotation*Math.PI/4;
@@ -189,9 +208,64 @@ export class ColonyView {
     return parts;
   }
 
+  private plazaEffects(b:RenderBuilding, clock:number, finale:FinaleView|undefined, active:Set<string>){
+    const site={x:b.x,y:b.y+.065,z:b.z,w:b.w!,d:b.d!,rotation:(b.rotation??0) as 0|1|2|3};
+    const turn=-site.rotation*Math.PI/4, rotation:Rotation=[0,Math.sin(turn),0,Math.cos(turn)];
+    const at=(x:number,y:number,z:number)=>plazaPoint(site,x,y,z);
+    const mesh=(layer:string,x=0,y=0,z=0,sy=1):Part=>({
+      mesh:this.plazaMeshes.get(layer)!,p:at(x,y,z),rotation,s:[1,sy,1],shadow:false,
+    });
+    const parts:Part[]=[mesh('flames',0,0,0,1+.12*Math.sin(clock*6)+.055*Math.sin(clock*13))];
+    const t=finale?.phase==='show' ? finale.elapsed : -1;
+    if (finale && finale.phase!=='departing' && (finale.phase==='show' || finale.elapsed>=3)) {
+      parts.push(mesh('sky'));
+      if (t>=1.4) parts.push(mesh('title',0,-3.8*(1-smooth((t-1.4)/3.6)),0));
+      if (t>=9.9 && t<11.2) {
+        const travel=(t-10.5)/1.3;
+        parts.push(mesh('meteor',-travel*24,-travel*6,0));
+      }
+    }
+    this.put('晚会布景/'+b.id,parts,active);
+    // Fixed-size emitter pools give each spark a repeatable lifetime without
+    // allocating new entities on every respawn.
+    const sparks:Part[]=[];
+    for(let i=0;i<24;i++){
+      const life=(clock*.69+i*.618034)%1, a=i*2.39996+life*.7, r=.2+life*(.28+(i%5)*.08);
+      const size=.085*(1-life*.66);
+      sparks.push({p:at(r*Math.cos(a),.9+2.6*life,r*Math.sin(a)),s:[size,size,size],
+        c:i%3?'glow:#ffb649':'glow:#ffe59a',shadow:false});
+    }
+    this.put('篝火火星/'+b.id,sparks,active);
+    if (t>=0 && t<12) {
+      const ribbons:Part[]=[];
+      const colors=['glow:#df7989','glow:#65c7ce','glow:#f1be72','glow:#ab90d6'];
+      for(let i=0;i<96;i++){
+        const age=t-(i%36)*.19, life=Math.max(0,age)%4.8/4.8;
+        const size=.12;
+        const visible=age>=0 && age-life*4.8+(i%36)*.19<7;
+        const a=i*2.39996+life*4;
+        ribbons.push({p:at(((i*47)%97)/97*23-11.5+Math.sin(a)*.46,8.4*(1-life)+.2,((i*37)%89)/89*18-9+Math.cos(a)*.36),
+          s:[visible?size:0,visible?size*1.6:0,visible?size*.64:0],c:colors[i%4]!,shadow:false});
+      }
+      this.put('晚会彩带/'+b.id,ribbons,active);
+    }
+    let lights=this.plazaLights.get(b.id);
+    if (!lights) {
+      lights=[[0,2.6,0],[-7.7,2,0],[7.7,2,0]].map(([x,y,z],i)=>this.world.spawn(
+        {component:Name,data:{value:'篝火晚会暖光/'+i}},{component:Transform,data:{pos:at(x,y,z)}},
+        {component:PointLight,data:{color:[1,.48,.2],intensity:i?12:85,range:i?6:13}}).unwrap());
+      this.plazaLights.set(b.id,lights);
+    }
+    this.world.set(lights[0]!,PointLight,{intensity:86+12*Math.sin(clock*5.7)}).unwrap();
+  }
+
   update(state:ColonyRenderState,time:number){
     const active=new Set<string>();
-    this.renderClouds(time, active);
+    if (!state.finale) this.renderClouds(time, active);
+    for (const [id,lights] of this.plazaLights) if (!state.buildings.some(b=>b.id===id && b.complete)) {
+      for (const e of lights) this.world.despawn(e).unwrap();
+      this.plazaLights.delete(id);
+    }
     const present = new Set(state.colonists.map(resident => resident.id));
     for (const [id, actor] of this.residents) if (!present.has(id)) {
       actor.dispose();
@@ -200,12 +274,15 @@ export class ColonyView {
     for (const resident of state.colonists) {
       active.add('居民/' + resident.id);
       if (resident.id !== state.controlledColonistId) {
-        this.drawResident(resident, time, resident.id === state.selectedColonistId);
+        this.drawResident(resident, time, !state.finale && resident.id === state.selectedColonistId);
       }
     }
     for(const b of state.buildPreview?[...state.buildings,state.buildPreview]:state.buildings){
       const w=b.w??1,d=b.d??1,h=b.h??1,x=b.x+w/2,y=b.y,z=b.z+d/2,rotation=b.rotation??0;
       const parts=this.buildingGeometry(b);
+      if (b.kind==='campfirePlaza' && b.complete && b.id!=='placement-preview') {
+        this.plazaEffects(b,time,state.finale?.buildingId===b.id ? state.finale : undefined,active);
+      }
       if(state.selectedBuildingId===b.id)parts.push({p:[x,y+.025,z],s:[w+.04,.045,d+.04],c:'selected',shadow:false});
       this.put(`设施/${b.id}`,parts,active,`${b.kind}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
     }
@@ -272,6 +349,8 @@ export class ColonyView {
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }
   dispose(){
+    for (const lights of this.plazaLights.values()) for (const e of lights) this.world.despawn(e).unwrap();
+    this.plazaLights.clear();
     for (const actor of this.residents.values()) actor.dispose();
     this.residents.clear();
     for (const group of this.groups.values()) for (const entity of group.entities) this.world.despawn(entity).unwrap();
@@ -290,6 +369,7 @@ export class ColonyView {
     if (control) actor.updatePlayer(resident.position, resident.facing ?? 0, control.moving && control.grounded);
     else actor.updateResident(resident.position, time, resident.facing ?? 0);
 
+    if (!control && resident.task==='围坐篝火旁') actor.update(resident.position,resident.facing??0,-1);
     const [x,y,z] = resident.position, {facing, scale} = actor;
     const cos = Math.cos(facing), sin = Math.sin(facing);
     const at = (dx:number, dy:number, dz:number):V3 =>

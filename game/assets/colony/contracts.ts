@@ -97,7 +97,7 @@ export type BuildingKind =
   | 'woodWall'|'brickWall'|'stoneDoor'|'autoDoor'|'fence'
   // 家具类——单人床沿用 bed、餐桌沿用 table
   | 'chest'|'bedroll'|'doubleBed'|'chair'|'stool'|'shelf'|'planter'|'painting'|'sculpture'|'vase'
-  | 'campfire'|'torch'|'floorLamp'|'chandelier'
+  | 'campfire'|'campfirePlaza'|'torch'|'floorLamp'|'chandelier'
   // 生产类——炉灶沿用 stove、研究台沿用 researchDesk
   | 'campStove'|'stoneCutter'|'forgery'|'fabricator'|'tailorBench'|'pickleBarrel'|'brewBarrel'|'cheesePress'
   | 'advancedResearchDesk'|'artBench'
@@ -107,6 +107,7 @@ export type BuildingCategory = 'structure'|'furniture'|'production'|'agriculture
 export type BuildingRotation = 0|1|2|3;
 export interface BuildingDefinition { id: BuildingKind; name: string; description: string; cost: Partial<Resources>; work: number; research?: string; power: number; blocking: boolean; color: [number,number,number]; footprint?:[number,number]; height?:number; category?: BuildingCategory; storageSlots?:number }
 export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
+  campfirePlaza:{id:'campfirePlaza',name:'篝火晚会广场',description:'居民整地、搭台设宴。完工当晚，全村围火相聚。',footprint:[26,22],height:4,cost:{},work:72,power:0,blocking:false,color:[.86,.52,.23],category:'core'},
   bed:{id:'bed',name:'木床',description:'为居民提供安稳睡眠。',cost:{wood:12,cloth:3},work:18,power:0,blocking:true,color:[0.60,0.42,0.23],footprint:[1,2]},
   table:{id:'table',name:'餐桌',description:'就餐与休闲，改善心情。',cost:{wood:15},work:16,power:0,blocking:true,color:[0.64,0.44,0.23]},
   stove:{id:'stove',name:'炉灶',description:'将 2 份生食制成 3 份熟食。',cost:{stone:15,steel:6},work:24,power:0,blocking:true,color:[0.40,0.43,0.44]},
@@ -223,7 +224,12 @@ export interface ItemView {id:string;resource:InventoryItem;amount:number;x:numb
 export interface JobView {id:string;type:JobType;targetId:string;x:number;y:number;z:number;progress:number;work:number;state:'queued'|'working'|'blocked';assignedTo:string|null;reserved:Partial<Resources>;label:string;recipientId?:string;deliveryPhase?:'pickup'|'deliver'}
 export interface ColonyEvent {id:string;time:number;day:number;hour:number;type:'info'|'weather'|'health'|'trade'|'research'|'arrival';text:string}
 export interface RoomView {id:number;cells:[number,number][];enclosed:boolean;comfort:number;temperature:number}
+export type FinalePhase = 'gathering' | 'show' | 'departing';
+export interface FinaleView {
+  buildingId:string; phase:FinalePhase; elapsed:number; arrived:number; guests:number;
+}
 export interface ColonySnapshot {
+  finale?:FinaleView;
   version:1;speed:number;day:number;hour:number;season:string;weather:string;temperature:number;time:number;
   resources:Resources;colonists:ColonistView[];buildings:BuildingView[];zones:ZoneView[];crops:CropView[];items:ItemView[];jobs:JobView[];rooms:RoomView[];terrainPlans:TerrainPlanView[];
   playerBag:PlayerInventorySlot[];bagSelected:number;controlledColonistId:string|null;chests:ChestView[];

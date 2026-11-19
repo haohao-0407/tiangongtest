@@ -6,13 +6,15 @@ import {
   type ColonyCommand, type ColonySnapshot, type CropSeed, type CropType, type DishType, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource, type SupplyType,
 } from '../colony/contracts.ts';
 import { buildingDimensions } from '../colony/buildings.ts';
+import { PLAZA_RECIPE } from '../colony/plaza.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
 
+const plazaIngredients=PLAZA_RECIPE.map(({name,quantity})=>quantity ? `${name} × ${quantity}` : name).join('、');
 const SAVE_KEY = 'homestead.colony.v2';
 const MANUAL_KEY = 'homestead.colony.v2.manual';
 const LEGACY_KEY = 'homestead.voxel.v1';
 type State = { seed: string; selected: number; mode: string; tool?: string; crop?: string; edits: number; undo: boolean; redo: boolean; hoverCell?: unknown; status?: string; revision?: number; colony?: ColonySnapshot;
-  manualCropEdits?: number;
+  manualCropEdits?: number; finaleFade?:number;
   worldSize?: [number, number, number]; buildHeight?: number | null; buildRotation?: number; selectedBuildingId?: string | null;
   trees?: TreeInstance[]; selectedTreeId?: string | null;
   terrain?: { target: number; size: number; shape: 'brush' | 'rectangle'; sample: boolean; minHeight: number; maxHeight: number; preview?: { cells: number; cut: number; fill: number } };
@@ -38,7 +40,7 @@ const BUILD_ICONS: Record<string, string> = {
   woodWall: '▧', brickWall: '▨', stoneDoor: '▯', autoDoor: '⊞', fence: '╫',
   // 家具
   chest: '▣', bedroll: '▭', doubleBed: '▬', chair: 'ᑎ', stool: '⊓', shelf: '▤', planter: '❦', painting: '▣', sculpture: '♜', vase: '⌂',
-  campfire: '🔥', torch: '🕯', floorLamp: '💡', chandelier: '✦',
+  campfire: '🔥', campfirePlaza: '🔥', torch: '🕯', floorLamp: '💡', chandelier: '✦',
   // 生产
   campStove: '♨', stoneCutter: '◧', forgery: '⚒', fabricator: '⚙', tailorBench: '✂', pickleBarrel: '◍', brewBarrel: '◉', cheesePress: '◎',
   advancedResearchDesk: '◈', artBench: '✎',
@@ -254,7 +256,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const b = toolButton('', def.id === 'chest' ? 'place-chest' : `build:${def.id}`, `build-${def.id}`, 'build-card'); b.disabled = locked;
       const title = make('span', 'card-title'); title.append(make('span', 'card-icon', BUILD_ICONS[def.id] ?? '▧'), make('span', '', def.name));
       const dimensions = buildingDimensions(def.id, state?.buildRotation ?? 0);
-      b.append(title, make('span', 'card-description', `${dimensions.w} × ${dimensions.d} 格 · 高 ${dimensions.h} 格 · ${def.description}`), make('span', 'card-cost', costText(def.cost)));
+      b.append(title, make('span', 'card-description', `${dimensions.w} × ${dimensions.d} 格 · 高 ${dimensions.h} 格 · ${def.description}`),
+        make('span','card-cost',def.id==='campfirePlaza'?'测试配方 · 全部材料消耗 0':costText(def.cost)));
+      if (def.id==='campfirePlaza') b.title=plazaIngredients;
       if (locked) b.append(make('span', 'card-lock', `需研究：${RESEARCH_DEFS[def.research!]?.name ?? def.research}`));
       else if (short) b.append(make('span', 'card-lock', def.id === 'chest' ? '仓库里的木材不足' : '可先规划 · 施工前等待材料'));
       grid.append(b);
@@ -1053,6 +1057,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     measurements.dataset.testid = 'building-dimensions'; details.append(measurements);
     details.append(make('p', 'panel-note', `位置 [${b.x}, ${b.y}, ${b.z}] · 点击任一部分都选中整个物体。`));
     if (b.kind === 'bed' || b.kind === 'medicalBed') details.append(note('床头与床尾共用一座设施，整体建造、使用和拆除。'));
+    if (b.kind==='campfirePlaza') details.append(note(plazaIngredients),note('测试阶段 · 以上材料消耗均为 0'));
     if (b.blockedReason) details.append(make('p', 'thought bad', b.blockedReason));
     const actions = make('div', 'building-inspector-actions');
     if (b.kind === 'door') {
@@ -1301,6 +1306,19 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     // 样式规则只认作用域内的选择器，用 body 会被校验直接拒掉。
     const viewMode = state.camera?.mode ?? 'god';
     shellEl = shadow.querySelector('.shell') as HTMLElement | null;
+    if(shellEl) {
+      shellEl.style.visibility=state.colony?.finale?'hidden':'';
+      let fade=shadow.getElementById('finale-fade');
+      if (state.colony?.finale && !fade) {
+        fade=document.createElement('div');fade.id='finale-fade';
+        fade.style.cssText='position:absolute;inset:0;background:#090817;pointer-events:none;z-index:100;transition:opacity .25s linear';
+        shellEl.after(fade);
+      }
+      if (fade) {
+        if (state.colony?.finale) fade.style.opacity=String(state.finaleFade??0);
+        else fade.remove();
+      }
+    }
     if(shellEl&&shellEl.dataset.viewMode!==viewMode){
       const switched=!!shellEl.dataset.viewMode;
       shellEl.dataset.viewMode=viewMode;
@@ -1316,6 +1334,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     get('world-size').textContent = state.worldSize ? `当前地图 ${state.worldSize[0]} × ${state.worldSize[2]} 格 · 新地图默认 250 × 250` : '新地图默认 250 × 250 格';
     const c = state.colony;
     latestStamp = JSON.stringify([state.seed, state.revision, state.edits, state.manualCropEdits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase, b.rotation, b.doorOpen]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.playerBag, c.bagSelected, c.chests, c.colonists.map(p => [p.id, p.priorities, p.schedule, p.bag,p.bagSelected]),c.controlledColonistId,state.player&&[state.player.x,state.player.y,state.player.z].map(n=>Math.round(n*10)),warehouseDeliveries(c)]]);
+    if (c?.finale) latestStamp+=`/晚会/${c.finale.phase}/${Math.floor(c.finale.elapsed/3)}`;
     updateItemAmount();
     if (c) renderColony(c); else renderPanel();
     if (c) renderHotbar();
