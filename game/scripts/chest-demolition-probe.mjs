@@ -78,8 +78,10 @@ export default async function chestDemolition(play) {
   await page.mouse.down();
   const progressing = await advance(.9);
   assert.match(progressing.status, /拆除木箱 [1-9]\d*%/);
+  assert.ok(progressing.player.destructionProgress > 0 && progressing.player.destructionProgress < 100);
   assert.ok(progressing.colony.buildings.some(building => building.id === chest.id));
   assert.ok(await hint.isVisible());
+  assert.ok(await page.locator('#destruction-progress').isVisible());
   assert.match(await hint.textContent(), /拆除木箱 [1-9]\d*%/);
   await play.screenshot('chest-demolition-progress');
   const demolished = await advance(3);

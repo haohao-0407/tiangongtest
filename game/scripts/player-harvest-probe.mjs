@@ -3,7 +3,7 @@ import { possessResident } from './select-resident.mjs';
 import { tsImport } from 'tsx/esm/api';
 
 const { VoxelWorld, BLOCK } = await tsImport('../assets/voxel/model.ts', import.meta.url);
-const { ColonySimulation } = await tsImport('../assets/colony/simulation.ts', import.meta.url);
+const { ColonySimulation, workPercent } = await tsImport('../assets/colony/simulation.ts', import.meta.url);
 const READ = 'voxel.world';
 const SAVE = 'homestead.colony.v2';
 const dot = (a, b) => a.reduce((sum, value, i) => sum + value * b[i], 0);
@@ -14,6 +14,7 @@ export default async function playerHarvest(play) {
   const { page } = play;
   const read = () => play.state(READ);
   const advance = (seconds=.25) => play.advance(seconds, {read:READ,stepSeconds:.05});
+  const meter = page.locator('#destruction-progress');
   const world = new VoxelWorld('采集验收');
   const dirt = [124,5,125], stone = [126,5,125], ore = [125,5,126];
   const seedNear = [125,5,124], seedDiagonal = [126,5,124];
@@ -22,6 +23,7 @@ export default async function playerHarvest(play) {
   world.edit([dirt,stone,ore].map(([x,y,z],i)=>({x,y,z,block:[BLOCK.Dirt,BLOCK.Stone,BLOCK.SteelOre][i]})));
   const colony = new ColonySimulation(world);
   const fixture=colony.serialize();
+  const residentId = fixture.colonists[0].id;
   fixture.colonists[0].position=[125.5,6,125.5];
   fixture.colonists[0].bag[3] = { resource: 'tomatoSeed', count: 2 };
   fixture.buildings = [];
@@ -30,7 +32,10 @@ export default async function playerHarvest(play) {
   fixture.crops = [];
   fixture.items = [];
   for(const job of Object.keys(fixture.colonists[0].priorities))fixture.colonists[0].priorities[job]=0;
-  for (const resident of fixture.colonists) resident.priorities.grow = 0;
+  for (const resident of fixture.colonists) {
+    resident.priorities.grow = 0;
+    resident.priorities.chop = 0;
+  }
   const voxel = JSON.parse(world.serialize());
   voxel.trees.push(tree);
   const data = JSON.stringify({version:2,voxel:JSON.stringify(voxel),colony:fixture});
@@ -62,14 +67,22 @@ export default async function playerHarvest(play) {
   const dig = async (cell, hint, resource, amount, seconds, screenshot) => {
     await aim([cell[0],cell[1]+1,cell[2]],hint);
     const before = await read();
-    const after = await hold(seconds);
+    await page.mouse.down();
+    if (resource === 'stone') {
+      const digging = await advance(.35);
+      assert.ok(digging.player.destructionProgress > 0 && digging.player.destructionProgress < 100);
+      assert.ok(await meter.isVisible());
+      await play.screenshot('stone-destruction-progress');
+    }
+    const after = await advance(seconds);
+    await page.mouse.up();
     assert.ok(after.revision > before.revision, '采集应移除世界里的方块');
     const loose = after.colony.items.filter(item=>item.playerOnly && item.resource===resource);
     assert.ok(loose.some(item=>item.amount===amount && item.x===cell[0] && item.z===cell[2]) || after.player.bag.some(item=>item?.resource===resource && item.count>=amount));
     await play.screenshot(screenshot);
   };
 
-  await possessResident(play,fixture.colonists[0].id);
+  await possessResident(play,residentId);
   assert.equal((await advance()).camera.mode,'character');
   await page.keyboard.press('Digit4');
   const diagonalPoint = await aim([seedDiagonal[0], seedDiagonal[1] + 1, seedDiagonal[2]], /靠近一格内再播种/);
@@ -119,8 +132,10 @@ export default async function playerHarvest(play) {
   await play.screenshot('mined-materials-in-hotbar');
 
   const aimTree = async () => {
-    await page.mouse.move(...project(await read(), [tree.x + .5, tree.y + .95, tree.z + .5]));
+    const point = project(await read(), [tree.x + .5, tree.y + .95, tree.z + .5]);
+    await page.mouse.move(...point);
     assert.deepEqual((await advance()).hoverCell, [tree.x, tree.y, tree.z]);
+    return point;
   };
   await page.keyboard.press('Digit2');
   await aimTree();
@@ -131,11 +146,38 @@ export default async function playerHarvest(play) {
   await play.keyboard.hold('KeyW', state => state.player.z >= 125.67, { read: READ });
   await advance(.35);
   await aimTree();
+  assert.equal((await read()).player.demolitionHint, '按住左键砍树');
+  await page.mouse.down();
+  const cutting = await advance(.9);
+  const activeJob = cutting.colony.jobs.find(job => job.type === 'chop' && job.targetId === tree.id);
+  assert.ok(activeJob?.progress > 0);
+  assert.equal(cutting.player.destructionProgress, workPercent(activeJob.progress, activeJob.work));
+  assert.ok(await meter.isVisible());
+  await play.screenshot('player-tree-destruction-progress');
+  await page.mouse.up();
+  const released = await advance(.25);
+  const savedPercent = released.player.destructionProgress;
+  assert.match(released.player.demolitionHint, /^按住左键继续砍树 /);
+  assert.equal(await meter.getAttribute('aria-valuenow'), String(savedPercent));
+  await play.screenshot('player-tree-progress-after-release');
+
+  await page.keyboard.press('KeyR');
+  assert.equal((await advance()).camera.mode, 'god');
+  await page.mouse.click(...await aimTree());
+  const inspector = page.locator('[data-testid="tree-inspector"]');
+  await inspector.waitFor({ state: 'visible' });
+  assert.equal(await inspector.locator('.resident-activity').textContent(), `已安排伐木 · ${savedPercent}%`);
+  await play.screenshot('god-tree-matching-progress');
+
+  await possessResident(play, residentId);
+  await aimTree();
+  assert.equal((await read()).player.destructionProgress, savedPercent);
   const chopped = await hold(4.3);
   assert.ok(!chopped.trees.some(candidate => candidate.id === tree.id));
+  assert.equal((await advance()).player.destructionProgress, null);
+  assert.equal(await meter.isVisible(), false);
   await play.screenshot('player-chopped-tree-within-reach');
 
-  const residentId=fixture.colonists[0].id;
   await page.waitForFunction(({key,count,id,treeId})=>{
     const data=JSON.parse(localStorage.getItem(key)??'null');
     const voxel=typeof data?.voxel==='string' ? JSON.parse(data.voxel) : data?.voxel;

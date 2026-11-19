@@ -44,8 +44,9 @@ export default async function cropVarieties(play) {
   inspecting.bag[3] = { resource: 'tomato', count: 2 };
   inspecting.bag[4] = { resource: 'cabbage', count: 1 };
   inspecting.bag[5] = { resource: 'friedEgg', count: 1 };
-  const displayDrops = ['wheat', 'building:bed', 'wood'].map((resource, i) => ({
-    id: `item-${fixture.nextId++}`, resource, amount: 1, x: 122 + i * 2, y: 6, z: 137,
+  inspecting.bag[6] = { resource: 'cabbageSeed', count: 2 };
+  const displayDrops = [['wheat', 122, 137], ['building:bed', 124, 137], ['wood', 126, 137], ['leekSeed', 125, 138]].map(([resource, x, z]) => ({
+    id: `item-${fixture.nextId++}`, resource, amount: 1, x, y: 6, z,
     age: 2, reservedBy: null, playerOnly: true,
   }));
   fixture.items.push(...displayDrops);
@@ -120,15 +121,16 @@ export default async function cropVarieties(play) {
     await capture('warehouse-official-dish-icons');
     await chooseCategory('seed');
     for (const seed of CROP_SEEDS) {
-      const slot = page.locator(`#workspace [data-item="${seed}"] .wh-count`);
-      assert.equal(await slot.textContent(), seed === 'cabbageSeed' ? '11' : '9');
+      const slot = page.locator(`#workspace [data-item="${seed}"]`);
+      assert.equal(await slot.locator('.wh-count').textContent(), seed === 'cabbageSeed' ? '11' : '9');
+      assert.ok(await slot.locator('img').evaluate(async image => { await image.decode(); return image.naturalWidth > 0; }), seed);
     }
     assert.equal(await page.locator('#workspace [data-item="riceSeed"]').count(), 0);
-    await capture('warehouse-seeds-after-rice-migration');
+    await capture('warehouse-official-seed-icons');
     await page.locator('#panel-close').click();
   });
 
-  await play.step('快捷栏切换手持图并观察三种掉落物旋转和漂浮', async () => {
+  await play.step('快捷栏切换手持图并观察掉落物旋转和漂浮', async () => {
     await possessResident(play, inspecting.id);
     await play.keyboard.press('KeyF');
     await play.mouse.move([.62, .4]);
@@ -159,6 +161,13 @@ export default async function cropVarieties(play) {
       return icon.naturalWidth > 0;
     }));
     await capture('hotbar-official-dish-icon');
+    await page.keyboard.press('Digit7');
+    await wait(s => s.player?.bagSelected === 6 && s.player.bag[6]?.resource === 'cabbageSeed');
+    assert.ok(await page.locator('#hotbar [data-item="cabbageSeed"] img').evaluate(async icon => {
+      await icon.decode();
+      return icon.naturalWidth > 0;
+    }));
+    await capture('held-cabbage-seeds-and-dropped-leek-seeds');
     await play.keyboard.press('KeyR');
     await wait(s => s.camera.mode === 'god');
     await viewCrops();
@@ -215,6 +224,7 @@ export default async function cropVarieties(play) {
     const restored = await wait(s => s.colony.zones.some(zone => zone.x === 128 && zone.z === 134 && zone.crop === 'tomato')
       && s.colony.items.some(item => item.resource === 'tomato'));
     assert.ok(CROP_KINDS.every(kind => restored.colony.crops.some(crop => crop.kind === kind)));
+    assert.deepEqual(restored.colony.colonists.find(person => person.id === inspecting.id)?.bag[6], inspecting.bag[6]);
     await viewCrops();
     await capture('crop-varieties-restored');
   });

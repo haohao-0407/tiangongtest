@@ -20,7 +20,17 @@
       "ui/dish-icons/pasta.png",
       "ui/dish-icons/perfectBreakfast.png",
       "ui/dish-icons/pizza.png",
-      "ui/dish-icons/salad.png"
+      "ui/dish-icons/salad.png",
+      "ui/seed-icons/cabbageSeed.png",
+      "ui/seed-icons/cornSeed.png",
+      "ui/seed-icons/leekSeed.png",
+      "ui/seed-icons/potatoSeed.png",
+      "ui/seed-icons/sugarcaneSeed.png",
+      "ui/seed-icons/tomatoSeed.png",
+      "ui/seed-icons/wheatSeed.png",
+      "ui/supply-icons/egg.png",
+      "ui/supply-icons/milk.png",
+      "ui/supply-icons/oil.png"
     ]
   },
   "subAssets": [

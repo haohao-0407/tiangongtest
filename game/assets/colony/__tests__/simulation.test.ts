@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BLOCK, VoxelWorld } from '../../voxel/model.ts';
-import { BUILDING_DEFS, ColonySimulation, CROP_KINDS, CROP_SEEDS, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES, TOOL_KINDS, needsPickaxe } from '../simulation.ts';
+import { BUILDING_DEFS, ColonySimulation, CROP_KINDS, CROP_SEEDS, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES, SUPPLY_TYPES, TOOL_KINDS, needsPickaxe } from '../simulation.ts';
 
 function setup(seed='colony-test') { const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed,size:[48,24,48],edits:[]}));return {world,sim:new ColonySimulation(world)}; }
 function run(sim:ColonySimulation,seconds:number) { for(let i=0;i<seconds*4;i++)sim.tick(.25); }
@@ -31,6 +31,31 @@ describe('peaceful colony and fixed-step persistence',()=>{
     expect(s.zones.map(z=>z.kind)).toEqual(expect.arrayContaining(['farm','stockpile']));
     expect(s.jobs.some(j=>j.type==='grow')).toBe(true);
     expect(s.colonists.every(c=>Object.values(c.priorities).every(p=>p>=0&&p<=4))).toBe(true);
+  });
+  it('supplies ten samples per new item and preserves stock and transfers on later loads', () => {
+    const { sim, world } = setup();
+    const legacySave = raw(sim);
+    for (const resource of SUPPLY_TYPES) {
+      expect(legacySave.resources[resource]).toBe(10);
+      delete legacySave.resources[resource];
+      delete legacySave.trade.stock[resource];
+      delete legacySave.trade.prices[resource];
+    }
+    const restored = new ColonySimulation(world);
+    restored.load(legacySave);
+    const supplied = restored.snapshot();
+    for (const resource of SUPPLY_TYPES) {
+      expect(supplied.resources[resource]).toBe(10);
+      expect(supplied.trade.stock[resource]).toBe(0);
+      expect(supplied.trade.prices[resource]).toBe(0);
+    }
+    const chest = { kind: 'chest', id: supplied.chests[0]!.id, slot: 0 } as const;
+    expect(restored.transferInventory({ kind: 'warehouse' }, chest, 'milk', 10).ok).toBe(true);
+    expect(restored.command({ action: 'trade', resource: 'egg', amount: 1, buy: false }).ok).toBe(false);
+    restored.load(restored.serialize());
+    expect(restored.snapshot().resources.milk).toBe(0);
+    expect(restored.snapshot().resources.egg).toBe(10);
+    expect(restored.snapshot().chests[0]!.slots[0]).toEqual({ resource: 'milk', count: 10 });
   });
   it('pauses every simulation quantity and saves an exact restartable state',()=>{
     const{sim,world}=setup();run(sim,12.5);sim.command({action:'speed',value:0});

@@ -25,7 +25,7 @@ import { ColonyView } from '../colony/view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
 import {
   BUILDING_DEFS, HAMMER, AXE, PICKAXE, buildingItemKind, isCropSeed, needsPickaxe, PLAYER_DEMOLISH_RATE, PLAYER_DEMOLISH_RATE_TOOL, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
-  PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN, CHOP_WORK,
+  PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN, CHOP_WORK, workPercent,
   CROP_DEFS, DEFAULT_CROP, RESEARCH_DEFS, isCropKind, type CropKind, type BuildingKind, type ColonyCommand, type ChestView,
 } from '../colony/contracts.ts';
 import { CropCards } from '../colony/crop-cards.ts';
@@ -75,14 +75,13 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       let buildRotation = 0, selectedBuildingId: string | null = null;
       let hoverBuildingId: string | null = null, hoverBuildingPart: BuildingPart | null = null;
       let selectedTreeId: string | null = null, hoverTreeId: string | null = null;
-      // 玩家撸树：按住左键时推进，换目标或松手就归零。
-      let playerChop: { id: string; progress: number } | null = null;
       // 玩家手工拆建筑：按住左键推进，换目标或松手归零。
       let playerDemolish: { id: string; progress: number } | null = null;
       let playerExcavation: {target:string;seconds:number} | null = null;
       let manualCropEdits = 0;
       let waitForLeftRelease = false;
       let demolitionHint: string | null = null;
+      let destructionProgress: number | null = null;
       let hoverTreePart: 'trunk' | 'branch' | 'crown' | null = null;
       let terrainTarget = 6, terrainSize = 3, terrainShape: 'brush' | 'rectangle' = 'brush', terrainSample = false;
       let buildHeight: number | null = null;
@@ -319,6 +318,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           bagSelected: colonyState.bagSelected,
           constructionId: colony.playerConstructionId,
           demolitionHint,
+          destructionProgress,
           vitals: { ...vitals, health: colony.controlledColonist?.health??0, gold: Math.floor((colonyState.resources as Record<string, number>).silver ?? 0) },
           chest: firstChestPosition(),
           nearChest: viewMode === 'character' ? nearChest()?.id ?? null : null,
@@ -611,7 +611,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                 viewMode='god';followId=null;
                 target=[...godReturn.target];yaw=godReturn.yaw;pitch=godReturn.pitch;distance=godReturn.distance;
                 status='已返回俯视 · 左键选中村民，按 R 附身';
-                demolitionHint=null;hoverKey='';
+                demolitionHint=null;destructionProgress=null;hoverKey='';
                 colonyState=colony.snapshot();
               }
               refreshState = true;
@@ -748,6 +748,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
           const releasedStroke = !!stroke && !!input && (!input.mouse.button(0) || input.mouse.justReleased(0));
           if (!input?.mouse.button(0) || input.mouse.justReleased(0)) waitForLeftRelease = false;
           let nextDemolitionHint: string | null = null;
+          let nextDestructionProgress: number | null = null;
           if (input && !uiHover) {
             const k = input.keyboard, ctrl = k.downCode('ControlLeft') || k.downCode('ControlRight') || k.downCode('MetaLeft') || k.downCode('MetaRight');
             const sandbox = tool.startsWith('sandbox:');
@@ -814,7 +815,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                   port?.postMessage({ type: 'voxel:inventory-status', message: result.message });
                   playerDemolish = null;
                 } else {
-                  nextDemolitionHint = `拆除${def.name} ${Math.min(99, Math.floor(playerDemolish.progress * 100))}%`;
+                  nextDestructionProgress = workPercent(playerDemolish.progress, 1);
+                  nextDemolitionHint = `拆除${def.name} ${nextDestructionProgress}%`;
                 }
               }
             } else {
@@ -844,7 +846,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
                   playerExcavation=null;
                   if (result.ok) { colonyState=colony.snapshot(); changed(result.message); }
                   port?.postMessage({type:'voxel:inventory-status',message:result.message});
-                } else nextDemolitionHint=`挖掘${name} ${Math.floor(100*playerExcavation.seconds/terrainRule.seconds)}%`;
+                } else {
+                  nextDestructionProgress = workPercent(playerExcavation.seconds, terrainRule.seconds);
+                  nextDemolitionHint = `挖掘${name} ${nextDestructionProgress}%`;
+                }
               }
             } else playerExcavation=null;
 
@@ -895,46 +900,45 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }
             }
 
-            // ---- 玩家撸树 ----
-            // 只在角色视角：按住左键，瞄着一格半径圆内的树干或树冠，进度满了整棵倒。
-            // 空手 6 秒、木斧 4 秒；体力扣得也不一样。没有裂纹特效，满了直接消失。
-            // 角色视角 + 瞄着射程内的树 = 正在砍，这时左键不干别的
-            const canopyChop = viewMode === 'character' && !cropHit && !!treeHit
+            // 玩家和居民推进同一条砍伐任务，松开左键后仍能继续。
+            const canopyChop = viewMode === 'character' && !cropHit && treeHit
               && withinPlayerWorkReach(playerPosition, treeHit.tree.x, treeHit.tree.z);
-            if (viewMode === 'character') {
-              const chopDt = Math.min(world.getResource(Time).delta, 0.1);
-              const inReach = canopyChop;
-              const holding = input.mouse.button(0) && !waitForLeftRelease;
-              if (inReach && holding && vitals.stamina > 0) {
-                const bagSlot = colonyState.playerBag[colonyState.bagSelected];
-                const hasAxe = bagSlot?.resource === AXE;
+            const chopHeld = canopyChop && input.mouse.button(0) && !waitForLeftRelease;
+            if (canopyChop && treeHit) {
+              const treeId = treeHit.tree.id;
+              const chopping = chopHeld && vitals.stamina > 0;
+              let progress: number | null;
+              if (chopping) {
+                const chopDt = Math.min(world.getResource(Time).delta, 0.1);
+                const hasAxe = held === AXE;
                 const seconds = hasAxe ? PLAYER_CHOP_SECONDS_AXE : PLAYER_CHOP_SECONDS;
-                const treeId = treeHit!.tree.id;
-                if (!playerChop || playerChop.id !== treeId) playerChop = { id: treeId, progress: 0 };
-                // 进度写进那条 chop job，所以和随从共用同一个进度条。
-                // 空手 6 秒、木斧 4 秒，换算成每秒工作量。
                 const chip = colony.playerChipTree(treeId, (CHOP_WORK / seconds) * chopDt);
-                playerChop.progress = chip.progress;
                 const spent = (hasAxe ? PLAYER_CHOP_STAMINA_AXE : PLAYER_CHOP_STAMINA) * (chopDt / seconds);
                 vitals.stamina = Math.max(0, vitals.stamina - spent);
+                progress = chip.felled ? null : chip.progress;
                 if (chip.felled) {
-                  status = chip.message;
-                  playerChop = null;
                   colonyState = colony.snapshot();
                   changed(chip.message);
-                } else {
-                  status = `${chip.message}${hasAxe ? ' · 木斧' : ''}`;
+                }
+              } else {
+                progress = colony.treeChopProgress(treeId);
+              }
+              if (progress !== null) {
+                nextDestructionProgress = workPercent(progress, 1);
+                const publishedJob = colonyState.jobs.find(job => job.type === 'chop' && job.targetId === treeId);
+                if (!publishedJob || workPercent(publishedJob.progress, publishedJob.work) !== nextDestructionProgress) {
+                  colonyState = colony.snapshot();
                   refreshState = true;
                 }
-              } else if (!holding || !inReach) {
-                // 松手、或者目标已经不在准星里（树被自己/随从砍掉了）——进度作废
-                playerChop = null;
               }
-            } else {
-              playerChop = null;
+              if (voxels.getTree(treeId)) {
+                const action = chopping ? '砍树' : chopHeld ? '体力不足，松开左键休息'
+                  : progress ? '按住左键继续砍树' : '按住左键砍树';
+                nextDemolitionHint = nextDestructionProgress === null ? action : `${action} ${nextDestructionProgress}%`;
+              }
             }
             // 体力回复：手上没在砍就慢慢回，站着回得更快（这里不区分，先统一）
-            if (followId && !(input.mouse.button(0) && playerChop)) {
+            if (followId && !chopHeld) {
               vitals.stamina = Math.min(vitals.maxStamina, vitals.stamina + Math.min(world.getResource(Time).delta, 0.1) * PLAYER_STAMINA_REGEN);
             }
             if(hoverBuildingId!==(objectHit?.building.id??null)||hoverBuildingPart?.role!==objectHit?.part.role)refreshState=true;
@@ -1079,7 +1083,11 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             playerExcavation = null;
             hoverCell = null; hoverBuildingId=null;hoverBuildingPart=null;hoverTreeId=null;hoverTreePart=null;hoverKey = ''; if(!stroke){terrainView.clearPreview();previewKey='';} world.set(cursor, Transform, { pos: [0, -100, 0] }).unwrap(); refreshState = true;
           }
-          if (demolitionHint !== nextDemolitionHint) { demolitionHint = nextDemolitionHint; refreshState = true; }
+          if (demolitionHint !== nextDemolitionHint || destructionProgress !== nextDestructionProgress) {
+            demolitionHint = nextDemolitionHint;
+            destructionProgress = nextDestructionProgress;
+            refreshState = true;
+          }
           // Releasing over a panel commits only the area already painted on the map.
           if (releasedStroke && stroke) finishStroke();
           if (refreshState) publish();

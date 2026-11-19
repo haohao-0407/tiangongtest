@@ -3,7 +3,7 @@ import type { EntityHandle, World } from '@forgeax/engine/ecs';
 import { MeshFilter, MeshRenderer, ShadowParticipation } from '@forgeax/engine/render';
 import { Name, Transform } from '@forgeax/engine/scene';
 import type { AssetHandle } from '@forgeax/engine/types';
-import type { CropKind, CropType, CropView } from './contracts.ts';
+import type { CropKind, CropSeed, CropType, CropView } from './contracts.ts';
 
 type RenderCrop = Pick<CropView, 'x' | 'y' | 'z' | 'growth'> & Partial<Pick<CropView, 'id' | 'kind' | 'planted'>>;
 export const FARM_SOIL_HEIGHT = 0.05;
@@ -59,6 +59,16 @@ const PRODUCE_MESHES: Record<CropType, string> = {
   wheat: '01a1efdb-b95a-728a-a024-f37ffe23b2c3',
 };
 
+const SEED_ITEM_MESHES: Record<CropSeed, string> = {
+  cabbageSeed: '01a1f3fb-2a1f-7238-8ac3-04ff43534a5d',
+  tomatoSeed: '01a1f3fb-2a1f-7238-8ac3-0500af905f71',
+  sugarcaneSeed: '01a1f3fb-2a1f-7238-8ac3-050119a3cf20',
+  leekSeed: '01a1f3fb-2a1f-7238-8ac3-0502ef916604',
+  potatoSeed: '01a1f3fb-2a1f-7238-8ac3-05034adfa5ea',
+  wheatSeed: '01a1f3fb-2a1f-7238-8ac3-05043a3917b5',
+  cornSeed: '01a1f3fb-2a1f-7238-8ac3-05053e8b8930',
+};
+
 interface Entry {
   readonly entity: EntityHandle;
   mesh: AssetHandle<'mesh'>;
@@ -78,7 +88,7 @@ export class CropCards {
     const cards = new CropCards(world, assets);
     await Promise.all([
       ...(Object.keys(CROP_MESHES) as CropKind[]).map(kind => cards.load(kind)),
-      ...Object.entries(PRODUCE_MESHES).map(([kind, guid]) => cards.loadItem(kind, guid)),
+      ...Object.entries({ ...PRODUCE_MESHES, ...SEED_ITEM_MESHES }).map(([kind, guid]) => cards.loadItem(kind, guid)),
     ]);
     return cards;
   }

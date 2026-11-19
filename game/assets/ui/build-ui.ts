@@ -2,8 +2,8 @@ import type { GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
   BUILDING_DEFS, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
-  CROP_DEFS, CROP_KINDS, CROP_TYPES, DEFAULT_CROP, DISH_TYPES, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, cropSeed, inventorySpace, isCropSeed, isResource, itemName,
-  type ColonyCommand, type ColonySnapshot, type CropSeed, type CropType, type DishType, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource,
+  CROP_DEFS, CROP_KINDS, CROP_SEEDS, CROP_TYPES, DEFAULT_CROP, DISH_TYPES, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, cropSeed, inventorySpace, isCropSeed, isResource, isSupplyType, itemName, workPercent,
+  type ColonyCommand, type ColonySnapshot, type CropSeed, type CropType, type DishType, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource, type SupplyType,
 } from '../colony/contracts.ts';
 import { buildingDimensions } from '../colony/buildings.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
@@ -28,6 +28,7 @@ type State = { seed: string; selected: number; mode: string; tool?: string; crop
     vitals?: { health: number; maxHealth: number; stamina: number; maxStamina: number; gold: number };
     nearHint?: 'chest' | 'follower' | null;
     demolitionHint?: string | null;
+    destructionProgress?: number | null;
   } | null };
 type SaveIntent = 'auto' | 'manual' | 'export';
 const MENU_NAMES: Record<string, string> = { build: '为家园添一座建筑', plan: '规划土地与资源', work: '每个人都有擅长的事', production: '让生活物资不断供', research: '一点一点，学会新方法', trade: '远道而来的朋友', logs: '家园记事', sandbox: '自由塑造这片土地', warehouse: '所有家当都在这里', follower: '一起生活的人', chest: '木箱', followerBag: '随从' };
@@ -44,8 +45,10 @@ const BUILD_ICONS: Record<string, string> = {
   // 农业
   hydroponics: '❋', sprinkler: '☂', greenhouseWall: '▢', scarecrow: 'ᛉ', compostBin: '♻',
 };
-const RESOURCE_ICONS: Record<Exclude<Resource, CropSeed | CropType | DishType>, string> = {
+const SUPPLY_TEXTURES = ['egg', 'milk', 'oil'] as const satisfies readonly SupplyType[];
+const RESOURCE_ICONS: Record<Exclude<Resource, CropSeed | CropType | DishType | typeof SUPPLY_TEXTURES[number]>, string> = {
   wood: '▰', stone: '◆', steel: '▱', dirt: '▩', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙',
+  sugar: '◈', flour: '▤', blueberryWine: '🍷', cheese: '🧀', wool: '🧶', chickenMeat: '🍗', mutton: '🍖', beef: '🥩',
 };
 const int = (value: number) => Math.floor(Number.isFinite(value) ? value : 0);
 const percent = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
@@ -58,7 +61,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const doc = host.uiRoot.ownerDocument, win = doc.defaultView!;
   const itemImages = new Map<string, string>();
   try {
-    for (const [folder, items] of [['crop-icons', CROP_TYPES], ['dish-icons', DISH_TYPES]] as const) {
+    for (const [folder, items] of [['crop-icons', CROP_TYPES], ['dish-icons', DISH_TYPES], ['seed-icons', CROP_SEEDS], ['supply-icons', SUPPLY_TEXTURES]] as const) {
       for (const item of items) {
         const icon = ui.resourceUrl(`ui/${folder}/${item}.png`);
         if (!icon.ok) throw icon.error;
@@ -378,7 +381,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (!c.trade.available) { root.append(empty('暂时没有商队停留。旅人到来时会在家园记录中通知；可以先准备银币与可出售的物资。')); return; }
     const banner = make('div', 'trade-banner'); banner.append(make('span', '', '行商正在营地停留'), make('span', '', `银币 ${int(c.resources.silver)} · 余 ${Math.max(0, Math.ceil(c.trade.leavesAt - c.time))} 秒`)); root.append(banner);
     const list = make('div', 'row-list');
-    for (const resource of RESOURCE_TYPES.filter(r => r !== 'silver')) {
+    for (const resource of RESOURCE_TYPES.filter(r => r !== 'silver' && (!isSupplyType(r) || c.trade.prices[r] > 0))) {
       const row = make('div', 'trade-row'), main = make('div', 'row-main'), price = c.trade.prices[resource];
       const sellPrice = Math.max(1, Math.floor(price * 0.6));
       main.append(make('strong', '', RESOURCE_NAMES[resource]), make('p', '', `我方 ${int(c.resources[resource])} · 商队 ${int(c.trade.stock[resource])} · 买 ${price} / 卖 ${sellPrice} 银币`));
@@ -565,7 +568,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     [HAMMER]: 'tool', [AXE]: 'tool', [PICKAXE]: 'tool',
   };
   const CATEGORY_NAMES: Record<string, string> = {
-    all: '全部', block: '方块', item: '非方块', crop: '作物', seed: '种子', dish: '料理', tool: '工具', building: '设施',
+    all: '全部', block: '方块', item: '非方块', crop: '作物', seed: '种子', dish: '料理', supply: '加工品及畜产', tool: '工具', building: '设施',
   };
 
   /**
@@ -574,7 +577,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
    * 别直接索引 RESOURCE_NAMES / CATEGORY_OF，否则加个新物品就会崩。
    */
   const nameOf = itemName;
-  const categoryOf = (resource: string) => buildingItemKind(resource) ? 'building' : isCropSeed(resource) ? 'seed' : CATEGORY_OF[resource] ?? 'item';
+  const categoryOf = (resource: string) => buildingItemKind(resource) ? 'building'
+    : isCropSeed(resource) ? 'seed' : isSupplyType(resource) ? 'supply' : CATEGORY_OF[resource] ?? 'item';
 
   function renderWarehouse(c: ColonySnapshot, root: HTMLElement) {
     const recipient=c.colonists.find(person=>person.id===c.selectedColonistId);
@@ -882,17 +886,41 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   releases.push(() => cancelInventoryDrag?.());
 
 
+  const destructionLabel = get('demolition-hint');
+  const actionHint = make('span', '');
+  actionHint.hidden = true;
+  actionHint.style.cssText = 'display:grid;gap:3px';
+  const destructionMeter = make('span');
+  destructionMeter.id = 'destruction-progress';
+  destructionMeter.hidden = true;
+  destructionMeter.setAttribute('role', 'progressbar');
+  destructionMeter.setAttribute('aria-label', '破坏进度');
+  destructionMeter.setAttribute('aria-valuemin', '0');
+  destructionMeter.setAttribute('aria-valuemax', '100');
+  destructionMeter.style.cssText = 'min-width:112px;height:5px;overflow:hidden;border-radius:3px;background:#586b57';
+  const destructionFill = make('span');
+  destructionFill.style.cssText = 'display:block;width:0;height:100%;background:#ebcc83';
+  destructionMeter.append(destructionFill);
+  destructionLabel.before(actionHint);
+  actionHint.append(destructionLabel, destructionMeter);
+  destructionLabel.hidden = false;
+
   function renderInteractHint() {
     const hint = get('interact-hint');
     const key = get('hint-key');
     const text = get('hint-text');
-    const demolition = get('demolition-hint');
     const kind = state?.player?.nearHint ?? null;
     const action = state?.player?.demolitionHint;
+    const progress = state?.player?.destructionProgress;
     hint.hidden = (!kind && !action) || !!state?.player?.constructionId;
     key.hidden = text.hidden = !kind;
-    demolition.hidden = !action;
-    demolition.textContent = action ?? '';
+    actionHint.hidden = !action;
+    destructionLabel.textContent = action ?? '';
+    destructionMeter.hidden = progress == null;
+    if (progress != null) {
+      destructionMeter.setAttribute('aria-valuenow', String(progress));
+      destructionFill.style.width = `${progress}%`;
+    }
     text.textContent = kind === 'chest' ? '打开木箱' : '打开随从背包';
   }
 
@@ -935,7 +963,6 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }
     const building = buildingItemKind(resource);
     const glyph = building ? BUILD_ICONS[building] ?? '▧'
-      : isCropSeed(resource) ? '✦'
       : TOOL_ICONS[resource] ?? RESOURCE_ICONS[resource as keyof typeof RESOURCE_ICONS] ?? '·';
     return make('span', className, glyph);
   }
@@ -1043,13 +1070,14 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const tree = state?.trees?.find(t => t.id === selectedTree);
     if (!tree) { selectedTree = null; get('inspector').hidden = true; return; }
     const job = c.jobs.find(j => j.type === 'chop' && j.targetId === tree.id);
-    const stamp = JSON.stringify(['tree', tree, job?.id, job?.progress]);
+    const progress = job ? workPercent(job.progress, job.work) : null;
+    const stamp = JSON.stringify(['tree', tree, job?.id, progress]);
     if (!force && stamp === lastInspectorStamp) return;
     lastInspectorStamp = stamp;
     get('inspector-kicker').textContent = '自然物体'; get('resident-name').textContent = '整棵树木';
     const root = clear(get('resident-content')), details = make('div', 'building-inspector');
     details.dataset.testid = 'tree-inspector'; details.dataset.treeId = tree.id;
-    details.append(make('div', 'resident-activity', job ? `已安排伐木 · ${Math.round(job.progress / Math.max(1, job.work) * 100)}%` : '生长中的树木'));
+    details.append(make('div', 'resident-activity', progress === null ? '生长中的树木' : `已安排伐木 · ${progress}%`));
     details.append(make('p', 'building-dimensions', `高 ${tree.trunkHeight + 2} 格 · 树干位置 [${tree.x}, ${tree.y}, ${tree.z}]`));
     details.append(note('树干、分枝与树冠属于同一个物体。点击任一部分都选中整棵树。'));
     const actions = make('div', 'building-inspector-actions');

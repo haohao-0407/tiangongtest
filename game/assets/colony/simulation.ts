@@ -4,8 +4,8 @@ import { treeProtectingVoxel } from '../voxel/tree-interaction.ts';
 import {buildingDimensions,buildingParts,buildingBlocksMovement} from './buildings.ts';
 import {buildingProtectingVoxel} from './interaction.ts';
 import {
-  BUILDING_DEFS, CROP_DEFS, CROP_KINDS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropSeed, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, isCropKind, isCropSeed, type CropKind,
-  CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET, PLAYER_STAMINA_REGEN, PLAYER_WORK_REACH,
+  BUILDING_DEFS, CROP_DEFS, CROP_KINDS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropSeed, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, SUPPLY_TYPES, isCropKind, isCropSeed, isSupplyType, type CropKind,
+  CHEST_SLOTS, CHEST_WOOD_COST, CHOP_WORK, HAMMER, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET, PLAYER_STAMINA_REGEN, PLAYER_WORK_REACH, workPercent,
   PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace, isToolKind, isResource, buildingItemKind, itemName,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
   type ColonySnapshot, type ColonistView, type CommandResult, type CropView,
@@ -20,6 +20,7 @@ export const DAY_SECONDS = 360;
 export const STEEL_ORE_YIELD = 12;
 const SPEEDS = [0, 1, 3, 6];
 const STARTER_SEED_PACKS = 9;
+const STARTER_SUPPLIES = 10;
 const SEED_PACK_PRICE = 2;
 const EMPTY_RESOURCES = (): Resources => Object.fromEntries(RESOURCE_TYPES.map((r) => [r, 0])) as Resources;
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
@@ -103,6 +104,7 @@ export class ColonySimulation {
         // 新导入的农作物和料理，先各给 10 个，方便试拖动和分类
         wheat: 10, corn: 10, blueberry: 10, sugarcane: 10, cabbage: 10, leek: 10, potato: 10, tomato: 10,
         friedEgg: 10, bread: 10, salad: 10, pasta: 10, pancake: 10, blueberryPie: 10, pizza: 10, perfectBreakfast: 10,
+        ...Object.fromEntries(SUPPLY_TYPES.map(resource => [resource, STARTER_SUPPLIES])),
       },
       colonists: [], buildings: [], zones: [], crops: [], items: [], jobs: [], events: [],terrainPlans:[],
       research: { active: null, progress: {}, completed: [] },
@@ -878,9 +880,16 @@ export class ColonySimulation {
     return{ok:true,message:added?`已下达 ${added} 项整树砍伐工作`:'整棵树已在砍伐队列中',...(trees.size===1?{id:trees.keys().next().value}:{} )};
   }
   private queueChop(tree:TreeInstance,label:string):boolean {
-    const existing=this.s.jobs.find(j=>j.type==='chop'&&j.targetId===tree.id);
+    const existing=this.treeChopJob(tree.id);
     if(existing){if(label==='砍伐树木')existing.label=label;return false;}
-    this.addJob('chop',tree.id,tree.x,tree.y,tree.z,16,label);return true;
+    this.addJob('chop',tree.id,tree.x,tree.y,tree.z,CHOP_WORK,label);return true;
+  }
+  private treeChopJob(treeId: string): Job | undefined {
+    return this.s.jobs.find(job => job.type === 'chop' && job.targetId === treeId);
+  }
+  treeChopProgress(treeId: string): number | null {
+    const job = this.treeChopJob(treeId);
+    return job ? job.progress / job.work : null;
   }
   private addZone(kind:'farm'|'stockpile',x:number,z:number,w:number,d:number,crop:CropKind):ZoneView {
     const zone:ZoneView={id:this.id('zone'),kind,x,y:Math.max(1,this.groundY(x,z)),z,w,d,crop};this.s.zones.push(zone);
@@ -926,6 +935,7 @@ export class ColonySimulation {
     if(!this.s.trade.available)throw new Error('目前没有商队。');
     if(!RESOURCE_TYPES.includes(c.resource as Resource)||c.resource==='silver'||!Number.isInteger(c.amount)||c.amount!<=0||c.amount!>100||typeof c.buy!=='boolean')throw new Error('交易需要有效物资、方向及 1–100 的整数数量。');
     const resource=c.resource as Resource,amount=c.amount!,price=this.s.trade.prices[resource];
+    if (isSupplyType(resource) && price === 0) throw new Error('这种物品尚未设置交易价格。');
     if(c.buy) {
       const cost=price*amount;
       if(this.s.trade.stock[resource]<amount)throw new Error('商队库存不足。');
@@ -1048,20 +1058,19 @@ export class ColonySimulation {
    *
    * 关键点：进度写进**同一条 chop job**，所以玩家和随从砍的是同一个进度条。
    * 玩家砍一半松手，随从走过去接着砍剩下的，不会重复劳动。
-   * 返回当前百分比，让 HUD 能显示。
+   * 返回 0 到 1 的工作进度，让 HUD 能显示。
    */
   playerChipTree(treeId:string,work:number):{felled:boolean;progress:number;wood:number;message:string}{
     const tree=this.world.getTree(treeId);
     if(!tree)return{felled:false,progress:0,wood:0,message:'这棵树已经不在了'};
     // 没有任务就先挂一个：随从之后看到它就会过来接手
-    let job=this.s.jobs.find(j=>j.type==='chop'&&j.targetId===treeId);
-    if(!job)job=this.addJob('chop',treeId,tree.x,tree.y,tree.z,16,'砍伐树木');
+    const job=this.treeChopJob(treeId)??this.addJob('chop',treeId,tree.x,tree.y,tree.z,CHOP_WORK,'砍伐树木');
     job.progress=Math.min(job.work,job.progress+Math.max(0,work));
     if(job.progress>=job.work){
       const result=this.playerFellTree(treeId);
       return{felled:true,progress:1,wood:result.wood,message:result.message};
     }
-    return{felled:false,progress:job.progress/job.work,wood:0,message:`砍伐中 ${Math.round(job.progress/job.work*100)}%`};
+    return{felled:false,progress:job.progress/job.work,wood:0,message:`砍伐中 ${workPercent(job.progress, job.work)}%`};
   }
 
   playerFellTree(treeId:string):{ok:boolean;wood:number;message:string}{
@@ -1733,6 +1742,7 @@ export class ColonySimulation {
     // 老存档没有作物/料理这些新资源，缺的补 0，否则面板上会显示 NaN
     if (s.resources && typeof s.resources === 'object') {
       for (const seed of CROP_SEEDS) if (!Object.hasOwn(s.resources, seed)) s.resources[seed] = STARTER_SEED_PACKS;
+      for (const resource of SUPPLY_TYPES) if (!Object.hasOwn(s.resources, resource)) s.resources[resource] = STARTER_SUPPLIES;
       for (const r of RESOURCE_TYPES) if (!Object.hasOwn(s.resources, r)) s.resources[r] = 0;
     }
     if(s.trade?.stock&&s.trade?.prices){
@@ -1740,6 +1750,10 @@ export class ColonySimulation {
       for (const seed of CROP_SEEDS) {
         s.trade.stock[seed] ??= 0;
         s.trade.prices[seed] ??= SEED_PACK_PRICE;
+      }
+      for (const resource of SUPPLY_TYPES) {
+        if (!Object.hasOwn(s.trade.stock, resource)) s.trade.stock[resource] = 0;
+        if (!Object.hasOwn(s.trade.prices, resource)) s.trade.prices[resource] = 0;
       }
     }
     const legacyBuildings=new Set<string>();

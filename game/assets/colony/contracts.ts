@@ -1,8 +1,9 @@
 export type Position = [number, number, number];
-// 农作物 8 种 + 料理 8 种，照飞书「农作物 / 料理」两张表导入。
-// 牛奶、糖、油不属于农作物（用户已剔除），它们以后作为加工产物再补。
 export const CROP_TYPES = ['wheat','corn','blueberry','sugarcane','cabbage','leek','potato','tomato'] as const;
 export const DISH_TYPES = ['friedEgg','bread','salad','pasta','pancake','blueberryPie','pizza','perfectBreakfast'] as const;
+export const SUPPLY_TYPES = ['sugar','flour','oil','blueberryWine','cheese','milk','egg','wool','chickenMeat','mutton','beef'] as const;
+export type SupplyType = typeof SUPPLY_TYPES[number];
+export const isSupplyType = (value: unknown): value is SupplyType => (SUPPLY_TYPES as readonly unknown[]).includes(value);
 export const CROP_KINDS = ['cabbage', 'tomato', 'sugarcane', 'wheat', 'potato', 'leek', 'corn'] as const;
 export type CropKind = typeof CROP_KINDS[number];
 export const DEFAULT_CROP: CropKind = 'cabbage';
@@ -13,7 +14,7 @@ export const CROP_SEEDS = CROP_KINDS.map(cropSeed);
 export const isCropSeed = (value: unknown): value is CropSeed => (CROP_SEEDS as readonly unknown[]).includes(value);
 export const RESOURCE_TYPES = [
   'wood','stone','steel','food','meal','medicine','cloth','silver','components',
-  ...CROP_TYPES, ...CROP_SEEDS, ...DISH_TYPES, 'dirt',
+  ...CROP_TYPES, ...CROP_SEEDS, ...DISH_TYPES, ...SUPPLY_TYPES, 'dirt',
 ] as const;
 export type CropType = typeof CROP_TYPES[number];
 export type DishType = typeof DISH_TYPES[number];
@@ -37,6 +38,8 @@ export const TOOL_NAMES: Record<ToolKind,string> = {hammer:'锤子',axe:'木斧'
  */
 /** 一棵树的总工作量。随从和玩家算的是同一个数。 */
 export const CHOP_WORK = 16;
+export const workPercent = (progress: number, total: number): number =>
+  Math.floor(Math.min(1, Math.max(0, progress / total)) * 100);
 export const PLAYER_CHOP_SECONDS = 6;          // 空手砍完一棵
 export const PLAYER_CHOP_SECONDS_AXE = 4;      // 木斧
 export const PLAYER_WORK_REACH = 1;            // 角色到目标格中心的水平圆形半径。
@@ -75,6 +78,8 @@ export const RESOURCE_NAMES: Record<Resource,string> = {
   cabbageSeed:'白菜种子包', tomatoSeed:'番茄种子包', sugarcaneSeed:'甘蔗种子包',
   wheatSeed:'小麦种子包', potatoSeed:'土豆种子包', leekSeed:'韭葱种子包', cornSeed:'玉米种子包',
   friedEgg:'煎鸡蛋',bread:'面包',salad:'沙拉',pasta:'意大利面',pancake:'薄煎饼',blueberryPie:'蓝莓千层酥',pizza:'披萨',perfectBreakfast:'完美早餐',
+  sugar:'糖',flour:'面粉',oil:'油',blueberryWine:'蓝莓酒',cheese:'奶酪',
+  milk:'牛奶',egg:'鸡蛋',wool:'羊毛',chickenMeat:'鸡肉',mutton:'羊肉',beef:'牛肉',
 };
 
 /** 售卖价（照飞书表）。农作物统一 10，料理按表。 */
