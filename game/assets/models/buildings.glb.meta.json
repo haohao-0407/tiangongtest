@@ -1,0 +1,2099 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "advancedResearchDesk",
+        "artBench",
+        "autoDoor",
+        "bed",
+        "bedroll",
+        "brewBarrel",
+        "brickWall",
+        "campfire",
+        "campStove",
+        "chair",
+        "cheesePress",
+        "chest",
+        "compostBin",
+        "door",
+        "doorOpen",
+        "doubleBed",
+        "fabricator",
+        "forgery",
+        "greenhouseWall",
+        "hydroponics",
+        "medicalBed",
+        "painting",
+        "pickleBarrel",
+        "planter",
+        "researchDesk",
+        "scarecrow",
+        "shelf",
+        "sprinkler",
+        "stoneCutter",
+        "stoneDoor",
+        "stool",
+        "stove",
+        "table",
+        "tailorBench",
+        "wall",
+        "woodWall"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "buildings.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:advancedResearchDesk"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:artBench"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:autoDoor"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:bed"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:bedroll"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:brewBarrel"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:brickWall"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:campfire"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:campStove"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:chair"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:cheesePress"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:chest"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:compostBin"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:door"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:doorOpen"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:doubleBed"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:fabricator"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:forgery"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:greenhouseWall"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:hydroponics"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:medicalBed"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:painting"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:pickleBarrel"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:planter"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:researchDesk"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:scarecrow"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:shelf"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:sprinkler"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:stoneCutter"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:stoneDoor"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:stool"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:stove"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:table"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:tailorBench"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:wall"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:woodWall"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:advancedResearchDesk": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:artBench": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:autoDoor": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:bed": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:bedroll": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:brewBarrel": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:brickWall": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:campStove": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:campfire": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:chair": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:cheesePress": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:chest": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:compostBin": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:door": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:doorOpen": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:doubleBed": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:fabricator": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:forgery": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:greenhouseWall": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        },
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c1ef1aba4a",
+          "slotName": "Building palette 0.72",
+          "sourceKey": "material:Building palette 0.72"
+        }
+      ]
+    },
+    "mesh:hydroponics": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:medicalBed": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:painting": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:pickleBarrel": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:planter": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:researchDesk": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:scarecrow": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:shelf": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:sprinkler": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:stoneCutter": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:stoneDoor": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:stool": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:stove": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:table": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:tailorBench": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:wall": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    },
+    "mesh:woodWall": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1f435-b92a-7d7e-8ffa-886ddfcb7e5c",
+      "kind": "mesh",
+      "name": "advancedResearchDesk",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:advancedResearchDesk"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-359dcf3c6ebc",
+      "kind": "mesh",
+      "name": "artBench",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:artBench"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-359ec8e82a8f",
+      "kind": "mesh",
+      "name": "autoDoor",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:autoDoor"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-359f0a54ee5f",
+      "kind": "mesh",
+      "name": "bed",
+      "sourceIndex": 3,
+      "sourceKey": "mesh:bed"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35a050676a47",
+      "kind": "mesh",
+      "name": "bedroll",
+      "sourceIndex": 4,
+      "sourceKey": "mesh:bedroll"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35a15b211273",
+      "kind": "mesh",
+      "name": "brewBarrel",
+      "sourceIndex": 5,
+      "sourceKey": "mesh:brewBarrel"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35a24b4e801f",
+      "kind": "mesh",
+      "name": "brickWall",
+      "sourceIndex": 6,
+      "sourceKey": "mesh:brickWall"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35a3611e6787",
+      "kind": "mesh",
+      "name": "campfire",
+      "sourceIndex": 7,
+      "sourceKey": "mesh:campfire"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35a41d2e9848",
+      "kind": "mesh",
+      "name": "campStove",
+      "sourceIndex": 8,
+      "sourceKey": "mesh:campStove"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35a537091d9c",
+      "kind": "mesh",
+      "name": "chair",
+      "sourceIndex": 9,
+      "sourceKey": "mesh:chair"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35a691dd90f1",
+      "kind": "mesh",
+      "name": "cheesePress",
+      "sourceIndex": 10,
+      "sourceKey": "mesh:cheesePress"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35a76b9f8ccd",
+      "kind": "mesh",
+      "name": "chest",
+      "sourceIndex": 11,
+      "sourceKey": "mesh:chest"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35a85f05e4af",
+      "kind": "mesh",
+      "name": "compostBin",
+      "sourceIndex": 12,
+      "sourceKey": "mesh:compostBin"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35a9c8b73b48",
+      "kind": "mesh",
+      "name": "door",
+      "sourceIndex": 13,
+      "sourceKey": "mesh:door"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35aa7bcf15e6",
+      "kind": "mesh",
+      "name": "doorOpen",
+      "sourceIndex": 14,
+      "sourceKey": "mesh:doorOpen"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35abdc566caf",
+      "kind": "mesh",
+      "name": "doubleBed",
+      "sourceIndex": 15,
+      "sourceKey": "mesh:doubleBed"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35ac1fbe645a",
+      "kind": "mesh",
+      "name": "fabricator",
+      "sourceIndex": 16,
+      "sourceKey": "mesh:fabricator"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35adb5c22cf0",
+      "kind": "mesh",
+      "name": "forgery",
+      "sourceIndex": 17,
+      "sourceKey": "mesh:forgery"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35aeb6130a25",
+      "kind": "mesh",
+      "name": "greenhouseWall",
+      "sourceIndex": 18,
+      "sourceKey": "mesh:greenhouseWall"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35af62f8d186",
+      "kind": "mesh",
+      "name": "hydroponics",
+      "sourceIndex": 19,
+      "sourceKey": "mesh:hydroponics"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35b04f078ec5",
+      "kind": "mesh",
+      "name": "medicalBed",
+      "sourceIndex": 20,
+      "sourceKey": "mesh:medicalBed"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35b1679b7d42",
+      "kind": "mesh",
+      "name": "painting",
+      "sourceIndex": 21,
+      "sourceKey": "mesh:painting"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35b223f7320c",
+      "kind": "mesh",
+      "name": "pickleBarrel",
+      "sourceIndex": 22,
+      "sourceKey": "mesh:pickleBarrel"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35b33dad1af6",
+      "kind": "mesh",
+      "name": "planter",
+      "sourceIndex": 23,
+      "sourceKey": "mesh:planter"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35b4c80fb383",
+      "kind": "mesh",
+      "name": "researchDesk",
+      "sourceIndex": 24,
+      "sourceKey": "mesh:researchDesk"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35b592d81977",
+      "kind": "mesh",
+      "name": "scarecrow",
+      "sourceIndex": 25,
+      "sourceKey": "mesh:scarecrow"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35b6bbd6cede",
+      "kind": "mesh",
+      "name": "shelf",
+      "sourceIndex": 26,
+      "sourceKey": "mesh:shelf"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35b727d04bef",
+      "kind": "mesh",
+      "name": "sprinkler",
+      "sourceIndex": 27,
+      "sourceKey": "mesh:sprinkler"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35b88395f093",
+      "kind": "mesh",
+      "name": "stoneCutter",
+      "sourceIndex": 28,
+      "sourceKey": "mesh:stoneCutter"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35b902f6d77e",
+      "kind": "mesh",
+      "name": "stoneDoor",
+      "sourceIndex": 29,
+      "sourceKey": "mesh:stoneDoor"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35ba0cc84572",
+      "kind": "mesh",
+      "name": "stool",
+      "sourceIndex": 30,
+      "sourceKey": "mesh:stool"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35bbf1684328",
+      "kind": "mesh",
+      "name": "stove",
+      "sourceIndex": 31,
+      "sourceKey": "mesh:stove"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35bc0ea84ceb",
+      "kind": "mesh",
+      "name": "table",
+      "sourceIndex": 32,
+      "sourceKey": "mesh:table"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35bd0044b2f2",
+      "kind": "mesh",
+      "name": "tailorBench",
+      "sourceIndex": 33,
+      "sourceKey": "mesh:tailorBench"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35be9be3039a",
+      "kind": "mesh",
+      "name": "wall",
+      "sourceIndex": 34,
+      "sourceKey": "mesh:wall"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35bf6eb3925a",
+      "kind": "mesh",
+      "name": "woodWall",
+      "sourceIndex": 35,
+      "sourceKey": "mesh:woodWall"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35c048473c73",
+      "kind": "material",
+      "name": "Building palette 1.0",
+      "sourceIndex": 0,
+      "sourceKey": "material:Building palette 1.0"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35c1ef1aba4a",
+      "kind": "material",
+      "name": "Building palette 0.72",
+      "sourceIndex": 1,
+      "sourceKey": "material:Building palette 0.72"
+    },
+    {
+      "guid": "01a1f435-b92b-7d09-9df1-35c2267fb118",
+      "kind": "scene",
+      "name": "Scene",
+      "sourceIndex": 0,
+      "sourceKey": "scene:Scene"
+    }
+  ]
+}

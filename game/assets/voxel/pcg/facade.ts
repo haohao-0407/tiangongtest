@@ -15,6 +15,35 @@ export interface FacadePatch {
 }
 export interface FacadePlan { layout: FacadeLayout; groups: FacadeGroup[]; patches: FacadePatch[] }
 
+export type WallPanel = { min: PcgPoint; max: PcgPoint };
+
+/** Slice the solid model around the same openings used by the frame, sill and glass. */
+export function wallPanels(wall: WallPanel, openings: readonly FacadeGroup[]): WallPanel[] {
+  let panels = [wall];
+  for (const g of openings) {
+    const along = g.axis === 'x' ? 0 : 2, across = 2 - along;
+    if (wall.min[across]! !== g.plane) continue;
+    panels = panels.flatMap(panel => {
+      const left = Math.max(panel.min[along], g.u0), right = Math.min(panel.max[along], g.u1);
+      const low = Math.max(panel.min[1], g.lower), high = Math.min(panel.max[1], g.upper);
+      if (left >= right || low >= high) return [panel];
+      const strips: WallPanel[] = [];
+      const add = (u0: number, u1: number, y0: number, y1: number) => {
+        if (u0 >= u1 || y0 >= y1) return;
+        const min: PcgPoint = [...panel.min], max: PcgPoint = [...panel.max];
+        min[along] = u0; max[along] = u1; min[1] = y0; max[1] = y1;
+        strips.push({ min, max });
+      };
+      add(panel.min[along], left, panel.min[1], panel.max[1]);
+      add(right, panel.max[along], panel.min[1], panel.max[1]);
+      add(left, right, panel.min[1], low);
+      add(left, right, high, panel.max[1]);
+      return strips;
+    });
+  }
+  return panels;
+}
+
 type Axis = FacadeWindowState['axis'];
 interface Span { lo: number; hi: number }
 interface WallColumn { x: number; z: number; spans: Span[] }

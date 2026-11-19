@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { planFacades, type FacadeLayout, type FacadeWindowState } from '../facade.ts';
+import { planFacades, wallPanels, type WallPanel, type FacadeLayout, type FacadeWindowState } from '../facade.ts';
 import type { PcgBuilding, PcgSource } from '../rules.ts';
 
 class Fixture implements PcgSource {
@@ -16,6 +16,22 @@ class Fixture implements PcgSource {
 const geometry = (g: FacadeWindowState) => [g.id, g.axis, g.plane, g.base, g.lower, g.upper, g.u0, g.u1, g.panes];
 
 describe('whole facade planning', () => {
+  it.each(['x','z'] as const)('fits stone model panels around the planned opening along %s', (axis: 'x'|'z') => {
+    const source = new Fixture(); source.wall(4, 8, 6, 2, axis);
+    const groups = planFacades(source, []).groups;
+    expect(groups.length).toBeGreaterThan(0);
+    const i = axis === 'x' ? 0 : 2;
+    for (let u = 0; u < 6; u++) {
+      const x = axis === 'x' ? 4+u : 4, z = axis === 'z' ? 8+u : 8;
+      const wall: WallPanel = {min:[x,4,z], max:[x+1,6,z+1]};
+      const panels = wallPanels(wall, groups);
+      const removed = groups.reduce((sum,g) => sum + Math.max(0, Math.min(wall.max[i],g.u1) -
+        Math.max(wall.min[i],g.u0)) * (g.upper-g.lower), 0);
+      expect(panels.reduce((sum,p) => sum+(p.max[0]-p.min[0])*(p.max[1]-p.min[1])*(p.max[2]-p.min[2]),0)).toBeCloseTo(2-removed);
+      for (const p of panels) for (const g of groups)
+        expect(p.max[i]<=g.u0 || p.min[i]>=g.u1 || p.max[1]<=g.lower || p.min[1]>=g.upper).toBe(true);
+    }
+  });
   it('designs multi-column window groups from the complete wall width on the 1/16 grid', () => {
     const six = new Fixture(); six.wall(4, 8, 6);
     const plan = planFacades(six, []);

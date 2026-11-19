@@ -22,7 +22,7 @@ import { TreeView } from './tree-view.ts';
 import { treeParts, type TreeInstance } from './trees.ts';
 import { overlaps, raycastTree, treesBlockBox, treeSupportHeight, treeProtectingVoxel } from './tree-interaction.ts';
 import { ColonySimulation, playerTerrainRule, withinPlayerWorkReach, withinTerrainReach } from '../colony/simulation.ts';
-import { ColonyView } from '../colony/view.ts';
+import { ColonyView, type BuildingModel } from '../colony/view.ts';
 import type { CharacterAssets } from '../colony/character-view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
 import {
@@ -40,7 +40,7 @@ const CAMERA_SYSTEM = 'voxel-camera';
 const EDIT_SYSTEM = 'voxel-edit';
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
-export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: string; outfits: string[]; walks: string[] }> = {
+export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: string; outfits: string[]; walks: string[]; buildings: Record<string,string> }> = {
   name: 'voxel-homestead',
   inject: ['world', 'assets', 'gameHost'],
   async apply(ctx, config) {
@@ -278,7 +278,21 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: st
       };
       for (const guid of config.outfits) characters.outfits.push(own((await assets.load(guid, 'mesh')).unwrap()));
       for (const guid of config.walks) characters.walks.push(own((await assets.load(guid, 'animation-clip')).unwrap()));
-      colonyView = new ColonyView(world, assets, () => voxels, characters, cropCards);
+      const buildingModels = new Map<string, BuildingModel>();
+      for (const [kind, guid] of Object.entries(config.buildings)) {
+        const mesh = own((await assets.load(guid, 'mesh')).unwrap());
+        const geometry = assets.read(mesh).unwrap(), bounds = geometry.aabb!;
+        // The general workbench and machining station share art but occupy different grids.
+        for (const key of kind === 'fabricator' ? [kind, 'workbench'] : [kind]) {
+          const { w, h, d } = buildingDimensions(key === 'doorOpen' ? 'door' : key as BuildingKind);
+          const horizontal = Math.min(1, w / (bounds[3]! - bounds[0]!), d / (bounds[5]! - bounds[2]!));
+          const vertical = h / (bounds[4]! - bounds[1]!);
+          const structure = ['woodWall', 'brickWall', 'greenhouseWall'].includes(key);
+          buildingModels.set(key, { mesh,
+            scale: [horizontal, structure ? vertical : Math.min(horizontal, vertical), horizontal] });
+        }
+      }
+      colonyView = new ColonyView(world, assets, () => voxels, characters, cropCards, buildingModels, pcgView.windowedWalls);
       const ambientEntity = track(world.spawn({ component: Name, data: { value: '柔和天光' } }, { component: Skylight, data: {
         equirect: sky, color: [1, 0.96, 0.86], intensity: 0.85,
       } }).unwrap());
@@ -320,6 +334,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; scene: st
         status: demolitionHint ?? status, lastEdit, buildRotation, selectedBuildingId, hoverBuildingId, hoverBuildingPart: hoverBuildingPart ? {...hoverBuildingPart} : null,
         selectedTreeId, hoverTreeId, hoverTreePart, trees: voxels.getTrees(), treeModel: treeView.read(),
         characters: colonyView.readCharacters(followId),
+        placementPreview: colonyView.readPlacementPreview(),
         camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
         player: followId ? { id:followId, name:colony.controlledColonist?.name, x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
           // 给验收用：当前是不是嵌在实心方块里

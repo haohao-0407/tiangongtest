@@ -5,8 +5,8 @@ import { Materials, MeshFilter, MeshRenderer, ShadowParticipation } from '@forge
 import { Name, Transform } from '@forgeax/engine/scene';
 import type { AssetHandle } from '@forgeax/engine/types';
 import type { VoxelWorld } from '../model.ts';
-import { buildPcgTile, PCG_TILE_SIZE, PCG_VERSION, type PcgBuilding, type PcgFeature, type PcgWalkSurface } from './rules.ts';
-import { planFacades, type FacadePlan, type FacadeGroup } from './facade.ts';
+import { buildPcgTile, PCG_TILE_SIZE, PCG_VERSION, WALL_HEIGHT, type PcgBuilding, type PcgFeature, type PcgWalkSurface } from './rules.ts';
+import { planFacades, wallPanels, type WallPanel, type FacadePlan, type FacadeGroup } from './facade.ts';
 
 type Entry = {
   entity: EntityHandle; handle: AssetHandle<'mesh'>;
@@ -25,6 +25,7 @@ export class PcgView {
   private revision = 0;
   private lastSource: VoxelWorld | null = null;
   private lastRebuilt: string[] = [];
+  readonly windowedWalls = new Map<string, WallPanel[]>();
   private facadePlan: FacadePlan = { layout: { version: 2, groups: [] }, groups: [], patches: [] };
   constructor(private world: World, private assets: AssetRegistry) {
     this.material = assets.create(Materials.standard({ baseColor: [1, 1, 1, 1], roughness: .88, metallic: 0 })).unwrap();
@@ -40,6 +41,7 @@ export class PcgView {
     this.lastSource?.setFacadeResolver(null);
     for (const key of this.entries.keys()) this.remove(key);
     this.buildingKeys.clear(); this.buildings = []; this.lastSource = null;
+    this.windowedWalls.clear();
     this.facadePlan = { layout: { version: 2, groups: [] }, groups: [], patches: [] };
   }
   update(source: VoxelWorld, buildings: readonly PcgBuilding[]) {
@@ -84,11 +86,25 @@ export class PcgView {
     }
     for (const [id, current] of nextGroups) if (!previousGroups.has(id)) markGroup(current);
     this.facadePlan = nextPlan;
+    this.windowedWalls.clear();
+    const openings = new Map<string, FacadeGroup[]>();
+    for (const group of nextPlan.groups) {
+      for (let u = Math.floor(group.u0); u < Math.ceil(group.u1); u++) {
+        const key = group.axis === 'x' ? `${u},${group.plane}` : `${group.plane},${u}`;
+        const list = openings.get(key) ?? [];
+        list.push(group); openings.set(key, list);
+      }
+    }
+    for (const b of buildings) {
+      const cuts = openings.get(`${b.x},${b.z}`);
+      if (cuts && b.complete && b.kind === 'wall')
+        this.windowedWalls.set(b.id, wallPanels({ min: [b.x,b.y,b.z], max: [b.x+1,b.y+WALL_HEIGHT,b.z+1] }, cuts));
+    }
     source.setFacadeLayout(nextPlan.layout);
     this.lastRebuilt = [...dirty];
     for (const key of dirty) {
       const [x, z] = key.split(',').map(Number);
-      const result = buildPcgTile(source, this.buildings, x!, z!, this.facadePlan);
+      const result = buildPcgTile(source, this.buildings, x!, z!, this.facadePlan, true);
       if (!result.mesh || !result.mesh.indices.length) { this.remove(key); continue; }
       const m = result.mesh;
       const mesh = createMeshBuilder({ attributes: { position: m.position, normal: m.normal, uv: m.uv, color: m.color }, indices: m.indices }).build().unwrap();

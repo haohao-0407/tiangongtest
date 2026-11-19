@@ -4,7 +4,7 @@ import { planFacades, type FacadeGroup, type FacadeLayout, type FacadePlan } fro
 export const PCG_TILE_SIZE = 8;
 export const PCG_VERSION = 2;
 const AIR = 0, BRICK = 6, ROAD = 10, WATER = 8, WOOD = 4, LEAVES = 7;
-const WALL_HEIGHT = 29 / 16;
+export const WALL_HEIGHT = 29 / 16;
 export interface PcgCell { x: number; y: number; z: number; block: number }
 export interface PcgSource {
   readonly width: number; readonly height: number; readonly depth: number;
@@ -122,10 +122,10 @@ function roadRecipe(source: PcgSource, buildings: readonly PcgBuilding[], cell: 
   }
 }
 
-function wallBodyRecipe(source: PcgSource, wall: WallColumn, recipe: Recipe): void {
+function wallBodyRecipe(source: PcgSource, wall: WallColumn, recipe: Recipe, modelBodies: boolean): void {
   const { x, y, z, height, id, colony } = wall;
   if (colony) {
-    recipe.bases.push({ min: [x, y, z], max: [x + 1, y + height, z + 1], material: 12 });
+    if (!modelBodies) recipe.bases.push({ min: [x, y, z], max: [x + 1, y + height, z + 1], material: 12 });
     feature(recipe, 'wall', id, [x, y, z], [x, y, z], [x + 1, y + height, z + 1]);
   }
   // A restrained top band is shared across a connected row and disappears when it is extended upward.
@@ -181,7 +181,7 @@ function cellsForTile(source: PcgSource, tileX: number, tileZ: number): PcgCell[
   return result;
 }
 
-export function buildPcgTile(source: PcgSource, buildings: readonly PcgBuilding[], tileX: number, tileZ: number, facadePlan?: FacadePlan): PcgTileResult {
+export function buildPcgTile(source: PcgSource, buildings: readonly PcgBuilding[], tileX: number, tileZ: number, facadePlan?: FacadePlan, modelBodies = false): PcgTileResult {
   const stats = emptyStats(), recipe: Recipe = { bases: [], cuts: [], trim: [], features: [], walkSurfaces: [] };
   const empty = (): PcgTileResult => ({ mesh: null, stats, features: [], walkSurfaces: [] });
   if (!Number.isInteger(tileX) || !Number.isInteger(tileZ) || tileX < 0 || tileZ < 0 || tileX * 8 >= source.width || tileZ * 8 >= source.depth) return empty();
@@ -205,7 +205,7 @@ export function buildPcgTile(source: PcgSource, buildings: readonly PcgBuilding[
   for (const b of buildings) if (b.complete && b.kind === 'wall' && b.x >= min[0] - 2 && b.x < max[0] + 2 && b.z >= min[2] - 2 && b.z < max[2] + 2) {
     wallColumns.set(`building:${b.id}`, { x: b.x, y: b.y, z: b.z, height: WALL_HEIGHT, id: `wall:${b.id}`, colony: true });
   }
-  for (const wall of wallColumns.values()) wallBodyRecipe(source, wall, recipe);
+  for (const wall of wallColumns.values()) wallBodyRecipe(source, wall, recipe, modelBodies);
   const plan = facadePlan ?? planFacades(source, buildings, source.getFacadeLayout?.());
   for (const group of plan.groups) {
     const bounds = group.axis === 'x'
