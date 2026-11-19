@@ -12,7 +12,15 @@
       "ui/crop-icons/potato.png",
       "ui/crop-icons/sugarcane.png",
       "ui/crop-icons/tomato.png",
-      "ui/crop-icons/wheat.png"
+      "ui/crop-icons/wheat.png",
+      "ui/dish-icons/blueberryPie.png",
+      "ui/dish-icons/bread.png",
+      "ui/dish-icons/friedEgg.png",
+      "ui/dish-icons/pancake.png",
+      "ui/dish-icons/pasta.png",
+      "ui/dish-icons/perfectBreakfast.png",
+      "ui/dish-icons/pizza.png",
+      "ui/dish-icons/salad.png"
     ]
   },
   "subAssets": [

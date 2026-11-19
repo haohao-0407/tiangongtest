@@ -3,7 +3,7 @@ import { tsImport } from 'tsx/esm/api';
 import { possessResident } from './select-resident.mjs';
 
 const { VoxelWorld } = await tsImport('../assets/voxel/model.ts', import.meta.url);
-const { ColonySimulation, CROP_KINDS, CROP_SEEDS, CROP_TYPES, JOB_TYPES } = await tsImport('../assets/colony/simulation.ts', import.meta.url);
+const { ColonySimulation, CROP_KINDS, CROP_SEEDS, CROP_TYPES, DISH_TYPES, JOB_TYPES } = await tsImport('../assets/colony/simulation.ts', import.meta.url);
 const READ = 'voxel.world';
 const SAVE = 'homestead.colony.v2';
 const GROWTH = [.22, .57, .93];
@@ -43,6 +43,7 @@ export default async function cropVarieties(play) {
   inspecting.position = [124.5, 6, 139.7];
   inspecting.bag[3] = { resource: 'tomato', count: 2 };
   inspecting.bag[4] = { resource: 'cabbage', count: 1 };
+  inspecting.bag[5] = { resource: 'friedEgg', count: 1 };
   const displayDrops = ['wheat', 'building:bed', 'wood'].map((resource, i) => ({
     id: `item-${fixture.nextId++}`, resource, amount: 1, x: 122 + i * 2, y: 6, z: 137,
     age: 2, reservedBy: null, playerOnly: true,
@@ -111,6 +112,12 @@ export default async function cropVarieties(play) {
       assert.ok(await icon.evaluate(async image => { await image.decode(); return image.naturalWidth > 0; }));
     }
     await capture('warehouse-official-crop-icons');
+    await chooseCategory('dish');
+    for (const dish of DISH_TYPES) {
+      const icon = page.locator(`#workspace [data-item="${dish}"] img`);
+      assert.ok(await icon.evaluate(async image => { await image.decode(); return image.naturalWidth > 0; }), dish);
+    }
+    await capture('warehouse-official-dish-icons');
     await chooseCategory('seed');
     for (const seed of CROP_SEEDS) {
       const slot = page.locator(`#workspace [data-item="${seed}"] .wh-count`);
@@ -145,6 +152,13 @@ export default async function cropVarieties(play) {
     const swapped = await wait(s => s.player?.bagSelected === 4 && s.player.bag[4]?.resource === 'cabbage');
     assert.ok(displayDrops.every(item => swapped.colony.items.some(saved => saved.id === item.id)));
     await capture('held-cabbage');
+    await play.keyboard.press('Digit6');
+    await wait(s => s.player?.bagSelected === 5 && s.player.bag[5]?.resource === 'friedEgg');
+    assert.ok(await page.locator('#hotbar [data-item="friedEgg"] img').evaluate(async icon => {
+      await icon.decode();
+      return icon.naturalWidth > 0;
+    }));
+    await capture('hotbar-official-dish-icon');
     await play.keyboard.press('KeyR');
     await wait(s => s.camera.mode === 'god');
     await viewCrops();

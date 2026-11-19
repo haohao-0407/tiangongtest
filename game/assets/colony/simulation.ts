@@ -4,8 +4,8 @@ import { treeProtectingVoxel } from '../voxel/tree-interaction.ts';
 import {buildingDimensions,buildingParts,buildingBlocksMovement} from './buildings.ts';
 import {buildingProtectingVoxel} from './interaction.ts';
 import {
-  BUILDING_DEFS, CROP_DEFS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropSeed, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, isCropKind, type CropKind,
-  CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET, PLAYER_STAMINA_REGEN,
+  BUILDING_DEFS, CROP_DEFS, CROP_KINDS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropSeed, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, isCropKind, isCropSeed, type CropKind,
+  CHEST_SLOTS, CHEST_WOOD_COST, HAMMER, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET, PLAYER_STAMINA_REGEN, PLAYER_WORK_REACH,
   PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace, isToolKind, isResource, buildingItemKind, itemName,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
   type ColonySnapshot, type ColonistView, type CommandResult, type CropView,
@@ -37,8 +37,10 @@ const PLAYER_TERRAIN: Partial<Record<number, { resource: Resource; amount: numbe
   [BLOCK.SteelOre]: {resource:'steel',amount:STEEL_ORE_YIELD,seconds:1.6,tool:PICKAXE},
 };
 export const playerTerrainRule = (block: number) => PLAYER_TERRAIN[block];
-export const withinTerrainReach = ([x,y,z]: Position, [bx,by,bz]: Position) =>
-  Math.hypot(x-bx-.5,y+.6-by-.5,z-bz-.5)<=PLAYER_BUILD_REACH+1;
+export const withinPlayerWorkReach = ([x, , z]: Position, cellX: number, cellZ: number): boolean =>
+  Math.hypot(x - (cellX + .5), z - (cellZ + .5)) <= PLAYER_WORK_REACH;
+export const withinTerrainReach = (position: Position, [x, y, z]: Position): boolean =>
+  withinPlayerWorkReach(position, x, z) && Math.abs(position[1] + .6 - (y + .5)) <= 1.5;
 type Personal = { kind: 'eat'|'sleep'|'relax'|'wander'|'patient'; elapsed: number; duration: number; reserved: Partial<Resources>; buildingId?:string };
 type Colonist = ColonistView & { path: Position[]; personal: Personal | null; destination: Position | null; retryAt: number };
 type TerrainPlan = TerrainPlanView & {initialWork:number};
@@ -1075,6 +1077,73 @@ export class ColonySimulation {
     return{ok:true,wood,message:`砍倒树木 · 掉落 ${wood} 木材`};
   }
 
+  playerPlantCrop(cell: Position): CommandResult {
+    const resident = this.controlled;
+    if (!resident) return { ok: false, message: '请先附身村民' };
+    const slot = resident.bag[resident.bagSelected];
+    if (!slot || !isCropSeed(slot.resource)) return { ok: false, message: '请手持种子包' };
+    if (!withinTerrainReach(resident.position, cell)) return { ok: false, message: '靠近一格内再播种' };
+
+    const [x, y, z] = cell;
+    const ground = this.world.get(x, y, z);
+    if ((ground !== BLOCK.Grass && ground !== BLOCK.Dirt) || this.getGroundHeight(x, z) !== y + 1) {
+      return { ok: false, message: '请对准裸露的草地或泥土表面' };
+    }
+    const zone = this.s.zones.find(area => x >= area.x && x < area.x + area.w && z >= area.z && z < area.z + area.d);
+    if (zone?.kind === 'stockpile' || this.buildingAt.has(this.cellKey(x, z)) || treeProtectingVoxel(this.world, x, y, z)
+      || this.s.terrainPlans.some(plan => plan.state !== 'completed' && plan.cells.some(([xx, zz]) => xx === x && zz === z))) {
+      return { ok: false, message: '此处有仓储、设施、树根或整地规划' };
+    }
+
+    const kind = CROP_KINDS.find(crop => cropSeed(crop) === slot.resource)!;
+    const { name, requires } = CROP_DEFS[kind];
+    if (requires && !this.s.research.completed.includes(requires)) {
+      return { ok: false, message: `${name}需要先完成${RESEARCH_DEFS[requires]!.name}研究` };
+    }
+    let crop = this.s.crops.find(plant => plant.x === x && plant.z === z);
+    if (crop?.planted) return { ok: false, message: '这一格已经种有作物' };
+
+    if (!zone && !crop) {
+      this.addZone('farm', x, z, 1, 1, kind);
+      crop = this.s.crops.at(-1)!;
+    }
+    if (!crop) {
+      crop = { id: this.id('crop'), kind, x, y: y + 1, z, growth: 0, planted: true };
+      this.s.crops.push(crop);
+    } else {
+      Object.assign(crop, { kind, y: y + 1, growth: 0, planted: true });
+      for (const job of [...this.s.jobs]) {
+        if (job.type === 'grow' && job.targetId === crop.id) this.removeJob(job, true);
+      }
+    }
+    resident.bag[resident.bagSelected] = slot.count > 1 ? { ...slot, count: slot.count - 1 } : null;
+    return { ok: true, message: `已播种${name}`, id: crop.id };
+  }
+
+  playerBreakCrop(id: string): CommandResult {
+    const crop = this.s.crops.find(plant => plant.id === id && plant.planted);
+    const resident = this.controlled;
+    if (!crop || !resident) return { ok: false, message: '这里没有可破坏的作物' };
+    if (!withinTerrainReach(resident.position, [crop.x, crop.y - 1, crop.z])) {
+      return { ok: false, message: '靠近一格内再破坏作物' };
+    }
+    const def = CROP_DEFS[crop.kind];
+    const yieldAmount = crop.growth >= 1 ? def.yieldCount : 0;
+    this.clearCrop(crop, yieldAmount, true);
+    for (const job of [...this.s.jobs]) {
+      if (job.targetId === crop.id && (job.type === 'grow' || job.type === 'harvest')) this.removeJob(job, true);
+    }
+    return { ok: true, message: yieldAmount ? `已收获${def.name} · 掉落 ${yieldAmount} 个产物和种子` : `已拔除${def.name} · 掉落种子` };
+  }
+
+  private clearCrop(crop: CropView, yieldAmount: number, playerOnly = false): void {
+    this.drop(CROP_DEFS[crop.kind].produce, yieldAmount, crop.x, crop.z, { playerOnly });
+    this.drop(cropSeed(crop.kind), 1, crop.x, crop.z, { playerOnly });
+    crop.planted = false;
+    crop.growth = 0;
+    this.s.metrics.harvested += yieldAmount;
+  }
+
   playerTerrainBlocked([x,y,z]: Position): boolean {
     return y<1 || !!buildingProtectingVoxel(this.s.buildings.filter(building=>building.complete),x,y,z) || !!treeProtectingVoxel(this.world,x,y,z)
       || this.s.crops.some(crop=>crop.x===x&&crop.z===z&&y>=crop.y-1);
@@ -1463,15 +1532,7 @@ export class ColonySimulation {
       crop.growth = 0;
     }else if(job.type==='harvest'){
       const crop = this.s.crops.find(p => p.id === job.targetId);
-      if (crop?.planted) {
-        const { produce, yieldCount } = CROP_DEFS[crop.kind];
-        const yieldAmount = yieldCount + Math.floor(c.skills.harvest / 5);
-        this.drop(produce, yieldAmount, crop.x, crop.z);
-        this.drop(cropSeed(crop.kind), 1, crop.x, crop.z);
-        crop.planted = false;
-        crop.growth = 0;
-        this.s.metrics.harvested += yieldAmount;
-      }
+      if (crop?.planted) this.clearCrop(crop, CROP_DEFS[crop.kind].yieldCount + Math.floor(c.skills.harvest / 5));
     }else if(job.type==='cook'){
       this.drop('meal',3,job.x,job.z);this.s.metrics.cooked+=3;
     }else if(job.type==='craft'){

@@ -2,8 +2,8 @@ import type { GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
   BUILDING_DEFS, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
-  CROP_DEFS, CROP_KINDS, CROP_TYPES, DEFAULT_CROP, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, cropSeed, inventorySpace, isCropSeed, isResource, itemName,
-  type ColonyCommand, type ColonySnapshot, type CropSeed, type CropType, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource,
+  CROP_DEFS, CROP_KINDS, CROP_TYPES, DEFAULT_CROP, DISH_TYPES, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, cropSeed, inventorySpace, isCropSeed, isResource, itemName,
+  type ColonyCommand, type ColonySnapshot, type CropSeed, type CropType, type DishType, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource,
 } from '../colony/contracts.ts';
 import { buildingDimensions } from '../colony/buildings.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
@@ -12,6 +12,7 @@ const SAVE_KEY = 'homestead.colony.v2';
 const MANUAL_KEY = 'homestead.colony.v2.manual';
 const LEGACY_KEY = 'homestead.voxel.v1';
 type State = { seed: string; selected: number; mode: string; tool?: string; crop?: string; edits: number; undo: boolean; redo: boolean; hoverCell?: unknown; status?: string; revision?: number; colony?: ColonySnapshot;
+  manualCropEdits?: number;
   worldSize?: [number, number, number]; buildHeight?: number | null; buildRotation?: number; selectedBuildingId?: string | null;
   trees?: TreeInstance[]; selectedTreeId?: string | null;
   terrain?: { target: number; size: number; shape: 'brush' | 'rectangle'; sample: boolean; minHeight: number; maxHeight: number; preview?: { cells: number; cut: number; fill: number } };
@@ -43,10 +44,8 @@ const BUILD_ICONS: Record<string, string> = {
   // 农业
   hydroponics: '❋', sprinkler: '☂', greenhouseWall: '▢', scarecrow: 'ᛉ', compostBin: '♻',
 };
-const RESOURCE_ICONS: Record<Exclude<Resource, CropSeed | CropType>, string> = {
+const RESOURCE_ICONS: Record<Exclude<Resource, CropSeed | CropType | DishType>, string> = {
   wood: '▰', stone: '◆', steel: '▱', dirt: '▩', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙',
-  // 料理
-  friedEgg: '🍳', bread: '🍞', salad: '🥗', pasta: '🍝', pancake: '🥞', blueberryPie: '🥧', pizza: '🍕', perfectBreakfast: '🍱',
 };
 const int = (value: number) => Math.floor(Number.isFinite(value) ? value : 0);
 const percent = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
@@ -57,12 +56,14 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   if (!mounted.ok) throw mounted.error;
   const ui = mounted.value, shadow = ui.host.shadowRoot!, port = host.presentationPort ?? host.port;
   const doc = host.uiRoot.ownerDocument, win = doc.defaultView!;
-  const cropIcons = new Map<string, string>();
+  const itemImages = new Map<string, string>();
   try {
-    for (const crop of CROP_TYPES) {
-      const icon = ui.resourceUrl(`ui/crop-icons/${crop}.png`);
-      if (!icon.ok) throw icon.error;
-      cropIcons.set(crop, icon.value);
+    for (const [folder, items] of [['crop-icons', CROP_TYPES], ['dish-icons', DISH_TYPES]] as const) {
+      for (const item of items) {
+        const icon = ui.resourceUrl(`ui/${folder}/${item}.png`);
+        if (!icon.ok) throw icon.error;
+        itemImages.set(item, icon.value);
+      }
     }
   } catch (error) {
     ui.dispose();
@@ -924,7 +925,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   /** 工具类物品的图标。资源表里没有它们，单独挂一份。加新工具往这里补一行。 */
   const TOOL_ICONS: Record<string, string> = { [HAMMER]: '🔨', [AXE]: '🪓', [PICKAXE]: '⛏️' };
   function itemIcon(resource: InventoryItem, className = ''): HTMLElement {
-    const url = cropIcons.get(resource);
+    const url = itemImages.get(resource);
     if (url) {
       const icon = make('img', `${className} item-sprite`.trim());
       icon.src = url;
@@ -980,7 +981,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (nameEl) {
       const cur = bag[selected];
       const toolHints: Record<string, string> = { hammer: '锤子 · 左键蓝图施工', axe: '木斧 · 左键砍树（更快）', pickaxe: '石镐 · 长按左键采石和钢矿' };
-      nameEl.textContent = cur ? (toolHints[cur.resource] ?? (buildingItemKind(cur.resource) ? `${nameOf(cur.resource)} · 左键放置 · T 旋转` : nameOf(cur.resource))) : '';
+      nameEl.textContent = cur ? (toolHints[cur.resource] ?? (buildingItemKind(cur.resource) ? `${nameOf(cur.resource)} · 左键放置 · T 旋转` : isCropSeed(cur.resource) ? `${nameOf(cur.resource)} · 右键播种` : nameOf(cur.resource))) : '';
     }
   }
 
@@ -1010,7 +1011,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   function renderBuildingInspector(c: ColonySnapshot, force = false) {
     const b = c.buildings.find(building => building.id === selectedBuilding);
     if (!b) { selectedBuilding = null; get('inspector').hidden = true; return; }
-    const stamp = JSON.stringify(['building', b]);
+    const characterView = state?.camera?.mode === 'character';
+    const stamp = JSON.stringify(['building', b, characterView]);
     if (!force && stamp === lastInspectorStamp) return;
     lastInspectorStamp = stamp;
     get('inspector-kicker').textContent = '整体设施';
@@ -1031,7 +1033,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       toggle.disabled = !b.complete; actions.append(toggle);
       details.append(note('上下两格同步开关。门口有人时不能关门。'));
     }
-    actions.append(button(b.complete ? '拆除整座设施' : '取消整座蓝图', 'building-demolish', { action: 'demolish', id: b.id }, 'danger'));
+    if (characterView && b.complete) actions.append(note('靠近一格内，按住左键拆除。'));
+    else actions.append(button(b.complete ? '拆除整座设施' : '取消整座蓝图', 'building-demolish', { action: 'demolish', id: b.id }, 'danger'));
     details.append(actions, note(b.storage ? '箱体和箱内物品会分别掉落，拾取后可重新放置空箱。'
       : b.complete ? '拆下的整座设施会掉在地上，可拾取并重新放置。' : '取消返还尚未使用的预约建材，已经完成的整地保留。'));
     root.append(details);
@@ -1282,7 +1285,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (state.seed !== lastWorldSeed) { lastWorldSeed = state.seed; get<HTMLInputElement>('seed').value = state.seed; }
     get('world-size').textContent = state.worldSize ? `当前地图 ${state.worldSize[0]} × ${state.worldSize[2]} 格 · 新地图默认 250 × 250` : '新地图默认 250 × 250 格';
     const c = state.colony;
-    latestStamp = JSON.stringify([state.seed, state.revision, state.edits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase, b.rotation, b.doorOpen]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.playerBag, c.bagSelected, c.chests, c.colonists.map(p => [p.id, p.priorities, p.schedule, p.bag,p.bagSelected]),c.controlledColonistId,state.player&&[state.player.x,state.player.y,state.player.z].map(n=>Math.round(n*10)),warehouseDeliveries(c)]]);
+    latestStamp = JSON.stringify([state.seed, state.revision, state.edits, state.manualCropEdits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase, b.rotation, b.doorOpen]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.bills, c.research.active, c.playerBag, c.bagSelected, c.chests, c.colonists.map(p => [p.id, p.priorities, p.schedule, p.bag,p.bagSelected]),c.controlledColonistId,state.player&&[state.player.x,state.player.y,state.player.z].map(n=>Math.round(n*10)),warehouseDeliveries(c)]]);
     updateItemAmount();
     if (c) renderColony(c); else renderPanel();
     if (c) renderHotbar();

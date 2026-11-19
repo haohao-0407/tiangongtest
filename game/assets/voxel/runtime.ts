@@ -20,17 +20,17 @@ import { PcgView } from './pcg/view.ts';
 import { TreeView } from './tree-view.ts';
 import { treeParts, type TreeInstance } from './trees.ts';
 import { overlaps, raycastTree, treesBlockBox, treeSupportHeight, treeProtectingVoxel } from './tree-interaction.ts';
-import { ColonySimulation, playerTerrainRule, withinTerrainReach } from '../colony/simulation.ts';
+import { ColonySimulation, playerTerrainRule, withinPlayerWorkReach, withinTerrainReach } from '../colony/simulation.ts';
 import { ColonyView } from '../colony/view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
 import {
-  BUILDING_DEFS, HAMMER, AXE, PICKAXE, buildingItemKind, needsPickaxe, PLAYER_DEMOLISH_RATE, PLAYER_DEMOLISH_RATE_TOOL, PLAYER_CHOP_REACH, PLAYER_BUILD_REACH, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
+  BUILDING_DEFS, HAMMER, AXE, PICKAXE, buildingItemKind, isCropSeed, needsPickaxe, PLAYER_DEMOLISH_RATE, PLAYER_DEMOLISH_RATE_TOOL, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
   PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN, CHOP_WORK,
   CROP_DEFS, DEFAULT_CROP, RESEARCH_DEFS, isCropKind, type CropKind, type BuildingKind, type ColonyCommand, type ChestView,
 } from '../colony/contracts.ts';
 import { CropCards } from '../colony/crop-cards.ts';
 import { buildingDimensions, type BuildingPart } from '../colony/buildings.ts';
-import { raycastBuilding, buildingProtectingVoxel } from '../colony/interaction.ts';
+import { raycastBuilding, raycastCrop, buildingProtectingVoxel } from '../colony/interaction.ts';
 
 type Point = [number, number, number];
 const PALETTE = [5, 3, 4, 6, 1, 2, 10];
@@ -80,6 +80,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       // 玩家手工拆建筑：按住左键推进，换目标或松手归零。
       let playerDemolish: { id: string; progress: number } | null = null;
       let playerExcavation: {target:string;seconds:number} | null = null;
+      let manualCropEdits = 0;
       let waitForLeftRelease = false;
       let demolitionHint: string | null = null;
       let hoverTreePart: 'trunk' | 'branch' | 'crown' | null = null;
@@ -306,7 +307,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
       const read = () => ({
         seed: voxels.seed, generatorVersion: voxels.generatorVersion, selected, mode, tool, crop, colony: colonyState, blocks: voxels.count(), nonAirCount: voxels.count(),
         minerals: { steelOre: { cells: voxels.count(BLOCK.SteelOre) } },
-        edits: voxels.editCount, editCount: voxels.editCount, revision: voxels.revision,
+        edits: voxels.editCount, editCount: voxels.editCount, revision: voxels.revision, manualCropEdits,
         undo: tool.startsWith('sandbox:') && voxels.canUndo, redo: tool.startsWith('sandbox:') && voxels.canRedo, hoverCell: hoverCell ? [...hoverCell] : null,
         status: demolitionHint ?? status, lastEdit, buildRotation, selectedBuildingId, hoverBuildingId, hoverBuildingPart: hoverBuildingPart ? {...hoverBuildingPart} : null,
         selectedTreeId, hoverTreeId, hoverTreePart, trees: voxels.getTrees(), treeModel: treeView.read(),
@@ -446,7 +447,15 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             if (c.value !== null && (!Number.isInteger(c.value) || c.value < 1 || c.value > voxels.height - 2)) throw new Error(`地基标高为 1–${voxels.height - 2}`);
             buildHeight = c.value; hoverKey = ''; previewKey = '';
           }
-          if (c.action === 'colony' && c.command && typeof c.command === 'object') execute(c.command);
+          if (c.action === 'colony' && c.command && typeof c.command === 'object') {
+            const command: ColonyCommand = c.command;
+            const directDemolition = viewMode === 'character' && command.action === 'demolish'
+              && colonyState.buildings.some(building => building.id === command.id && building.complete);
+            if (directDemolition) {
+              status = '靠近一格内再按住左键拆除';
+              refreshState = true;
+            } else execute(command);
+          }
           const chosenCrop: unknown = c.value;
           if (c.action === 'crop' && isCropKind(chosenCrop)) {
             const { name, requires } = CROP_DEFS[chosenCrop];
@@ -773,11 +782,14 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             if (hoverTreeId !== (hoverTree?.tree.id ?? null) || hoverTreePart !== (hoverTree?.part.role ?? null)) refreshState = true;
             hoverTreeId = hoverTree?.tree.id ?? null; hoverTreePart = hoverTree?.part.role ?? null;
 
-            const demolishTarget = viewMode === 'character' && !sandbox && tool !== 'level' && objectHit?.building.complete
+            const cropHit = viewMode === 'character' && tool === 'inspect' && origin && direction
+              ? raycastCrop(colonyState.crops, origin, direction, Math.min(hit?.distance ?? Infinity, treeHit?.distance ?? Infinity, buildingHit?.distance ?? Infinity))
+              : null;
+            const demolishTarget = viewMode === 'character' && !cropHit && !sandbox && tool !== 'level' && objectHit?.building.complete
               ? objectHit.building : null;
-            const inDemolishReach = demolishTarget
-              && Math.abs(demolishTarget.x + demolishTarget.w / 2 - player.x) <= PLAYER_BUILD_REACH + 2
-              && Math.abs(demolishTarget.z + demolishTarget.d / 2 - player.z) <= PLAYER_BUILD_REACH + 2;
+            const playerPosition: Point = [player.x, player.y, player.z];
+            const inDemolishReach = demolishTarget && objectHit
+              && withinPlayerWorkReach(playerPosition, objectHit.part.x, objectHit.part.z);
             if (demolishTarget && inDemolishReach) {
               const holdLeft = input.mouse.button(0) && !waitForLeftRelease;
               const def = BUILDING_DEFS[demolishTarget.kind];
@@ -810,12 +822,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
             }
             const demolishing = !!inDemolishReach && input.mouse.button(0);
 
-            const playerPosition:Point = [player.x,player.y,player.z];
             const terrainAhead = !objectHit || (!objectHit.building.complete && held===PICKAXE && hit && hit.distance<=objectHit.distance+.001);
-            const terrainHit = viewMode==='character' && tool==='inspect' && !treeHit && terrainAhead && hit && withinTerrainReach(playerPosition,hit.cell) ? hit : null;
+            const characterTerrain = viewMode === 'character' && tool === 'inspect' && !treeHit && terrainAhead ? hit : null;
+            const terrainHit = characterTerrain && withinTerrainReach(playerPosition, characterTerrain.cell) ? characterTerrain : null;
             const terrainRule = terrainHit ? playerTerrainRule(terrainHit.block) : undefined;
             const excavating = !!terrainRule && !carriedBuilding && !waitForLeftRelease && input.mouse.button(0);
-            if (terrainHit && terrainRule && !carriedBuilding) {
+            if (terrainHit && terrainRule && !carriedBuilding && !cropHit) {
               const name=BLOCKS[terrainHit.block]!.name;
               const blocked = colony.playerTerrainBlocked(terrainHit.cell);
               const equipped = held===terrainRule.tool;
@@ -836,9 +848,26 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }
             } else playerExcavation=null;
 
-            const placingCarried = carriedBuilding && !objectHit && terrainHit?.normal?.[1]===1;
+            const plantingCell: Point | null = !isCropSeed(held) ? null
+              : cropHit ? [cropHit.x, cropHit.y - 1, cropHit.z]
+              : !objectHit && characterTerrain?.normal?.[1] === 1 ? characterTerrain.cell : null;
+            if (plantingCell) {
+              nextDemolitionHint = withinTerrainReach(playerPosition, plantingCell) ? '右键播种' : '靠近一格内再播种';
+              if (input.mouse.justPressed(2)) {
+                const result = colony.playerPlantCrop(plantingCell);
+                if (result.ok) {
+                  manualCropEdits++;
+                  colonyState = colony.snapshot();
+                }
+                status = result.message;
+                refreshState = true;
+                port?.postMessage({ type: 'voxel:inventory-status', message: result.message });
+              }
+            }
+
+            const placingCarried = carriedBuilding && !cropHit && !objectHit && characterTerrain?.normal?.[1] === 1;
             if (placingCarried) {
-              const [x,,z]=terrainHit.cell;
+              const [x,,z]=characterTerrain.cell;
               nextDemolitionHint=`左键放置${BUILDING_DEFS[carriedBuilding].name} · T 旋转 ${buildRotation*90}°`;
               if (input.mouse.justPressed(0)) {
                 const result=colony.placeCarriedBuilding(x,z,buildRotation as 0|1|2|3,playerPosition);
@@ -848,13 +877,30 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }
             }
 
+            if (cropHit) {
+              const name = CROP_DEFS[cropHit.kind].name;
+              nextDemolitionHint = withinTerrainReach(playerPosition, [cropHit.x, cropHit.y - 1, cropHit.z])
+                ? `左键破坏${name}` : '靠近一格内再破坏作物';
+              if (input.mouse.justPressed(0) && !waitForLeftRelease) {
+                const result = colony.playerBreakCrop(cropHit.id);
+                if (result.ok) {
+                  manualCropEdits++;
+                  colonyState = colony.snapshot();
+                  waitForLeftRelease = true;
+                  nextDemolitionHint = null;
+                }
+                status = result.message;
+                refreshState = true;
+                port?.postMessage({ type: 'voxel:inventory-status', message: result.message });
+              }
+            }
+
             // ---- 玩家撸树 ----
-            // 只在角色视角：按住左键，瞄着 3×3 范围内的树，进度满了整棵倒。
+            // 只在角色视角：按住左键，瞄着一格半径圆内的树干或树冠，进度满了整棵倒。
             // 空手 6 秒、木斧 4 秒；体力扣得也不一样。没有裂纹特效，满了直接消失。
             // 角色视角 + 瞄着射程内的树 = 正在砍，这时左键不干别的
-            const canopyChop = viewMode === 'character' && !!treeHit
-              && Math.abs(treeHit.tree.x - Math.floor(player.x)) <= PLAYER_CHOP_REACH
-              && Math.abs(treeHit.tree.z - Math.floor(player.z)) <= PLAYER_CHOP_REACH;
+            const canopyChop = viewMode === 'character' && !cropHit && !!treeHit
+              && withinPlayerWorkReach(playerPosition, treeHit.tree.x, treeHit.tree.z);
             if (viewMode === 'character') {
               const chopDt = Math.min(world.getResource(Time).delta, 0.1);
               const inReach = canopyChop;
@@ -947,7 +993,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               }
             } else if (!stroke) { terrainView.clearPreview(); previewKey = ''; }
             if (!sandbox && !canopyChop && !demolishing && tool !== 'level' && (hit||objectTarget||treeTarget)
-              && (input.mouse.justPressed(0) && !placingCarried && !excavating || input.mouse.justPressed(2))) {
+              && (input.mouse.justPressed(0) && !cropHit && !placingCarried && !excavating || input.mouse.justPressed(2) && !plantingCell)) {
               const x=treeTarget?treeHit.tree.x:objectTarget?objectHit.part.x:hit!.cell[0],z=treeTarget?treeHit.tree.z:objectTarget?objectHit.part.z:hit!.cell[2];
               if(input.mouse.justPressed(2)){
                 // 角色视角下贴着东西右键 = 打开它。箱子优先于随从（箱子不会自己走开）。
@@ -974,7 +1020,9 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string }> = {
               else if(['chop','mine','harvest'].includes(tool))execute({action:'designate',kind:tool,x,z,...(tool==='chop'&&treeHit?{id:treeHit.tree.id}: {})});
               else if(tool==='demolish'||tool==='interact'){
                 const b=objectHit?.building;
-                if(b){selectedBuildingId=b.id;selectedTreeId=null;execute({action:tool==='demolish'?'demolish':'toggleDoor',id:b.id});}
+                if (tool === 'demolish' && viewMode === 'character') {
+                  status = '靠近一格内再按住左键拆除'; refreshState = true;
+                } else if(b){selectedBuildingId=b.id;selectedTreeId=null;execute({action:tool==='demolish'?'demolish':'toggleDoor',id:b.id});}
                 else{status=tool==='demolish'?'此处没有可拆除的设施':'点击门的任一部分开关门';refreshState=true;}
               }
               else if(tool==='cancel'){

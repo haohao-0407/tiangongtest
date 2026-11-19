@@ -124,14 +124,22 @@ export default async function chestDemolition(play) {
   const bed = placed.colony.buildings.find(building => building.kind === 'bed');
   await aim(placed,bed);
   await page.mouse.down();
+  assert.ok((await advance(.9)).colony.buildings.some(building => building.id === bed.id));
+  await page.mouse.up();
+  assert.equal((await advance(.1)).player.demolitionHint, null);
+  await play.screenshot('bed-outside-work-reach');
+
+  await play.keyboard.hold('KeyS', state => state.player.z <= bed.z - .3, { read: READ });
+  await play.keyboard.hold('KeyA', state => state.player.x >= bed.x + .1, { read: READ });
+  await play.keyboard.hold('KeyW', state => state.player.z >= bed.z - .33, { read: READ });
+  await aim(await advance(.65), bed);
+  assert.equal((await read()).player.demolitionHint, '按住左键拆除木床');
+  await page.mouse.down();
   const bedRemoved=await advance(7.5);
   await page.mouse.up();
   assert.equal(bedRemoved.colony.buildings.some(building=>building.id===bed.id),false);
-  assert.equal(bedRemoved.colony.items.filter(item=>item.resource==='building:bed').length,1);
-  await play.screenshot('miniature-bed-drop');
-  await page.keyboard.down('KeyA');
-  await advance(.72);
-  await page.keyboard.up('KeyA');
+  assert.ok(bedRemoved.colony.items.some(item=>item.resource==='building:bed')
+    || bedRemoved.player.bag.some(item=>item?.resource==='building:bed'));
   const carriedBed=await advance(.65);
   assert.ok(carriedBed.player.bag.some(item=>item?.resource==='building:bed'));
   await play.screenshot('bed-item-in-hotbar');
