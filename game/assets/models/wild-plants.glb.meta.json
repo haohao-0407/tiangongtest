@@ -1,0 +1,434 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "blueberry",
+        "daisy",
+        "foxtail",
+        "hairgrass",
+        "lavender",
+        "marigold",
+        "poppy"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "wild-plants.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:blueberry"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:daisy"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:foxtail"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:hairgrass"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:lavender"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:marigold"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:poppy"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:blueberry": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f465-2322-7ec2-a223-b18af3ec44df",
+          "slotName": "Wild plant palette",
+          "sourceKey": "material:Wild plant palette"
+        }
+      ]
+    },
+    "mesh:daisy": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f465-2322-7ec2-a223-b18af3ec44df",
+          "slotName": "Wild plant palette",
+          "sourceKey": "material:Wild plant palette"
+        }
+      ]
+    },
+    "mesh:foxtail": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f465-2322-7ec2-a223-b18af3ec44df",
+          "slotName": "Wild plant palette",
+          "sourceKey": "material:Wild plant palette"
+        }
+      ]
+    },
+    "mesh:hairgrass": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f465-2322-7ec2-a223-b18af3ec44df",
+          "slotName": "Wild plant palette",
+          "sourceKey": "material:Wild plant palette"
+        }
+      ]
+    },
+    "mesh:lavender": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f465-2322-7ec2-a223-b18af3ec44df",
+          "slotName": "Wild plant palette",
+          "sourceKey": "material:Wild plant palette"
+        }
+      ]
+    },
+    "mesh:marigold": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f465-2322-7ec2-a223-b18af3ec44df",
+          "slotName": "Wild plant palette",
+          "sourceKey": "material:Wild plant palette"
+        }
+      ]
+    },
+    "mesh:poppy": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1f465-2322-7ec2-a223-b18af3ec44df",
+          "slotName": "Wild plant palette",
+          "sourceKey": "material:Wild plant palette"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1f465-2321-710e-9cb0-02306ccdce49",
+      "kind": "mesh",
+      "name": "blueberry",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:blueberry"
+    },
+    {
+      "guid": "01a1f465-2322-7ec2-a223-b1848d4452dd",
+      "kind": "mesh",
+      "name": "daisy",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:daisy"
+    },
+    {
+      "guid": "01a1f465-2322-7ec2-a223-b185b574aeb8",
+      "kind": "mesh",
+      "name": "foxtail",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:foxtail"
+    },
+    {
+      "guid": "01a1f465-2322-7ec2-a223-b186c862083a",
+      "kind": "mesh",
+      "name": "hairgrass",
+      "sourceIndex": 3,
+      "sourceKey": "mesh:hairgrass"
+    },
+    {
+      "guid": "01a1f465-2322-7ec2-a223-b18783c69e28",
+      "kind": "mesh",
+      "name": "lavender",
+      "sourceIndex": 4,
+      "sourceKey": "mesh:lavender"
+    },
+    {
+      "guid": "01a1f465-2322-7ec2-a223-b18871916487",
+      "kind": "mesh",
+      "name": "marigold",
+      "sourceIndex": 5,
+      "sourceKey": "mesh:marigold"
+    },
+    {
+      "guid": "01a1f465-2322-7ec2-a223-b18981cde216",
+      "kind": "mesh",
+      "name": "poppy",
+      "sourceIndex": 6,
+      "sourceKey": "mesh:poppy"
+    },
+    {
+      "guid": "01a1f465-2322-7ec2-a223-b18af3ec44df",
+      "kind": "material",
+      "name": "Wild plant palette",
+      "sourceIndex": 0,
+      "sourceKey": "material:Wild plant palette"
+    },
+    {
+      "guid": "01a1f465-2322-7ec2-a223-b18b735c847e",
+      "kind": "scene",
+      "name": "Scene",
+      "sourceIndex": 0,
+      "sourceKey": "scene:Scene"
+    }
+  ]
+}

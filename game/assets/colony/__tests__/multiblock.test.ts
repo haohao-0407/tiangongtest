@@ -15,6 +15,16 @@ function fixture(kind:BuildingKind,x:number,z:number,rotation:BuildingRotation=0
   return{id,kind,x,y:6,z,rotation,...buildingDimensions(kind,rotation),...(kind==='door'?{doorOpen:false}:{}),complete:true,phase:'completed',progress:1,reserved:{},powered:false,comfort:0,roomId:null};
 }
 function install(sim:ColonySimulation,...buildings:BuildingView[]){const save:any=sim.serialize();save.buildings.push(...buildings);sim.load(save);}
+function enableBuilder(sim: ColonySimulation) {
+  const worker = sim.snapshot().colonists[1]!;
+  sim.command({action:'priority', colonistId:worker.id, job:'construct', value:1});
+  return worker.id;
+}
+function finishDemolition(sim: ColonySimulation, id: string) {
+  enableBuilder(sim);
+  for (let i = 0; i < 480 && sim.snapshot().buildings.some(b => b.id === id); i++) sim.tick(.25);
+  expect(sim.snapshot().buildings.some(b => b.id === id)).toBe(false);
+}
 
 describe('one authoritative object across rotated three-dimensional cells',()=>{
   it.each([0,1,2,3] as const)('places both bed halves at rotation %i and cancels the whole blueprint from either half',(rotation:BuildingRotation)=>{
@@ -43,6 +53,9 @@ describe('one authoritative object across rotated three-dimensional cells',()=>{
     expect(sim.blocksVoxel(part.x,part.y,part.z)).toBe(true);
     expect(sim.command({action:'demolish',x:part.x,y:part.y,z:part.z}).ok).toBe(true);
     expect(sim.command({action:'demolish',...part}).ok).toBe(false);
+    expect(sim.snapshot().items).toHaveLength(0);
+    expect(sim.blocksVoxel(part.x,part.y,part.z)).toBe(true);
+    finishDemolition(sim,object.id);
     expect(sim.snapshot().resources).toEqual(before);
     expect(sim.snapshot().items).toEqual([expect.objectContaining({resource:`building:${kind}`,amount:1})]);
     expect(sim.snapshot().buildings).toHaveLength(0);for(const p of buildingParts(object))expect(sim.blocksVoxel(p.x,p.y,p.z)).toBe(false);
@@ -83,6 +96,33 @@ describe('one authoritative object across rotated three-dimensional cells',()=>{
 });
 
 describe('door state owns collision, routing and shelter',()=>{
+  it('keeps an unreachable order and resumes at the site when a route opens',()=>{
+    const {sim}=setup();
+    const gate=Array.from({length:48},(_,z)=>fixture(z===20?'door':'wall',24,z));
+    const bed=fixture('bed',27,20);install(sim,...gate,bed);
+    const order=sim.command({action:'demolish',id:bed.id});
+    enableBuilder(sim);sim.tick(20);
+    const job=()=>sim.snapshot().jobs.find(j=>j.id===order.id);
+    expect(job()).toMatchObject({state:'blocked',progress:0,assignedTo:null});
+    sim.command({action:'toggleDoor',id:gate[20]!.id});
+    for(let i=0;i<40&&!job()?.assignedTo;i++)sim.tick(.25);
+    expect(job()).toMatchObject({state:'working',progress:0});
+    for(let i=0;i<160&&job()?.progress===0;i++)sim.tick(.25);
+    expect(job()!.progress).toBeGreaterThan(0);
+    const worker=sim.snapshot().colonists.find(p=>p.id===job()!.assignedTo)!;
+    const [x,,z]=worker.position.map(Math.floor);
+    expect(x===bed.x ? [bed.z-1,bed.z+bed.d].includes(z!) : Math.abs(x!-bed.x)===1&&z!>=bed.z&&z!<bed.z+bed.d).toBe(true);
+    const saved=sim.serialize(), started=job();
+    sim.load(saved);expect(job()).toEqual(started);
+    expect(sim.command({action:'cancel',id:order.id}).ok).toBe(true);
+    sim.tick(40);expect(job()).toBeUndefined();
+    expect(sim.buildingAtVoxel(bed.x,bed.y,bed.z)?.id).toBe(bed.id);
+    expect(sim.snapshot().items).toHaveLength(0);
+    sim.load(saved);
+    sim.tick(40);
+    expect(job()).toBeUndefined();
+    expect(sim.snapshot().items).toEqual([expect.objectContaining({resource:'building:bed',amount:1})]);
+  });
   it('toggles either door half and changes both collision cells immediately',()=>{
     const{sim}=setup(),door=fixture('door',20,20,2);install(sim,door);
     expect(sim.blocksVoxel(20,6,20)).toBe(true);expect(sim.blocksVoxel(20,7,20)).toBe(true);
@@ -119,23 +159,32 @@ describe('door state owns collision, routing and shelter',()=>{
     const door=walls.find(b=>b.kind==='door')!;expect(sim.snapshot().rooms).toHaveLength(1);
     sim.command({action:'toggleDoor',id:door.id});expect(sim.snapshot().rooms).toHaveLength(0);
     sim.command({action:'toggleDoor',id:door.id});expect(sim.snapshot().rooms).toHaveLength(1);
-    sim.command({action:'demolish',x:door.x,y:door.y+1,z:door.z});expect(sim.snapshot().rooms).toHaveLength(0);
+    sim.command({action:'demolish',x:door.x,y:door.y+1,z:door.z});expect(sim.snapshot().rooms).toHaveLength(1);
+    finishDemolition(sim,door.id);expect(sim.snapshot().rooms).toHaveLength(0);
   });
   it('releases a sleeping resident when their entire bed is demolished',()=>{
     const{sim}=setup(),bed=fixture('bed',20,20);install(sim,bed);
-    const save:any=sim.serialize(),c=save.colonists[0];c.position=[19.5,6,20.5];c.destination=[20.5,6,20.5];c.personal={kind:'sleep',elapsed:3,duration:20,reserved:{},buildingId:bed.id};sim.load(save);
-    sim.command({action:'demolish',x:20,y:6,z:21});expect((sim.serialize() as any).colonists[0]).toMatchObject({personal:null,destination:null,path:[]});
+    const save:any=sim.serialize(),c=save.colonists[0];c.rest=25;c.position=[19.5,6,20.5];c.destination=[20.5,6,20.5];c.personal={kind:'sleep',elapsed:3,duration:20,reserved:{},buildingId:bed.id};sim.load(save);
+    sim.command({action:'demolish',x:20,y:6,z:21});expect((sim.serialize() as any).colonists[0].personal.buildingId).toBe(bed.id);
+    finishDemolition(sim,bed.id);expect((sim.serialize() as any).colonists[0]).toMatchObject({personal:null,destination:null,path:[]});
   });
-  it('recomputes electricity immediately when facilities are demolished while paused',()=>{
+  it('preserves power while a demolition is paused and recomputes it at completion',()=>{
     const{sim}=setup();install(sim,fixture('solar',20,20),fixture('battery',22,20),fixture('cooler',24,20));
     const save:any=sim.serialize();save.time=180;sim.load(save);sim.tick(.25);sim.command({action:'speed',value:0});
     const before=sim.snapshot();expect(before.power.stored).toBeGreaterThan(0);expect(before.power.coldStorage).toBe(true);
     expect(sim.command({action:'demolish',id:'fixture-solar-20-20'}).ok).toBe(true);
-    expect(sim.snapshot().power).toMatchObject({generation:0,coldStorage:true,stored:before.power.stored});
+    sim.tick(30);
+    expect(sim.snapshot().time).toBe(before.time);
+    expect(sim.snapshot().power).toEqual(before.power);
+    sim.command({action:'speed',value:1});
+    finishDemolition(sim,'fixture-solar-20-20');
+    expect(sim.snapshot().power).toMatchObject({generation:0,coldStorage:true});
     expect(sim.command({action:'demolish',id:'fixture-battery-22-20'}).ok).toBe(true);
+    finishDemolition(sim,'fixture-battery-22-20');
     expect(sim.snapshot().power).toMatchObject({generation:0,demand:45,capacity:0,stored:0,supplied:0,coldStorage:false});
     expect(sim.command({action:'demolish',id:'fixture-cooler-24-20'}).ok).toBe(true);
-    expect(sim.snapshot().power).toMatchObject({demand:0,supplied:0,coldStorage:false});expect(sim.snapshot().time).toBe(before.time);
+    finishDemolition(sim,'fixture-cooler-24-20');
+    expect(sim.snapshot().power).toMatchObject({demand:0,supplied:0,coldStorage:false});
   });
 });
 

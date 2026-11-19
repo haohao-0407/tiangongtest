@@ -9,7 +9,7 @@ import {
   PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace, isToolKind, isResource, buildingItemKind, itemName,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
   type ColonySnapshot, type ColonistView, type CommandResult, type CropView,
-  type ItemView, type InventoryItem, type JobType, type JobView, type Position, type Resource,
+  type ItemView, type InventoryItem, type JobType, type JobView, type OrderType, type Position, type Resource,
   type Resources, type RoomView, type Schedule, type ZoneView, type TerrainPlanView,
   type ChestView, type InventoryLocation, type PlayerInventorySlot,
 } from './contracts.ts';
@@ -26,6 +26,7 @@ const EMPTY_RESOURCES = (): Resources => Object.fromEntries(RESOURCE_TYPES.map((
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
 const horizontalDistance = (a: Position, b: Position) => Math.hypot(a[0] - b[0], a[2] - b[2]);
+const workSkill = (type: OrderType): JobType => type === 'demolish' ? 'construct' : type;
 const emptySlots = (size: number): PlayerInventorySlot[] => Array.from({ length: size }, () => null);
 const validSlot = (index: unknown, slots: readonly PlayerInventorySlot[]): index is number =>
   typeof index === 'number' && Number.isInteger(index) && index >= 0 && index < slots.length;
@@ -470,7 +471,8 @@ export class ColonySimulation {
         if (c.action === 'priority') {
           if (!JOB_TYPES.includes(c.job as JobType) || !Number.isInteger(c.value) || Number(c.value) < 0 || Number(c.value) > 4) throw new Error('优先级为 0（禁用）到 4（最低）。');
           person.priorities[c.job as JobType] = Number(c.value);
-          if (person.jobId && this.s.jobs.find((j) => j.id === person.jobId)?.type === c.job) this.releasePerson(person);
+          const current = person.jobId && this.s.jobs.find(j => j.id === person.jobId);
+          if (current && workSkill(current.type) === c.job) this.releasePerson(person);
         } else {
           if (typeof c.value !== 'string' || !(c.value in SCHEDULES)) throw new Error('未知作息。');
           person.schedule = c.value as Schedule; this.releasePerson(person);
@@ -479,7 +481,7 @@ export class ColonySimulation {
       }
       if (c.action === 'build') return this.orderBuild(c.kind, c.x, c.z,c.target,c.rotation);
       if (c.action === 'toggleDoor') return this.toggleDoor(c);
-      if (c.action === 'demolish') return this.demolish(c);
+      if (c.action === 'demolish') return this.orderDemolition(c);
       if (c.action === 'place-chest') return this.placeChest(c.x, c.z);
       if (c.action === 'level') return this.orderLevel(c);
       if (c.action === 'designate') return this.designate(c);
@@ -629,10 +631,19 @@ export class ColonySimulation {
     b.doorOpen=!b.doorOpen;this.invalidateBuildingNavigation();this.refreshJobs();
     return{ok:true,id:b.id,message:b.doorOpen?'门已打开，可以通行':'门已关闭，阻挡通行并围合房间'};
   }
-  private demolish(c:ColonyCommand):CommandResult {
-    const b=this.commandBuilding(c);if(!b.complete)return this.cancel(b.id);
+  private orderDemolition(command: ColonyCommand): CommandResult {
+    const b = this.commandBuilding(command);
+    if (!b.complete) return this.cancel(b.id);
+    if (this.s.jobs.some(job => job.type === 'demolish' && job.targetId === b.id)) {
+      return { ok: false, message: '这座设施已有拆除任务' };
+    }
+    const def = BUILDING_DEFS[b.kind];
+    const job = this.addJob('demolish', b.id, b.x, b.y, b.z, def.work, `拆除${def.name}`);
+    return { ok: true, id: job.id, message: `已发布${def.name}拆除任务，${this.s.speed ? '等待居民施工' : '恢复模拟后居民会前往施工'}` };
+  }
+  private dismantleBuilding(b: BuildingView, order: Job, worker: Colonist): void {
     for(const p of this.s.colonists)if(p.personal?.buildingId===b.id||p.personal&&p.destination?.[0]===b.x+.5&&p.destination?.[2]===b.z+.5)this.releasePerson(p);
-    for(const job of [...this.s.jobs])if(job.targetId===b.id||job.type==='research'&&job.x===b.x&&job.z===b.z)this.removeJob(job,true);
+    for(const job of [...this.s.jobs])if(job!==order&&(job.targetId===b.id||job.type==='research'&&job.x===b.x&&job.z===b.z))this.removeJob(job,true);
     this.s.buildings.splice(this.s.buildings.indexOf(b),1);
     for(const plan of this.s.terrainPlans)if(plan.buildingId===b.id)this.terrainCellViews.delete(plan.id);
     this.s.terrainPlans=this.s.terrainPlans.filter(p=>p.buildingId!==b.id);this.terrainIndexDirty=true;
@@ -645,9 +656,8 @@ export class ColonySimulation {
     }
     this.drop(`building:${b.kind}`,1,b.x,b.z,{playerOnly:true});
     this.updatePower(0);this.refreshJobs();
-    const message = `${BUILDING_DEFS[b.kind].name}已拆，${spilled ? `箱体和 ${spilled} 件物品掉在地上` : '可在地上拾取'}`;
+    const message = `${worker.name}拆除了${BUILDING_DEFS[b.kind].name}，${spilled ? `箱体和 ${spilled} 件物品掉在地上` : '可在地上拾取'}`;
     this.event('info',message);
-    return{ok:true,id:b.id,message};
   }
   private terrainBlocker(x:number,z:number,target:number):string|undefined {
     const building=this.buildingAt.get(this.cellKey(x,z));
@@ -771,12 +781,15 @@ export class ColonySimulation {
     options.sort((a,b)=>horizontalDistance(a,from)-horizontalDistance(b,from));
     for(const p of options){const route=this.path(from,p);if(route!==null)return route;}return null;
   }
+  private canWorkBeside(b: BuildingView, x: number, z: number): boolean {
+    const dx = Math.max(b.x - x, 0, x - (b.x + b.w - 1));
+    const dz = Math.max(b.z - z, 0, z - (b.z + b.d - 1));
+    return dx + dz === 1 && this.walkable(x, z) && Math.abs(this.groundY(x, z) - b.y) <= 1.01;
+  }
   private buildingStand(b:BuildingView,from:Position):Position[]|null {
     const options:Position[]=[];
     for(let z=b.z-1;z<=b.z+b.d;z++)for(let x=b.x-1;x<=b.x+b.w;x++){
-      if(x>=b.x&&x<b.x+b.w&&z>=b.z&&z<b.z+b.d)continue;
-      if((x<b.x||x>=b.x+b.w)&&(z<b.z||z>=b.z+b.d))continue;
-      if(this.walkable(x,z)&&Math.abs(this.groundY(x,z)-b.y)<=1.01)options.push([x+.5,this.groundY(x,z),z+.5]);
+      if(this.canWorkBeside(b,x,z))options.push([x+.5,this.groundY(x,z),z+.5]);
     }
     options.sort((a,b)=>horizontalDistance(a,from)-horizontalDistance(b,from));for(const p of options){const route=this.path(from,p);if(route!==null)return route;}return null;
   }
@@ -1193,7 +1206,7 @@ export class ColonySimulation {
       +this.s.colonists.reduce((sum,c)=>sum+(c.carrying[resource]??0),0);
   }
 
-  private addJob(type:JobType,targetId:string,x:number,y:number,z:number,work:number,label:string):Job {
+  private addJob(type:OrderType,targetId:string,x:number,y:number,z:number,work:number,label:string):Job {
     const job:Job={id:this.id('job'),type,targetId,x,y,z,progress:0,work,state:'queued',assignedTo:null,reserved:{},label,phase:type==='haul'?'pickup':'work',amount:0,destination:null};
     this.s.jobs.push(job);return job;
   }
@@ -1327,6 +1340,14 @@ export class ColonySimulation {
     if (job.targetId === PLAYER_DELIVERY_TARGET) { this.deliverToPlayer(c, job, dt); return; }
     c.task=c.path.length?`前往${job.label}`:job.label;
     if(!this.move(c,dt)||c.jobId!==job.id)return;
+    if (job.type === 'demolish') {
+      const b = this.buildingAtVoxel(job.x, job.y, job.z);
+      if (!b?.complete || b.id !== job.targetId) { this.removeJob(job, false); return; }
+      if (!this.canWorkBeside(b, Math.floor(c.position[0]), Math.floor(c.position[2]))) {
+        this.releasePerson(c);
+        return;
+      }
+    }
     if(job.type==='chop'&&(Math.abs(Math.floor(c.position[0])-job.x)+Math.abs(Math.floor(c.position[2])-job.z)!==1||Math.abs(c.position[1]-job.y)>1.01)){
       this.releasePerson(c);c.retryAt=this.s.time+1;return;
     }
@@ -1344,7 +1365,7 @@ export class ColonySimulation {
         if(!this.route(c,patient.position,true)){this.releasePerson(c);c.retryAt=this.s.time+3;}return;
       }
     }
-    const rate=this.workRate(c, job.type);
+    const rate=this.workRate(c, workSkill(job.type));
     job.progress+=dt*rate;
     // 砍树额外耗体力：按进度比例扣，所以一棵树固定掉 COLONIST_CHOP_STAMINA，
     // 不管他技能高低砍得快还是慢。
@@ -1398,10 +1419,10 @@ export class ColonySimulation {
     }
   }
   private assign(c:Colonist):boolean {
-    const options=this.s.jobs.filter(j=>!j.assignedTo&&c.priorities[j.type]>0&&(j.type!=='doctor'||j.targetId!==c.id)
+    const options=this.s.jobs.filter(j=>!j.assignedTo&&c.priorities[workSkill(j.type)]>0&&(j.type!=='doctor'||j.targetId!==c.id)
       &&(j.type!=='construct'||j.targetId!==this.playerBuild?.id)&&j.recipientId!==c.id)
       .sort((a,b)=>Number(b.targetId===PLAYER_DELIVERY_TARGET)-Number(a.targetId===PLAYER_DELIVERY_TARGET)
-        ||c.priorities[a.type]-c.priorities[b.type]||Math.hypot(a.x-c.position[0],a.z-c.position[2])-Math.hypot(b.x-c.position[0],b.z-c.position[2]));
+        ||c.priorities[workSkill(a.type)]-c.priorities[workSkill(b.type)]||Math.hypot(a.x-c.position[0],a.z-c.position[2])-Math.hypot(b.x-c.position[0],b.z-c.position[2]));
     for(const job of options){
       if (job.targetId === PLAYER_DELIVERY_TARGET) {
         const source = this.storageTarget(c.position);
@@ -1440,9 +1461,9 @@ export class ColonySimulation {
         const path=this.terraformStand(work,c.position);
         if(path===null){job.state='blocked';job.label='整地受阻：等待可达的同层施工位置';for(const id of work.plans){const plan=this.s.terrainPlans.find(p=>p.id===id);if(plan){plan.state='blocked';plan.blockedReason='等待可达的相邻施工位置';}}continue;}
         c.path=path;c.destination=target;
-      }else if(job.type==='construct'){
+      }else if(job.type==='construct'||job.type==='demolish'){
         const b=this.s.buildings.find(b=>b.id===job.targetId),path=b?this.buildingStand(b,c.position):null;
-        if(path===null){job.state='blocked';if(b)b.blockedReason='等待可达的建筑施工位置';continue;}c.path=path;c.destination=target;
+        if(path===null){job.state='blocked';if(b&&job.type==='construct')b.blockedReason='等待可达的建筑施工位置';continue;}c.path=path;c.destination=target;
       }else if(job.type==='chop'){
         const tree=this.world.getTree(job.targetId),path=tree?this.treeStand(tree,c.position):null;
         if(path===null){job.state='blocked';continue;}c.path=path;c.destination=target;
@@ -1523,6 +1544,10 @@ export class ColonySimulation {
   private finish(c:Colonist,job:Job):void {
     if(job.type==='terraform'){
       if(this.finishTerraform(c,job)){c.skills.terraform=Math.min(20,c.skills.terraform+.05);this.s.metrics.jobsCompleted++;c.task='完成一层填挖';}return;
+    }else if(job.type==='demolish'){
+      const b = this.buildingAtVoxel(job.x, job.y, job.z);
+      if (!b?.complete || b.id !== job.targetId) { this.removeJob(job, false); return; }
+      this.dismantleBuilding(b, job, c);
     }else if(job.type==='grow'){
       const crop = this.s.crops.find(p => p.id === job.targetId);
       if (!crop || crop.planted) { this.removeJob(job, true); return; }
@@ -1572,7 +1597,8 @@ export class ColonySimulation {
         if(block===BLOCK.Stone&&this.world.generatorVersion<3)this.drop('steel',2,job.x,job.z);
       }
     }
-    job.reserved={};c.skills[job.type]=Math.min(20,c.skills[job.type]+.12);this.s.metrics.jobsCompleted++;
+    const skill = workSkill(job.type);
+    job.reserved={};c.skills[skill]=Math.min(20,c.skills[skill]+.12);this.s.metrics.jobsCompleted++;
     this.removeJob(job,false);c.task='工作完成';
   }
 
@@ -1858,8 +1884,15 @@ export class ColonySimulation {
         if(item.reservedBy!==null || (isToolKind(item.resource)?item.amount!==1:!(isResource(item.resource)||isBuildingItem(item.resource))||!integer(item.amount,1,1e7)))fail();
       }else if(!integer(item.amount,1,1e7)||item.reservedBy!==null&&!jobIds.has(item.reservedBy))fail();
     }
+    const demolitionTargets = new Set<string>();
     for(const j of s.jobs){
-      if(!location(j)||!JOB_TYPES.includes(j.type)||!text(j.targetId,j.type==='chop'?120:80)||!finite(j.progress)||!finite(j.work,.01,10000)||!['queued','working','blocked'].includes(j.state)||j.assignedTo!==null&&!colonistIds.has(j.assignedTo)||!resources(j.reserved,true)||!text(j.label)||!['work','pickup','deliver'].includes(j.phase)||!integer(j.amount,0,10000)||j.destination!==null&&!position(j.destination)||j.resource!==undefined&&!RESOURCE_TYPES.includes(j.resource))fail();
+      if(!location(j)||!(j.type==='demolish'||JOB_TYPES.includes(j.type))||!text(j.targetId,j.type==='chop'?120:80)||!finite(j.progress)||!finite(j.work,.01,10000)||!['queued','working','blocked'].includes(j.state)||j.assignedTo!==null&&!colonistIds.has(j.assignedTo)||!resources(j.reserved,true)||!text(j.label)||!['work','pickup','deliver'].includes(j.phase)||!integer(j.amount,0,10000)||j.destination!==null&&!position(j.destination)||j.resource!==undefined&&!RESOURCE_TYPES.includes(j.resource))fail();
+      if (j.type === 'demolish') {
+        const b = s.buildings.find(building => building.id === j.targetId);
+        if (!b?.complete || b.x !== j.x || b.y !== j.y || b.z !== j.z || demolitionTargets.has(b.id)
+          || j.phase !== 'work' || j.progress >= j.work || Object.keys(j.reserved).length) fail();
+        demolitionTargets.add(j.targetId);
+      }
       if (j.targetId === PLAYER_DELIVERY_TARGET) {
         if(legacy && !j.recipientId){
           j.recipientId=s.selectedColonistId&&colonistIds.has(s.selectedColonistId)?s.selectedColonistId:s.colonists[0]!.id;
