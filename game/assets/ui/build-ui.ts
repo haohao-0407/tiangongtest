@@ -45,10 +45,12 @@ const BUILD_ICONS: Record<string, string> = {
   // 农业
   hydroponics: '❋', sprinkler: '☂', greenhouseWall: '▢', scarecrow: 'ᛉ', compostBin: '♻',
 };
-const SUPPLY_TEXTURES = ['egg', 'milk', 'oil'] as const satisfies readonly SupplyType[];
+const SUPPLY_TEXTURES = [
+  'egg', 'milk', 'oil', 'blueberryWine', 'flour', 'cheese', 'chickenMeat', 'beef', 'pork', 'sugar',
+] as const satisfies readonly SupplyType[];
 const RESOURCE_ICONS: Record<Exclude<Resource, CropSeed | CropType | DishType | typeof SUPPLY_TEXTURES[number]>, string> = {
   wood: '▰', stone: '◆', steel: '▱', dirt: '▩', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙',
-  sugar: '◈', flour: '▤', blueberryWine: '🍷', cheese: '🧀', wool: '🧶', chickenMeat: '🍗', mutton: '🍖', beef: '🥩',
+  wool: '🧶', mutton: '🍖',
 };
 const int = (value: number) => Math.floor(Number.isFinite(value) ? value : 0);
 const percent = (value: number) => Math.max(0, Math.min(100, Math.round(value)));

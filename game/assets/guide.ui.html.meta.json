@@ -28,9 +28,16 @@
       "ui/seed-icons/sugarcaneSeed.png",
       "ui/seed-icons/tomatoSeed.png",
       "ui/seed-icons/wheatSeed.png",
+      "ui/supply-icons/beef.png",
+      "ui/supply-icons/blueberryWine.png",
+      "ui/supply-icons/cheese.png",
+      "ui/supply-icons/chickenMeat.png",
       "ui/supply-icons/egg.png",
+      "ui/supply-icons/flour.png",
       "ui/supply-icons/milk.png",
-      "ui/supply-icons/oil.png"
+      "ui/supply-icons/oil.png",
+      "ui/supply-icons/pork.png",
+      "ui/supply-icons/sugar.png"
     ]
   },
   "subAssets": [

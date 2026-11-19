@@ -1,7 +1,7 @@
 export type Position = [number, number, number];
 export const CROP_TYPES = ['wheat','corn','blueberry','sugarcane','cabbage','leek','potato','tomato'] as const;
 export const DISH_TYPES = ['friedEgg','bread','salad','pasta','pancake','blueberryPie','pizza','perfectBreakfast'] as const;
-export const SUPPLY_TYPES = ['sugar','flour','oil','blueberryWine','cheese','milk','egg','wool','chickenMeat','mutton','beef'] as const;
+export const SUPPLY_TYPES = ['sugar','flour','oil','blueberryWine','cheese','milk','egg','wool','chickenMeat','mutton','beef','pork'] as const;
 export type SupplyType = typeof SUPPLY_TYPES[number];
 export const isSupplyType = (value: unknown): value is SupplyType => (SUPPLY_TYPES as readonly unknown[]).includes(value);
 export const CROP_KINDS = ['cabbage', 'tomato', 'sugarcane', 'wheat', 'potato', 'leek', 'corn'] as const;
@@ -79,7 +79,7 @@ export const RESOURCE_NAMES: Record<Resource,string> = {
   wheatSeed:'小麦种子包', potatoSeed:'土豆种子包', leekSeed:'韭葱种子包', cornSeed:'玉米种子包',
   friedEgg:'煎鸡蛋',bread:'面包',salad:'沙拉',pasta:'意大利面',pancake:'薄煎饼',blueberryPie:'蓝莓千层酥',pizza:'披萨',perfectBreakfast:'完美早餐',
   sugar:'糖',flour:'面粉',oil:'油',blueberryWine:'蓝莓酒',cheese:'奶酪',
-  milk:'牛奶',egg:'鸡蛋',wool:'羊毛',chickenMeat:'鸡肉',mutton:'羊肉',beef:'牛肉',
+  milk:'牛奶',egg:'鸡蛋',wool:'羊毛',chickenMeat:'鸡肉',mutton:'羊肉',beef:'牛肉',pork:'生猪肉',
 };
 
 /** 售卖价（照飞书表）。农作物统一 10，料理按表。 */
