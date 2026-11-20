@@ -20,7 +20,9 @@ import { buildChunkMesh } from './mesh.ts';
 import { PcgView } from './pcg/view.ts';
 import { TreeView } from './tree-view.ts';
 import { WildPlantView } from './wild-plant-view.ts';
-import { WILD_PLANT_KINDS, type WildPlantKind } from './wild-plants.ts';
+import { landFootprintKey, WILD_PLANT_KINDS, type PlantLandUse, type WildPlantKind } from './wild-plants.ts';
+import { WildAnimalView } from './wild-animal-view.ts';
+import { WILD_ANIMAL_KINDS, type WildAnimalKind } from './wild-animals.ts';
 import { treeParts, type TreeInstance } from './trees.ts';
 import { overlaps, raycastTree, treesBlockBox, treeSupportHeight, treeProtectingVoxel } from './tree-interaction.ts';
 import { ColonySimulation, playerTerrainRule, withinPlayerWorkReach, withinTerrainReach } from '../colony/simulation.ts';
@@ -43,7 +45,7 @@ const CAMERA_SYSTEM = 'voxel-camera';
 const EDIT_SYSTEM = 'voxel-edit';
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
-export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:string; scene: string; outfits: string[]; walks: string[]; buildings: Record<string,string>; plaza:Record<string,string>; wildPlants: Record<WildPlantKind,string> }> = {
+export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:string; scene: string; outfits: string[]; walks: string[]; buildings: Record<string,string>; plaza:Record<string,string>; wildPlants: Record<WildPlantKind,string>; wildAnimals: Record<WildAnimalKind,string> }> = {
   name: 'voxel-homestead',
   inject: ['world', 'assets', 'gameHost'],
   async apply(ctx, config) {
@@ -61,6 +63,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
       const treeView = new TreeView(world, assets);
       const plantModels = new Map<WildPlantKind, AssetHandle<'mesh'>>();
       const plantView = new WildPlantView(world, plantModels);
+      const animalModels = new Map<WildAnimalKind, AssetHandle<'mesh'>>();
+      let animalView: WildAnimalView;
       colony.setWalkSurfaceSampler((x,z,fallback)=>pcgView.walkHeight(x,z,fallback));
       const entities = new Set<EntityHandle>();
       const chunks = new Map<string, { entity: EntityHandle; handle: AssetHandle<'mesh'> }>();
@@ -249,6 +253,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         world.removeResource('voxel:read');
         colonyView?.dispose(); terrainView.dispose(); pcgView.dispose(); treeView.dispose(); cropCards.dispose();
         plantView.dispose();
+        animalView?.dispose();
         for (const entity of entities) world.despawn(entity).unwrap();
         for (const handle of ownedHandles) assets.release(handle).unwrap();
         ownedHandles.clear();
@@ -259,6 +264,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
       const terrainMaterial = own(assets.create(Materials.standard({
         baseColor: [1, 1, 1, 1], metallic: 0, roughness: 0.94,
       })).unwrap());
+      animalView = new WildAnimalView(world, animalModels, terrainMaterial);
       const ghost = (rgba: [number, number, number, number]) => own(assets.create(Materials.unlit(rgba, {
         renderState: {
           cullMode: 'none', depthWriteEnabled: false,
@@ -297,6 +303,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
       for (const guid of config.walks) characters.walks.push(own((await assets.load(guid, 'animation-clip')).unwrap()));
       const buildingModels = new Map<string, BuildingModel>();
       for (const kind of WILD_PLANT_KINDS) plantModels.set(kind, own((await assets.load(config.wildPlants[kind], 'mesh')).unwrap()));
+      for (const kind of WILD_ANIMAL_KINDS) animalModels.set(kind, own((await assets.load(config.wildAnimals[kind], 'mesh')).unwrap()));
       for (const [kind, guid] of Object.entries(config.buildings)) {
         const mesh = own((await assets.load(guid, 'mesh')).unwrap());
         const geometry = assets.read(mesh).unwrap(), bounds = geometry.aabb!;
@@ -321,6 +328,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
       let nightSky=false;
       host.setPointerLockAllowed?.(false);
 
+      const updateHabitat = (land: PlantLandUse) => {
+        const footprint = landFootprintKey(voxels.width, land);
+        plantView.update(voxels, land, footprint);
+        animalView.updateHabitat(voxels, land, footprint);
+        animalView.animate(colony.simulationTime);
+      };
       const updateChunks = () => {
         for (const chunk of voxels.consumeDirtyChunks()) {
           const key = `${chunk.x},${chunk.y},${chunk.z}`;
@@ -342,7 +355,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         }
         pcgView.update(voxels, colony.renderState().buildings);
         treeView.update(voxels, selectedTreeId);
-        plantView.update(voxels, colony.renderState());
+        updateHabitat(colony.renderState());
       };
       const firstChestPosition = (): Point | null => {
         const chest = colonyState.buildings.find(b => b.storage);
@@ -356,6 +369,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         status: demolitionHint ?? status, lastEdit, buildRotation, selectedBuildingId, hoverBuildingId, hoverBuildingPart: hoverBuildingPart ? {...hoverBuildingPart} : null,
         selectedTreeId, hoverTreeId, hoverTreePart, trees: voxels.getTrees(), treeModel: treeView.read(),
         wildPlants: plantView.read(),
+        wildAnimals: animalView.read(),
         characters: colonyView.readCharacters(followId),
         placementPreview: colonyView.readPlacementPreview(),
         camera: { target: [...target], eye: [...eye], distance, yaw, pitch, mode: viewMode, followId },
@@ -619,6 +633,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
             if (selectedTreeId && !voxels.getTree(selectedTreeId)) { selectedTreeId = null; refreshState = true; }
             treeView.update(voxels, selectedTreeId ?? hoverTreeId);
             const renderState = colony.renderState();
+            animalView.animate(colony.simulationTime);
             if (selectedBuildingId && !renderState.buildings.some(b => b.id === selectedBuildingId)) {
               selectedBuildingId = null;
               refreshState = true;
@@ -642,7 +657,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
           }
           if (publishElapsed >= 0.4) {
             publishElapsed = 0; colonyState = colony.snapshot(); terrainView.update(colonyState.terrainPlans); refreshState = true;
-            plantView.update(voxels, colonyState);
+            updateHabitat(colonyState);
             const day = Math.max(0, Math.sin((colonyState.hour-6)/12*Math.PI));
             const afterSunset=colonyState.hour>=19.5 || colonyState.hour<5.5;
             const atNight=afterSunset && colonyState.buildings.some(b=>b.kind==='campfirePlaza'&&b.complete);

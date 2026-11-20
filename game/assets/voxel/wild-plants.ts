@@ -39,12 +39,22 @@ export function planWildPlants(width: number, depth: number, random: (x: number,
 type Footprint = { x: number; z: number; w: number; d: number };
 export type PlantLandUse = { buildings: readonly Footprint[]; zones: readonly Footprint[]; crops: readonly { x: number; z: number }[] };
 
-export function visibleWildPlants(source: VoxelWorld, land: PlantLandUse): WildPlant[] {
+export function landFootprintKey(width: number, land: PlantLandUse): string {
+  return [...land.buildings, ...land.zones].map(b => [b.x,b.z,b.w,b.d].join(',')).join(';') +
+    '|' + land.crops.map(c => c.x + c.z * width).join(',');
+}
+
+export function occupiedLandCells(width: number, land: PlantLandUse): Set<number> {
   const occupied = new Set<number>();
   for (const area of [...land.buildings, ...land.zones]) {
     for (let z = area.z; z < area.z + area.d; z++) for (let x = area.x; x < area.x + area.w; x++)
-      occupied.add(x + z * source.width);
+      occupied.add(x + z * width);
   }
-  for (const crop of land.crops) occupied.add(crop.x + crop.z * source.width);
+  for (const crop of land.crops) occupied.add(crop.x + crop.z * width);
+  return occupied;
+}
+
+export function visibleWildPlants(source: VoxelWorld, land: PlantLandUse): WildPlant[] {
+  const occupied = occupiedLandCells(source.width, land);
   return source.getWildPlants().filter(plant => !occupied.has(plant.x + plant.z * source.width) && source.supportsWildPlant(plant));
 }

@@ -1,5 +1,7 @@
 # Engine / SDK feedback
 
+- 2026-11-20 / Engine 0.5.0。为三个动物网格另行导入 glTF 顶点色材质后，生产构建成功，但 `project play` 在首帧前报告 `material-artifact-conflict`，冲突字段为 `receipt`，两个着色器摘要相同。动物 GLB 改为只导出网格和 `COLOR_0`，实例复用游戏已有的白色标准材质后，浏览器成功进入地图。
+
 - 2026-11-19 / Engine 0.5.0 的 glTF 导入器为多场景 GLB 生成了不同的场景 GUID，但 `importSceneSubAsset` 构建各场景时都取了 `doc.defaultSceneIndex`。在游戏里实例化三套不同编号的居民场景，显示的都是第一套网格。人物资源改用一个骨架场景，并按造型给实例的 `MeshFilter` 绑定对应的已导入网格。
 
 - 2026-11-16 / ForgeAX MCP 0.4.2 / Windows：将独立本地副本完整绑定至已发布 Engine/SDK 0.5.0 后，真实 MCP 构建通过，但启动 Preview 返回 `preview_process_identity_unavailable`。插件 `processStartIdentity()` 只读取 Linux `/proc/<pid>/stat` 或运行 Unix `ps -o lstart= -p <pid>`，没有 Windows 实现。本地适配增加 Windows PowerShell `Get-Process.StartTime` 的 UTC ticks 查询；不移除进程启动身份、Engine commit、构建摘要或 Preview 归属校验。原 npm 插件和引擎源码不修改；本地脚本、验证范围与回退方法见 `forgeax-plugin-0.5.0.md`。

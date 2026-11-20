@@ -6,6 +6,7 @@ import villagers from './models/villagers.glb.meta.json';
 import buildings from './models/buildings.glb.meta.json';
 import plaza from './models/campfire-plaza.glb.meta.json';
 import flora from './models/wild-plants.glb.meta.json';
+import wildlife from './models/wild-animals.glb.meta.json';
 import { WALK_CLIPS } from './colony/character-view.ts';
 export const game = voxelGame;
 export default definePack({
@@ -17,6 +18,8 @@ export default definePack({
       evening:{$asset:guidText(assetGuid(PACKAGE_IDS.environment,'environment/evening'))},
       plaza:Object.fromEntries(plaza.subAssets.filter(asset=>asset.kind==='mesh').map(asset=>[asset.name,{$asset:asset.guid}])),
       wildPlants:Object.fromEntries(flora.subAssets.filter(asset => asset.kind === 'mesh')
+        .map(asset => [asset.name, { $asset:asset.guid }])),
+      wildAnimals:Object.fromEntries(wildlife.subAssets.filter(asset => asset.kind === 'mesh')
         .map(asset => [asset.name, { $asset:asset.guid }])),
       buildings:Object.fromEntries(buildings.subAssets.filter(asset => asset.kind === 'mesh')
         .map(asset => [asset.name, { $asset:asset.guid }])),

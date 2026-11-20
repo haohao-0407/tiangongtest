@@ -2,6 +2,7 @@ import type { FacadeLayout, FacadeWindowState } from './pcg/facade.ts';
 import {treeBounds,treeCells,type TreeInstance} from './trees.ts';
 import { planSurfaceOreVeins } from './surface-ore.ts';
 import { planWildPlants, type WildPlant } from './wild-plants.ts';
+import { planWildAnimals, type WildAnimal } from './wild-animals.ts';
 
 /** Engine-independent world state. Coordinates are integer cells, with Y pointing up. */
 export type Vec3 = [number, number, number];
@@ -169,6 +170,14 @@ export class VoxelWorld {
   private treeList:readonly TreeInstance[]|null=null;
   private _treeRevision=0;
   private wildPlants: readonly WildPlant[] = [];
+  private wildAnimals: readonly WildAnimal[] = [];
+  getWildAnimals(): readonly WildAnimal[] { return this.wildAnimals; }
+  wildAnimalGround(x: number, z: number): number {
+    const top = this.surfaceHeight(x, z);
+    if (top < 0 || top + 2 >= this.height || this.get(x, top, z) !== BLOCK.Grass ||
+      this.treeBlocksVoxel(x, top+1, z) || this.treeBlocksVoxel(x, top+2, z)) return -1;
+    return top + 1;
+  }
   getWildPlants(): readonly WildPlant[] { return this.wildPlants; }
   supportsWildPlant({x, y, z}: WildPlant): boolean {
     return this.get(x, y - 1, z) === BLOCK.Grass && this.get(x, y, z) === BLOCK.Air && !this.treeAtColumn(x, z);
@@ -528,6 +537,10 @@ export class VoxelWorld {
         return top >= 0 && top + 1 < this.height && this.get(x, top, z) === BLOCK.Grass &&
           !this.treeAtColumn(x, z) ? top + 1 : -1;
       });
+    const animalSeed = seedHash(seed) ^ 0x77a41df0;
+    this.wildAnimals = planWildAnimals(this.width, this.depth,
+      (x, z, salt) => hash01(x, z, animalSeed ^ Math.imul(salt, 0x9e3779b1)),
+      (x, z) => this.wildAnimalGround(x, z));
     this.baseline = this.blocks.slice();
     this.recount();
     this.changes.clear();
@@ -759,6 +772,7 @@ export class VoxelWorld {
     this._generatorVersion = other.generatorVersion;
     this._blocks = other._blocks;
     this.wildPlants = other.wildPlants;
+    this.wildAnimals = other.wildAnimals;
     this.baseline = other.baseline;
     this.blockCounts = other.blockCounts;
     this.detailCells = other.detailCells;

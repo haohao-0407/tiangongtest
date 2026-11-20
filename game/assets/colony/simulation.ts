@@ -67,6 +67,7 @@ type SavedState = {
 export class ColonySimulation {
   private readonly processionPaths = new Map<string,Position[]>();
   private controlled: Colonist | null = null;
+  get simulationTime(): number { return this.s.time + this.s.accumulator; }
   get finale(): FinaleView | undefined {
     const f=this.s.finale;
     return f && {buildingId:f.buildingId,phase:f.phase,elapsed:f.elapsed+this.s.accumulator,guests:f.guests.length,
