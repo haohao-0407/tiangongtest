@@ -1,0 +1,69 @@
+Category,ItemType,Material,ListItem,Variant,Footprint,FBXPath,VisualBoundsMeters
+Agriculture,Animals,Feather,Chicken,Chicken_1x2,1x2,FBX/Agriculture/Animals/Feather/Chicken_1x2.fbx,0.628 x 0.988 x 0.988
+Agriculture,Animals,Hide,Cow,Cow_1x2,1x2,FBX/Agriculture/Animals/Hide/Cow_1x2.fbx,0.988 x 2.428 x 1.888
+Agriculture,Animals,Wool,Sheep,Sheep_1x2,1x2,FBX/Agriculture/Animals/Wool/Sheep_1x2.fbx,0.988 x 1.618 x 1.348
+Agriculture,Composting,Wood,CompostBin,CompostBin_1x1,1x1,FBX/Agriculture/Composting/Wood/CompostBin_1x1.fbx,1.3 x 1.3 x 1.05
+Agriculture,CropProtection,WoodAndFabric,Scarecrow,Scarecrow_1x1,1x1,FBX/Agriculture/CropProtection/WoodAndFabric/Scarecrow_1x1.fbx,1.4 x 0.5 x 2.05
+Agriculture,Greenhouses,WoodAndGlass,GreenhouseWall,GreenhouseWall_1x1,1x1,FBX/Agriculture/Greenhouses/WoodAndGlass/GreenhouseWall_1x1.fbx,1.3 x 0.3 x 1.9
+Agriculture,Hydroponics,WoodAndWater,HydroponicBasin,HydroponicBasin_1x1,1x1,FBX/Agriculture/Hydroponics/WoodAndWater/HydroponicBasin_1x1.fbx,1.2 x 1.2 x 0.9
+Agriculture,Irrigation,WoodAndSoil,IrrigatedPlanter,IrrigatedPlanter_1x1,1x1,FBX/Agriculture/Irrigation/WoodAndSoil/IrrigatedPlanter_1x1.fbx,1.25 x 1.2 x 1.75
+Agriculture,PlantingZones,WoodAndSoil,PlantingZoneMarker,PlantingZoneMarker_2x2,2x2,FBX/Agriculture/PlantingZones/WoodAndSoil/PlantingZoneMarker_2x2.fbx,2.2 x 2.2 x 1.25
+Furniture,Decoration,WoodAndCanvas,PaintingEasel,PaintingEasel_1x1,1x1,FBX/Furniture/Decoration/WoodAndCanvas/PaintingEasel_1x1.fbx,
+Furniture,Dining,Wood,Chair,Chair_1x1,1x1,FBX/Furniture/Dining/Wood/Chair_1x1.fbx,
+Furniture,Dining,Wood,DiningTable,DiningTable_2x2,2x2,FBX/Furniture/Dining/Wood/DiningTable_2x2.fbx,
+Furniture,Dining,Wood,Stool,Stool_1x1,1x1,FBX/Furniture/Dining/Wood/Stool_1x1.fbx,
+Furniture,Sleeping,Fabric,FloorMat,FloorMat_1x2,1x2,FBX/Furniture/Sleeping/Fabric/FloorMat_1x2.fbx,
+Furniture,Sleeping,WoodAndFabric,DoubleBed,DoubleBed_2x2,2x2,FBX/Furniture/Sleeping/WoodAndFabric/DoubleBed_2x2.fbx,
+Furniture,Sleeping,WoodAndFabric,SingleBed,SingleBed_1x2,1x2,FBX/Furniture/Sleeping/WoodAndFabric/SingleBed_1x2.fbx,
+Furniture,Storage,Wood,StorageShelf,StorageShelf_1x2,1x2,FBX/Furniture/Storage/Wood/StorageShelf_1x2.fbx,
+Furniture,Storage,Wood,WoodenChest,WoodenChest_1x1,1x1,FBX/Furniture/Storage/Wood/WoodenChest_1x1.fbx,
+Other,CampfireParty,StoneWoodFire,BonfireHearth,BonfireHearth_2x2,2x2,FBX/Other/CampfireParty/StoneWoodFire/BonfireHearth_2x2.fbx,2.44 x 2.44 x 2.711
+Other,CampfireParty,Wood,FestivalTable,FestivalTable_3x1,3x1,FBX/Other/CampfireParty/Wood/FestivalTable_3x1.fbx,3.1 x 1.17 x 1.36
+Other,CampfireParty,WoodFabric,CeremonyStage,CeremonyStage_4x2,4x2,FBX/Other/CampfireParty/WoodFabric/CeremonyStage_4x2.fbx,3.8 x 2.97 x 2.95
+Other,CampfireParty,WoodMetalLight,FestivalLightString,FestivalLightString_4x1,4x1,FBX/Other/CampfireParty/WoodMetalLight/FestivalLightString_4x1.fbx,3.73 x 0.39 x 2.82
+Production,Art,Wood,ArtTable,ArtTable_1x2,1x2,FBX/Production/Art/Wood/ArtTable_1x2.fbx,
+Production,Barrels,Wood,BrewingBarrel,BrewingBarrel_1x1,1x1,FBX/Production/Barrels/Wood/BrewingBarrel_1x1.fbx,
+Production,Barrels,Wood,PicklingVat,PicklingVat_1x1,1x1,FBX/Production/Barrels/Wood/PicklingVat_1x1.fbx,
+Production,Cooking,Steel,Stove,Stove_1x1,1x1,FBX/Production/Cooking/Steel/Stove_1x1.fbx,
+Production,Cooking,WoodAndStone,CampfireStove,CampfireStove_1x1,1x1,FBX/Production/Cooking/WoodAndStone/CampfireStove_1x1.fbx,
+Production,Dairy,Steel,CheesePress,CheesePress_1x1,1x1,FBX/Production/Dairy/Steel/CheesePress_1x1.fbx,
+Production,Metalwork,Steel,ForgeTable,ForgeTable_1x2,1x2,FBX/Production/Metalwork/Steel/ForgeTable_1x2.fbx,
+Production,Metalwork,Steel,MechanicalWorkbench,MechanicalWorkbench_2x1,2x1,FBX/Production/Metalwork/Steel/MechanicalWorkbench_2x1.fbx,
+Production,Research,Steel,AdvancedResearchTable,AdvancedResearchTable_1x2,1x2,FBX/Production/Research/Steel/AdvancedResearchTable_1x2.fbx,
+Production,Research,Wood,ResearchTable,ResearchTable_1x2,1x2,FBX/Production/Research/Wood/ResearchTable_1x2.fbx,
+Production,Stonework,Wood,StonecuttingTable,StonecuttingTable_1x2,1x2,FBX/Production/Stonework/Wood/StonecuttingTable_1x2.fbx,
+Production,Textiles,WoodAndSteel,SewingTable,SewingTable_1x2,1x2,FBX/Production/Textiles/WoodAndSteel/SewingTable_1x2.fbx,
+Structure,Doors,Iron,IronDoor,IronDoor_RuralBlue_1x1,1x1x2,FBX/Structure/Doors/Iron/IronDoor_RuralBlue_1x1.fbx,
+Structure,Doors,Iron,IronDoor,IronDoor_RuralGreen_1x1,1x1x2,FBX/Structure/Doors/Iron/IronDoor_RuralGreen_1x1.fbx,
+Structure,Doors,Stone,StoneDoor,StoneDoor_Arched_1x1,1x1x2,FBX/Structure/Doors/Stone/StoneDoor_Arched_1x1.fbx,
+Structure,Doors,Stone,StoneDoor,StoneDoor_Rectangular_1x1,1x1x2,FBX/Structure/Doors/Stone/StoneDoor_Rectangular_1x1.fbx,
+Structure,Doors,Wood,WoodDoor,WoodDoor_Arched_1x1,1x1x2,FBX/Structure/Doors/Wood/WoodDoor_Arched_1x1.fbx,
+Structure,Doors,Wood,WoodDoor,WoodDoor_Rectangular_1x1,1x1x2,FBX/Structure/Doors/Wood/WoodDoor_Rectangular_1x1.fbx,
+Structure,Roofs,ClayTile,ClayTileRoof,Roof_Clay_Eave_1x1,1x1,FBX/Structure/Roofs/ClayTile/Roof_Clay_Eave_1x1.fbx,
+Structure,Roofs,ClayTile,ClayTileRoof,Roof_Clay_Ridge_1x1,1x1,FBX/Structure/Roofs/ClayTile/Roof_Clay_Ridge_1x1.fbx,
+Structure,Roofs,ClayTile,ClayTileRoof,Roof_Clay_Slope_1x1,1x1,FBX/Structure/Roofs/ClayTile/Roof_Clay_Slope_1x1.fbx,
+Structure,Roofs,Wood,WoodRoof,Roof_Wood_Eave_1x1,1x1,FBX/Structure/Roofs/Wood/Roof_Wood_Eave_1x1.fbx,
+Structure,Roofs,Wood,WoodRoof,Roof_Wood_Ridge_1x1,1x1,FBX/Structure/Roofs/Wood/Roof_Wood_Ridge_1x1.fbx,
+Structure,Roofs,Wood,WoodRoof,Roof_Wood_Slope_1x1,1x1,FBX/Structure/Roofs/Wood/Roof_Wood_Slope_1x1.fbx,
+Structure,Walls,MudPlaster,MudPlasterWall,Wall_MudPlaster_PaleCream_1x1,1x1,FBX/Structure/Walls/MudPlaster/Wall_MudPlaster_PaleCream_1x1.fbx,
+Structure,Walls,MudPlaster,MudPlasterWall,Wall_MudPlaster_WarmOchre_1x1,1x1,FBX/Structure/Walls/MudPlaster/Wall_MudPlaster_WarmOchre_1x1.fbx,
+Structure,Walls,MudPlaster,MudPlasterWall,Wall_MudPlaster_Weathered_1x1,1x1,FBX/Structure/Walls/MudPlaster/Wall_MudPlaster_Weathered_1x1.fbx,
+Structure,Walls,Stone,StoneWall,RoughStoneWall_1x1,1x1,FBX/Structure/Walls/Stone/RoughStoneWall_1x1.fbx,
+Structure,Walls,Stone,StoneWall,RoughStone_CornerJoint,1x1,FBX/Structure/Walls/Stone/RoughStone_CornerJoint.fbx,
+Structure,Walls,StoneBrick,StoneBrickWall,StoneBrickWall_1x1,1x1,FBX/Structure/Walls/StoneBrick/StoneBrickWall_1x1.fbx,
+Structure,Walls,StoneBrick,StoneBrickWall,StoneBrick_CornerJoint,1x1,FBX/Structure/Walls/StoneBrick/StoneBrick_CornerJoint.fbx,
+Structure,Walls,WhitewashedPlaster,WhitewashedWall,Wall_Whitewash_LightWear_1x1,1x1,FBX/Structure/Walls/WhitewashedPlaster/Wall_Whitewash_LightWear_1x1.fbx,
+Structure,Walls,WhitewashedPlaster,WhitewashedWall,Wall_Whitewash_StoneBase_1x1,1x1,FBX/Structure/Walls/WhitewashedPlaster/Wall_Whitewash_StoneBase_1x1.fbx,
+Structure,Walls,WhitewashedPlaster,WhitewashedWall,Wall_Whitewash_Weathered_1x1,1x1,FBX/Structure/Walls/WhitewashedPlaster/Wall_Whitewash_Weathered_1x1.fbx,
+Structure,Walls,WhitewashedPlaster,WhitewashedWall,Wall_Whitewash_WhiteTile_1x1,1x1,FBX/Structure/Walls/WhitewashedPlaster/Wall_Whitewash_WhiteTile_1x1.fbx,
+Structure,Walls,Wood,WoodWall,RoughWoodWall_1x1,1x1,FBX/Structure/Walls/Wood/RoughWoodWall_1x1.fbx,
+Structure,Walls,Wood,WoodWall,Wall_Wood_Vertical_Finished_1x1,1x1,FBX/Structure/Walls/Wood/Wall_Wood_Vertical_Finished_1x1.fbx,
+Structure,Walls,Wood,WoodWall,Wall_Wood_Vertical_Repaired_1x1,1x1,FBX/Structure/Walls/Wood/Wall_Wood_Vertical_Repaired_1x1.fbx,
+Structure,Walls,Wood,WoodWall,Wall_Wood_Vertical_Rough_1x1,1x1,FBX/Structure/Walls/Wood/Wall_Wood_Vertical_Rough_1x1.fbx,
+Structure,Walls,Wood,WoodWall,WoodWall_1x1,1x1,FBX/Structure/Walls/Wood/WoodWall_1x1.fbx,
+Structure,Windows,IronAndStone,Window,Window_05_IronStone,1x1,FBX/Structure/Windows/IronAndStone/Window_05_IronStone.fbx,
+Structure,Windows,Stone,Window,Window_04_StoneOpening,1x1,FBX/Structure/Windows/Stone/Window_04_StoneOpening.fbx,
+Structure,Windows,Wood,Window,Window_01_OpenWood,1x1,FBX/Structure/Windows/Wood/Window_01_OpenWood.fbx,
+Structure,Windows,Wood,Window,Window_02_Shutters,1x1,FBX/Structure/Windows/Wood/Window_02_Shutters.fbx,
+Structure,Windows,Wood,Window,Window_03_FourPaneWood,1x1,FBX/Structure/Windows/Wood/Window_03_FourPaneWood.fbx,
+Structure,Windows,Wood,Window,Window_06_BayWood,1x1,FBX/Structure/Windows/Wood/Window_06_BayWood.fbx,

@@ -1,0 +1,11 @@
+Category,ItemType,ExpectedMaterial,MissingListItem
+Furniture,Decoration,Clay,Vase
+Furniture,Decoration,Mixed,HangingPainting
+Furniture,Decoration,Mixed,PottedPlant
+Furniture,Decoration,Stone,Sculpture
+Furniture,Lighting,MetalAndGlass,FloorLantern
+Furniture,Lighting,MetalAndGlass,HangingLantern
+Furniture,Lighting,WoodAndFire,WallTorch
+Structure,Doors,Steel,AutomaticDoor
+Structure,Fences,Wood,Fence
+Structure,Walls,ClayBrick,BrickWall
