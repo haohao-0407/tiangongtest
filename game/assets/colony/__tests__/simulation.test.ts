@@ -405,7 +405,7 @@ describe('resident needs and civilian production',()=>{
     for (const crop of ready) {
       expect(after.crops.find(existing => existing.id === crop.id)).toMatchObject({ kind: crop.kind, planted: false, growth: 0 });
       expect(after.items.some(item => item.resource === crop.kind && item.x === crop.x && item.z === crop.z)).toBe(true);
-      expect(after.items.some(item => item.resource === crop.kind + 'Seed' && item.x === crop.x && item.z === crop.z)).toBe(true);
+      expect(after.items.some(item => item.resource === crop.kind + 'Seed' && item.x === crop.x && item.z === crop.z)).toBe(crop.kind !== 'blueberry');
     }
   });
   it('replaces retired rice fields and seeds in a save without losing growth or seed reservations', () => {
@@ -495,6 +495,26 @@ describe('resident needs and civilian production',()=>{
     const sown = sim.snapshot();
     expect(sown.crops.filter(crop => crop.kind === 'tomato' && crop.planted)).toHaveLength(1);
     expect(sown.resources.tomatoSeed).toBe(0);
+  });
+  it('uses blueberries from the warehouse to sow and refunds a cancelled planting reservation', () => {
+    const sim = new ColonySimulation(new VoxelWorld());
+    const save = raw(sim);
+    save.resources.blueberry = 1;
+    save.resources.cabbageSeed = 0;
+    sim.load(save);
+    onlyJob(sim, 'grow');
+    const order = sim.command({ action: 'designate', kind: 'farm', crop: 'blueberry', x: 121, z: 134, w: 2 });
+    expect(order.ok).toBe(true);
+    for (let i = 0; i < 40 && sim.snapshot().resources.blueberry > 0; i++) sim.tick(.25);
+    expect(sim.snapshot().resources.blueberry).toBe(0);
+    expect(sim.snapshot().jobs.filter(job => job.reserved.blueberry === 1)).toHaveLength(1);
+    const reserved = sim.serialize();
+    expect(sim.command({ action: 'cancel', id: order.id }).ok).toBe(true);
+    expect(sim.snapshot().resources.blueberry).toBe(1);
+    sim.load(reserved);
+    run(sim, 40);
+    expect(sim.snapshot().crops.filter(crop => crop.kind === 'blueberry' && crop.planted)).toHaveLength(1);
+    expect(sim.snapshot().resources.blueberry).toBe(0);
   });
   it('production targets include ground and carried products, so no hauling does not cause overproduction',()=>{
     const{sim}=setup();onlyJob(sim,'cook');run(sim,100);const s=sim.snapshot();

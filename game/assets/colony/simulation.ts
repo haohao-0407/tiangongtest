@@ -6,7 +6,7 @@ import { DUSK_SECONDS, PAN_SECONDS, FINALE_SECONDS, gatheringSpot, plazaObstacle
 import type { FinalePhase, FinaleView } from './contracts.ts';
 import {buildingProtectingVoxel} from './interaction.ts';
 import {
-  BUILDING_DEFS, CROP_DEFS, CROP_KINDS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropSeed, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, SUPPLY_TYPES, isCropKind, isCropSeed, isSupplyType, type CropKind,
+  BUILDING_DEFS, CROP_DEFS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropPlantingItem, cropForPlantingItem, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, SUPPLY_TYPES, isCropKind, isSupplyType, type CropKind,
   CHEST_SLOTS, CHEST_WOOD_COST, CHOP_WORK, HAMMER, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET, PLAYER_STAMINA_REGEN, PLAYER_WORK_REACH, workPercent,
   PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace, isToolKind, isResource, buildingItemKind, itemName,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
@@ -195,7 +195,7 @@ export class ColonySimulation {
         ...EMPTY_RESOURCES(), ...Object.fromEntries(CROP_SEEDS.map(seed => [seed, STARTER_SEED_PACKS])), wood: 140, stone: 110, steel: 60, food: 40, meal: 14, medicine: 12, cloth: 30, silver: 120, components: 8,
         // 新导入的农作物和料理，先各给 10 个，方便试拖动和分类
         wheat: 10, corn: 10, blueberry: 10, sugarcane: 10, cabbage: 10, leek: 10, potato: 10, tomato: 10,
-        friedEgg: 10, bread: 10, salad: 10, pasta: 10, pancake: 10, blueberryPie: 10, pizza: 10, perfectBreakfast: 10,
+        friedEgg: 10, bread: 10, salad: 10, pasta: 10, pancake: 10, blueberryPie: 10, pizza: 10, perfectBreakfast: 10, lambChopStew: 10,
         ...Object.fromEntries(SUPPLY_TYPES.map(resource => [resource, STARTER_SUPPLIES])),
       },
       colonists: [], buildings: [], zones: [], crops: [], items: [], jobs: [], events: [],terrainPlans:[],
@@ -1203,7 +1203,8 @@ export class ColonySimulation {
     const resident = this.controlled;
     if (!resident) return { ok: false, message: '请先附身村民' };
     const slot = resident.bag[resident.bagSelected];
-    if (!slot || !isCropSeed(slot.resource)) return { ok: false, message: '请手持种子包' };
+    const kind = cropForPlantingItem(slot?.resource);
+    if (!slot || !kind) return { ok: false, message: '请手持种子包或蓝莓' };
     if (!withinTerrainReach(resident.position, cell)) return { ok: false, message: '靠近一格内再播种' };
 
     const [x, y, z] = cell;
@@ -1217,7 +1218,6 @@ export class ColonySimulation {
       return { ok: false, message: '此处有仓储、设施、树根或整地规划' };
     }
 
-    const kind = CROP_KINDS.find(crop => cropSeed(crop) === slot.resource)!;
     const { name, requires } = CROP_DEFS[kind];
     if (requires && !this.s.research.completed.includes(requires)) {
       return { ok: false, message: `${name}需要先完成${RESEARCH_DEFS[requires]!.name}研究` };
@@ -1255,12 +1255,21 @@ export class ColonySimulation {
     for (const job of [...this.s.jobs]) {
       if (job.targetId === crop.id && (job.type === 'grow' || job.type === 'harvest')) this.removeJob(job, true);
     }
+    if (cropPlantingItem(crop.kind) === def.produce) {
+      return { ok: true, message: yieldAmount ? `已收获${yieldAmount} 颗${def.name}` : `已拔除${def.name} · 掉落 1 颗${def.name}` };
+    }
     return { ok: true, message: yieldAmount ? `已收获${def.name} · 掉落 ${yieldAmount} 个产物和种子` : `已拔除${def.name} · 掉落种子` };
   }
 
   private clearCrop(crop: CropView, yieldAmount: number, playerOnly = false): void {
-    this.drop(CROP_DEFS[crop.kind].produce, yieldAmount, crop.x, crop.z, { playerOnly });
-    this.drop(cropSeed(crop.kind), 1, crop.x, crop.z, { playerOnly });
+    const { produce } = CROP_DEFS[crop.kind];
+    const plantingItem = cropPlantingItem(crop.kind);
+    if (plantingItem === produce) {
+      this.drop(produce, Math.max(1, yieldAmount), crop.x, crop.z, { playerOnly });
+    } else {
+      this.drop(produce, yieldAmount, crop.x, crop.z, { playerOnly });
+      this.drop(plantingItem, 1, crop.x, crop.z, { playerOnly });
+    }
     crop.planted = false;
     crop.growth = 0;
     this.s.metrics.harvested += yieldAmount;
@@ -1539,14 +1548,14 @@ export class ColonySimulation {
       }
       let cost:Partial<Resources>={};
       if(!Object.keys(job.reserved).length){
-        if (crop) cost = { [cropSeed(crop.kind)]: 1 };
+        if (crop) cost = { [cropPlantingItem(crop.kind)]: 1 };
         if(job.type==='cook')cost=this.rawFoodCost(2);
         if(job.type==='craft')cost=job.resource==='components'?{steel:4,wood:2}:{...this.rawFoodCost(2),cloth:1};
         if(job.type==='doctor')cost={medicine:1};
       }
       if (!this.afford(cost)) {
         job.state = 'blocked';
-        if (crop) job.label = `缺少${RESOURCE_NAMES[cropSeed(crop.kind)]}`;
+        if (crop) job.label = `缺少${RESOURCE_NAMES[cropPlantingItem(crop.kind)]}`;
         continue;
       }
       if (crop) job.label = `播种${CROP_DEFS[crop.kind].name}`;
@@ -1652,7 +1661,7 @@ export class ColonySimulation {
     }else if(job.type==='grow'){
       const crop = this.s.crops.find(p => p.id === job.targetId);
       if (!crop || crop.planted) { this.removeJob(job, true); return; }
-      const seed = cropSeed(crop.kind);
+      const seed = cropPlantingItem(crop.kind);
       // 升级前已开工的播种任务还没有预留种子，完成前补扣一次。
       if (!job.reserved[seed]) {
         if (this.s.resources[seed] < 1) {
@@ -1871,6 +1880,7 @@ export class ColonySimulation {
     if (s.resources && typeof s.resources === 'object') {
       for (const seed of CROP_SEEDS) if (!Object.hasOwn(s.resources, seed)) s.resources[seed] = STARTER_SEED_PACKS;
       for (const resource of SUPPLY_TYPES) if (!Object.hasOwn(s.resources, resource)) s.resources[resource] = STARTER_SUPPLIES;
+      if (!Object.hasOwn(s.resources, 'lambChopStew')) s.resources.lambChopStew = 10;
       for (const r of RESOURCE_TYPES) if (!Object.hasOwn(s.resources, r)) s.resources[r] = 0;
     }
     if(s.trade?.stock&&s.trade?.prices){

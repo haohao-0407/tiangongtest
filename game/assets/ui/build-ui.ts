@@ -2,7 +2,7 @@ import type { GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
   BUILDING_DEFS, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
-  CROP_DEFS, CROP_KINDS, CROP_SEEDS, CROP_TYPES, DEFAULT_CROP, DISH_TYPES, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, cropSeed, inventorySpace, isCropSeed, isResource, isSupplyType, itemName, workPercent,
+  CROP_DEFS, CROP_KINDS, CROP_SEEDS, CROP_TYPES, DEFAULT_CROP, DISH_TYPES, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, cropPlantingItem, cropForPlantingItem, inventorySpace, isCropSeed, isResource, isSupplyType, itemName, workPercent,
   type ColonyCommand, type ColonySnapshot, type CropSeed, type CropType, type DishType, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource, type SupplyType,
 } from '../colony/contracts.ts';
 import { buildingDimensions } from '../colony/buildings.ts';
@@ -48,11 +48,11 @@ const BUILD_ICONS: Record<string, string> = {
   hydroponics: '❋', sprinkler: '☂', greenhouseWall: '▢', scarecrow: 'ᛉ', compostBin: '♻',
 };
 const SUPPLY_TEXTURES = [
-  'egg', 'milk', 'oil', 'blueberryWine', 'flour', 'cheese', 'chickenMeat', 'beef', 'pork', 'sugar',
+  'egg', 'milk', 'oil', 'blueberryWine', 'flour', 'cheese', 'chickenMeat', 'beef', 'pork', 'sugar', 'wool', 'mutton',
 ] as const satisfies readonly SupplyType[];
 const RESOURCE_ICONS: Record<Exclude<Resource, CropSeed | CropType | DishType | typeof SUPPLY_TEXTURES[number]>, string> = {
   wood: '▰', stone: '◆', steel: '▱', dirt: '▩', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙',
-  wool: '🧶', mutton: '🍖',
+
 };
 const int = (value: number) => Math.floor(Number.isFinite(value) ? value : 0);
 const percent = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
@@ -315,7 +315,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const { name, requires } = CROP_DEFS[id];
       const b = button(name, `crop-${id}`);
       b.dataset.crop = id;
-      b.title = `仓库有 ${c.resources[cropSeed(id)]} 包种子`;
+      const plantingItem = cropPlantingItem(id);
+      b.title = id === 'blueberry' ? `播种消耗 1 颗蓝莓 · 仓库有 ${c.resources[plantingItem]} 颗`
+        : `仓库有 ${c.resources[plantingItem]} 包种子`;
       b.classList.toggle('active', (state?.crop ?? DEFAULT_CROP) === id);
       if (requires && !c.research.completed.includes(requires)) {
         b.disabled = true;
@@ -570,7 +572,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     wheat: 'crop', corn: 'crop', blueberry: 'crop', sugarcane: 'crop',
     cabbage: 'crop', leek: 'crop', potato: 'crop', tomato: 'crop',
     friedEgg: 'dish', bread: 'dish', salad: 'dish', pasta: 'dish',
-    pancake: 'dish', blueberryPie: 'dish', pizza: 'dish', perfectBreakfast: 'dish',
+    pancake: 'dish', blueberryPie: 'dish', pizza: 'dish', perfectBreakfast: 'dish', lambChopStew: 'dish',
     [HAMMER]: 'tool', [AXE]: 'tool', [PICKAXE]: 'tool',
   };
   const CATEGORY_NAMES: Record<string, string> = {
@@ -1014,7 +1016,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (nameEl) {
       const cur = bag[selected];
       const toolHints: Record<string, string> = { hammer: '锤子 · 左键蓝图施工', axe: '木斧 · 左键砍树（更快）', pickaxe: '石镐 · 长按左键采石和钢矿' };
-      nameEl.textContent = cur ? (toolHints[cur.resource] ?? (buildingItemKind(cur.resource) ? `${nameOf(cur.resource)} · 左键放置 · T 旋转` : isCropSeed(cur.resource) ? `${nameOf(cur.resource)} · 右键播种` : nameOf(cur.resource))) : '';
+      nameEl.textContent = cur ? (toolHints[cur.resource] ?? (buildingItemKind(cur.resource) ? `${nameOf(cur.resource)} · 左键放置 · T 旋转` : cropForPlantingItem(cur.resource) ? `${nameOf(cur.resource)} · 右键播种` : nameOf(cur.resource))) : '';
     }
   }
 

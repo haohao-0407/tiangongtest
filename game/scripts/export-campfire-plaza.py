@@ -14,7 +14,8 @@ def layer(obj):
     if name.startswith(("灯盖", "灯座", "灯框", "灯芯")):
         return "lanterns"
     if collection == "01":
-        return "ground"
+        # The game terrain supplies the grass and foundation.
+        return "ground" if name.startswith(("主通道", "餐区通道", "围坐场地")) else None
     if collection == "02":
         return "seating" if "凳" in name else "hearth"
     if collection == "03":
@@ -33,11 +34,13 @@ def layer(obj):
         if name.startswith("Voxel meteor pixel"):
             return "meteor"
         if name.startswith("Finale / "):
-            if "star_" in name or "sky voxels" in name:
+            if name.startswith(("Finale / sky ", "Finale / moss")):
+                return None
+            if "star_" in name:
                 return "sky"
             if "leaf" in name or "flag" in name:
                 return "decor"
-            if "soil" in name or "moss" in name:
+            if "soil" in name:
                 return "ground"
             return "hearth"
     return None

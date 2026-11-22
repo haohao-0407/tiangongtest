@@ -1,0 +1,247 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "blueberry-sprout",
+        "blueberry-growing",
+        "blueberry-mature"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "blueberry.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:blueberry-sprout"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:blueberry-growing"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:blueberry-mature"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:blueberry-growing": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1fa01-bdbc-727b-8060-514408f4b80f",
+          "slotName": "blueberry-growing-leaves",
+          "sourceKey": "material:blueberry-growing-leaves"
+        }
+      ]
+    },
+    "mesh:blueberry-mature": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1fa01-bdbc-727b-8060-5145973446f4",
+          "slotName": "blueberry-mature-leaves",
+          "sourceKey": "material:blueberry-mature-leaves"
+        }
+      ]
+    },
+    "mesh:blueberry-sprout": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1fa01-bdbc-727b-8060-514379275ef2",
+          "slotName": "blueberry-sprout-leaves",
+          "sourceKey": "material:blueberry-sprout-leaves"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1fa01-bdbb-75fc-b80e-b1bd9f6f9c55",
+      "kind": "mesh",
+      "name": "blueberry-sprout",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:blueberry-sprout"
+    },
+    {
+      "guid": "01a1fa01-bdbb-75fc-b80e-b1befb66d361",
+      "kind": "mesh",
+      "name": "blueberry-growing",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:blueberry-growing"
+    },
+    {
+      "guid": "01a1fa01-bdbc-727b-8060-5142e5c4a166",
+      "kind": "mesh",
+      "name": "blueberry-mature",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:blueberry-mature"
+    },
+    {
+      "guid": "01a1fa01-bdbc-727b-8060-514379275ef2",
+      "kind": "material",
+      "name": "blueberry-sprout-leaves",
+      "sourceIndex": 0,
+      "sourceKey": "material:blueberry-sprout-leaves"
+    },
+    {
+      "guid": "01a1fa01-bdbc-727b-8060-514408f4b80f",
+      "kind": "material",
+      "name": "blueberry-growing-leaves",
+      "sourceIndex": 1,
+      "sourceKey": "material:blueberry-growing-leaves"
+    },
+    {
+      "guid": "01a1fa01-bdbc-727b-8060-5145973446f4",
+      "kind": "material",
+      "name": "blueberry-mature-leaves",
+      "sourceIndex": 2,
+      "sourceKey": "material:blueberry-mature-leaves"
+    },
+    {
+      "guid": "01a1fa01-bdbc-727b-8060-514624399e70",
+      "kind": "scene",
+      "name": "blueberry",
+      "sourceIndex": 0,
+      "sourceKey": "scene:blueberry"
+    },
+    {
+      "guid": "01a1fa01-bdbc-727b-8060-5147829ec86d",
+      "kind": "texture",
+      "name": "blueberry-sprout",
+      "sourceIndex": 0,
+      "sourceKey": "texture:blueberry-sprout"
+    },
+    {
+      "guid": "01a1fa01-bdbc-727b-8060-5148041b6f1a",
+      "kind": "texture",
+      "name": "blueberry-growing",
+      "sourceIndex": 1,
+      "sourceKey": "texture:blueberry-growing"
+    },
+    {
+      "guid": "01a1fa01-bdbc-727b-8060-51495089ef58",
+      "kind": "texture",
+      "name": "blueberry-mature",
+      "sourceIndex": 2,
+      "sourceKey": "texture:blueberry-mature"
+    },
+    {
+      "guid": "01a1fa01-bdbc-727b-8060-514a2baf49d1",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

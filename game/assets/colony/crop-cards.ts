@@ -3,7 +3,7 @@ import type { EntityHandle, World } from '@forgeax/engine/ecs';
 import { MeshFilter, MeshRenderer, ShadowParticipation } from '@forgeax/engine/render';
 import { Name, Transform } from '@forgeax/engine/scene';
 import type { AssetHandle } from '@forgeax/engine/types';
-import type { CropKind, CropSeed, CropType, CropView, SupplyType } from './contracts.ts';
+import type { CropKind, CropSeed, CropType, CropView, DishType, SupplyType } from './contracts.ts';
 
 type RenderCrop = Pick<CropView, 'x' | 'y' | 'z' | 'growth'> & Partial<Pick<CropView, 'id' | 'kind' | 'planted'>>;
 export const FARM_SOIL_HEIGHT = 0.05;
@@ -46,6 +46,11 @@ const CROP_MESHES: Record<CropKind, readonly [string, string, string]> = {
     '01a1efcb-fe50-713a-9a12-f86698743d1e',
     '01a1efcb-fe50-713a-9a12-f8676b152b61',
   ],
+  blueberry: [
+    '01a1fa01-bdbb-75fc-b80e-b1bd9f6f9c55',
+    '01a1fa01-bdbb-75fc-b80e-b1befb66d361',
+    '01a1fa01-bdbc-727b-8060-5142e5c4a166',
+  ],
 };
 
 const PRODUCE_MESHES: Record<CropType, string> = {
@@ -69,7 +74,7 @@ const SEED_ITEM_MESHES: Record<CropSeed, string> = {
   cornSeed: '01a1f3fb-2a1f-7238-8ac3-05053e8b8930',
 };
 
-const SUPPLY_ITEM_MESHES = {
+const FOOD_AND_SUPPLY_MESHES = {
   blueberryWine: '01a1f41a-056b-7fa4-adad-548a24188318',
   flour: '01a1f41a-056b-7fa4-adad-548b2ae46ec1',
   cheese: '01a1f41a-056b-7fa4-adad-548c9277b8b5',
@@ -77,7 +82,10 @@ const SUPPLY_ITEM_MESHES = {
   beef: '01a1f41a-056b-7fa4-adad-548ecdf554fa',
   pork: '01a1f41a-056b-7fa4-adad-548f92b44e99',
   sugar: '01a1f41a-056b-7fa4-adad-54901049b389',
-} satisfies Partial<Record<SupplyType, string>>;
+  lambChopStew: '01a1fa01-d067-7fe2-88de-cfb33287de32',
+  mutton: '01a1fa01-d067-7fe2-88de-cfb42d633b6a',
+  wool: '01a1fa01-d067-7fe2-88de-cfb55560f7a9',
+} satisfies Partial<Record<SupplyType | DishType, string>>;
 
 interface Entry {
   readonly entity: EntityHandle;
@@ -98,7 +106,7 @@ export class CropCards {
     const cards = new CropCards(world, assets);
     await Promise.all([
       ...(Object.keys(CROP_MESHES) as CropKind[]).map(kind => cards.load(kind)),
-      ...Object.entries({ ...PRODUCE_MESHES, ...SEED_ITEM_MESHES, ...SUPPLY_ITEM_MESHES }).map(([kind, guid]) => cards.loadItem(kind, guid)),
+      ...Object.entries({ ...PRODUCE_MESHES, ...SEED_ITEM_MESHES, ...FOOD_AND_SUPPLY_MESHES }).map(([kind, guid]) => cards.loadItem(kind, guid)),
     ]);
     return cards;
   }

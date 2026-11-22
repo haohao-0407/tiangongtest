@@ -6,7 +6,7 @@ const { ColonySimulation, SUPPLY_TYPES } = await tsImport('../assets/colony/simu
 const { VoxelWorld } = await tsImport('../assets/voxel/model.ts', import.meta.url);
 const READ = 'voxel.world';
 const SAVE = 'homestead.colony.v2';
-const TEXTURED = ['egg', 'milk', 'oil', 'blueberryWine', 'flour', 'cheese', 'chickenMeat', 'beef', 'pork', 'sugar'];
+const TEXTURED = SUPPLY_TYPES;
 
 export default async function supplyItems(play) {
   const { page } = play;

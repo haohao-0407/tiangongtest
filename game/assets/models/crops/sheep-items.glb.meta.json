@@ -1,0 +1,247 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "lamb-chop-stew",
+        "mutton",
+        "wool"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "sheep-items.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:lamb-chop-stew"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:mutton"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:wool"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:lamb-chop-stew": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1fa01-d067-7fe2-88de-cfb69d426b2b",
+          "slotName": "lamb-chop-stew-pixels",
+          "sourceKey": "material:lamb-chop-stew-pixels"
+        }
+      ]
+    },
+    "mesh:mutton": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1fa01-d067-7fe2-88de-cfb71d2eeb80",
+          "slotName": "mutton-pixels",
+          "sourceKey": "material:mutton-pixels"
+        }
+      ]
+    },
+    "mesh:wool": {
+      "materialSlots": [
+        {
+          "defaultMaterialGuid": "01a1fa01-d067-7fe2-88de-cfb85c45bb0a",
+          "slotName": "wool-pixels",
+          "sourceKey": "material:wool-pixels"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a1fa01-d067-7fe2-88de-cfb33287de32",
+      "kind": "mesh",
+      "name": "lamb-chop-stew",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:lamb-chop-stew"
+    },
+    {
+      "guid": "01a1fa01-d067-7fe2-88de-cfb42d633b6a",
+      "kind": "mesh",
+      "name": "mutton",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:mutton"
+    },
+    {
+      "guid": "01a1fa01-d067-7fe2-88de-cfb55560f7a9",
+      "kind": "mesh",
+      "name": "wool",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:wool"
+    },
+    {
+      "guid": "01a1fa01-d067-7fe2-88de-cfb69d426b2b",
+      "kind": "material",
+      "name": "lamb-chop-stew-pixels",
+      "sourceIndex": 0,
+      "sourceKey": "material:lamb-chop-stew-pixels"
+    },
+    {
+      "guid": "01a1fa01-d067-7fe2-88de-cfb71d2eeb80",
+      "kind": "material",
+      "name": "mutton-pixels",
+      "sourceIndex": 1,
+      "sourceKey": "material:mutton-pixels"
+    },
+    {
+      "guid": "01a1fa01-d067-7fe2-88de-cfb85c45bb0a",
+      "kind": "material",
+      "name": "wool-pixels",
+      "sourceIndex": 2,
+      "sourceKey": "material:wool-pixels"
+    },
+    {
+      "guid": "01a1fa01-d067-7fe2-88de-cfb9ee14c2ae",
+      "kind": "scene",
+      "name": "sheep-items",
+      "sourceIndex": 0,
+      "sourceKey": "scene:sheep-items"
+    },
+    {
+      "guid": "01a1fa01-d067-7fe2-88de-cfba8be3824a",
+      "kind": "texture",
+      "name": "lamb-chop-stew",
+      "sourceIndex": 0,
+      "sourceKey": "texture:lamb-chop-stew"
+    },
+    {
+      "guid": "01a1fa01-d067-7fe2-88de-cfbbc52c08ec",
+      "kind": "texture",
+      "name": "mutton",
+      "sourceIndex": 1,
+      "sourceKey": "texture:mutton"
+    },
+    {
+      "guid": "01a1fa01-d067-7fe2-88de-cfbc84797e5e",
+      "kind": "texture",
+      "name": "wool",
+      "sourceIndex": 2,
+      "sourceKey": "texture:wool"
+    },
+    {
+      "guid": "01a1fa01-d067-7fe2-88de-cfbd5462da15",
+      "kind": "sampler",
+      "sourceIndex": 0,
+      "sourceKey": "sampler"
+    }
+  ]
+}

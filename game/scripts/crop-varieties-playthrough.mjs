@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { tsImport } from 'tsx/esm/api';
 import { possessResident } from './select-resident.mjs';
 
-const { VoxelWorld } = await tsImport('../assets/voxel/model.ts', import.meta.url);
+const { BLOCK, VoxelWorld } = await tsImport('../assets/voxel/model.ts', import.meta.url);
 const { ColonySimulation, CROP_KINDS, CROP_SEEDS, CROP_TYPES, DISH_TYPES, JOB_TYPES } = await tsImport('../assets/colony/simulation.ts', import.meta.url);
 const READ = 'voxel.world';
 const SAVE = 'homestead.colony.v2';
@@ -21,6 +21,7 @@ export default async function cropVarieties(play) {
   const control = id => page.locator(`[data-testid="${id}"]`);
 
   const world = new VoxelWorld();
+  world.edit([{ x: 124, y: 5, z: 138, block: BLOCK.Grass }]);
   const colony = new ColonySimulation(world);
   const unlocked = colony.serialize();
   const starterCrops = new Set(unlocked.crops.map(crop => crop.id));
@@ -40,11 +41,12 @@ export default async function cropVarieties(play) {
     person.priorities.harvest = 1;
   }
   const inspecting = fixture.colonists[2];
-  inspecting.position = [124.5, 6, 139.7];
+  inspecting.position = [124.5, 6, 139.4];
   inspecting.bag[3] = { resource: 'tomato', count: 2 };
   inspecting.bag[4] = { resource: 'cabbage', count: 1 };
   inspecting.bag[5] = { resource: 'friedEgg', count: 1 };
   inspecting.bag[6] = { resource: 'cabbageSeed', count: 2 };
+  inspecting.bag[7] = { resource: 'blueberry', count: 2 };
   const displayDrops = [['wheat', 122, 137], ['building:bed', 124, 137], ['wood', 126, 137], ['leekSeed', 125, 138]].map(([resource, x, z]) => ({
     id: `item-${fixture.nextId++}`, resource, amount: 1, x, y: 6, z,
     age: 2, reservedBy: null, playerOnly: true,
@@ -77,7 +79,7 @@ export default async function cropVarieties(play) {
     await advance(23);
   };
 
-  await play.step('七种作物各显示三个阶段', async () => {
+  await play.step('蓝莓和其他作物各显示三个生长阶段', async () => {
     const state = await wait(s => s.seed === world.seed && s.colony?.zones.length === fixture.zones.length && s.colony?.speed === 0);
     assert.equal(state.crop, 'cabbage');
     assert.ok(state.colony.crops.filter(crop => starterCrops.has(crop.id)).every(crop => crop.kind === 'cabbage'));
@@ -90,7 +92,7 @@ export default async function cropVarieties(play) {
       assert.deepEqual(crops.map(crop => crop.growth), GROWTH);
     }
     await viewCrops();
-    await capture('seven-crops-three-stages');
+    await capture('blueberry-and-other-crops-three-stages');
     await page.mouse.move(940, 370);
     await page.mouse.down({ button: 'middle' });
     await page.mouse.move(940, 287, { steps: 8 });
@@ -119,6 +121,12 @@ export default async function cropVarieties(play) {
       assert.ok(await icon.evaluate(async image => { await image.decode(); return image.naturalWidth > 0; }), dish);
     }
     await capture('warehouse-official-dish-icons');
+    await chooseCategory('supply');
+    for (const item of ['mutton', 'wool']) {
+      const icon = page.locator(`#workspace [data-item="${item}"] img`);
+      assert.ok(await icon.evaluate(async image => { await image.decode(); return image.naturalWidth > 0; }), item);
+    }
+    await capture('warehouse-mutton-and-wool');
     await chooseCategory('seed');
     for (const seed of CROP_SEEDS) {
       const slot = page.locator(`#workspace [data-item="${seed}"]`);
@@ -126,6 +134,7 @@ export default async function cropVarieties(play) {
       assert.ok(await slot.locator('img').evaluate(async image => { await image.decode(); return image.naturalWidth > 0; }), seed);
     }
     assert.equal(await page.locator('#workspace [data-item="riceSeed"]').count(), 0);
+    assert.equal(await page.locator('#workspace [data-item="blueberrySeed"]').count(), 0);
     await capture('warehouse-official-seed-icons');
     await page.locator('#panel-close').click();
   });
@@ -168,6 +177,22 @@ export default async function cropVarieties(play) {
       return icon.naturalWidth > 0;
     }));
     await capture('held-cabbage-seeds-and-dropped-leek-seeds');
+    await play.keyboard.press('Digit8');
+    const holdingBerry = await wait(s => s.player?.bagSelected === 7 && s.player.bag[7]?.resource === 'blueberry');
+    const { eye, target } = holdingBerry.camera;
+    const forward = unit(target.map((n, i) => n - eye[i]));
+    const right = unit(cross(forward, [0, 1, 0])), up = cross(right, forward);
+    const relative = [124.5, 6.01, 138.5].map((n, i) => n - eye[i]);
+    const halfHeight = dot(relative, forward) * Math.tan(Math.PI / 8);
+    const { width, height } = page.viewportSize();
+    const point = [width / 2 + dot(relative, right) * height / (2 * halfHeight),
+      height / 2 - dot(relative, up) * height / (2 * halfHeight)];
+    await page.mouse.move(...point);
+    await wait(s => s.player?.demolitionHint === '右键播种');
+    await page.mouse.click(...point, { button: 'right' });
+    const sown = await wait(s => s.colony.crops.some(crop => crop.kind === 'blueberry' && crop.x === 124 && crop.z === 138 && crop.planted));
+    assert.equal(sown.player.bag[7]?.count, 1);
+    await capture('right-click-blueberry-planted');
     await play.keyboard.press('KeyR');
     await wait(s => s.camera.mode === 'god');
     await viewCrops();
@@ -177,6 +202,7 @@ export default async function cropVarieties(play) {
     await control('menu-plan').click();
     for (const kind of CROP_KINDS) assert.ok(await control(`crop-${kind}`).isEnabled());
     assert.equal(await control('crop-rice').count(), 0);
+    assert.match(await control('crop-blueberry').getAttribute('title'), /播种消耗 1 颗蓝莓/);
     await capture('farm-planning-without-rice');
     await control('crop-tomato').click();
     await wait(s => s.crop === 'tomato');
@@ -188,17 +214,17 @@ export default async function cropVarieties(play) {
     const { camera: { eye, target } } = await read();
     const forward = unit(target.map((n, i) => n - eye[i]));
     const right = unit(cross(forward, [0, 1, 0])), up = cross(right, forward);
-    const location = [128.5, 6.02, 134.5], relative = location.map((n, i) => n - eye[i]);
+    const location = [129.5, 6.02, 134.5], relative = location.map((n, i) => n - eye[i]);
     const halfHeight = dot(relative, forward) * Math.tan(Math.PI / 8);
     const { width, height } = page.viewportSize();
     const aim = [.5 + dot(relative, right) * height / (2 * halfHeight * width), .5 - dot(relative, up) / (2 * halfHeight)];
     await play.mouse.move(aim);
-    await wait(s => s.hoverCell?.[0] === 128 && s.hoverCell?.[2] === 134);
+    await wait(s => s.hoverCell?.[0] === 129 && s.hoverCell?.[2] === 134);
     await play.mouse.click(aim);
-    const planted = await wait(s => s.colony.zones.some(zone => zone.kind === 'farm' && zone.x === 128 && zone.z === 134));
-    const zone = planted.colony.zones.find(zone => zone.x === 128 && zone.z === 134);
+    const planted = await wait(s => s.colony.zones.some(zone => zone.kind === 'farm' && zone.x === 129 && zone.z === 134));
+    const zone = planted.colony.zones.find(zone => zone.x === 129 && zone.z === 134);
     assert.deepEqual([zone.crop, zone.w, zone.d], ['tomato', 3, 3]);
-    assert.equal(planted.colony.crops.filter(c => c.kind === 'tomato' && c.x >= 128 && c.z >= 134).length, 9);
+    assert.equal(planted.colony.crops.filter(c => c.kind === 'tomato' && c.x >= 129 && c.z >= 134).length, 9);
     await play.keyboard.press('Escape');
     if (await close.isVisible()) await close.click();
     await capture('tomato-farm-planned');
@@ -217,14 +243,15 @@ export default async function cropVarieties(play) {
     await capture('tomato-harvest');
     await page.waitForFunction(key => {
       const save = JSON.parse(localStorage.getItem(key) ?? 'null');
-      return save?.colony.zones.some(zone => zone.x === 128 && zone.z === 134 && zone.crop === 'tomato')
+      return save?.colony.zones.some(zone => zone.x === 129 && zone.z === 134 && zone.crop === 'tomato')
         && save.colony.items.some(item => item.resource === 'tomato');
     }, SAVE, { timeout: 12000 });
     await play.reload();
-    const restored = await wait(s => s.colony.zones.some(zone => zone.x === 128 && zone.z === 134 && zone.crop === 'tomato')
+    const restored = await wait(s => s.colony.zones.some(zone => zone.x === 129 && zone.z === 134 && zone.crop === 'tomato')
       && s.colony.items.some(item => item.resource === 'tomato'));
     assert.ok(CROP_KINDS.every(kind => restored.colony.crops.some(crop => crop.kind === kind)));
     assert.deepEqual(restored.colony.colonists.find(person => person.id === inspecting.id)?.bag[6], inspecting.bag[6]);
+    assert.deepEqual(restored.colony.colonists.find(person => person.id === inspecting.id)?.bag[7], { resource: 'blueberry', count: 1 });
     await viewCrops();
     await capture('crop-varieties-restored');
   });

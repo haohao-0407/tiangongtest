@@ -621,9 +621,9 @@
     "mesh:sky": {
       "materialSlots": [
         {
-          "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a6f4668817c",
           "slotName": "Plaza vertex palette",
-          "sourceKey": "material:Plaza vertex palette"
+          "sourceKey": "material:Plaza vertex palette",
+          "tombstone": true
         },
         {
           "defaultMaterialGuid": "01a1f460-8183-7a3b-9e64-2a78723db865",

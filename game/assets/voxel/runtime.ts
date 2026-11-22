@@ -30,7 +30,7 @@ import { ColonyView, type BuildingModel } from '../colony/view.ts';
 import type { CharacterAssets } from '../colony/character-view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
 import {
-  BUILDING_DEFS, HAMMER, AXE, PICKAXE, buildingItemKind, isCropSeed, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
+  BUILDING_DEFS, HAMMER, AXE, PICKAXE, buildingItemKind, cropForPlantingItem, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
   PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN, CHOP_WORK, workPercent,
   CROP_DEFS, DEFAULT_CROP, RESEARCH_DEFS, isCropKind, type CropKind, type BuildingKind, type ColonyCommand, type ChestView,
 } from '../colony/contracts.ts';
@@ -930,7 +930,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
               }
             } else playerExcavation=null;
 
-            const plantingCell: Point | null = !isCropSeed(held) ? null
+            const plantingCell: Point | null = !cropForPlantingItem(held) ? null
               : cropHit ? [cropHit.x, cropHit.y - 1, cropHit.z]
               : !objectHit && characterTerrain?.normal?.[1] === 1 ? characterTerrain.cell : null;
             if (plantingCell) {

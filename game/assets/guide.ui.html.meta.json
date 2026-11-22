@@ -16,6 +16,7 @@
       "ui/dish-icons/blueberryPie.png",
       "ui/dish-icons/bread.png",
       "ui/dish-icons/friedEgg.png",
+      "ui/dish-icons/lambChopStew.png",
       "ui/dish-icons/pancake.png",
       "ui/dish-icons/pasta.png",
       "ui/dish-icons/perfectBreakfast.png",
@@ -35,9 +36,11 @@
       "ui/supply-icons/egg.png",
       "ui/supply-icons/flour.png",
       "ui/supply-icons/milk.png",
+      "ui/supply-icons/mutton.png",
       "ui/supply-icons/oil.png",
       "ui/supply-icons/pork.png",
-      "ui/supply-icons/sugar.png"
+      "ui/supply-icons/sugar.png",
+      "ui/supply-icons/wool.png"
     ]
   },
   "subAssets": [

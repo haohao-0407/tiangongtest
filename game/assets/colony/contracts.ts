@@ -1,16 +1,20 @@
 export type Position = [number, number, number];
 export const CROP_TYPES = ['wheat','corn','blueberry','sugarcane','cabbage','leek','potato','tomato'] as const;
-export const DISH_TYPES = ['friedEgg','bread','salad','pasta','pancake','blueberryPie','pizza','perfectBreakfast'] as const;
+export const DISH_TYPES = ['friedEgg','bread','salad','pasta','pancake','blueberryPie','pizza','perfectBreakfast','lambChopStew'] as const;
 export const SUPPLY_TYPES = ['sugar','flour','oil','blueberryWine','cheese','milk','egg','wool','chickenMeat','mutton','beef','pork'] as const;
 export type SupplyType = typeof SUPPLY_TYPES[number];
 export const isSupplyType = (value: unknown): value is SupplyType => (SUPPLY_TYPES as readonly unknown[]).includes(value);
-export const CROP_KINDS = ['cabbage', 'tomato', 'sugarcane', 'wheat', 'potato', 'leek', 'corn'] as const;
+const SEEDED_CROP_KINDS = ['cabbage', 'tomato', 'sugarcane', 'wheat', 'potato', 'leek', 'corn'] as const;
+export const CROP_KINDS = [...SEEDED_CROP_KINDS, 'blueberry'] as const;
 export type CropKind = typeof CROP_KINDS[number];
 export const DEFAULT_CROP: CropKind = 'cabbage';
 export const isCropKind = (value: unknown): value is CropKind => (CROP_KINDS as readonly unknown[]).includes(value);
-export type CropSeed = `${CropKind}Seed`;
-export const cropSeed = (crop: CropKind): CropSeed => `${crop}Seed`;
-export const CROP_SEEDS = CROP_KINDS.map(cropSeed);
+export type CropSeed = `${typeof SEEDED_CROP_KINDS[number]}Seed`;
+const cropSeed = (crop: typeof SEEDED_CROP_KINDS[number]): CropSeed => `${crop}Seed`;
+export const CROP_SEEDS = SEEDED_CROP_KINDS.map(cropSeed);
+export const cropPlantingItem = (crop: CropKind): CropSeed | 'blueberry' => crop === 'blueberry' ? crop : cropSeed(crop);
+export const cropForPlantingItem = (item: unknown): CropKind | undefined =>
+  CROP_KINDS.find(crop => cropPlantingItem(crop) === item);
 export const isCropSeed = (value: unknown): value is CropSeed => (CROP_SEEDS as readonly unknown[]).includes(value);
 export const RESOURCE_TYPES = [
   'wood','stone','steel','food','meal','medicine','cloth','silver','components',
@@ -70,9 +74,9 @@ export const RESOURCE_NAMES: Record<Resource,string> = {
   wheat:'小麦',corn:'玉米',blueberry:'蓝莓',sugarcane:'甘蔗',cabbage:'白菜',leek:'韭葱',potato:'土豆',tomato:'番茄',
   cabbageSeed:'白菜种子包', tomatoSeed:'番茄种子包', sugarcaneSeed:'甘蔗种子包',
   wheatSeed:'小麦种子包', potatoSeed:'土豆种子包', leekSeed:'韭葱种子包', cornSeed:'玉米种子包',
-  friedEgg:'煎鸡蛋',bread:'面包',salad:'沙拉',pasta:'意大利面',pancake:'薄煎饼',blueberryPie:'蓝莓千层酥',pizza:'披萨',perfectBreakfast:'完美早餐',
+  friedEgg:'煎鸡蛋',bread:'面包',salad:'沙拉',pasta:'意大利面',pancake:'薄煎饼',blueberryPie:'蓝莓千层酥',pizza:'披萨',perfectBreakfast:'完美早餐',lambChopStew:'炖羊排',
   sugar:'糖',flour:'面粉',oil:'油',blueberryWine:'蓝莓酒',cheese:'奶酪',
-  milk:'牛奶',egg:'鸡蛋',wool:'羊毛',chickenMeat:'鸡肉',mutton:'羊肉',beef:'牛肉',pork:'生猪肉',
+  milk:'牛奶',egg:'鸡蛋',wool:'羊毛',chickenMeat:'鸡肉',mutton:'生羊肉',beef:'牛肉',pork:'生猪肉',
 };
 
 /** 售卖价（照飞书表）。农作物统一 10，料理按表。 */
@@ -194,6 +198,7 @@ export const CROP_DEFS: Record<CropKind, {
   potato: { name: RESOURCE_NAMES.potato, produce: 'potato', growthSeconds: 115, yieldCount: 6 },
   leek: { name: RESOURCE_NAMES.leek, produce: 'leek', growthSeconds: 115, yieldCount: 6 },
   corn: { name: RESOURCE_NAMES.corn, produce: 'corn', growthSeconds: 200, yieldCount: 12, requires: 'agriculture' },
+  blueberry: { name: RESOURCE_NAMES.blueberry, produce: 'blueberry', growthSeconds: 115, yieldCount: 6 },
 };
 export interface ColonyCommand {action:string;value?:unknown;kind?:string;x?:number;y?:number;z?:number;rotation?:number;w?:number;d?:number;cells?:[number,number][];id?:string;colonistId?:string;job?:string;resource?:string;amount?:number;buy?:boolean;target?:number;crop?:string}
 export interface CommandResult {ok:boolean;message:string;id?:string}
