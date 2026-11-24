@@ -38,20 +38,15 @@ describe('peaceful colony and fixed-step persistence',()=>{
     for (const resource of SUPPLY_TYPES) {
       expect(legacySave.resources[resource]).toBe(10);
       delete legacySave.resources[resource];
-      delete legacySave.trade.stock[resource];
-      delete legacySave.trade.prices[resource];
     }
     const restored = new ColonySimulation(world);
     restored.load(legacySave);
     const supplied = restored.snapshot();
     for (const resource of SUPPLY_TYPES) {
       expect(supplied.resources[resource]).toBe(10);
-      expect(supplied.trade.stock[resource]).toBe(0);
-      expect(supplied.trade.prices[resource]).toBe(0);
     }
     const chest = { kind: 'chest', id: supplied.chests[0]!.id, slot: 0 } as const;
     expect(restored.transferInventory({ kind: 'warehouse' }, chest, 'milk', 10).ok).toBe(true);
-    expect(restored.command({ action: 'trade', resource: 'egg', amount: 1, buy: false }).ok).toBe(false);
     restored.load(restored.serialize());
     expect(restored.snapshot().resources.milk).toBe(0);
     expect(restored.snapshot().resources.egg).toBe(10);
@@ -417,8 +412,6 @@ describe('resident needs and civilian production',()=>{
     crop.growth = .64;
     for (const zone of saved.zones) zone.crop = 'rice';
     saved.resources.riceSeed = 4;
-    saved.trade.stock.riceSeed = 2;
-    saved.trade.prices.riceSeed = 2;
     saved.colonists[0].bag[3] = { resource: 'riceSeed', count: 5 };
     saved.buildings.find((b: any) => b.kind === 'chest').storage[0] = { resource: 'riceSeed', count: 3 };
     saved.items[0].resource = 'riceSeed';
@@ -431,7 +424,6 @@ describe('resident needs and civilian production',()=>{
     expect(upgraded.crops.find(c => c.id === crop.id)).toMatchObject({ kind: 'cabbage', growth: .64, planted: true });
     expect(upgraded.zones.every(zone => zone.crop === 'cabbage')).toBe(true);
     expect(upgraded.resources.cabbageSeed).toBe(13);
-    expect(upgraded.trade.stock.cabbageSeed).toBe(2);
     expect(upgraded.colonists[0]!.bag[3]).toEqual({ resource: 'cabbageSeed', count: 5 });
     expect(upgraded.buildings.find(b => b.kind === 'chest')!.storage![0]).toEqual({ resource: 'cabbageSeed', count: 3 });
     expect(upgraded.items[0]!.resource).toBe('cabbageSeed');
@@ -459,8 +451,6 @@ describe('resident needs and civilian production',()=>{
     for (const seed of CROP_SEEDS) {
       expect(legacy.resources[seed]).toBe(9);
       delete legacy.resources[seed];
-      delete legacy.trade.stock[seed];
-      delete legacy.trade.prices[seed];
     }
     sim.load(legacy);
     for (const seed of CROP_SEEDS) expect(sim.snapshot().resources[seed]).toBe(9);
@@ -663,7 +653,7 @@ describe('resident needs and civilian production',()=>{
   });
 });
 
-describe('research, shelter, electricity and constrained trade',()=>{
+describe('research, shelter, electricity and colony events',()=>{
   it('research unlocks an actual new building, without bypassing prerequisite checks',()=>{
     const{sim,world}=setup();onlyJob(sim,'research');const pos=freeCell(sim,world);
     expect(sim.command({action:'build',kind:'solar',...pos}).ok).toBe(false);
@@ -688,24 +678,26 @@ describe('research, shelter, electricity and constrained trade',()=>{
     expect(p.capacity).toBe(12000);expect(p.stored).toBeGreaterThan(0);expect(p.coldStorage).toBe(true);
     expect(sim.snapshot().metrics.spoiled).toBeLessThan(normal.snapshot().metrics.spoiled);
   });
-  it('trades conserve currency and stock; purchased cargo is not instantly available',()=>{
-    const{sim}=setup();sim.command({action:'speed',value:0});const before=sim.snapshot();
-    expect(sim.command({action:'trade',resource:'wood',amount:3,buy:true}).ok).toBe(true);
-    const bought=sim.snapshot();expect(bought.resources.wood).toBe(before.resources.wood);expect(bought.resources.silver).toBe(before.resources.silver-6);expect(bought.trade.stock.wood).toBe(before.trade.stock.wood-3);
-    const expected=bought.resources.silver+bought.trade.stock.silver;expect(sim.command({action:'trade',resource:'wood',amount:2,buy:false}).ok).toBe(true);
-    const sold=sim.snapshot();expect(sold.resources.wood).toBe(before.resources.wood-2);expect(sold.resources.silver+sold.trade.stock.silver).toBe(expected);
-    const final=sim.serialize();expect(sim.command({action:'trade',resource:'components',amount:100,buy:true}).ok).toBe(false);expect(sim.serialize()).toEqual(final);
-  });
-  it('a purchase with no landing space rejects before debiting either party',()=>{
-    const{sim,world}=setup();const edits=[];
-    for(let z=0;z<48;z++)for(let x=0;x<48;x++)for(let y=1;y<24;y++)edits.push({x,y,z,block:BLOCK.Water});
-    world.edit(edits);sim.tick(.25);sim.command({action:'speed',value:0});
-    const before=sim.serialize();expect(sim.command({action:'trade',resource:'wood',amount:1,buy:true}).ok).toBe(false);expect(sim.serialize()).toEqual(before);
+  it('discards legacy caravans while keeping the colony resources, cargo and other events', () => {
+    const { sim } = setup();
+    const save = raw(sim);
+    const events = [...save.events];
+    save.trade = { available: true, leavesAt: 242, stock: { wood: 30, silver: 500 }, prices: { wood: 2 } };
+    save.events.push({ id: 'old-caravan', time: 120, day: 1, hour: 8, type: 'trade', text: '商队抵达' });
+    save.resources.silver = 114;
+    sim.load(save);
+    const restored = sim.serialize();
+    expect(restored).not.toHaveProperty('trade');
+    expect(sim.snapshot()).not.toHaveProperty('trade');
+    expect(restored).toMatchObject({ resources: save.resources, items: save.items, events });
+    expect(sim.command({ action: 'trade' })).toEqual({ ok: false, message: '未知营地指令。' });
+    expect(sim.serialize()).toEqual(restored);
   });
   it('advances seasons, weather, illness and peaceful arrivals without combat events',()=>{
     const{sim}=setup();run(sim,DAY_SECONDS*4);const s=sim.snapshot();
     expect(s.day).toBeGreaterThanOrEqual(5);expect(s.colonists).toHaveLength(4);
     expect(s.events.some(e=>e.type==='arrival')).toBe(true);expect(s.events.some(e=>e.type==='health')).toBe(true);expect(s.events.some(e=>e.type==='weather')).toBe(true);
+    expect(s.events.some(e => /商队|贸易/.test(e.text))).toBe(false);
     expect(s.events.some(e=>/袭击|敌人|战斗|武器|击杀/.test(e.text))).toBe(false);
     expect(RESOURCE_TYPES.every(r=>s.resources[r]>=0)).toBe(true);
   });

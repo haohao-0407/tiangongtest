@@ -72,15 +72,15 @@ export default async function terrainPlaythrough(play) {
   };
   const terrainSettings = async (target, shape = 'brush', size = 1) => {
     await openPanel('plan', 'tool-level');
-    await click('tool-level');
     await control('terrain-shape').selectOption('brush');
     await wait((s) => s.terrain.shape === 'brush');
     await number('terrain-size', size);
     await number('terrain-target', target);
     await control('terrain-shape').selectOption(shape);
     await control('terrain-shape').press('Tab');
+    await click('tool-level');
     await wait((s) => s.tool === 'level' && s.terrain.target === target && s.terrain.size === size && s.terrain.shape === shape);
-    await closePanel();
+    await play.page.locator('#workspace').waitFor({ state: 'hidden' });
   };
   const hoverAt = async (point) => {
     await play.mouse.move(point);
@@ -284,10 +284,10 @@ export default async function terrainPlaythrough(play) {
     await control('build-height-auto').uncheck();
     await number('build-height', target);
     await wait((s) => s.buildHeight === target);
+    await capture('terrain-08-multi-cell-building-foundation-controls');
     await click('build-workbench');
     await wait((s) => s.tool === 'build:workbench');
-    await capture('terrain-08-multi-cell-building-foundation-controls');
-    await closePanel();
+    await play.page.locator('#workspace').waitFor({ state: 'hidden' });
     const priorIds = new Set((await read()).colony.buildings.map((b) => b.id));
     const hover = await hoverCell(plot.x, plot.z, plot.height);
     await play.mouse.click(hover.point);

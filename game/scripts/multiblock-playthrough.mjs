@@ -1,3 +1,4 @@
+import { returnToMap } from './return-to-map.mjs';
 // Official owner-browser acceptance. All mutations use normal player controls.
 // pnpm exec forgeax project play scripts/multiblock-playthrough.mjs --require-ui --json
 import assert from 'node:assert/strict';
@@ -47,7 +48,7 @@ export default async function multiblockPlaythrough(play) {
   };
   const inspect = async () => {
     await clearMapUi();
-    await click('menu-inspect');
+    await returnToMap(play);
     await wait((state) => state.tool === 'inspect');
   };
   const setPriority = async (id, job, target) => {

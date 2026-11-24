@@ -1,3 +1,4 @@
+import { returnToMap } from './return-to-map.mjs';
 import { possessResident } from './select-resident.mjs';
 // A real player, real resident-built door, and real movement inputs.
 // pnpm exec forgeax project play scripts/multiblock-collision-playthrough.mjs --require-ui --json
@@ -28,7 +29,7 @@ export default async function multiblockCollisionPlaythrough(play) {
     await advance(0.05);
   };
   const inspect = async () => {
-    await closeUi(); await click('menu-inspect'); await wait((s) => s.tool === 'inspect');
+    await closeUi(); await returnToMap(play); await wait((s) => s.tool === 'inspect');
   };
   const speed = async (value) => { await click(`speed-${value}`); return wait((s) => s.colony.speed === value); };
   const project = (s, p) => {

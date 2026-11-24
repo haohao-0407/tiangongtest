@@ -1,3 +1,4 @@
+import { returnToMap } from './return-to-map.mjs';
 import assert from 'node:assert/strict';
 import { tsImport } from 'tsx/esm/api';
 
@@ -47,7 +48,7 @@ export default async function possessionProbe(play){
   assert.equal(unselected.player,null);
   assert.match(unselected.status,/左键选中村民/);
   await page.locator('[data-menu="sandbox"]').click();
-  await page.locator('[data-menu="inspect"]').click();
+  await returnToMap(play);
   const paused=await advance();
   assert.equal(paused.colony.speed,0);
   const [first]=paused.colony.colonists;

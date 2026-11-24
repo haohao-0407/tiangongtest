@@ -1,3 +1,4 @@
+import { returnToMap } from './return-to-map.mjs';
 // Official owner-browser acceptance. Mutations are ordinary player inputs only.
 // Run from the game root:
 // pnpm exec forgeax project play scripts/colony-playthrough.mjs --require-ui --json
@@ -223,7 +224,7 @@ export default async function colonyPlaythrough(play) {
   });
 
   await play.step('residents-walk-to-and-complete-blueprints', async () => {
-    await click('menu-inspect');
+    await returnToMap(play);
     await wait((state) => state.tool === 'inspect');
     await closePanel();
     const before = clone((await read()).colony);

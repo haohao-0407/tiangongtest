@@ -1,3 +1,4 @@
+import { returnToMap } from './return-to-map.mjs';
 import assert from 'node:assert/strict';
 import { tsImport } from 'tsx/esm/api';
 import { createFacadeTerrainFixture } from './facade-playthrough.mjs';
@@ -59,7 +60,7 @@ export default async function buildingModels(play) {
       await play.page.locator('[data-menu="build"]').click();
       await play.page.locator('[data-testid="build-bed"]').click();
       await wait(s => s.tool === 'build:bed');
-      await play.page.locator('#panel-close').click();
+      await play.page.locator('#workspace').waitFor({ state: 'hidden' });
       await play.mouse.move([.66,.67]);
       await play.keyboard.press('KeyR');
       await wait(s => s.buildRotation === 1 && !!s.hoverCell);
@@ -74,7 +75,7 @@ export default async function buildingModels(play) {
       await wait(s => s.colony.buildings.some(b => b.kind === 'bed' && b.rotation === 1 && !b.complete));
       await play.mouse.move([.81,.63]); await advance();
       await capture('building-models-placed-blueprint');
-      await play.page.locator('[data-menu="inspect"]').click();
+      await returnToMap(play);
     }
   }
   await play.reload();

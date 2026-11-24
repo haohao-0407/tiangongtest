@@ -1,3 +1,4 @@
+import { returnToMap } from './return-to-map.mjs';
 import assert from 'node:assert/strict';
 import { tsImport } from 'tsx/esm/api';
 import { possessResident } from './select-resident.mjs';
@@ -42,7 +43,7 @@ export default async function chestDemolition(play) {
   await play.waitFor(s=>s.colony.speed===0&&s.colony.colonists[0].position[0]===125.5,{read:READ,timeoutMs:10000});
 
   await page.locator('[data-menu="sandbox"]').click();
-  await page.locator('[data-menu="inspect"]').click();
+  await returnToMap(play);
   const god = await advance();
   assert.equal(god.colony.speed, 0);
   const chest = god.colony.buildings.find(building => building.kind === 'chest');
@@ -59,18 +60,21 @@ export default async function chestDemolition(play) {
   await page.locator('#inspector-close').click();
   await page.locator('[data-menu="plan"]').click();
   await page.locator('[data-testid="tool-demolish"]').click();
-  await page.locator('#panel-close').click();
+  await page.locator('#workspace').waitFor({ state: 'hidden' });
   const planning = await advance();
   assert.equal(planning.tool, 'demolish');
   await aim(planning, chest);
   await page.mouse.click(...project(planning,[chest.x+.5,chest.y+.55,chest.z+.5]));
   assert.equal(order(await advance()).state, 'queued');
+  await page.locator('#panel-close').click();
+  await aim(await advance(), chest);
+  await page.mouse.click(...project(await advance(),[chest.x+.5,chest.y+.55,chest.z+.5]));
   await cancel.click();
   assert.equal(order(await advance()), undefined);
   assert.ok(await publish.isVisible());
   await play.screenshot('chest-structure-inspector');
   await page.locator('#inspector-close').click();
-  await page.locator('[data-menu="inspect"]').click();
+  await returnToMap(play);
 
   const character = await possessResident(play,residentId);
   assert.equal(character.camera.mode, 'character');

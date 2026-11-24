@@ -200,8 +200,9 @@ export const CROP_DEFS: Record<CropKind, {
   corn: { name: RESOURCE_NAMES.corn, produce: 'corn', growthSeconds: 200, yieldCount: 12, requires: 'agriculture' },
   blueberry: { name: RESOURCE_NAMES.blueberry, produce: 'blueberry', growthSeconds: 115, yieldCount: 6 },
 };
-export interface ColonyCommand {action:string;value?:unknown;kind?:string;x?:number;y?:number;z?:number;rotation?:number;w?:number;d?:number;cells?:[number,number][];id?:string;colonistId?:string;job?:string;resource?:string;amount?:number;buy?:boolean;target?:number;crop?:string}
+export interface ColonyCommand {action:string;value?:unknown;kind?:string;x?:number;y?:number;z?:number;rotation?:number;w?:number;d?:number;cells?:[number,number][];id?:string;colonistId?:string;job?:string;target?:number;crop?:string}
 export interface CommandResult {ok:boolean;message:string;id?:string}
+export type MapToolMenu = 'build' | 'plan';
 export interface ColonistView {id:string;name:string;traits:string[];skills:Record<JobType,number>;priorities:Record<JobType,number>;schedule:Schedule;position:Position;health:number;hunger:number;rest:number;recreation:number;mood:number;disease:number;task:string;jobId:string|null;color:Position;carrying:Partial<Resources>;bag:PlayerInventorySlot[];bagSelected:number;stamina:number;facing:number;comfort:number}
 export interface BuildingView {id:string;kind:BuildingKind;x:number;y:number;z:number;w:number;h:number;d:number;rotation:BuildingRotation;doorOpen?:boolean;phase:'preparingTerrain'|'readyToBuild'|'constructing'|'completed';terrainPlanId?:string;blockedReason?:string;complete:boolean;progress:number;reserved:Partial<Resources>;powered:boolean;comfort:number;roomId:number|null;storage?:PlayerInventorySlot[]}
 export interface TerrainPlanView {id:string;target:number;cells:[number,number][];remainingCut:number;remainingFill:number;progress:number;state:'queued'|'working'|'blocked'|'completed';blockedReason?:string;buildingId?:string}
@@ -209,7 +210,7 @@ export interface ZoneView {id:string;kind:'farm'|'stockpile';x:number;y:number;z
 export interface CropView {id:string;kind:CropKind;x:number;y:number;z:number;growth:number;planted:boolean}
 export interface ItemView {id:string;resource:InventoryItem;amount:number;x:number;y:number;z:number;age:number;reservedBy:string|null;scatter?:boolean;playerOnly?:boolean}
 export interface JobView {id:string;type:OrderType;targetId:string;x:number;y:number;z:number;progress:number;work:number;state:'queued'|'working'|'blocked';assignedTo:string|null;reserved:Partial<Resources>;label:string;recipientId?:string;deliveryPhase?:'pickup'|'deliver'}
-export interface ColonyEvent {id:string;time:number;day:number;hour:number;type:'info'|'weather'|'health'|'trade'|'research'|'arrival';text:string}
+export interface ColonyEvent {id:string;time:number;day:number;hour:number;type:'info'|'weather'|'health'|'research'|'arrival';text:string}
 export interface RoomView {id:number;cells:[number,number][];enclosed:boolean;comfort:number;temperature:number}
 export type FinalePhase = 'gathering' | 'show' | 'departing';
 export interface FinaleView {
@@ -222,7 +223,6 @@ export interface ColonySnapshot {
   playerBag:PlayerInventorySlot[];bagSelected:number;controlledColonistId:string|null;chests:ChestView[];
   research:{active:string|null;progress:Record<string,number>;completed:string[]};
   power:{generation:number;demand:number;stored:number;capacity:number;supplied:number;coldStorage:boolean};
-  trade:{available:boolean;leavesAt:number;stock:Resources;prices:Resources};
   bills:{meal:number;medicine:number;components:number};events:ColonyEvent[];selectedColonistId:string|null;
   metrics:{jobsCompleted:number;built:number;harvested:number;hauled:number;cooked:number;researched:number;treated:number;spoiled:number;distanceWalked:number};
 }

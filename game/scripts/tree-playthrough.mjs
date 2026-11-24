@@ -1,3 +1,4 @@
+import { returnToMap } from './return-to-map.mjs';
 // Official owner-browser acceptance; every mutation uses normal player input.
 // node node_modules/@forgeax/engine/dist/bin/forgeax.mjs project play scripts/tree-playthrough.mjs --require-ui --json
 import assert from 'node:assert/strict';
@@ -40,7 +41,7 @@ export default async function treePlaythrough(play) {
   const speed = async value => {
     if ((await read()).colony.speed === value) return read();
     if (value && (await read()).tool.startsWith('sandbox:')) {
-      await click('menu-inspect'); await wait(state => state.tool === 'inspect');
+      await returnToMap(play); await wait(state => state.tool === 'inspect');
     }
     await focusMap();
     // 空格只用于跳跃，速度一律点按钮（暂停也不再绑空格）
@@ -51,7 +52,7 @@ export default async function treePlaythrough(play) {
     await clearUi(); await click(`menu-${menu}`); await click(id);
     await wait(state => state.tool === tool); await closePanel();
   };
-  const inspect = async () => { await clearUi(); await click('menu-inspect'); await wait(state => state.tool === 'inspect'); };
+  const inspect = async () => { await clearUi(); await returnToMap(play); await wait(state => state.tool === 'inspect'); };
   const project = (state, position) => {
     const camera = state.camera, forward = unit(camera.target.map((n, i) => n - camera.eye[i]));
     const right = unit(cross(forward, [0, 1, 0])), up = cross(right, forward);
@@ -169,8 +170,8 @@ export default async function treePlaythrough(play) {
     assert.ok(await control('tree-cancel-chop').isVisible());
     await click('tree-cancel-chop'); await wait(state => jobsFor(state, harvested.id).length === 0);
     assert.ok(treeBy(await read(), harvested.id), 'Cancel leaves the complete model alive.');
-    await choose('plan', 'tool-chop', 'chop');
     for (const role of ['trunk', 'crown', 'crown']) {
+      await choose('plan', 'tool-chop', 'chop');
       const hit = await hoverPart(harvested, role); assert.ok(hit);
       await play.mouse.click(hit.point); await wait(state => jobsFor(state, harvested.id).length === 1);
     }

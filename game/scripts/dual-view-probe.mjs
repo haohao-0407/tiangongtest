@@ -1,3 +1,4 @@
+import { returnToMap } from './return-to-map.mjs';
 // 玩家角色 + 双视角验收探针。
 // Run from the game root:
 //   pnpm exec forgeax project play scripts/dual-view-probe.mjs --require-ui --json
@@ -35,7 +36,7 @@ export default async function dualViewProbe(play) {
   };
   const pauseColony = async () => {
     await play.page.locator('[data-menu="sandbox"]').click();
-    await play.page.locator('[data-menu="inspect"]').click();
+    await returnToMap(play);
     await advance(0.4);
     assert.equal((await read()).colony.speed, 0);
   };
@@ -344,7 +345,7 @@ export default async function dualViewProbe(play) {
     const heading = (await play.page.locator('#panel-title').textContent()) ?? '';
     assert.ok(heading.length > 0, `「${title}」面板应有标题，实际为空`);
     await play.screenshot(`panel-${menu}`);
-    await play.page.locator('[data-menu="inspect"]').click();
+    await returnToMap(play);
     await advance(0.3);
   }
 
@@ -456,7 +457,7 @@ export default async function dualViewProbe(play) {
 
   await advance(0.3);
   await play.screenshot('warehouse-grid');
-  await play.page.locator('[data-menu="inspect"]').click();
+  await returnToMap(play);
   await advance(0.3);
 
   // 切到玩家视角：快捷栏应该显示刚才拿到手上的那件东西。
@@ -586,7 +587,7 @@ export default async function dualViewProbe(play) {
   const followerRows = await play.page.locator('#workspace .row-list .production-row').count();
   assert.ok(followerRows >= 3, `下面应该是随从列表，实际 ${followerRows} 行`);
   await play.screenshot('follower-list');
-  await play.page.locator('[data-menu="inspect"]').click();
+  await returnToMap(play);
   await advance(0.3);
 
   // ---- 随从面板：靠近右键打开，左数值右背包 ----
@@ -674,7 +675,7 @@ export default async function dualViewProbe(play) {
   await tapR();
   await play.page.locator('[data-menu="build"]').click();
   await play.page.locator('[data-testid="build-chest"]').click();
-  await play.page.locator('#panel-close').click();
+  await play.page.locator('#workspace').waitFor({ state: 'hidden' });
   await advance(0.4);
   assert.equal((await read()).tool, 'place-chest');
   const beforeBuild = await read();
@@ -721,7 +722,7 @@ export default async function dualViewProbe(play) {
   await play.page.locator('#panel-close').click();
   await play.page.mouse.click(640, 300);
   await tapR();
-  await play.page.locator('[data-menu="inspect"]').click();
+  await returnToMap(play);
   await advance(0.3);
 
   // 退出游戏按钮本身只验存在。

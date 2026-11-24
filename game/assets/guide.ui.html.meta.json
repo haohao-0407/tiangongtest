@@ -5,6 +5,7 @@
   "source": "guide.ui.html",
   "importSettings": {
     "resources": [
+      "ui/building-icons.png",
       "ui/crop-icons/blueberry.png",
       "ui/crop-icons/cabbage.png",
       "ui/crop-icons/corn.png",

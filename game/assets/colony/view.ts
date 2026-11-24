@@ -31,6 +31,7 @@ export type ColonyRenderState={
   selectedColonistId?:string|null;
   selectedBuildingId?:string|null;
   buildPreview?:RenderBuilding|null;
+  showPlanningGrid?:boolean;
   controlledColonistId?:string|null;
 };
 const COLORS:Record<string,string>={
@@ -286,7 +287,7 @@ export class ColonyView {
       if(state.selectedBuildingId===b.id)parts.push({p:[x,y+.025,z],s:[w+.04,.045,d+.04],c:'selected',shadow:false});
       this.put(`设施/${b.id}`,parts,active,`${b.kind}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
     }
-    for(const zone of state.zones){
+    for(const zone of state.showPlanningGrid ? state.zones : []){
       const parts:Part[]=[];
       for(let x=zone.x;x<zone.x+zone.w;x++)for(let z=zone.z;z<zone.z+zone.d;z++){
         const y=this.terrain().terrainHeight(x,z);

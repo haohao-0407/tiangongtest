@@ -1,3 +1,4 @@
+import { returnToMap } from './return-to-map.mjs';
 // Official owner-browser acceptance. No runtime state injection or preplaced ores.
 // Candidate locations are independently regenerated from the public world seed;
 // the real camera, hover/inspect input and resident jobs must confirm every action.
@@ -84,7 +85,7 @@ export default async function orePlaythrough(play) {
   const speed = async value => {
     if ((await read()).colony.speed === value) return read();
     if (value && (await read()).tool.startsWith('sandbox:')) {
-      await click('menu-inspect'); await wait(state => state.tool === 'inspect');
+      await returnToMap(play); await wait(state => state.tool === 'inspect');
     }
     await focusMap();
     await play.page.keyboard.press(value === 0 ? 'Space' : ({ 1: 'Digit1', 3: 'Digit2', 6: 'Digit3' })[value]);
@@ -94,7 +95,7 @@ export default async function orePlaythrough(play) {
     await clearUi(); await click(`menu-${menu}`); await click(id);
     await wait(state => state.tool === tool); await closePanel();
   };
-  const inspect = async () => { await clearUi(); await click('menu-inspect'); await wait(state => state.tool === 'inspect'); };
+  const inspect = async () => { await clearUi(); await returnToMap(play); await wait(state => state.tool === 'inspect'); };
   const project = (state, position) => {
     const camera = state.camera, forward = unit(camera.target.map((n, i) => n - camera.eye[i]));
     const right = unit(cross(forward, [0, 1, 0])), up = cross(right, forward);

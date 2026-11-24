@@ -1,3 +1,4 @@
+import { returnToMap } from './return-to-map.mjs';
 import assert from 'node:assert/strict';
 import { possessResident } from './select-resident.mjs';
 
@@ -27,10 +28,10 @@ export default async function playerConstruction(play) {
       +resident.bag.reduce((bag,stack)=>bag+(stack?.resource==='wood'?stack.count:0),0),0);
 
   await play.page.locator('[data-menu="sandbox"]').click();
-  await play.page.locator('[data-menu="inspect"]').click();
+  await returnToMap(play);
   await play.page.locator('[data-menu="build"]').click();
   await play.page.locator('[data-testid="build-floor"]').click();
-  await play.page.locator('#panel-close').click();
+  await play.page.locator('#workspace').waitFor({ state: 'hidden' });
   const planning = await advance();
   assert.equal(planning.tool, 'build:floor');
   assert.equal(planning.colony.speed, 0);
@@ -52,7 +53,7 @@ export default async function playerConstruction(play) {
   assert.ok(blueprint && blueprint.phase === 'readyToBuild', '应通过建造菜单放置处于待施工状态的蓝图');
   assert.equal(blueprint.reserved.wood, 3);
   const target = (s) => s.colony.buildings.find(building => building.id === blueprint.id);
-  await play.page.locator('[data-menu="inspect"]').click();
+  await returnToMap(play);
   await possessResident(play,builderId);
   const character = await advance();
   assert.equal(character.camera.mode, 'character');

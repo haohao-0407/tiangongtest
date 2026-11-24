@@ -1,3 +1,4 @@
+import { returnToMap } from './return-to-map.mjs';
 import assert from 'node:assert/strict';
 
 const READ = 'voxel.world';
@@ -26,13 +27,31 @@ export default async function windowLayout(play) {
       && bounds.y + bounds.height <= viewport.height - 8, `窗口应在视口内：${JSON.stringify(bounds)}`);
     return bounds;
   };
+  const dragWindow = async (dx, dy) => {
+    const title = await workspace.locator('.panel-heading').boundingBox();
+    assert.ok(title);
+    const x = title.x + Math.min(200, title.width / 2);
+    const y = title.y + title.height / 2;
+    const { width, height } = play.page.viewportSize();
+    await play.page.mouse.move(x, y);
+    await play.page.mouse.down();
+    await play.page.mouse.move(Math.min(width - 1, Math.max(1, x + dx)),
+      Math.min(height - 1, Math.max(1, y + dy)), { steps: 5 });
+    await play.page.mouse.up();
+    await advance();
+  };
   const fixedSizes = {};
+  assert.equal(await play.page.locator('.tool-rail [data-menu="inspect"]').count(), 0);
+  assert.equal(await play.page.locator('.tool-rail [data-menu="trade"]').count(), 0);
   // Pause resident updates so the same content is measured on both desktop sizes.
   await play.page.locator('[data-menu="sandbox"]').click();
-  await play.page.locator('[data-menu="inspect"]').click();
+  await returnToMap(play);
   await advance();
+  assert.equal((await play.state(READ)).colony.speed, 0);
+  assert.equal(await play.page.locator('.tool-rail [data-menu].active').count(), 0);
+  await play.screenshot('menu-without-inspect-or-trade');
   const panels = ['plan', 'build', 'work', 'warehouse', 'chest', 'followerBag', 'follower',
-    'production', 'research', 'trade', 'logs', 'sandbox'];
+    'production', 'research', 'logs', 'sandbox'];
   for (const name of panels) {
     await open(name);
     const before = await windowBounds(workspace, desktop);
@@ -65,7 +84,46 @@ export default async function windowLayout(play) {
     await resize(desktop);
   }
 
-  await play.page.locator('[data-menu="inspect"]').click();
+  await play.step('drag-menu-windows-and-use-exposed-map', async () => {
+    await open('work');
+    const original = await windowBounds(workspace, desktop);
+    await dragWindow(160, -48);
+    const moved = await windowBounds(workspace, desktop);
+    assert.ok(moved.x >= original.x + 150 && moved.y <= original.y - 40);
+    assert.equal(moved.width, original.width);
+    assert.equal((await play.screenshot('window-work-dragged')).rendered, true);
+    await close();
+    await open('plan');
+    const plan = await windowBounds(workspace, desktop);
+    assert.ok(Math.abs(plan.x - (desktop.width - plan.width) / 2) <= 1);
+    await dragWindow(900, 500);
+    const movedPlan = await windowBounds(workspace, desktop);
+    assert.ok(movedPlan.x > plan.x + 120);
+    assert.ok(movedPlan.x + movedPlan.width >= desktop.width - 13);
+    await play.page.locator('[data-testid="terrain-sample"]').click();
+    await play.waitFor(s => s.terrain.sample, { read: READ });
+    await workspace.waitFor({ state: 'hidden' });
+    const mapPoint = [.34, .56];
+    assert.ok(mapPoint[0] * desktop.width < movedPlan.x);
+    await play.mouse.move(mapPoint);
+    await play.waitFor(s => s.hoverCell !== null, { read: READ });
+    await play.mouse.click(mapPoint);
+    await play.waitFor(s => !s.terrain.sample && s.status.startsWith('已取样'), { read: READ });
+    await workspace.waitFor({ state: 'visible' });
+    assert.deepEqual(await windowBounds(workspace, desktop), movedPlan);
+    await play.page.locator('[data-testid="crop-tomato"]').click();
+    await play.waitFor(s => s.crop === 'tomato', { read: READ });
+    assert.equal((await play.screenshot('window-plan-dragged-map-active')).rendered, true);
+    await resize(compact);
+    await windowBounds(workspace, compact);
+    await close();
+    await resize(desktop);
+    await open('work');
+    assert.deepEqual(await windowBounds(workspace, desktop), moved);
+    await close();
+  });
+
+  await returnToMap(play);
   await play.page.locator('#colonists [data-resident]').first().click();
   const inspector = play.page.locator('#inspector');
   await advance();
@@ -90,5 +148,12 @@ export default async function windowLayout(play) {
   await play.page.keyboard.press('Escape');
   await play.page.keyboard.press('Escape');
   await advance();
+  await play.reload();
+  await open('build');
+  const build = await windowBounds(workspace, desktop);
+  await dragWindow(120, -45);
+  const movedBuild = await windowBounds(workspace, desktop);
+  assert.ok(movedBuild.x >= build.x + 110 && movedBuild.y <= build.y - 40);
+  assert.equal((await play.screenshot('window-build-dragged-after-reload')).rendered, true);
   return { fixedSizes };
 }

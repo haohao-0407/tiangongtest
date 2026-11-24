@@ -6,7 +6,7 @@ import { DUSK_SECONDS, PAN_SECONDS, FINALE_SECONDS, gatheringSpot, plazaObstacle
 import type { FinalePhase, FinaleView } from './contracts.ts';
 import {buildingProtectingVoxel} from './interaction.ts';
 import {
-  BUILDING_DEFS, CROP_DEFS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropPlantingItem, cropForPlantingItem, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, SUPPLY_TYPES, isCropKind, isSupplyType, type CropKind,
+  BUILDING_DEFS, CROP_DEFS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropPlantingItem, cropForPlantingItem, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, SUPPLY_TYPES, isCropKind, type CropKind,
   CHEST_SLOTS, CHEST_WOOD_COST, CHOP_WORK, HAMMER, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET, PLAYER_STAMINA_REGEN, PLAYER_WORK_REACH, workPercent,
   PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace, isToolKind, isResource, buildingItemKind, itemName,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
@@ -23,7 +23,6 @@ export const STEEL_ORE_YIELD = 12;
 const SPEEDS = [0, 1, 3, 6];
 const STARTER_SEED_PACKS = 9;
 const STARTER_SUPPLIES = 10;
-const SEED_PACK_PRICE = 2;
 const EMPTY_RESOURCES = (): Resources => Object.fromEntries(RESOURCE_TYPES.map((r) => [r, 0])) as Resources;
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
@@ -58,7 +57,7 @@ type SavedState = {
   nextId: number; speed: number; decision: number; lastDay: number; spoilage: number;
   resources: Resources; colonists: Colonist[]; buildings: BuildingView[]; zones: ZoneView[];
   crops: CropView[]; items: ItemView[]; jobs: Job[]; events: ColonyEvent[]; terrainPlans:TerrainPlan[];
-  research: ColonySnapshot['research']; power: ColonySnapshot['power']; trade: ColonySnapshot['trade'];
+  research: ColonySnapshot['research']; power: ColonySnapshot['power'];
   bills: ColonySnapshot['bills']; metrics: ColonySnapshot['metrics']; selectedColonistId: string|null;
   weather: string; temperature: number;
 };
@@ -201,8 +200,6 @@ export class ColonySimulation {
       colonists: [], buildings: [], zones: [], crops: [], items: [], jobs: [], events: [],terrainPlans:[],
       research: { active: null, progress: {}, completed: [] },
       power: { generation: 0, demand: 0, stored: 0, capacity: 0, supplied: 0, coldStorage: false },
-      trade: { available: true, leavesAt: DAY_SECONDS / 3 + 120, stock: { ...EMPTY_RESOURCES(), wood: 40, stone: 30, steel: 25, food: 35, meal: 12, medicine: 10, cloth: 20, silver: 500, components: 6 },
-        prices: { ...EMPTY_RESOURCES(), ...Object.fromEntries(CROP_SEEDS.map(seed => [seed, SEED_PACK_PRICE])), wood: 2, stone: 2, steel: 4, food: 3, meal: 7, medicine: 12, cloth: 4, silver: 1, components: 18, dirt: 1 } },
       bills: { meal: 16, medicine: 8, components: 4 },
       metrics: { jobsCompleted: 0, built: 0, harvested: 0, hauled: 0, cooked: 0, researched: 0, treated: 0, spoiled: 0, distanceWalked: 0 },
       selectedColonistId: null, weather: '晴朗', temperature: 22,
@@ -231,7 +228,6 @@ export class ColonySimulation {
     this.drop('wood', 12, cx, cz + 2);
     this.drop('stone', 10, cx + 2, cz + 2);
     this.event('info', '三位旅人抵达河谷。和平营地已建立：先种田、搬运物资，再安排研究与建设。');
-    this.event('trade', '友善商队正在营地附近停留，可用银币交易物资。购入物资需要居民搬入仓储。');
     this.navigationDirty = true;
     this.updateRooms();
     this.refreshJobs();
@@ -493,9 +489,6 @@ export class ColonySimulation {
     this.s.time += dt;
     this.syncWorld();
     if (this.day() !== this.s.lastDay) this.newDay();
-    if (this.s.trade.available && this.s.time >= this.s.trade.leavesAt) {
-      this.s.trade.available = false; this.event('trade', '商队启程离开，下次拜访将在数日后。');
-    }
     this.updateClimate();
     this.updatePower(dt);
     for (const crop of this.s.crops) if (crop.planted && crop.growth < 1) {
@@ -597,7 +590,6 @@ export class ColonySimulation {
         this.s.bills[c.kind as keyof SavedState['bills']] = c.target!; this.refreshJobs();
         return {ok:true,message:'生产目标已更新'};
       }
-      if (c.action === 'trade') return this.trade(c);
       throw new Error('未知营地指令。');
     } catch (error) { return {ok:false,message:error instanceof Error ? error.message : '无法执行指令'}; }
   }
@@ -1044,29 +1036,6 @@ export class ColonySimulation {
     }
     throw new Error('未找到可取消的蓝图、区域或工作。');
   }
-  private trade(c:ColonyCommand):CommandResult {
-    if(!this.s.trade.available)throw new Error('目前没有商队。');
-    if(!RESOURCE_TYPES.includes(c.resource as Resource)||c.resource==='silver'||!Number.isInteger(c.amount)||c.amount!<=0||c.amount!>100||typeof c.buy!=='boolean')throw new Error('交易需要有效物资、方向及 1–100 的整数数量。');
-    const resource=c.resource as Resource,amount=c.amount!,price=this.s.trade.prices[resource];
-    if (isSupplyType(resource) && price === 0) throw new Error('这种物品尚未设置交易价格。');
-    if(c.buy) {
-      const cost=price*amount;
-      if(this.s.trade.stock[resource]<amount)throw new Error('商队库存不足。');
-      if(this.s.resources.silver<cost)throw new Error('银币不足。');
-      const resident=this.s.colonists[0]!;
-      const p=this.closestOpen(Math.floor(resident.position[0]),Math.floor(resident.position[2]));
-      if(!p)throw new Error('营地无可接收货物的地面。');
-      this.s.resources.silver-=cost;this.s.trade.stock.silver+=cost;this.s.trade.stock[resource]-=amount;
-      this.drop(resource,amount,Math.floor(p[0]),Math.floor(p[2]));
-    } else {
-      const revenue=Math.max(1,Math.floor(price*0.6))*amount;
-      if(this.s.resources[resource]<amount)throw new Error('可出售的仓储物资不足。');
-      if(this.s.trade.stock.silver<revenue)throw new Error('商队银币不足。');
-      this.s.resources[resource]-=amount;this.s.resources.silver+=revenue;this.s.trade.stock.silver-=revenue;this.s.trade.stock[resource]+=amount;
-    }
-    this.refreshJobs();return{ok:true,message:c.buy?'货物已卸下，等待搬运入库':'交易完成，银币已入库'};
-  }
-
   private refreshGroundCell(x:number,z:number):void {
     let y=-1;
     for(let h=1;h<this.world.height-1;h++) {
@@ -1761,11 +1730,6 @@ export class ColonySimulation {
     this.s.lastDay=this.day();const roll=this.random();
     this.s.weather=roll<.1?'热浪':roll<.2?'寒潮':roll<.42?'细雨':roll<.64?'多云':'晴朗';
     this.event('weather',`第 ${this.day()} 天：${this.season()}，预计${this.s.weather}。留意居民需求与食品供应。`);
-    if(this.day()%3===1){
-      this.s.trade.available=true;this.s.trade.leavesAt=this.s.time+150;
-      this.s.trade.stock={...EMPTY_RESOURCES(),wood:40,stone:30,steel:25,food:35,meal:12,medicine:10,cloth:20,silver:500,components:6};
-      this.event('trade','友善商队抵达，可在贸易面板交换物资。');
-    }
     if(this.day()%3===2&&this.s.colonists.length){
       const c=this.s.colonists[Math.floor(this.random()*this.s.colonists.length)]!;c.disease=Math.min(100,c.disease+45);c.health=Math.max(20,c.health-8);
       this.event('health',`${c.name}出现季节性感冒。安排医生、药品与休养可帮助恢复。`);
@@ -1791,7 +1755,7 @@ export class ColonySimulation {
       resources:this.s.resources,playerBag:this.inventoryColonist?.bag??emptySlots(PLAYER_SLOTS),bagSelected:this.inventoryColonist?.bagSelected??0,controlledColonistId:this.controlled?.id??null,chests,
       colonists:displayed.map(({path,personal,destination,retryAt,...view})=>view),buildings:this.s.buildings,zones:this.s.zones,crops:this.s.crops,
       items:this.s.items,jobs:this.s.jobs.map(({phase,resource,amount,destination,...view})=>view.targetId===PLAYER_DELIVERY_TARGET
-        ? {...view,deliveryPhase:phase==='deliver'?'deliver' as const:'pickup' as const} : view),rooms:this.rooms,research:this.s.research,power:this.s.power,trade:this.s.trade,
+        ? {...view,deliveryPhase:phase==='deliver'?'deliver' as const:'pickup' as const} : view),rooms:this.rooms,research:this.s.research,power:this.s.power,
       bills:this.s.bills,events:this.s.events,metrics:this.s.metrics,selectedColonistId:this.s.selectedColonistId});
     const terrainPlans=this.s.terrainPlans.map(({initialWork,cells,...view})=>{
       let stable=this.terrainCellViews.get(view.id);if(!stable){stable=cells.map(([x,z])=>Object.freeze([x,z]) as unknown as [number,number]);Object.freeze(stable);this.terrainCellViews.set(view.id,stable);}
@@ -1827,11 +1791,12 @@ export class ColonySimulation {
   private validate(data:unknown):SavedState {
     const fail=():never=>{throw new Error('殖民地存档数据不完整、损坏或版本不兼容。');};
     if(!data||typeof data!=='object')fail();
-    const s=copy(data) as Omit<SavedState,'version'> & {version:1|2|3;chests?:ChestView[];playerBag?:PlayerInventorySlot[];bagSelected?:number};
+    const s=copy(data) as Omit<SavedState,'version'> & {version:1|2|3;chests?:ChestView[];playerBag?:PlayerInventorySlot[];bagSelected?:number;trade?:unknown};
     if(s.version!==1&&s.version!==2&&s.version!==3)fail();
     const legacy=s.version<3;
     const legacyChests=s.version===1?(s.chests??[this.starterChest()]):[];
     // Legacy objects are upgraded together, on the private copy, before any live state changes.
+    if (Array.isArray(s.events)) s.events = s.events.filter(event => (event?.type as string) !== 'trade');
     s.terrainPlans??=[];
     const oldBag=legacy ? s.playerBag??[{ resource: HAMMER, count: 1 }, ...emptySlots(PLAYER_SLOTS-1)] : undefined;
 
@@ -1852,8 +1817,6 @@ export class ColonySimulation {
       if (Array.isArray(slots)) for (const slot of slots) migrateSeedItem(slot);
     };
     migrateSeedAmounts(s.resources);
-    migrateSeedAmounts(s.trade?.stock);
-    if (s.trade?.prices) delete (s.trade.prices as Partial<Resources> & { riceSeed?: number }).riceSeed;
     migrateSeedSlots(oldBag);
     if (Array.isArray(legacyChests)) for (const chest of legacyChests) migrateSeedSlots(chest?.slots);
     if (Array.isArray(s.buildings)) for (const building of s.buildings) migrateSeedSlots(building?.storage);
@@ -1882,17 +1845,6 @@ export class ColonySimulation {
       for (const resource of SUPPLY_TYPES) if (!Object.hasOwn(s.resources, resource)) s.resources[resource] = STARTER_SUPPLIES;
       if (!Object.hasOwn(s.resources, 'lambChopStew')) s.resources.lambChopStew = 10;
       for (const r of RESOURCE_TYPES) if (!Object.hasOwn(s.resources, r)) s.resources[r] = 0;
-    }
-    if(s.trade?.stock&&s.trade?.prices){
-      s.trade.stock.dirt??=0;s.trade.prices.dirt??=1;
-      for (const seed of CROP_SEEDS) {
-        s.trade.stock[seed] ??= 0;
-        s.trade.prices[seed] ??= SEED_PACK_PRICE;
-      }
-      for (const resource of SUPPLY_TYPES) {
-        if (!Object.hasOwn(s.trade.stock, resource)) s.trade.stock[resource] = 0;
-        if (!Object.hasOwn(s.trade.prices, resource)) s.trade.prices[resource] = 0;
-      }
     }
     const legacyBuildings=new Set<string>();
     if(Array.isArray(s.buildings))for(const b of s.buildings)if(b&&typeof b==='object'){
@@ -2031,9 +1983,9 @@ export class ColonySimulation {
     }
     if(!s.research||!list(s.research.completed,10)||!s.research.completed.every(id=>!!RESEARCH_DEFS[id])||new Set(s.research.completed).size!==s.research.completed.length||s.research.active!==null&&!RESEARCH_DEFS[s.research.active]||!s.research.progress||Object.entries(s.research.progress).some(([id,p])=>!RESEARCH_DEFS[id]||!finite(p,0,RESEARCH_DEFS[id]!.work)))fail();
     if(!s.power||!['generation','demand','stored','capacity','supplied'].every(k=>finite(s.power[k as keyof typeof s.power]))||typeof s.power.coldStorage!=='boolean'||s.power.stored>s.power.capacity+1e-6)fail();
-    if(!s.trade||typeof s.trade.available!=='boolean'||!finite(s.trade.leavesAt)||!resources(s.trade.stock)||!resources(s.trade.prices)||!s.bills||!['meal','medicine','components'].every(k=>integer(s.bills[k as keyof typeof s.bills],0,200)))fail();
+    if(!s.bills||!['meal','medicine','components'].every(k=>integer(s.bills[k as keyof typeof s.bills],0,200)))fail();
     if(!s.metrics||!Object.values(s.metrics).every(v=>finite(v))||!text(s.weather,20)||!['晴朗','多云','细雨','热浪','寒潮'].includes(s.weather)||!finite(s.temperature,-40,70)||s.selectedColonistId!==null&&!colonistIds.has(s.selectedColonistId))fail();
-    for(const e of s.events)if(!finite(e.time)||!integer(e.day,1)||!finite(e.hour,0,24)||!text(e.text,300)||!['info','weather','health','trade','research','arrival'].includes(e.type))fail();
+    for(const e of s.events)if(!finite(e.time)||!integer(e.day,1)||!finite(e.hour,0,24)||!text(e.text,300)||!['info','weather','health','research','arrival'].includes(e.type))fail();
     // Old saves used tree:x:z rather than an object identity. Preserve valid work once,
     // release stale/duplicate assignments, and never interpret hand-built wood as a tree.
     const chopTargets=new Set<string>();
@@ -2052,6 +2004,7 @@ export class ColonySimulation {
       if(moved&&job.assignedTo){const c=s.colonists.find(c=>c.id===job.assignedTo);if(c){c.jobId=null;c.path=[];c.destination=null;c.retryAt=0;}job.assignedTo=null;job.state='queued';}
       return true;
     });
+    delete s.trade;
     delete s.chests;
     delete s.playerBag;
     delete s.bagSelected;

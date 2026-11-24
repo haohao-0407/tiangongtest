@@ -29,8 +29,6 @@ export default async function supplyItems(play) {
     const oldSave = new ColonySimulation(world).serialize();
     oldSave.speed = 0;
     delete oldSave.resources.pork;
-    delete oldSave.trade.stock.pork;
-    delete oldSave.trade.prices.pork;
     oldSave.resources.flour = 4;
     oldSave.items.push({
       id: `item-${oldSave.nextId++}`, resource: 'flour', amount: 4, x: 128, y: 6, z: 130,
