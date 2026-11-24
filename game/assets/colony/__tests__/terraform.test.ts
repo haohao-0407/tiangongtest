@@ -6,7 +6,11 @@ function setup(){
   const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed:'colony-test',size:[48,24,48],edits:[]}));
   // A deliberately level worksite, away from the settlement's existing facilities.
   const edits=[];for(let z=18;z<=24;z++)for(let x=18;x<=24;x++)for(let y=1;y<world.height;y++)edits.push({x,y,z,block:y<5?BLOCK.Dirt:y===5?BLOCK.Grass:BLOCK.Air});
-  world.edit(edits);return{world,sim:new ColonySimulation(world)};
+  world.edit(edits);
+  const sim = new ColonySimulation(world), save: any = sim.serialize();
+  save.resources.plank = 48;
+  sim.load(save);
+  return { world, sim };
 }
 function jobs(sim:ColonySimulation,enabled:string[]){for(const p of sim.snapshot().colonists)for(const job of JOB_TYPES)sim.command({action:'priority',colonistId:p.id,job,value:enabled.includes(job)?1:0});}
 function runUntil(sim:ColonySimulation,condition:()=>boolean,seconds=180){for(let i=0;i<seconds*4&&!condition();i++)sim.tick(.25);expect(condition()).toBe(true);}
@@ -42,7 +46,7 @@ describe('earthwork blueprints and foundation dependencies',()=>{
     }
     expect(observedPreparation).toBe(true);expect(building().complete).toBe(true);
     expect(building().phase).toBe('completed');expect(world.terrainHeight(20,20)).toBe(6);expect(world.terrainHeight(20,21)).toBe(6);
-    expect(sim.snapshot().resources.wood).toBe(resources.wood-BUILDING_DEFS.bed.cost.wood!);
+    expect(sim.snapshot().resources.plank).toBe(resources.plank-BUILDING_DEFS.bed.cost.plank!);
   });
   it('merges same-height manual and building work and rejects conflicting heights atomically',()=>{
     const{world,sim}=setup();world.set(20,5,20,BLOCK.Air);

@@ -315,7 +315,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         const mesh = own((await assets.load(guid, 'mesh')).unwrap());
         const geometry = assets.read(mesh).unwrap(), bounds = geometry.aabb!;
         // The general workbench and machining station share art but occupy different grids.
-        for (const key of kind === 'fabricator' ? [kind, 'workbench'] : [kind]) {
+        for (const key of kind === 'fabricator' ? [kind, 'workbench', 'carpenterBench'] : [kind]) {
           const { w, h, d } = buildingDimensions(key === 'doorOpen' ? 'door' : key as BuildingKind);
           const horizontal = Math.min(1, w / (bounds[3]! - bounds[0]!), d / (bounds[5]! - bounds[2]!));
           const vertical = h / (bounds[4]! - bounds[1]!);
@@ -1197,7 +1197,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
                 else {
                   const b=objectHit?.building; execute({action:'select'}); selectedBuildingId=b?.id??null;
                   status=b?`${BUILDING_DEFS[b.kind as BuildingKind].name} · ${b.complete?'已建成':b.phase==='preparingTerrain'?'准备地基':`施工 ${Math.round(b.progress*100)}%`}${b.kind==='door'?b.doorOpen?' · 开启':' · 关闭':''}${b.blockedReason?` · ${b.blockedReason}`:''}`
-                    :`${BLOCKS[hit?.block ?? BLOCK.Air]?.name ?? '地块'} [${x}, ${z}] · 地面标高 ${voxels.terrainHeight(x,z)}${hit?.block===BLOCK.SteelOre?' · 规划 → 采矿，获取钢铁':''}`;
+                    :`${BLOCKS[hit?.block ?? BLOCK.Air]?.name ?? '地块'} [${x}, ${z}] · 地面标高 ${voxels.terrainHeight(x,z)}${hit?.block===BLOCK.SteelOre?' · 规划 → 采矿，获取生铁':''}`;
                   refreshState=true;
                 }
               }

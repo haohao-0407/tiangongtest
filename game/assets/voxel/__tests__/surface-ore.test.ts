@@ -30,7 +30,7 @@ function veinComponents(world: VoxelWorld): number[][] {
 describe('surface steel ore generation', () => {
   it.each(['森屿-042', 'ore-2', 'ore-river', 'ore-ridge'])('places exposed connected separated veins for %s', (seed: string) => {
     const world = new VoxelWorld(seed), veins = veinComponents(world);
-    expect(BLOCKS[BLOCK.SteelOre]).toMatchObject({ name: '钢矿', solid: true, buildable: false });
+    expect(BLOCKS[BLOCK.SteelOre]).toMatchObject({ name: '铁矿', solid: true, buildable: false });
     expect(veins).toHaveLength(24);
     for (const vein of veins) {
       expect(vein.length).toBeGreaterThanOrEqual(SURFACE_STEEL_ORE_SETTINGS.minVeinSize);

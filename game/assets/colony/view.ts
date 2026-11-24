@@ -35,7 +35,7 @@ export type ColonyRenderState={
   controlledColonistId?:string|null;
 };
 const COLORS:Record<string,string>={
-  wood:'#a97943',dirt:'#845a3a',stone:'#9ca9a5',steel:'#899fae',food:'#e4bc63',meal:'#d4834b',medicine:'#ecf4dd',cloth:'#c2b3d9',silver:'#e5d69b',components:'#d0ad45',
+  wood:'#a97943',plank:'#c6995c',stoneBrick:'#8c928b',pigIron:'#684f4b',dirt:'#845a3a',stone:'#9ca9a5',steel:'#899fae',food:'#e4bc63',meal:'#d4834b',medicine:'#ecf4dd',cloth:'#c2b3d9',silver:'#e5d69b',components:'#d0ad45',
   dark:'#2e4247',cream:'#f0ddba',blanket:'#568b9b',white:'#fff3d5',green:'#63935e',gold:'#e5c66f',blue:'#4d7d96',black:'#233135',
   light:'#c5e4cd',soil:'#7e563b',
   blueprint:'#75cece',zoneFarm:'#90bd65',zoneStock:'#75baca',selected:'#ecd78c',health:'#9fc174',bad:'#c56b55',

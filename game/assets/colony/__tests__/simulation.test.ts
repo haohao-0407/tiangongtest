@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { BLOCK, VoxelWorld } from '../../voxel/model.ts';
 import { BUILDING_DEFS, ColonySimulation, CROP_KINDS, CROP_SEEDS, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES, SUPPLY_TYPES, TOOL_KINDS } from '../simulation.ts';
 
-function setup(seed='colony-test') { const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed,size:[48,24,48],edits:[]}));return {world,sim:new ColonySimulation(world)}; }
+function setup(seed='colony-test') {
+  const world = VoxelWorld.deserialize(JSON.stringify({ version: 1, generatorVersion: 1, seed, size: [48,24,48], edits: [] }));
+  const sim = new ColonySimulation(world), save = raw(sim);
+  save.resources.plank = 48;
+  sim.load(save);
+  return { world, sim };
+}
 function run(sim:ColonySimulation,seconds:number) { for(let i=0;i<seconds*4;i++)sim.tick(.25); }
 function onlyJob(sim:ColonySimulation,job:string) {
   for(const c of sim.snapshot().colonists)for(const type of JOB_TYPES)sim.command({action:'priority',colonistId:c.id,job:type,value:type===job?1:0});
@@ -270,7 +276,7 @@ expect(finished.playerBag[TOOL_KINDS.length]).toEqual({ resource: 'steel', count
     const order=sim.command({action:'build',kind:'bed',...pos});expect(order.ok).toBe(true);
     const b=sim.snapshot().buildings.find(b=>b.id===order.id)!;
     expect(b.reserved).toEqual(BUILDING_DEFS.bed.cost);expect(b.progress).toBe(0);
-    expect(sim.snapshot().resources.wood).toBe(before.wood-12);
+    expect(sim.snapshot().resources.plank).toBe(before.plank - 24);
     expect(sim.command({action:'build',kind:'bed',...pos}).ok).toBe(false);
     expect(sim.command({action:'cancel',id:order.id}).ok).toBe(true);
     expect(sim.snapshot().resources).toEqual(before);
@@ -286,7 +292,7 @@ expect(finished.playerBag[TOOL_KINDS.length]).toEqual({ resource: 'steel', count
     for(let i=0;i<3;i++)expect(Math.hypot(...first.colonists[i]!.position.map((v,k)=>v-before.colonists[i]!.position[k]!))).toBeLessThanOrEqual(.53);
     run(sim,80);const after=sim.snapshot(),building=after.buildings.find(b=>b.id===result.id)!;
     expect(building.complete).toBe(true);expect(building.progress).toBe(1);expect(building.reserved).toEqual({});
-    expect(after.resources.wood).toBe(before.resources.wood-12);expect(after.metrics.distanceWalked).toBeGreaterThan(1);
+    expect(after.resources.plank).toBe(before.resources.plank-24);expect(after.metrics.distanceWalked).toBeGreaterThan(1);
     expect(after.jobs.some(j=>j.targetId===result.id)).toBe(false);
     expect(sim.command({action:'cancel',id:result.id}).ok).toBe(false);
   });
@@ -365,9 +371,9 @@ describe('resident needs and civilian production',()=>{
     const day=raw(sim);day.time=DAY_SECONDS+DAY_SECONDS*10/24;day.lastDay=2;day.colonists[0].personal=null;day.colonists[0].path=[];day.colonists[0].rest=90;sim.load(day);
     run(sim,25);expect(sim.snapshot().colonists[0]!.recreation).toBeGreaterThan(30);
   });
-  it('plants, grows, harvests, hauls and cooks through real work queues',()=>{
+  it('plants, grows, harvests and hauls without automatically replenishing cooked meals',()=>{
     const{sim}=setup();run(sim,220);const s=sim.snapshot();
-    expect(s.metrics.harvested).toBeGreaterThan(0);expect(s.metrics.hauled).toBeGreaterThan(22);expect(s.metrics.cooked).toBeGreaterThan(0);
+    expect(s.metrics.harvested).toBeGreaterThan(0);expect(s.metrics.hauled).toBeGreaterThan(22);expect(s.metrics.cooked).toBe(0);
     expect(s.crops.some(c=>c.planted)).toBe(true);expect(s.resources.cabbage+s.items.filter(i=>i.resource==='cabbage').reduce((n,i)=>n+i.amount,0)).toBeGreaterThan(10);
     expect(RESOURCE_TYPES.every(r=>s.resources[r]>=0&&Number.isInteger(s.resources[r]))).toBe(true);
   });
@@ -433,16 +439,32 @@ describe('resident needs and civilian production',()=>{
     restored.load(sim.serialize());
     expect(restored.snapshot()).toEqual(upgraded);
   });
-  it('can cook with cabbage when generic raw food runs out', () => {
+  it('collects explicit recipe ingredients and cooks one order without using legacy raw food', () => {
     const { sim } = setup();
     onlyJob(sim, 'cook');
     const saved = raw(sim);
     saved.resources.food = 0;
+    saved.resources.leek = 0;
     sim.load(saved);
-    run(sim, 40);
+    const order = sim.command({ action: 'craft', recipe: 'salad' });
+    expect(order.ok).toBe(true);
+    expect(order.message).toContain('缺少韭葱');
+    const state = raw(sim);
+    state.resources.leek = 1;
+    sim.load(state);
+    const active = () => sim.snapshot().jobs.find(job => job.id === order.id);
+    for (let i = 0; i < 200 && active()?.craftPhase !== 'work'; i++) sim.tick(.25);
+    expect(active()).toMatchObject({ reserved: { cabbage: 1, leek: 1 }, craftPhase: 'work' });
+    const inFlight = sim.serialize();
+    expect(sim.command({ action: 'cancel', id: order.id }).ok).toBe(true);
+    expect(sim.snapshot().resources.leek).toBe(1);
+    sim.load(inFlight);
+    run(sim, 30);
     const cooked = sim.snapshot();
-    expect(cooked.metrics.cooked).toBeGreaterThan(0);
-    expect(cooked.resources.cabbage).toBeLessThan(saved.resources.cabbage);
+    expect(cooked.metrics.cooked).toBe(1);
+    expect(cooked.resources.leek).toBe(0);
+    expect(cooked.items.filter(item => item.resource === 'salad').map(item => item.amount)).toEqual([1]);
+    expect(active()).toBeUndefined();
   });
   it('grants seeds to old saves once, blocks empty farms and preserves or refunds the reserved seed', () => {
     const world = new VoxelWorld();
@@ -506,11 +528,22 @@ describe('resident needs and civilian production',()=>{
     expect(sim.snapshot().crops.filter(crop => crop.kind === 'blueberry' && crop.planted)).toHaveLength(1);
     expect(sim.snapshot().resources.blueberry).toBe(0);
   });
-  it('production targets include ground and carried products, so no hauling does not cause overproduction',()=>{
-    const{sim}=setup();onlyJob(sim,'cook');run(sim,100);const s=sim.snapshot();
-    const total=s.resources.meal+s.items.filter(i=>i.resource==='meal').reduce((n,i)=>n+i.amount,0)+s.colonists.reduce((n,c)=>n+(c.carrying.meal??0),0);
-    expect(total).toBeGreaterThanOrEqual(s.bills.meal);expect(total).toBeLessThan(s.bills.meal+3);
-    expect(s.metrics.cooked).toBe(3);expect(s.resources.food+s.metrics.spoiled).toBe(38);
+  it('refunds a retired automatic production job on load and drops the old stock targets', () => {
+    const { sim } = setup();
+    const save = raw(sim);
+    const worker = save.colonists[0], stove = save.buildings.find((building: {kind: string}) => building.kind === 'stove');
+    save.bills = { meal: 16, medicine: 8, components: 4 };
+    worker.jobId = 'legacy-cook';
+    save.jobs.push({id: worker.jobId, type: 'cook', targetId: stove.id, assignedTo: worker.id,
+      x: stove.x, y: stove.y, z: stove.z, progress: 3, work: 8, state: 'working',
+      reserved: { food: 2 }, label: '烹饪熟食', phase: 'work', amount: 0, destination: null});
+    sim.load(save);
+    expect(raw(sim).bills).toBeUndefined();
+    expect(sim.snapshot().resources.food).toBe(save.resources.food + 2);
+    expect(sim.snapshot().colonists[0]?.jobId).toBeNull();
+    sim.load(sim.serialize());
+    expect(sim.snapshot().resources.food).toBe(save.resources.food + 2);
+    expect(sim.snapshot().jobs.some(job => job.type === 'cook' || job.type === 'craft')).toBe(false);
   });
   it('doctors reserve medicine and treat disease at the patient location',()=>{
     const{sim}=setup();onlyJob(sim,'doctor');const data=raw(sim);data.colonists[0].disease=65;data.colonists[0].health=60;sim.load(data);const before=sim.snapshot();

@@ -13,9 +13,9 @@ const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a
 const unit = a => a.map(n => n / Math.hypot(...a));
 const oreCount = state => state.minerals.steelOre.cells;
 const miningJobs = (state, ore) => state.colony.jobs.filter(job => job.type === 'mine' && job.x === ore.x && job.z === ore.z);
-const steel = state => state.colony.resources.steel
-  + state.colony.items.filter(item => item.resource === 'steel').reduce((sum, item) => sum + item.amount, 0)
-  + state.colony.colonists.reduce((sum, pawn) => sum + (pawn.carrying.steel ?? 0), 0);
+const iron = state => state.colony.resources.pigIron
+  + state.colony.items.filter(item => item.resource === 'pigIron').reduce((sum, item) => sum + item.amount, 0)
+  + state.colony.colonists.reduce((sum, pawn) => sum + (pawn.carrying.pigIron ?? 0), 0);
 
 /** Find natural surface ore with a reachable adjacent working position. */
 function candidatesFor(state) {
@@ -160,8 +160,8 @@ export default async function orePlaythrough(play) {
     const hit = await hover(ore, isOre ? ore.y + 1 : ore.y); assert.ok(hit, `Cannot point at ${ore.x},${ore.z}`);
     await play.mouse.click(hit.point);
     const text = `[${ore.x}, ${ore.z}]`;
-    const state = await wait(s => s.status.includes(text) && s.status.startsWith('钢矿 ') === isOre);
-    assert.equal(state.status.startsWith('钢矿 '), isOre, state.status);
+    const state = await wait(s => s.status.includes(text) && s.status.startsWith('铁矿 ') === isOre);
+    assert.equal(state.status.startsWith('铁矿 '), isOre, state.status);
     return state;
   };
   const settings = async () => {
@@ -224,7 +224,7 @@ export default async function orePlaythrough(play) {
     await speed(0); state = await read();
     assert.equal(oreCount(state), initialCount - 1, JSON.stringify({ jobs: miningJobs(state, mined), residents: state.colony.colonists.map(p => ({ task: p.task, position: p.position })) }));
     assert.ok(working && beside, 'A resident must reach a neighbouring work cell before extracting the ore.');
-    assert.equal(steel(state), steel(before) + 12); assert.equal(miningJobs(state, mined).length, 0);
+    assert.equal(iron(state), iron(before) + 12); assert.equal(miningJobs(state, mined).length, 0);
     await inspectCell(mined, false); await capture('ore-03-resident-depleted-one-cell-and-produced-steel');
   });
 
@@ -234,7 +234,7 @@ export default async function orePlaythrough(play) {
     await choose('sandbox', 'sandbox-remove', 'sandbox:remove');
     const hit = await hover(ore); assert.ok(hit); const before = clone(await read());
     await play.mouse.click(hit.point); await wait(state => oreCount(state) === initialCount - 2);
-    assert.equal(steel(await read()), steel(before), 'Sandbox removal has no harvest yield.');
+    assert.equal(iron(await read()), iron(before), 'Sandbox removal has no harvest yield.');
     await focusMap(); await play.keyboard.press('Control+KeyZ');
     await wait(state => oreCount(state) === initialCount - 1 && state.redo);
     await capture('ore-04-undo-restores-only-sandbox-removed-ore');
@@ -246,17 +246,17 @@ export default async function orePlaythrough(play) {
   await play.step('save-load-and-browser-reload-preserve-veins-and-depletion', async () => {
     await settings(); await play.page.locator('#save').click();
     await play.page.locator('#save-status').filter({ hasText: '手动存档已保存到本机' }).waitFor({ state: 'visible' });
-    const savedCount = oreCount(await read()), savedSteel = steel(await read());
+    const savedCount = oreCount(await read()), savedSteel = iron(await read());
     await choose('sandbox', 'sandbox-remove', 'sandbox:remove'); await focusMap();
     await play.keyboard.press('Control+KeyZ'); await wait(state => oreCount(state) === savedCount + 1);
     await settings(); await play.page.locator('#load').click();
     await wait(state => oreCount(state) === savedCount && state.colony.speed === 0);
-    assert.equal(steel(await read()), savedSteel);
+    assert.equal(iron(await read()), savedSteel);
     await center(mined); await inspectCell(mined, false);
     await center(removed); await inspectCell(removed, false);
     await capture('ore-06-manual-load-keeps-mined-and-removed-cells-empty');
     await play.reload(); await wait(state => state.generatorVersion === 3 && oreCount(state) === savedCount && state.colony?.speed === 0);
-    assert.equal(steel(await read()), savedSteel);
+    assert.equal(iron(await read()), savedSteel);
     await center(mined); await inspectCell(mined, false);
     await capture('ore-07-reload-keeps-veins-and-mined-resource-count');
   });

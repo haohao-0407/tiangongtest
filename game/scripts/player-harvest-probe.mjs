@@ -116,17 +116,17 @@ export default async function playerHarvest(play) {
   await page.mouse.move(...project(await read(), [123.5, 6.01, 125.5]));
   const distant = await advance();
   assert.equal((await hold(1)).revision, distant.revision, '圆形范围外的地面不应被挖掉');
-  await aim([ore[0],ore[1]+1,ore[2]],/钢矿需要石镐/);
+  await aim([ore[0],ore[1]+1,ore[2]],/铁矿需要石镐/);
   assert.equal((await hold(1)).minerals.steelOre.cells,initial.minerals.steelOre.cells);
   await dig(dirt,/挖掘泥土/,'dirt',1,.73,'player-dug-dirt');
   await page.keyboard.press('Digit3');
   await advance();
   await dig(stone,/挖掘石块/,'stone',8,1.25,'player-mined-stone');
-  await dig(ore,/挖掘钢矿/,'steel',12,1.65,'player-mined-steel-ore');
+  await dig(ore,/挖掘铁矿/,'pigIron',12,1.65,'player-mined-iron-ore');
   assert.equal((await read()).minerals.steelOre.cells,initial.minerals.steelOre.cells-1);
 
   const collected = await advance(.8);
-  for (const resource of ['dirt','stone','steel']) {
+  for (const resource of ['dirt','stone','pigIron']) {
     assert.ok(collected.player.bag.some(item=>item?.resource===resource),`快捷栏应拾取${resource}`);
   }
   await play.screenshot('mined-materials-in-hotbar');
@@ -183,10 +183,10 @@ export default async function playerHarvest(play) {
     const voxel=typeof data?.voxel==='string' ? JSON.parse(data.voxel) : data?.voxel;
     const resident=data?.colony.colonists.find(person=>person.id===id);
     return voxel?.edits?.length>=count && voxel.trees?.some(tree=>tree.id===treeId)===false
-      && resident?.bag.some(item=>item?.resource==='steel');
+      && resident?.bag.some(item=>item?.resource==='pigIron');
   },{key:SAVE,count:(await read()).edits,id:residentId,treeId:tree.id},{timeout:10000});
   await play.reload();
-  const restored=await play.waitFor(s=>s.seed===world.seed && s.colony.colonists.find(person=>person.id===residentId)?.bag.some(item=>item?.resource==='steel'),{read:READ,timeoutMs:10000});
+  const restored=await play.waitFor(s=>s.seed===world.seed && s.colony.colonists.find(person=>person.id===residentId)?.bag.some(item=>item?.resource==='pigIron'),{read:READ,timeoutMs:10000});
   assert.equal(restored.minerals.steelOre.cells,initial.minerals.steelOre.cells-1);
   assert.ok(restored.colony.crops.some(crop => crop.planted && crop.kind === 'tomato' && crop.x === seedNear[0] && crop.z === seedNear[2]));
   assert.ok(!restored.trees.some(candidate => candidate.id === tree.id));

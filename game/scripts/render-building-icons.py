@@ -160,7 +160,7 @@ for index, kind in enumerate(kinds):
         layers = ["ground", "hearth", "stage", "banquet", "seating", "decor", "food", "lanterns", "flames"]
         subjects = [plaza[layer] for layer in layers]
         subjects.append(box((0, 0, -.43), (26, 22, .7), "grass"))
-    elif kind == "workbench":
+    elif kind in ("workbench", "carpenterBench"):
         obj = buildings["fabricator"].copy()
         bpy.context.collection.objects.link(obj)
         subjects = [obj]

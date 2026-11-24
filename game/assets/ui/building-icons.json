@@ -130,64 +130,68 @@
       7,
       3
     ],
-    "campStove": [
+    "carpenterBench": [
       0,
+      4
+    ],
+    "campStove": [
+      1,
       4
     ],
     "stoneCutter": [
-      1,
+      2,
       4
     ],
     "forgery": [
-      2,
+      3,
       4
     ],
     "fabricator": [
-      3,
+      4,
       4
     ],
     "tailorBench": [
-      4,
+      5,
       4
     ],
     "pickleBarrel": [
-      5,
+      6,
       4
     ],
     "brewBarrel": [
-      6,
-      4
-    ],
-    "cheesePress": [
       7,
       4
     ],
-    "advancedResearchDesk": [
+    "cheesePress": [
       0,
       5
     ],
-    "artBench": [
+    "advancedResearchDesk": [
       1,
       5
     ],
-    "hydroponics": [
+    "artBench": [
       2,
       5
     ],
-    "sprinkler": [
+    "hydroponics": [
       3,
       5
     ],
-    "greenhouseWall": [
+    "sprinkler": [
       4,
       5
     ],
-    "scarecrow": [
+    "greenhouseWall": [
       5,
       5
     ],
-    "compostBin": [
+    "scarecrow": [
       6,
+      5
+    ],
+    "compostBin": [
+      7,
       5
     ]
   }

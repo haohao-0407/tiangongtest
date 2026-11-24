@@ -1,7 +1,8 @@
-// Official owner-browser acceptance. Every mutation is an ordinary player input.
+// Official owner-browser acceptance. Construction supplies are loaded with the test save.
 // pnpm exec forgeax project play scripts/terrain-playthrough.mjs --require-ui --json
 // Keep the default 1280x720,1280x600 viewports: the final gate checks both layouts.
 import assert from 'node:assert/strict';
+import { stockConstructionFixture } from './construction-supplies.mjs';
 
 const READ = 'voxel.world';
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -188,6 +189,7 @@ export default async function terrainPlaythrough(play) {
     await wait((s) => s.colony?.colonists.length === 3 && s.terrain && s.nonAirCount > 1000);
     await clearMapUi();
     const state = await speed(0);
+    await stockConstructionFixture(play, { plank: 40 });
     assert.deepEqual([state.worldSize[0], state.worldSize[2]], [250, 250]);
     assert.deepEqual(state.dimensions, state.worldSize);
     await play.page.locator('#settings-toggle').click();

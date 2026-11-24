@@ -37,7 +37,7 @@ export const BLOCKS: readonly BlockDefinition[] = [
   { id: 8, name: '河水', color: [0.22, 0.57, 0.66], solid: false, buildable: false },
   { id: 9, name: '沙土', color: [0.83, 0.74, 0.48], solid: true, buildable: true },
   { id: 10, name: '道路', color: [0.49, 0.51, 0.49], solid: true, buildable: true },
-  { id: 11, name: '钢矿', color: [0.35, 0.39, 0.40], solid: true, buildable: false },
+  { id: 11, name: '铁矿', color: [0.35, 0.39, 0.40], solid: true, buildable: false },
 ];
 export interface BlockEdit { x: number; y: number; z: number; block: number }
 export interface ChunkCoord { x: number; y: number; z: number }

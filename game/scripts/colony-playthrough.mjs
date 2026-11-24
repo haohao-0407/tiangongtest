@@ -1,11 +1,12 @@
 import { returnToMap } from './return-to-map.mjs';
-// Official owner-browser acceptance. Mutations are ordinary player inputs only.
+import { stockConstructionFixture } from './construction-supplies.mjs';
+// Official owner-browser acceptance. Construction supplies are loaded with the test save.
 // Run from the game root:
 // pnpm exec forgeax project play scripts/colony-playthrough.mjs --require-ui --json
 import assert from 'node:assert/strict';
 
 const READ = 'voxel.world';
-const COSTS = { bed: { wood: 12, cloth: 3 }, floor: { wood: 3 } };
+const COSTS = { bed: { plank: 24, cloth: 3 }, floor: { wood: 3 } };
 const FOOTPRINTS = { bed: [1, 2], floor: [1, 1] };
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const pawnBy = (state, id) => state.colony.colonists.find((pawn) => pawn.id === id);
@@ -177,6 +178,7 @@ export default async function colonyPlaythrough(play) {
   });
 
   const built = await play.step('mouse-places-reserved-bed-and-floor-blueprints', async () => {
+    await stockConstructionFixture(play, { plank: COSTS.bed.plank });
     const bed = await placeBuilding('bed');
     const floor = await placeBuilding('floor');
     await capture('colony-05-bed-and-floor-resource-reservations');
@@ -210,12 +212,14 @@ export default async function colonyPlaythrough(play) {
     }
   });
 
-  await play.step('production-target-and-research-selection', async () => {
+  await play.step('crafting-order-and-research-selection', async () => {
     await click('menu-production');
-    const previous = (await read()).colony.bills.meal;
-    await click('bill-meal-plus');
-    await wait((s) => s.colony.bills.meal === previous + 3);
-    await capture('colony-08-production-target-changed');
+    await click('craft-order-bread');
+    const queued = await wait(s => s.colony.jobs.some(j => j.recipe === 'bread'));
+    const order = queued.colony.jobs.find(j => j.recipe === 'bread');
+    await capture('colony-08-crafting-order');
+    await click(`craft-cancel-${order.id}`);
+    await wait(s => !s.colony.jobs.some(j => j.id === order.id));
     await click('menu-research');
     await click('research-electricity');
     await wait((s) => s.colony.research.active === 'electricity');
@@ -272,12 +276,12 @@ export default async function colonyPlaythrough(play) {
     await settings(false);
     // A state-changing real UI interaction proves that Load performs restoration.
     await click('menu-production');
-    await click('bill-meal-plus');
-    await wait((s) => s.colony.bills.meal === baseline.colony.bills.meal + 3);
+    await click('craft-order-bread');
+    await wait(s => s.colony.jobs.some(j => j.recipe === 'bread'));
     await closePanel();
     await settings(true);
     await play.page.locator('#load').click();
-    const loaded = await wait((s) => s.colony.bills.meal === baseline.colony.bills.meal);
+    const loaded = await wait(s => !s.colony.jobs.some(j => j.recipe === 'bread'));
     await settings(false);
     assert.deepEqual(clone(loaded.colony), baseline.colony, 'Load must restore every public simulation field while paused.');
     assert.equal(loaded.seed, baseline.seed);
@@ -299,6 +303,6 @@ export default async function colonyPlaythrough(play) {
   // This run never modifies terrain with infinite resources or overwrites the colony via reseeding.
   return { requirements: ['three-residents', 'initial-facilities', 'dynamic-work', 'pause', '1-3-6-speed',
     'selection-priorities-schedules', 'material-reservation-and-cancel', 'mouse-build-and-colonist-construction',
-    'farm-stockpile-zones', 'production-target', 'research-work-and-unlock', 'full-save-load-reload'],
+    'farm-stockpile-zones', 'crafting-order', 'research-work-and-unlock', 'full-save-load-reload'],
   speedEvidence, saved };
 }

@@ -7,6 +7,7 @@ function setup(){
   const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed:'multiblock-test',size:[48,24,48],edits:[]}));
   const edits=[];for(let z=0;z<48;z++)for(let x=0;x<48;x++)for(let y=1;y<24;y++)edits.push({x,y,z,block:y<5?BLOCK.Dirt:y===5?BLOCK.Grass:BLOCK.Air});world.edit(edits);
   const sim=new ColonySimulation(world),save:any=sim.serialize();
+  save.resources.plank=48;
   save.buildings=[];save.jobs=[];save.zones=[];save.crops=[];save.items=[];save.terrainPlans=[];
   save.colonists.forEach((c:any,i:number)=>{c.position=[12.5+i,6,12.5];c.personal=null;c.path=[];c.destination=null;c.jobId=null;JOB_TYPES.forEach(j=>c.priorities[j]=0);});sim.load(save);
   return{world,sim};

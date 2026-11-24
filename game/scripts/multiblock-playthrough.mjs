@@ -2,6 +2,7 @@ import { returnToMap } from './return-to-map.mjs';
 // Official owner-browser acceptance. All mutations use normal player controls.
 // pnpm exec forgeax project play scripts/multiblock-playthrough.mjs --require-ui --json
 import assert from 'node:assert/strict';
+import { stockConstructionFixture } from './construction-supplies.mjs';
 
 const READ = 'voxel.world';
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -187,6 +188,7 @@ export default async function multiblockPlaythrough(play) {
     }
     await clearMapUi();
     await speed(0);
+    await stockConstructionFixture(play, { plank: 120 });
     for (const pawn of initial.colony.colonists) {
       await setPriority(pawn.id, 'construct', 1);
       await setPriority(pawn.id, 'terraform', 1);
