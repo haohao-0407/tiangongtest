@@ -1,0 +1,23 @@
+17个人物最新FBX整合包。
+完整人物文件以 Villager_ 开头；Head / UpperBody / LowerBody / Shoes 是四个部位；其余是职业道具。
+包含最新家庭主妇围裙与裤腿、裁缝裤腿、女村民短裙、老奶奶长裤和恢复版小孩。默认前进 Walk_Forward，保留四方向行走与骨骼。
+完整人物可直接使用；自行组合部件时使用一套共用骨骼。
+共17份完整人物FBX、68份身体部件FBX、22份道具FBX，总计107份。
+
+01  样板村民  / 01_Villager  / 5份FBX
+02  家庭主妇  / 02_Homemaker  / 7份FBX
+03  农民  / 03_Farmer  / 6份FBX
+04  果农兼酿酒师  / 04_Winemaker  / 7份FBX
+05  锻造师  / 05_Blacksmith  / 7份FBX
+06  木匠  / 06_Carpenter  / 6份FBX
+07  石匠  / 07_Stonemason  / 7份FBX
+08  机械师  / 08_Mechanic  / 7份FBX
+09  裁缝  / 09_Tailor  / 7份FBX
+10  厨师  / 10_Cook  / 7份FBX
+11  奶酪师  / 11_Cheesemaker  / 7份FBX
+12  研究员  / 12_Researcher  / 7份FBX
+13  雕塑家  / 13_Sculptor  / 7份FBX
+14  女村民（短裙）  / 14_Woman  / 5份FBX
+15  壮年男村民  / 15_Man  / 5份FBX
+16  老奶奶（长裤）  / 16_Grandmother  / 5份FBX
+17  小男孩（恢复版）  / 17_Boy  / 5份FBX
