@@ -2,12 +2,34 @@ import { definePack, definePackageId } from '@forgeax/engine/pack/source';
 import { ok } from '@forgeax/engine/types';
 import { voxelGame } from './voxel/runtime.ts';
 import { assetGuid, guidText, PACKAGE_IDS } from './shared/asset-refs.ts';
-import villagers from './models/villagers.glb.meta.json';
+import villager01 from './models/villagers.glb.meta.json';
+import villager02 from './models/villagers/villager-02.glb.meta.json';
+import villager03 from './models/villagers/villager-03.glb.meta.json';
+import villager04 from './models/villagers/villager-04.glb.meta.json';
+import villager05 from './models/villagers/villager-05.glb.meta.json';
+import villager06 from './models/villagers/villager-06.glb.meta.json';
+import villager07 from './models/villagers/villager-07.glb.meta.json';
+import villager08 from './models/villagers/villager-08.glb.meta.json';
+import villager09 from './models/villagers/villager-09.glb.meta.json';
+import villager10 from './models/villagers/villager-10.glb.meta.json';
+import villager11 from './models/villagers/villager-11.glb.meta.json';
+import villager12 from './models/villagers/villager-12.glb.meta.json';
+import villager13 from './models/villagers/villager-13.glb.meta.json';
+import villager14 from './models/villagers/villager-14.glb.meta.json';
+import villager15 from './models/villagers/villager-15.glb.meta.json';
+import villager16 from './models/villagers/villager-16.glb.meta.json';
+import villager17 from './models/villagers/villager-17.glb.meta.json';
 import buildings from './models/buildings.glb.meta.json';
 import plaza from './models/campfire-plaza.glb.meta.json';
 import flora from './models/wild-plants.glb.meta.json';
 import wildlife from './models/wild-animals.glb.meta.json';
 import { WALK_CLIPS } from './colony/character-view.ts';
+
+const villagers = [
+  villager01, villager02, villager03, villager04, villager05, villager06, villager07, villager08, villager09,
+  villager10, villager11, villager12, villager13, villager14, villager15, villager16, villager17,
+];
+
 export const game = voxelGame;
 export default definePack({
   schemaVersion:'2.0.0', plugins:true,
@@ -23,11 +45,12 @@ export default definePack({
         .map(asset => [asset.name, { $asset:asset.guid }])),
       buildings:Object.fromEntries(buildings.subAssets.filter(asset => asset.kind === 'mesh')
         .map(asset => [asset.name, { $asset:asset.guid }])),
-      scene:{$asset:villagers.subAssets.find(asset => asset.kind === 'scene')!.guid},
-      outfits:villagers.subAssets.filter(asset => asset.kind === 'mesh')
-        .sort((a,b) => a.sourceIndex - b.sourceIndex).map(asset => ({ $asset:asset.guid })),
-      walks:WALK_CLIPS.map(name => ({ $asset:villagers.subAssets.find(asset =>
-        asset.kind === 'animation-clip' && asset.name === name)!.guid })),
+      characterMaterial:{$asset:villager01.subAssets.find(asset => asset.kind === 'material')!.guid},
+      characters:villagers.map(model => ({
+        scene:{$asset:model.subAssets.find(asset => asset.kind === 'scene')!.guid},
+        walks:WALK_CLIPS.map(name => ({$asset:model.subAssets.find(asset =>
+          asset.kind === 'animation-clip' && asset.name === name)!.guid})),
+      })),
     },
   }}),
 });

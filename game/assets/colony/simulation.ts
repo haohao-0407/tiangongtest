@@ -8,7 +8,7 @@ import {buildingProtectingVoxel} from './interaction.ts';
 import { recipeCost, recipeFor, type Recipe } from './recipes.ts';
 import {
   BUILDING_DEFS, CROP_DEFS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropPlantingItem, cropForPlantingItem, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, SUPPLY_TYPES, isCropKind, type CropKind,
-  CHEST_SLOTS, CHEST_WOOD_COST, CHOP_WORK, HAMMER, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET, PLAYER_STAMINA_REGEN, PLAYER_WORK_REACH, workPercent,
+  CHEST_SLOTS, CHEST_WOOD_COST, CHOP_WORK, HAMMER, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET, PLAYER_STAMINA_REGEN, PLAYER_WORK_REACH, RESIDENT_HEIGHT, RESIDENT_RADIUS, workPercent,
   PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace, isToolKind, isResource, buildingItemKind, itemName,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
   type ColonySnapshot, type ColonistView, type CommandResult, type CropView,
@@ -28,6 +28,9 @@ const EMPTY_RESOURCES = (): Resources => Object.fromEntries(RESOURCE_TYPES.map((
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
 const horizontalDistance = (a: Position, b: Position) => Math.hypot(a[0] - b[0], a[2] - b[2]);
+const residentsTouchHorizontally = (a: Position, b: Position) => horizontalDistance(a,b) < RESIDENT_RADIUS * 2 - 1e-6;
+const residentsOverlap = (a: Position, b: Position) =>
+  Math.abs(a[1] - b[1]) < RESIDENT_HEIGHT - 1e-6 && residentsTouchHorizontally(a,b);
 const workSkill = (type: OrderType): JobType => type === 'demolish' ? 'construct' : type;
 const emptySlots = (size: number): PlayerInventorySlot[] => Array.from({ length: size }, () => null);
 const validSlot = (index: unknown, slots: readonly PlayerInventorySlot[]): index is number =>
@@ -95,25 +98,14 @@ export class ColonySimulation {
     if (!route) {
       const path=this.path(c.position,goal);
       // An isolated island can have no walkable connection to the venue.
-      if (path===null) { c.position=[...goal]; return true; }
+      if (path===null) {
+        if (this.residentAt(goal, c.id)) return false;
+        c.position=[...goal]; return true;
+      }
       route=[...path,goal];
       this.processionPaths.set(c.id,route);
     }
-    let remaining=dt*3.4;
-    while (route.length && remaining>0) {
-      const next=route[0]!, dx=next[0]-c.position[0], dz=next[2]-c.position[2];
-      const distance=Math.hypot(dx,dz);
-      if (distance>.001) c.facing=Math.atan2(dx,dz);
-      const walked=Math.min(distance,remaining);
-      if (distance<=remaining) { c.position=[...next]; route.shift(); remaining-=distance; }
-      else {
-        const t=remaining/distance;
-        c.position=[c.position[0]+dx*t,c.position[1]+(next[1]-c.position[1])*t,c.position[2]+dz*t];
-        remaining=0;
-      }
-      this.s.metrics.distanceWalked+=walked;
-    }
-    return route.length===0;
+    return this.walkResidentPath(c, route, dt * 3.4, true);
   }
 
   private tickFinale(f:Finale,dt:number):void {
@@ -252,7 +244,7 @@ export class ColonySimulation {
     if (index % 3 === 1) { priorities.cook = 1; priorities.doctor = 1; priorities.haul = 2; skills.cook = 8; skills.doctor = 7; }
     if (index % 3 === 2) { priorities.grow = 1; priorities.harvest = 1; priorities.research = 2; skills.grow = 9; skills.research = 8; }
     this.s.colonists.push({ id: this.id('colonist'), name, traits: [['勤劳', '巧手'], ['体贴', '乐观'], ['园艺爱好者', '好学']][index % 3]!, skills, priorities, schedule: 'balanced',
-      position: this.closestOpen(x, z) ?? [this.world.width/2+.5, 6, this.world.depth/2+.5], health: 100, hunger: 72 + index * 5, rest: 88, recreation: 76, mood: 78, disease: 0,
+      position: this.closestOpen(x, z, false, p => !this.residentAt(p)) ?? [this.world.width/2+.5, 6, this.world.depth/2+.5], health: 100, hunger: 72 + index * 5, rest: 88, recreation: 76, mood: 78, disease: 0,
       task: '观察新营地', jobId: null, color: [[0.78,0.44,0.25],[0.29,0.54,0.69],[0.55,0.66,0.32]][index % 3] as Position,
       carrying: {}, bag: emptySlots(PLAYER_SLOTS), bagSelected:0, stamina:100, facing:0, comfort: 0, path: [], personal: null, destination: null, retryAt: 0 });
   }
@@ -309,9 +301,14 @@ export class ColonySimulation {
   }
 
   releaseControl(): void {
-    if(!this.controlled)return;
-    this.controlled.task='等待工作';
-    this.controlled.retryAt=this.s.time;
+    const resident=this.controlled;
+    if(!resident)return;
+    if(this.residentAt(resident.position,resident.id)){
+      const [x,,z]=resident.position;
+      resident.position=this.closestOpen(x,z,false,p=>!this.residentAt(p,resident.id))??resident.position;
+    }
+    resident.task='等待工作';
+    resident.retryAt=this.s.time;
     this.controlled=null;
     this.stopPlayerConstruction();
   }
@@ -1093,24 +1090,28 @@ export class ColonySimulation {
   private walkable(x:number,z:number):boolean {
     return this.groundY(x,z)>=1&&!this.blockedCells.has(this.cellKey(x,z));
   }
-  private closestOpen(x:number,z:number,avoidBlueprint=false):Position|null {
+  private closestOpen(x:number,z:number,avoidBlueprint=false,accept?: (position: Position) => boolean):Position|null {
     for(let radius=0;radius<12;radius++)for(let dz=-radius;dz<=radius;dz++)for(let dx=-radius;dx<=radius;dx++) {
       if(Math.max(Math.abs(dx),Math.abs(dz))!==radius)continue;
       const xx=Math.floor(x)+dx,zz=Math.floor(z)+dz;
-      if(this.walkable(xx,zz)&&(!avoidBlueprint||!this.buildingAt.has(this.cellKey(xx,zz))))return[xx+0.5,this.groundY(xx,zz),zz+0.5];
+      if(!this.walkable(xx,zz)||avoidBlueprint&&this.buildingAt.has(this.cellKey(xx,zz)))continue;
+      const position: Position = [xx+.5,this.groundY(xx,zz),zz+.5];
+      if (!accept || accept(position)) return position;
     }return null;
   }
   /** Reusable A* buffers keep local work affordable on a 250×250 map. */
-  private path(from:Position,to:Position,adjacent=false):Position[]|null {
+  private path(from:Position,to:Position,adjacent=false,avoid?:ReadonlySet<number>,maxSteps=Infinity):Position[]|null {
     const sx=Math.floor(from[0]),sz=Math.floor(from[2]),tx=Math.floor(to[0]),tz=Math.floor(to[2]);
     const start=sx+sz*this.world.width;
     if(sx<0||sz<0||sx>=this.world.width||sz>=this.world.depth)return null;
     const goals=new Set<number>();
-    for(const [dx,dz]of adjacent?[[1,0],[-1,0],[0,1],[0,-1]]:[[0,0]])if(this.walkable(tx+dx,tz+dz))goals.add(tx+dx+(tz+dz)*this.world.width);
+    for(const [dx,dz]of adjacent?[[1,0],[-1,0],[0,1],[0,-1]]:[[0,0]])if(this.walkable(tx+dx,tz+dz)){
+      const cell=this.cellKey(tx+dx,tz+dz);if(!avoid?.has(cell))goals.add(cell);
+    }
     if(goals.has(start))return[];
     if(!goals.size)return null;
     const stamp=++this.pathStamp,parents=this.pathParents,seen=this.pathSeen,cost=this.pathCost;
-    if(stamp>=0xfffffffe){this.pathStamp=1;seen.fill(0);return this.path(from,to,adjacent);}
+    if(stamp>=0xfffffffe){this.pathStamp=1;seen.fill(0);return this.path(from,to,adjacent,avoid,maxSteps);}
     const heap:{cell:number;score:number;cost:number}[]=[];
     const push=(cell:number,g:number)=>{let i=heap.length;const row={cell,cost:g,score:g+Math.abs(cell%this.world.width-tx)+Math.abs(Math.floor(cell/this.world.width)-tz)};heap.push(row);while(i>0){const p=(i-1)>>1;if(heap[p]!.score<=row.score)break;heap[i]=heap[p]!;i=p;}heap[i]=row;};
     const pop=()=>{const row=heap[0]!,last=heap.pop()!;if(heap.length){let i=0;while(i*2+1<heap.length){let next=i*2+1;if(next+1<heap.length&&heap[next+1]!.score<heap[next]!.score)next++;if(heap[next]!.score>=last.score)break;heap[i]=heap[next]!;i=next;}heap[i]=last;}return row;};
@@ -1121,7 +1122,8 @@ export class ColonySimulation {
       const x=cur%this.world.width,z=Math.floor(cur/this.world.width),h=this.groundY(x,z);
       for(const[dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){
         const nx=x+dx!,nz=z+dz!;if(!this.walkable(nx,nz)||Math.abs(this.groundY(nx,nz)-h)>1.01)continue;
-        const next=nx+nz*this.world.width,g=row.cost+1;if(seen[next]===stamp&&cost[next]!<=g)continue;
+        const next=nx+nz*this.world.width,g=row.cost+1;
+        if(g>maxSteps||avoid?.has(next)||seen[next]===stamp&&cost[next]!<=g)continue;
         parents[next]=cur;seen[next]=stamp;cost[next]=g;push(next,g);
       }
     }
@@ -1134,19 +1136,88 @@ export class ColonySimulation {
     const path=this.path(c.position,target,adjacent);if(path===null)return false;c.path=path;c.destination=target;return true;
   }
   private move(c:Colonist,dt:number):boolean {
-    let remaining=dt*(c.health<35?0.8:2.1)*(c.hunger<15?0.7:1);
-    while(remaining>0&&c.path.length){
-      const next=c.path[0]!,x=Math.floor(next[0]),z=Math.floor(next[2]);
-      if(!this.walkable(x,z)||Math.abs(next[1]-this.groundY(x,z))>.1){this.releasePerson(c);c.retryAt=this.s.time+1;return false;}
+    const speed = c.health < 35 ? .8 : c.personal?.kind === 'wander' ? 1.35 : 2.1;
+    return this.walkResidentPath(c, c.path, dt * speed * (c.hunger < 15 ? .7 : 1));
+  }
+
+  private residentAt(position:Position, exceptId?:string):Colonist|undefined {
+    return this.s.colonists.find(other => other.id !== exceptId && residentsOverlap(position, other.position));
+  }
+
+  residentBlocksMove(from:Position, to:Position, id:string):boolean {
+    return !!this.blockingResident(from,to,id);
+  }
+
+  private blockingResident(from:Position, to:Position, id:string):Colonist|undefined {
+    return this.s.colonists.find(other => other.id !== id && residentsOverlap(to, other.position) &&
+      (!residentsOverlap(from, other.position) || horizontalDistance(to, other.position) <= horizontalDistance(from, other.position)));
+  }
+
+  residentVerticalLimit(position:Position, nextY:number, id:string):number {
+    const feet=position[1], climbing=nextY>feet;
+    let limit=nextY;
+    for(const other of this.s.colonists){
+      if(other.id===id||!residentsTouchHorizontally(position,other.position))continue;
+      const edge=other.position[1]+(climbing?-RESIDENT_HEIGHT:RESIDENT_HEIGHT);
+      if(climbing&&feet<=edge+1e-6)limit=Math.min(limit,edge);
+      if(!climbing&&feet>=edge-1e-6)limit=Math.max(limit,edge);
+    }
+    return limit;
+  }
+
+  private detourResident(c:Colonist, route:Position[]):boolean {
+    const occupied = new Set<number>();
+    for (const other of this.s.colonists) {
+      const [x,y,z] = other.position;
+      if (other !== c && Math.abs(y - c.position[1]) < RESIDENT_HEIGHT && horizontalDistance(c.position, other.position) < 5) {
+        occupied.add(this.cellKey(Math.floor(x), Math.floor(z)));
+      }
+    }
+    for (let i=0; i<Math.min(route.length,4); i++) {
+      const waypoint=route[i]!;
+      if (this.residentAt(waypoint, c.id)) continue;
+      const path=this.path(c.position,waypoint,false,occupied,8);
+      if (!path?.length || horizontalDistance(path[0]!,route[0]!)<.01) continue;
+      if (horizontalDistance(path[path.length-1]!,waypoint)>.01) path.push(waypoint);
+      route.splice(0,i+1,...path);
+      return true;
+    }
+    return false;
+  }
+
+  private walkResidentPath(c:Colonist, route:Position[], remaining:number, procession=false):boolean {
+    while (remaining>1e-8 && route.length) {
+      const next=route[0]!, x=Math.floor(next[0]), z=Math.floor(next[2]);
+      if (!procession && (!this.walkable(x,z) || Math.abs(next[1]-this.groundY(x,z))>.1)) {
+        this.releasePerson(c); c.retryAt=this.s.time+1; return false;
+      }
       const nextHeight=this.walkSurface?.(next[0],next[2],next[1])??next[1];
       const currentSurface=this.walkSurface?.(c.position[0],c.position[2],NaN);
       const detailed=Number.isFinite(currentSurface)||nextHeight!==next[1];
-      const distance=detailed?horizontalDistance(c.position,next):Math.hypot(...next.map((v,i)=>v-c.position[i]!));
-      if(distance<=remaining+1e-9){c.position=[next[0],nextHeight,next[2]];c.path.shift();remaining-=distance;this.s.metrics.distanceWalked+=distance;}
-      else{for(let i=0;i<3;i++)c.position[i]!+=(next[i]!-c.position[i]!)/distance*remaining;this.s.metrics.distanceWalked+=remaining;remaining=0;}
-      if(this.walkSurface)c.position[1]=this.walkSurface(c.position[0],c.position[2],c.position[1]);
+      const [px,py,pz]=c.position, dx=next[0]-px, dz=next[2]-pz;
+      const distance=procession||detailed?Math.hypot(dx,dz):Math.hypot(dx,next[1]-py,dz);
+      const step=Math.min(remaining,.2,distance);
+      const fraction=distance<1e-8?1:step/distance;
+      const to:Position=[px+dx*fraction, fraction===1?nextHeight:py+(next[1]-py)*fraction, pz+dz*fraction];
+      if(this.walkSurface)to[1]=this.walkSurface(to[0],to[2],to[1]);
+      const blocker=this.blockingResident(c.position,to,c.id);
+      if(blocker){
+        const next=(procession?this.processionPaths.get(blocker.id):blocker.path)?.[0];
+        // Give a resident already turning away time to clear the shared lane.
+        if(next){
+          const [bx,by,bz]=blocker.position, stride=Math.min(1,.25/horizontalDistance(blocker.position,next));
+          const predicted:Position=[bx+(next[0]-bx)*stride,by,bz+(next[2]-bz)*stride];
+          if(horizontalDistance(c.position,predicted)>horizontalDistance(c.position,blocker.position)+.012)return false;
+        }
+        if(!this.detourResident(c,route) && !procession && c.personal?.kind==='wander')this.releasePerson(c);
+        return false;
+      }
+      if(Math.hypot(dx,dz)>.001)c.facing=Math.atan2(dx,dz);
+      c.position=to;
+      if(fraction===1)route.shift();
+      remaining-=step;this.s.metrics.distanceWalked+=step;
     }
-    return c.path.length===0;
+    return route.length===0;
   }
   private storageTarget(from?:Position):Position|null {
     const cells:Position[]=[];
@@ -1368,7 +1439,7 @@ export class ColonySimulation {
     if(c.schedule==='day')return hour<6||hour>=22?'sleep':hour>=20?'relax':'work';
     return hour<6||hour>=23?'sleep':hour>=19&&hour<22?'relax':'anything';
   }
-  private personal(c:Colonist,kind:Personal['kind']):boolean {
+  private personal(c:Colonist,kind:Exclude<Personal['kind'],'wander'>):boolean {
     let target:Position|null=null,path:Position[]|null=null,bed=false,reserved:Partial<Resources>={},buildingId:string|undefined;
     const useBuildings=(kinds:BuildingKind[],excludeOccupied=false):boolean=>{
       const candidates=this.s.buildings.filter(b=>b.complete&&kinds.includes(b.kind)
@@ -1386,11 +1457,38 @@ export class ColonySimulation {
       if(!bed){target=[...c.position];path=[];}
     }else if(kind==='relax'){
       if(!useBuildings(['table'])){target=this.closestOpen(Math.floor(c.position[0])+2,Math.floor(c.position[2]));if(target)path=this.path(c.position,target);}
-    }else{target=this.closestOpen(Math.floor(c.position[0])+(this.random()<.5?-4:4),Math.floor(c.position[2])+(this.random()<.5?-3:3));if(target)path=this.path(c.position,target);}
+    }
     if(!target||path===null)return false;
-    this.releasePerson(c);this.take(reserved);c.path=path;c.destination=target;c.personal={kind,elapsed:0,duration:kind==='eat'?4:kind==='wander'?16:kind==='sleep'||kind==='patient'?bed?20:40:20,reserved,...(buildingId?{buildingId}:{})};
-    c.task={eat:'前往用餐',sleep:'前往休息',relax:'休闲娱乐',wander:'散步调节心情',patient:'卧床休养'}[kind];return true;
+    this.releasePerson(c);this.take(reserved);c.path=path;c.destination=target;c.personal={kind,elapsed:0,duration:kind==='eat'?4:kind==='sleep'||kind==='patient'?bed?20:40:20,reserved,...(buildingId?{buildingId}:{})};
+    c.task={eat:'前往用餐',sleep:'前往休息',relax:'休闲娱乐',patient:'卧床休养'}[kind];return true;
   }
+
+  private wander(c:Colonist,dt:number,resting:boolean):void {
+    if(!c.personal){
+      const x=Math.floor(c.position[0]),z=Math.floor(c.position[2]);
+      for(let attempt=0;attempt<7;attempt++){
+        const dx=Math.floor(this.random()*9)-4,dz=Math.floor(this.random()*9)-4;
+        const tx=x+dx,tz=z+dz,range=Math.abs(dx)+Math.abs(dz);
+        if(range<2||range>5||!this.walkable(tx,tz)||this.buildingAt.has(this.cellKey(tx,tz)))continue;
+        const target:Position=[tx+.5,this.groundY(tx,tz),tz+.5];
+        if(this.residentAt(target,c.id)||this.s.colonists.some(other=>other!==c&&other.destination&&residentsOverlap(target,other.destination)))continue;
+        const route=this.path(c.position,target,false,undefined,8);
+        if(!route?.length)continue;
+        const duration=1.25+this.random()*2;
+        c.path=route;c.destination=target;c.personal={kind:'wander',elapsed:0,duration,reserved:{}};
+        break;
+      }
+      c.personal??={kind:'wander',elapsed:0,duration:1.5,reserved:{}};
+    }
+    c.task=resting?'休息 · 散步':'等待工作 · 散步';
+    if(c.personal&&(!this.move(c,dt)||!c.personal))return;
+    c.task=resting?'休息 · 自由活动':'等待工作 · 自由活动';
+    if(!c.personal)return;
+    c.personal.elapsed+=dt;
+    if(resting)c.recreation=clamp(c.recreation+dt*1.5);
+    if(c.personal.elapsed>=c.personal.duration){c.personal=null;c.destination=null;}
+  }
+
   private updateColonist(c:Colonist,dt:number):void {
     c.hunger=clamp(c.hunger-dt*.12);c.rest=clamp(c.rest-dt*.07);c.recreation=clamp(c.recreation-dt*.055);
     const ri=this.roomAt[Math.floor(c.position[0])+Math.floor(c.position[2])*this.world.width]??-1;
@@ -1407,9 +1505,10 @@ export class ColonySimulation {
     const schedule=this.schedule(c);
     // Critical hunger can interrupt prolonged sleep or medical rest; food is still reserved once.
     if(c.personal&&c.personal.kind!=='eat'&&c.hunger<20&&this.personal(c,'eat'))return;
-    if(!c.personal&&((c.hunger<34&&this.personal(c,'eat'))||(c.rest<20&&this.personal(c,'sleep'))))return;
-    if(!c.personal&&c.disease>38&&this.personal(c,'patient'))return;
-    if(c.personal){
+    const available=!c.personal||c.personal.kind==='wander';
+    if(available&&((c.hunger<34&&this.personal(c,'eat'))||(c.rest<20&&this.personal(c,'sleep'))))return;
+    if(available&&c.disease>38&&this.personal(c,'patient'))return;
+    if(c.personal&&c.personal.kind!=='wander'){
       if(!this.move(c,dt)||!c.personal)return;
       const p=c.personal;p.elapsed+=dt;
       if(p.kind==='eat'&&p.elapsed>=p.duration){
@@ -1419,7 +1518,7 @@ export class ColonySimulation {
         if(c.rest>=98||(schedule!=='sleep'&&c.rest>=78)){c.personal=null;c.task='精神饱满';}
       }else if(p.kind==='patient'){
         c.rest=clamp(c.rest+dt*.8);c.health=clamp(c.health+dt*.08);c.task='卧床休养';if(c.disease<12){c.personal=null;c.task='病情好转';}
-      }else if(p.kind==='relax'||p.kind==='wander'){
+      }else if(p.kind==='relax'){
         c.recreation=clamp(c.recreation+dt*1.5);c.mood=clamp(c.mood+dt*.1);
         if(p.elapsed>=p.duration||c.recreation>=98){c.personal=null;c.task='休闲结束';}
       }
@@ -1427,11 +1526,13 @@ export class ColonySimulation {
     }
     if(!c.jobId){
       if(schedule==='sleep'&&c.rest<94&&this.personal(c,'sleep'))return;
-      if((schedule==='relax'&&c.recreation<92||c.recreation<24)&&this.personal(c,'relax'))return;
-      if(c.mood<22&&this.personal(c,'wander'))return;
-      if(schedule==='sleep'||schedule==='relax'){c.task='自由活动';return;}
-      if(this.s.time<c.retryAt)return;
-      if(!this.assign(c)){c.task='等待工作 · 自由活动';c.retryAt=this.s.time+2;return;}
+      if(c.recreation<24&&this.personal(c,'relax'))return;
+      const resting=schedule==='sleep'||schedule==='relax';
+      if(!resting&&this.s.time>=c.retryAt){
+        if(this.assign(c))c.personal=null;
+        else c.retryAt=this.s.time+2;
+      }
+      if(!c.jobId){this.wander(c,dt,resting);return;}
     }
     const job=this.s.jobs.find(j=>j.id===c.jobId);if(!job){c.jobId=null;return;}
     if(job.type==='chop'&&!this.world.getTree(job.targetId)){this.removeJob(job,false);return;}
@@ -1865,6 +1966,11 @@ export class ColonySimulation {
     this.deliveryMessage = undefined;
     this.controlled=null;
     this.s=validated;this.terrainCellViews.clear();this.terrainIndexDirty=true;this.rebuildBuildings();this.refreshGround();this.refreshTerrainPlans();this.navigationDirty=true;this.updateRooms();
+    for(const [i,c] of this.s.colonists.entries()){
+      if(!this.s.colonists.slice(0,i).some(other=>residentsOverlap(c.position,other.position)))continue;
+      const free=this.closestOpen(c.position[0],c.position[2],false,p=>!this.residentAt(p,c.id));
+      if(free){this.releasePerson(c);c.position=free;c.task='等待工作';}
+    }
     this.refreshTreeJobs();
     this.stopPlayerConstruction();
   }

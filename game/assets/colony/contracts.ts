@@ -46,6 +46,8 @@ export const workPercent = (progress: number, total: number): number =>
   Math.floor(Math.min(1, Math.max(0, progress / total)) * 100);
 export const PLAYER_CHOP_SECONDS = 6;          // 空手砍完一棵
 export const PLAYER_CHOP_SECONDS_AXE = 4;      // 木斧
+export const RESIDENT_RADIUS = .28;
+export const RESIDENT_HEIGHT = 1.8;
 export const PLAYER_WORK_REACH = 1;            // 角色到目标格中心的水平圆形半径。
 export const PLAYER_CHOP_STAMINA = 12;         // 空手砍一棵扣多少体力
 export const PLAYER_CHOP_STAMINA_AXE = 8;      // 木斧扣得少

@@ -371,6 +371,53 @@ describe('resident needs and civilian production',()=>{
     const day=raw(sim);day.time=DAY_SECONDS+DAY_SECONDS*10/24;day.lastDay=2;day.colonists[0].personal=null;day.colonists[0].path=[];day.colonists[0].rest=90;sim.load(day);
     run(sim,25);expect(sim.snapshot().colonists[0]!.recreation).toBeGreaterThan(30);
   });
+  it('wanders while waiting or resting and leaves the walk to accept work',()=>{
+    const {sim,world}=setup();
+    const data=raw(sim);
+    data.jobs=[];data.crops=[];data.items=[];
+    data.colonists[1].schedule='rest';
+    sim.load(data);
+    const initial=sim.snapshot().colonists;
+    for(let i=0;i<16;i++)sim.tick(.25);
+    const moving=sim.snapshot().colonists;
+    for(const i of [0,1]){
+      expect(moving[i]!.position).not.toEqual(initial[i]!.position);
+      expect(moving[i]!.task).toMatch(i===0?/等待工作/:/休息/);
+    }
+    const build=sim.command({action:'build',kind:'floor',...freeCell(sim,world)});
+    expect(build.ok).toBe(true);
+    run(sim,40);
+    expect(sim.snapshot().buildings.find(b=>b.id===build.id)?.complete).toBe(true);
+    expect(sim.snapshot().colonists[1]!.jobId).toBeNull();
+  });
+  it('routes walking neighbors around each other and separates old saved overlaps',()=>{
+    const {sim,world}=setup();
+    const data=raw(sim);
+    data.buildings=[];data.zones=[];data.jobs=[];data.crops=[];data.items=[];
+    for(const tree of world.getTrees())world.removeTree(tree.id,{recordHistory:false});
+    data.colonists.forEach((c:any)=>{for(const job of JOB_TYPES)c.priorities[job]=0;});
+    const [first,second,third]=data.colonists;
+    const row=(x:number)=>[x+.5,6,26.5];
+    first.position=row(23);second.position=row(26);third.position=row(23);
+    for(const [resident,cells] of [[first,[24,25,26,27]],[second,[25,24,23,22]]] as const){
+      resident.path=cells.map(row);resident.destination=resident.path.at(-1);
+      resident.personal={kind:'wander',elapsed:0,duration:20,reserved:{}};
+    }
+    sim.load(data);
+    expect(sim.snapshot().colonists[2]!.position).not.toEqual(first.position);
+    const ids=[first.id,second.id];
+    let passed=false;
+    for(let i=0;i<40&&!passed;i++){
+      sim.tick(.25);
+      const residents=sim.snapshot().colonists;
+      for(const [j,a] of residents.entries())for(const b of residents.slice(j+1)){
+        if(Math.abs(a.position[1]-b.position[1])<1.8)expect(Math.hypot(a.position[0]-b.position[0],a.position[2]-b.position[2])).toBeGreaterThanOrEqual(.56-1e-6);
+      }
+      const [a,b]=ids.map(id=>residents.find(c=>c.id===id)!);
+      passed=a!.position[0]>=26.5&&b!.position[0]<=23.5;
+    }
+    expect(passed).toBe(true);
+  });
   it('plants, grows, harvests and hauls without automatically replenishing cooked meals',()=>{
     const{sim}=setup();run(sim,220);const s=sim.snapshot();
     expect(s.metrics.harvested).toBeGreaterThan(0);expect(s.metrics.hauled).toBeGreaterThan(22);expect(s.metrics.cooked).toBe(0);
@@ -642,7 +689,7 @@ describe('resident needs and civilian production',()=>{
     const tree=world.getTrees().find(t=>t.z>=16&&t.z<38&&t.x>=18&&t.x<40)!;
     expect(sim.command({action:'designate',kind:'chop',id:tree.id}).ok).toBe(true);
     // 让随从跑到树旁并砍一会儿，但别砍完整棵
-    run(sim,10);
+    for(let step=0;step<120&&!sim.snapshot().jobs.find(j=>j.type==='chop'&&j.targetId===tree.id)?.progress;step++)sim.tick(.25);
     const midway=sim.snapshot();
     const job=midway.jobs.find(j=>j.type==='chop'&&j.targetId===tree.id)!;
     expect(job).toBeDefined();

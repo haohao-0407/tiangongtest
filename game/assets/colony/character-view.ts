@@ -1,7 +1,7 @@
 import { AnimationPlayer, AnimationTargetId, bindAnimationTargets } from '@forgeax/engine/animation';
 import type { AssetRegistry } from '@forgeax/engine/assets-runtime';
 import { ENTITY_NULL_RAW, type EntityHandle, type World } from '@forgeax/engine/ecs';
-import { MeshFilter, SceneInstance } from '@forgeax/engine/render';
+import { MeshFilter, MeshRenderer, SceneInstance } from '@forgeax/engine/render';
 import { Transform } from '@forgeax/engine/scene';
 import { Skin } from '@forgeax/engine/skinning';
 import type { AssetHandle } from '@forgeax/engine/types';
@@ -11,37 +11,29 @@ type Point = [number, number, number];
 export const WALK_CLIPS = ['Walk_Forward', 'Walk_Left', 'Walk_Backward', 'Walk_Right'] as const;
 export interface CharacterAssets {
   scene: AssetHandle<'scene'>;
-  outfits: AssetHandle<'mesh'>[];
   walks: AssetHandle<'animation-clip'>[];
+  material: AssetHandle<'material'>;
 }
 
-export function residentOutfit(id: string): number {
+export function residentOutfit(id: string, count: number): number {
   const serial = Number(id.split('-').pop());
-  return Number.isSafeInteger(serial) && serial >= 0 ? (serial + 1) % 22 + 1 : 2;
-}
-
-function outfitScale(outfit: number): number {
-  if ([9, 10, 11, 21, 22].includes(outfit)) return 0.78;
-  if ([14, 19, 20].includes(outfit)) return 0.94;
-  return 1;
+  return Number.isSafeInteger(serial) && serial >= 0 ? (serial + 1) % count + 1 : 1;
 }
 
 /** One scene instance owns the assembled mesh, the skeleton and its playback clock. */
 export class CharacterView {
   readonly root: EntityHandle;
-  readonly scale: number;
+  readonly attachmentScale: number;
   readonly meshCount: number;
   private readonly jointCount: number;
-  private readonly body: EntityHandle;
   private readonly restPose;
   private walk = -1;
   facing = 0;
   position: Point | undefined;
   lastStep = -Infinity;
 
-  constructor(private world: World, assets: AssetRegistry, private models: CharacterAssets, outfit: number) {
-    this.scale = outfitScale(outfit);
-    this.root = assets.instantiate(models.scene, world).unwrap();
+  constructor(private world: World, assets: AssetRegistry, private model: CharacterAssets, private outfit: number) {
+    this.root = assets.instantiate(model.scene, world).unwrap();
     try {
       const targets: EntityHandle[] = [];
       const meshes: EntityHandle[] = [];
@@ -54,9 +46,14 @@ export class CharacterView {
       }
       if (meshes.length !== 1) throw new Error('人物场景需要一个绑定骨架的网格');
       this.meshCount = meshes.length;
-      this.body = meshes[0]!;
-      this.jointCount = world.get(this.body, Skin).unwrap().joints.length;
-      world.set(this.body, MeshFilter, {assetHandle: models.outfits[outfit - 1]!}).unwrap();
+      const body = meshes[0]!;
+      this.jointCount = world.get(body, Skin).unwrap().joints.length;
+      const mesh = world.get(body, MeshFilter).unwrap().assetHandle as AssetHandle<'mesh'>;
+      const bounds = assets.read(mesh).unwrap().aabb!;
+      this.attachmentScale = (bounds[4]! - bounds[1]!) / 1.77;
+      const renderer = { materials: [model.material] };
+      if (world.get(body, MeshRenderer).ok) world.set(body, MeshRenderer, renderer).unwrap();
+      else world.addComponent(body, { component: MeshRenderer, data: renderer }).unwrap();
       this.restPose = targets.map(entity => {
         const { pos, quat, scale } = world.get(entity, Transform).unwrap();
         return { entity, transform: { pos: [...pos], quat: [...quat], scale: [...scale] } };
@@ -71,8 +68,7 @@ export class CharacterView {
 
   update(pos: Point, facing: number, walk: number) {
     if (!this.position || pos.some((value, i) => value !== this.position![i]) || this.facing !== facing) {
-      this.world.set(this.root, Transform, { pos, scale: [this.scale, this.scale, this.scale],
-        quat: [0, Math.sin(facing / 2), 0, Math.cos(facing / 2)] }).unwrap();
+      this.world.set(this.root, Transform, { pos, quat: [0, Math.sin(facing / 2), 0, Math.cos(facing / 2)] }).unwrap();
       this.position = [...pos];
       this.facing = facing;
     }
@@ -82,7 +78,7 @@ export class CharacterView {
       this.world.set(this.root, AnimationPlayer, { clips: [], times: [], weights: [], speeds: [] }).unwrap();
       for (const { entity, transform } of this.restPose) this.world.set(entity, Transform, transform).unwrap();
     } else {
-      this.world.set(this.root, AnimationPlayer, { clips: [this.models.walks[walk]!],
+      this.world.set(this.root, AnimationPlayer, { clips: [this.model.walks[walk]!],
         times: [0], weights: [1], speeds: [1] }).unwrap();
     }
   }
@@ -113,8 +109,7 @@ export class CharacterView {
 
   read() {
     const animation = this.world.get(this.root, AnimationPlayer).unwrap();
-    const mesh = this.world.get(this.body, MeshFilter).unwrap().assetHandle;
-    return {outfit:this.models.outfits.indexOf(mesh as AssetHandle<'mesh'>) + 1, meshes:this.meshCount, joints:this.jointCount,
+    return {outfit:this.outfit, meshes:this.meshCount, joints:this.jointCount,
       walk:WALK_CLIPS[this.walk] ?? null, time:animation.times[0] ?? 0};
   }
 

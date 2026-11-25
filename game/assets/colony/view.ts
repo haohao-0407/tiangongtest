@@ -54,7 +54,7 @@ export class ColonyView {
   private residents = new Map<string, CharacterView>();
   private plazaLights=new Map<string,EntityHandle[]>();
   constructor(private world:World, private assets:AssetRegistry, private terrain:()=>VoxelWorld,
-    private characters:CharacterAssets, private readonly cropCards:Pick<CropCards,'update'|'hasModel'|'itemMesh'>,
+    private characters:readonly CharacterAssets[], private readonly cropCards:Pick<CropCards,'update'|'hasModel'|'itemMesh'>,
     private readonly buildingModels:ReadonlyMap<string,BuildingModel>, private readonly windowedWalls:ReadonlyMap<string,WallPanel[]>,
     private readonly plazaMeshes:ReadonlyMap<string,AssetHandle<'mesh'>>){
     this.cube=assets.create(createBoxGeometry(1,1,1).unwrap()).unwrap();
@@ -364,14 +364,15 @@ export class ColonyView {
   drawResident(resident:RenderPawn, time:number, selected:boolean, control?:{ moving:boolean; grounded:boolean }) {
     let actor = this.residents.get(resident.id);
     if (!actor) {
-      actor = new CharacterView(this.world, this.assets, this.characters, residentOutfit(resident.id));
+      const outfit = residentOutfit(resident.id, this.characters.length);
+      actor = new CharacterView(this.world, this.assets, this.characters[outfit - 1]!, outfit);
       this.residents.set(resident.id, actor);
     }
     if (control) actor.updatePlayer(resident.position, resident.facing ?? 0, control.moving && control.grounded);
     else actor.updateResident(resident.position, time, resident.facing ?? 0);
 
     if (!control && resident.task==='围坐篝火旁') actor.update(resident.position,resident.facing??0,-1);
-    const [x,y,z] = resident.position, {facing, scale} = actor;
+    const [x,y,z] = resident.position, {facing, attachmentScale:scale} = actor;
     const cos = Math.cos(facing), sin = Math.sin(facing);
     const at = (dx:number, dy:number, dz:number):V3 =>
       [x+(dx*cos+dz*sin)*scale, y+dy*scale, z+(-dx*sin+dz*cos)*scale];

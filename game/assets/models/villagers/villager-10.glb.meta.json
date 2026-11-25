@@ -1,0 +1,147 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "Head",
+        "Neck",
+        "Hand.L",
+        "Forearm.L",
+        "UpperArm.L",
+        "Shoulder.L",
+        "Hand.R",
+        "Forearm.R",
+        "UpperArm.R",
+        "Shoulder.R",
+        "Chest",
+        "Spine",
+        "Toe.L",
+        "Foot.L",
+        "Shin.L",
+        "Thigh.L",
+        "Toe.R",
+        "Foot.R",
+        "Shin.R",
+        "Thigh.R",
+        "Hips",
+        "Root",
+        "Villager-10",
+        "Villager_Rig"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "villager-10.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:Villager-10"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:Villager-10": {
+      "materialSlots": [
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a21381-097d-743f-b6a4-e90ad14324c6",
+      "kind": "mesh",
+      "name": "Villager-10",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:Villager-10"
+    },
+    {
+      "guid": "01a21381-097d-743f-b6a4-e90c6ae3ce21",
+      "kind": "scene",
+      "name": "Villager-10",
+      "sourceIndex": 0,
+      "sourceKey": "scene:Villager-10"
+    },
+    {
+      "guid": "01a21381-097d-743f-b6a4-e90d7d9d1386",
+      "kind": "skeleton",
+      "sourceIndex": 0,
+      "sourceKey": "skeleton"
+    },
+    {
+      "guid": "01a21381-097d-743f-b6a4-e90e9ba87bd3",
+      "kind": "skin",
+      "sourceIndex": 0,
+      "sourceKey": "skin"
+    },
+    {
+      "guid": "01a21381-097d-743f-b6a4-e90fb88877e1",
+      "kind": "animation-clip",
+      "name": "Walk_Backward",
+      "sourceIndex": 0,
+      "sourceKey": "animation-clip:Walk_Backward"
+    },
+    {
+      "guid": "01a21381-097d-743f-b6a4-e910158bcf36",
+      "kind": "animation-clip",
+      "name": "Walk_Forward",
+      "sourceIndex": 1,
+      "sourceKey": "animation-clip:Walk_Forward"
+    },
+    {
+      "guid": "01a21381-097d-743f-b6a4-e911afa9068f",
+      "kind": "animation-clip",
+      "name": "Walk_Left",
+      "sourceIndex": 2,
+      "sourceKey": "animation-clip:Walk_Left"
+    },
+    {
+      "guid": "01a21381-097d-743f-b6a4-e912fac3ca2b",
+      "kind": "animation-clip",
+      "name": "Walk_Right",
+      "sourceIndex": 3,
+      "sourceKey": "animation-clip:Walk_Right"
+    }
+  ]
+}

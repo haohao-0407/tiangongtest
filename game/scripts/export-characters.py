@@ -1,7 +1,4 @@
-"""Run with Blender --background --factory-startup --python scripts/export-characters.py."""
-import json
-import struct
-import tempfile
+"""Bake the 17 approved FBX residents and their own skin and walk clips for ForgeAX."""
 from pathlib import Path
 
 import bpy
@@ -9,100 +6,87 @@ from mathutils import Matrix
 
 
 MODELS = Path(__file__).resolve().parents[1] / "assets" / "models"
-SOURCE = MODELS / "character-assets" / "characters"
+SOURCE = MODELS / "character-assets" / "all_characters_17"
+BODY_PARTS = ("Head_", "UpperBody_", "LowerBody_", "Shoes_")
 WALKS = {"Walk_Forward", "Walk_Backward", "Walk_Left", "Walk_Right"}
 
 
-def assemble():
+def bake_resident(source, destination, name, shared_material):
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    palette = bpy.data.materials.new("Villager palette")
-    palette.diffuse_color = (1, 1, 1, 1)
-    palette.roughness = 0.9
-    master = None
-    for number in range(1, 23):
-        parts = []
-        for folder, name in [(f"heads/Head_{number}", f"Head_{number}"),
-                             ("upper_body", f"upper_body_{number}"),
-                             ("lower_body", f"lower_body_{number}"),
-                             ("shoes", f"shoes_{number}")]:
-            before = set(bpy.data.actions)
-            bpy.ops.import_scene.fbx(filepath=str(SOURCE / folder / f"{name}.fbx"))
-            imported = bpy.context.selected_objects
-            rig, = [obj for obj in imported if obj.type == "ARMATURE"]
-            mesh, = [obj for obj in imported if obj.type == "MESH"]
-            if master is None:
-                master = rig
-                actions = set(bpy.data.actions) - before
-                for action in actions:
-                    action.name = action.name.split("|")[-1]
-                assert {action.name for action in actions} == WALKS
-                master.animation_data.action = None
-            else:
-                assert list(rig.data.bones.keys()) == list(master.data.bones.keys())
-                transform = mesh.matrix_world.copy()
-                mesh.parent = master
-                mesh.matrix_world = transform
-                for modifier in mesh.modifiers:
-                    if modifier.type == "ARMATURE":
-                        modifier.object = master
-                bpy.data.objects.remove(rig, do_unlink=True)
-                for action in set(bpy.data.actions) - before:
-                    bpy.data.actions.remove(action)
-            data = mesh.data
-            colors = data.color_attributes.new(name="Palette", type="BYTE_COLOR", domain="CORNER")
-            for face in data.polygons:
-                color = data.materials[face.material_index].diffuse_color
-                for corner in face.loop_indices:
-                    colors.data[corner].color = color
-            data.materials.clear()
-            data.materials.append(palette)
-            parts.append(mesh)
-        bpy.ops.object.select_all(action="DESELECT")
-        for part in parts:
-            part.select_set(True)
-        bpy.context.view_layer.objects.active = parts[0]
-        bpy.ops.object.join()
-        body = bpy.context.object
-        body.name = body.data.name = f"Villager-{number:02d}"
-    for bone in master.pose.bones:
+    bpy.ops.import_scene.fbx(filepath=str(source))
+    scene = bpy.context.scene
+    scene.name = name
+    scene.render.fps = 24
+    rig, = [obj for obj in scene.objects if obj.type == "ARMATURE"]
+    assert len(rig.data.bones) == 22, source
+    rig.animation_data.action = None
+    for bone in rig.pose.bones:
         bone.matrix_basis = Matrix.Identity(4)
-    bpy.context.scene.render.fps = 24
+
+    for action in bpy.data.actions:
+        action.name = action.name.rsplit("|", 1)[-1]
+        action.use_fake_user = True
+    assert {action.name for action in bpy.data.actions} == WALKS, source
+
+    # Gameplay attaches the held item separately. Keep the four dressed body
+    # parts and their weights from the approved full-character file.
+    meshes = [obj for obj in scene.objects if obj.type == "MESH"]
+    parts = []
+    for prefix in BODY_PARTS:
+        part, = [mesh for mesh in meshes if mesh.name.startswith(prefix)]
+        parts.append(part)
+    for prop in meshes:
+        if prop not in parts:
+            bpy.data.objects.remove(prop, do_unlink=True)
+
+    palette = None
+    if shared_material:
+        palette = bpy.data.materials.new("Villager palette")
+        palette.use_nodes = True
+        shader = palette.node_tree.nodes.get("Principled BSDF")
+        shader.inputs["Base Color"].default_value = (1, 1, 1, 1)
+        shader.inputs["Metallic"].default_value = 0
+        shader.inputs["Roughness"].default_value = .9
+
+    for part in parts:
+        mesh = part.data
+        colors = mesh.color_attributes.new(name="Palette", type="BYTE_COLOR", domain="CORNER")
+        swatches = [tuple(material.diffuse_color) for material in mesh.materials]
+        for face in mesh.polygons:
+            for corner in face.loop_indices:
+                colors.data[corner].color = swatches[face.material_index]
+        mesh.color_attributes.active_color = colors
+        mesh.materials.clear()
+        if palette:
+            mesh.materials.append(palette)
+
+    bpy.ops.object.select_all(action="DESELECT")
+    for part in parts:
+        part.select_set(True)
+    bpy.context.view_layer.objects.active = parts[0]
+    bpy.ops.object.join()
+    body = bpy.context.object
+    body.name = body.data.name = name
+    bpy.context.view_layer.update()
+    ground = min((body.matrix_world @ vertex.co).z for vertex in body.data.vertices)
+    rig.location.z -= ground
+    bpy.context.view_layer.update()
+
+    bpy.ops.export_scene.gltf(filepath=str(destination), export_format="GLB",
+                              export_materials="EXPORT" if shared_material else "NONE",
+                              export_vertex_color="ACTIVE", export_all_vertex_colors=False,
+                              export_texcoords=False, export_animation_mode="ACTIONS",
+                              export_current_frame=False, export_rest_position_armature=True,
+                              export_yup=True, export_cameras=False, export_lights=False)
 
 
-def export():
-    # One scene supplies the rig. The game binds the chosen outfit to its mesh node.
-    with tempfile.TemporaryDirectory(dir=MODELS) as folder:
-        path = Path(folder) / "all.glb"
-        bpy.ops.export_scene.gltf(filepath=str(path), export_format="GLB",
-                                  export_vertex_color="ACTIVE", export_all_vertex_colors=False,
-                                  export_animation_mode="ACTIONS", export_current_frame=False,
-                                  export_rest_position_armature=True, export_yup=True,
-                                  export_cameras=False, export_lights=False)
-        blob = path.read_bytes()
-    length, = struct.unpack_from("<I", blob, 12)
-    doc = json.loads(blob[20:20 + length])
-    nodes = doc["nodes"]
-    bodies = sorted((i for i, node in enumerate(nodes) if "mesh" in node), key=lambda i: nodes[i]["name"])
-    assert len(bodies) == 22 and len(doc["skins"]) == 1 and len(doc["skins"][0]["joints"]) == 22
-    assert {clip["name"] for clip in doc["animations"]} == WALKS
-    for mesh in doc["meshes"]:
-        primitive, = mesh["primitives"]
-        assert {"COLOR_0", "JOINTS_0", "WEIGHTS_0"} <= primitive["attributes"].keys()
-    unused = set(bodies[1:])
-    scene, = doc["scenes"]
-    scene["name"] = "Villager-01"
-    scene["nodes"] = [i for i in scene["nodes"] if i not in unused]
-    for node in nodes:
-        if "children" in node:
-            node["children"] = [i for i in node["children"] if i not in unused]
-    material, = doc["materials"]
-    material["pbrMetallicRoughness"].update(baseColorFactor=[1, 1, 1, 1], roughnessFactor=0.9)
-    encoded = json.dumps(doc, separators=(",", ":")).encode()
-    encoded += b" " * (-len(encoded) % 4)
-    binary_chunk = blob[20 + length:]
-    (MODELS / "villagers.glb").write_bytes(struct.pack("<4sIIII", b"glTF", 2,
-        20 + len(encoded) + len(binary_chunk), len(encoded), 0x4E4F534A) + encoded + binary_chunk)
-
-
-assemble()
-export()
+outfits = sorted(SOURCE.glob("*/Villager_*.fbx"))
+assert len(outfits) == 17
+directory = MODELS / "villagers"
+directory.mkdir(exist_ok=True)
+for number, source in enumerate(outfits, 1):
+    assert source.parent.name.startswith(f"{number:02d}_"), source
+    name = f"Villager-{number:02d}"
+    destination = MODELS / "villagers.glb" if number == 1 else directory / f"{name.lower()}.glb"
+    # Import one skinned palette material for the complete roster.
+    bake_resident(source, destination, name, shared_material=number == 1)

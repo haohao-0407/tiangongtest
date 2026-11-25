@@ -1,5 +1,7 @@
 # Engine / SDK feedback
 
+- 2026-11-26 / Engine 0.5.0。将原先含 22 个网格的 `villagers.glb` 替换为只含一个网格的 GLB 后，`asset import` 更新了子资源清单和覆盖描述，但保留了已移除网格的 `sourceOverrides`。随后 `project play` 报告 `pack-malformed-meta` 和 `unknown-source-key`。删除失效覆盖后可以沿用原场景和剩余子资源的 GUID。
+
 - 2026-11-20 / Engine 0.5.0。为三个动物网格另行导入 glTF 顶点色材质后，生产构建成功，但 `project play` 在首帧前报告 `material-artifact-conflict`，冲突字段为 `receipt`，两个着色器摘要相同。动物 GLB 改为只导出网格和 `COLOR_0`，实例复用游戏已有的白色标准材质后，浏览器成功进入地图。
 
 - 2026-11-19 / Engine 0.5.0 的 glTF 导入器为多场景 GLB 生成了不同的场景 GUID，但 `importSceneSubAsset` 构建各场景时都取了 `doc.defaultSceneIndex`。在游戏里实例化三套不同编号的居民场景，显示的都是第一套网格。人物资源改用一个骨架场景，并按造型给实例的 `MeshFilter` 绑定对应的已导入网格。

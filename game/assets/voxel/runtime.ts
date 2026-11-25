@@ -31,7 +31,7 @@ import type { CharacterAssets } from '../colony/character-view.ts';
 import { TerrainPlanView } from '../colony/terrain-view.ts';
 import {
   BUILDING_DEFS, HAMMER, AXE, PICKAXE, buildingItemKind, cropForPlantingItem, PLAYER_CHOP_SECONDS, PLAYER_CHOP_SECONDS_AXE,
-  PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN, CHOP_WORK, workPercent,
+  PLAYER_CHOP_STAMINA, PLAYER_CHOP_STAMINA_AXE, PLAYER_STAMINA_REGEN, RESIDENT_RADIUS, RESIDENT_HEIGHT, CHOP_WORK, workPercent,
   CROP_DEFS, DEFAULT_CROP, RESEARCH_DEFS, isCropKind, type CropKind, type BuildingKind, type ColonyCommand, type ChestView, type MapToolMenu,
 } from '../colony/contracts.ts';
 import { CropCards } from '../colony/crop-cards.ts';
@@ -48,7 +48,7 @@ const TAN_HALF_FOV = Math.tan(CAMERA_FOV / 2);
 const NEAR_SHADOW_DISTANCE = 100;
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
-export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:string; scene: string; outfits: string[]; walks: string[]; buildings: Record<string,string>; plaza:Record<string,string>; wildPlants: Record<WildPlantKind,string>; wildAnimals: Record<WildAnimalKind,string> }> = {
+export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:string; characterMaterial:string; characters: {scene:string;walks:string[]}[]; buildings: Record<string,string>; plaza:Record<string,string>; wildPlants: Record<WildPlantKind,string>; wildAnimals: Record<WildAnimalKind,string> }> = {
   name: 'voxel-homestead',
   inject: ['world', 'assets', 'gameHost'],
   async apply(ctx, config) {
@@ -140,8 +140,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
       //   只探轴对齐四向 → 斜着能挤过对角缝
       //   推出一次跳半米 → 看起来像瞬移
       // 换成真实包围盒后，撞墙时位置会被压到方块表面，斜走靠分轴自然滑墙。
-      const PLAYER_HALF = 0.28;   // 半宽（体宽 0.56，比方块窄一点，过 1 格门不别扭）
-      const PLAYER_HEIGHT = 1.8;  // 身高
+      const PLAYER_HALF = RESIDENT_RADIUS;
+      const PLAYER_HEIGHT = RESIDENT_HEIGHT;
       const MOVE_STEP = 0.05;     // 每步 5 厘米，够细，撞墙误差不超过这个数
       const PLAYER_SPEED = 4.5;   // 米/秒
       const TURN_SPEED = 14;      // 转身平滑系数，和 Unity 的 PlayerController 一致
@@ -224,6 +224,8 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         top = treeSupportHeight(voxels, cx - PLAYER_HALF, cz - PLAYER_HALF, cx + PLAYER_HALF, cz + PLAYER_HALF, top, Math.min(maximum, fromY + .25));
         return pcgView.supportHeight(cx - PLAYER_HALF, cz - PLAYER_HALF, cx + PLAYER_HALF, cz + PLAYER_HALF, top, maximum);
       };
+      const constrainResidentHeight = (nextY:number) => followId
+        ? colony.residentVerticalLimit([player.x,player.y,player.z],nextY,followId) : nextY;
 
       /**
        * 沿单轴推进，一小步一小步走，撞上就停在最后那个合法位置。
@@ -241,7 +243,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
           const ground = player.grounded ? groundUnder(nx, nz, player.y) : player.y;
           const raised = ground > player.y + 1e-5 && ground <= player.y + .25001;
           const footY = raised ? ground : player.y;
-          if (blocked(nx, nz, footY)) return false;
+          if (blocked(nx, nz, footY) || followId && colony.residentBlocksMove([player.x, player.y, player.z], [nx, footY, nz], followId)) return false;
           player.x = nx;
           player.z = nz;
           if (raised) player.y = footY;
@@ -303,11 +305,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         castShadow: true, shadowDistance,
       } }).unwrap());
       const sky = own((await assets.load(config.environment ?? guidText(assetGuid(PACKAGE_IDS.environment, 'environment/daylight')), 'equirect')).unwrap());
-      const characters: CharacterAssets = {
-        scene: own((await assets.load(config.scene, 'scene')).unwrap()), outfits: [], walks: [],
-      };
-      for (const guid of config.outfits) characters.outfits.push(own((await assets.load(guid, 'mesh')).unwrap()));
-      for (const guid of config.walks) characters.walks.push(own((await assets.load(guid, 'animation-clip')).unwrap()));
+      const characterMaterial = own((await assets.load(config.characterMaterial, 'material')).unwrap());
+      const characters: CharacterAssets[] = await Promise.all(config.characters.map(async model => ({
+        scene: own((await assets.load(model.scene, 'scene')).unwrap()),
+        walks: await Promise.all(model.walks.map(async guid => own((await assets.load(guid, 'animation-clip')).unwrap()))),
+        material: characterMaterial,
+      })));
       const buildingModels = new Map<string, BuildingModel>();
       for (const kind of WILD_PLANT_KINDS) plantModels.set(kind, own((await assets.load(config.wildPlants[kind], 'mesh')).unwrap()));
       for (const kind of WILD_ANIMAL_KINDS) animalModels.set(kind, own((await assets.load(config.wildAnimals[kind], 'mesh')).unwrap()));
@@ -787,13 +790,13 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
                 let diff = ((want - player.facing + Math.PI) % (Math.PI * 2)) - Math.PI;
                 if (diff < -Math.PI) diff += Math.PI * 2;
                 player.facing += diff * t;
-                player.moving = true;
-
                 // 分轴推进：先 X 再 Z。
                 // 斜着撞墙时 X 被挡、Z 照走，位置会被压到方块表面而不是停在半米外。
                 const step = PLAYER_SPEED * dt;
+                const x=player.x,z=player.z;
                 sweep(0, mx * step);
                 sweep(1, mz * step);
+                player.moving = Math.hypot(player.x-x,player.z-z)>1e-5;
               } else {
                 player.moving = false;
               }
@@ -809,13 +812,13 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
 
               if (!player.grounded) {
                 player.vy += PLAYER_GRAVITY * dt;
-                const ny = player.y + player.vy * dt;
-                const g = groundUnder(player.x, player.z, player.y + 0.1);
+                const nextY = player.y + player.vy * dt, ny=constrainResidentHeight(nextY);
+                const g = constrainResidentHeight(groundUnder(player.x, player.z, player.y + 0.1));
                 if (ny <= g) { player.y = g; player.vy = 0; player.grounded = true; }
-                else player.y = ny;
+                else { player.y = ny; if (ny < nextY)player.vy=0; }
               } else {
                 // 走出台沿：脚下空了就开始掉
-                const g = groundUnder(player.x, player.z, player.y + 0.1);
+                const g = constrainResidentHeight(groundUnder(player.x, player.z, player.y + 0.1));
                 if (player.y > g + 0.05) { player.grounded = false; player.vy = 0; }
                 else player.y = g;
               }
