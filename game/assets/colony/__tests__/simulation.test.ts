@@ -38,6 +38,26 @@ describe('peaceful colony and fixed-step persistence',()=>{
     expect(s.jobs.some(j=>j.type==='grow')).toBe(true);
     expect(s.colonists.every(c=>Object.values(c.priorities).every(p=>p>=0&&p<=4))).toBe(true);
   });
+  it('starts with a larger stockpile, two working shelves and enough slots for every starting supply',()=>{
+    const sim=new ColonySimulation(new VoxelWorld());
+    const initial=sim.snapshot();
+    const ground=initial.zones.find(zone=>zone.kind==='stockpile'&&!zone.shelfId)!;
+    expect([ground.w,ground.d]).toEqual([9,9]);
+    const shelves=initial.buildings.filter(b=>b.kind==='shelf');
+    expect(shelves).toHaveLength(2);
+    for (const shelf of shelves) {
+      expect(shelf).toMatchObject({w:2,d:1,complete:true});
+      expect(initial.zones.find(zone=>zone.shelfId===shelf.id)).toMatchObject({x:shelf.x,z:shelf.z,w:2,d:1});
+      expect(initial.warehouseStacks.some(stack=>stack.shelfId===shelf.id)).toBe(true);
+    }
+    expect(initial.warehouseStacks.every(stack=>stack.count<=32)).toBe(true);
+    for (const resource of RESOURCE_TYPES) {
+      expect(initial.warehouseStacks.filter(stack=>stack.resource===resource).reduce((n,stack)=>n+stack.count,0))
+        .toBe(initial.resources[resource]);
+    }
+    sim.load(sim.serialize());
+    expect(sim.snapshot().warehouseStacks).toEqual(initial.warehouseStacks);
+  });
   it('supplies ten samples per new item and preserves stock and transfers on later loads', () => {
     const { sim, world } = setup();
     const legacySave = raw(sim);

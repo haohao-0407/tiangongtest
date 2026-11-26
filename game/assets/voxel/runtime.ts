@@ -1188,7 +1188,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
                 const plan=colonyState.terrainPlans.find(p=>p.state!=='completed'&&p.cells.some(([xx,zz])=>xx===x&&zz===z));
                 const job=colonyState.jobs.find(j=>treeTarget?j.targetId===treeHit.tree.id:j.x===x&&j.z===z);
                 const zone=colonyState.zones.find(q=>x>=q.x&&x<q.x+q.w&&z>=q.z&&z<q.z+q.d);
-                const order = b || demolition || plan || job || zone;
+                const shelf = objectHit?.building;
+                const shelfZone = shelf?.kind === 'shelf' && shelf.complete
+                  ? colonyState.zones.find(zone => zone.shelfId === shelf.id) : undefined;
+                const order = b || demolition || plan || job || shelfZone || zone;
                 if(order)executePlan({action:'cancel',id:order.id});else{status='此处没有可取消的规划';refreshState=true;}
               }else{
                 const o=r?Array.from(ray.getOrigin(vec3.create(),r))as Point:[0,0,0]as Point;

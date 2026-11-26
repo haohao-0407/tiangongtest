@@ -2,6 +2,7 @@ import {describe,expect,it} from 'vitest';
 import {BLOCK,VoxelWorld} from '../../voxel/model.ts';
 import {ColonySimulation,JOB_TYPES,type BuildingKind,type BuildingView,type BuildingRotation} from '../simulation.ts';
 import {buildingDimensions,buildingParts} from '../buildings.ts';
+import {cardLayers} from '../warehouse.ts';
 
 function setup(){
   const world=VoxelWorld.deserialize(JSON.stringify({version:1,generatorVersion:1,seed:'multiblock-test',size:[48,24,48],edits:[]}));
@@ -26,6 +27,85 @@ function finishDemolition(sim: ColonySimulation, id: string) {
   for (let i = 0; i < 480 && sim.snapshot().buildings.some(b => b.id === id); i++) sim.tick(.25);
   expect(sim.snapshot().buildings.some(b => b.id === id)).toBe(false);
 }
+
+describe('automatically designated storage shelves',()=>{
+  it('combines different cards under the shared cap and separates them from suitcases',()=>{
+    const {sim}=setup();
+    const save:any=sim.serialize();
+    const resident=save.colonists[0];
+    resident.bag.splice(0,5,...[
+      {resource:'wheat',count:65}, {resource:'corn',count:40}, {resource:'wood',count:33},
+      {resource:'steel',count:33}, {resource:'silver',count:8},
+    ]);
+    sim.load(save);
+    expect(sim.command({action:'designate',kind:'stockpile',x:18,z:18,w:5,d:1}).ok).toBe(true);
+    for (const [slot,stack] of resident.bag.slice(0,5).entries()) {
+      const result=sim.transferInventory({kind:'follower',id:resident.id,slot},{kind:'warehouse'},stack.resource,stack.count);
+      expect(result.ok).toBe(true);
+    }
+    const stacks=sim.snapshot().warehouseStacks;
+    expect(stacks.map(({x,slot,resource,count})=>[x,slot,resource,count])).toEqual([
+      [18,0,'wheat',32],[18,1,'wheat',32],[18,2,'wheat',1],[18,2,'corn',31],[18,3,'corn',9],
+      [19,0,'wood',32],[20,0,'wood',1],[21,0,'steel',32],[21,2,'steel',1],[22,0,'silver',8],
+    ]);
+    expect([1,8,9,16,17,24,25,32].map(cardLayers)).toEqual([1,1,2,2,3,3,4,4]);
+    sim.load(sim.serialize());
+    expect(sim.snapshot().warehouseStacks).toEqual(stacks);
+    const overflowing:any=sim.serialize();
+    overflowing.warehouseStacks.find((stack:{resource:string})=>stack.resource==='corn').count=32;
+    expect(()=>sim.load(overflowing)).toThrow();
+    expect(sim.snapshot().warehouseStacks).toEqual(stacks);
+  });
+
+  it('repacks the previous warehouse layout without changing inventory totals',()=>{
+    const {sim}=setup();
+    const save:any=sim.serialize();
+    save.warehouseLayout=2;
+    for (const resource of Object.keys(save.resources)) save.resources[resource]=0;
+    save.resources.corn=33;
+    save.resources.wheat=8;
+    save.zones=[{id:'legacy-ground',kind:'stockpile',x:18,y:6,z:18,w:2,d:1,crop:'cabbage'}];
+    save.warehouseStacks=[
+      {x:18,z:18,slot:0,resource:'corn',count:32},{x:18,z:18,slot:1,resource:'corn',count:1},
+      {x:18,z:18,slot:2,resource:'wheat',count:8},
+    ];
+    sim.load(save);
+    expect(sim.snapshot().resources).toEqual(save.resources);
+    expect(sim.snapshot().warehouseStacks.filter(stack=>stack.resource==='corn').map(stack=>stack.count)).toEqual([32,1]);
+    expect(sim.snapshot().warehouseStacks.find(stack=>stack.resource==='wheat')?.slot).toBe(1);
+  });
+
+  it('receives deliveries on a newly placed rotated shelf and spills its contents when removed',()=>{
+    const {sim}=setup();
+    const save:any=sim.serialize();
+    save.colonists[0].bag[0]={resource:'building:shelf',count:1};
+    save.items.push({id:'loose-wood',resource:'wood',amount:12,x:20,y:6,z:21,age:2,reservedBy:null});
+    sim.load(save);
+    const resident=sim.snapshot().colonists[0]!.id;
+    sim.possessColonist(resident);
+    sim.selectBagSlot(0);
+    const placed=sim.placeCarriedBuilding(20,18,1,[19.5,6,18.5]);
+    expect(placed.ok).toBe(true);
+    sim.releaseControl();
+    const zone=sim.snapshot().zones.find(zone=>zone.shelfId===placed.id)!;
+    expect(zone).toMatchObject({kind:'stockpile',x:20,z:18,w:1,d:2});
+    expect(sim.command({action:'cancel',id:zone.id}).ok).toBe(false);
+    const worker=sim.snapshot().colonists[1]!.id;
+    sim.command({action:'priority',colonistId:worker,job:'haul',value:1});
+    for (let i=0;i<180;i++) sim.tick(.25);
+    sim.load(sim.serialize());
+    expect(sim.snapshot().warehouseStacks).toEqual([{shelfId:placed.id,slot:0,x:20,z:18,resource:'wood',count:12}]);
+    expect(sim.snapshot().items).toHaveLength(0);
+    sim.command({action:'priority',colonistId:worker,job:'haul',value:0});
+    expect(sim.command({action:'demolish',id:placed.id}).ok).toBe(true);
+    finishDemolition(sim,placed.id!);
+    const removed=sim.snapshot();
+    expect(removed.zones).toHaveLength(0);
+    expect(removed.warehouseStacks).toHaveLength(0);
+    expect(removed.resources.wood).toBe(save.resources.wood);
+    expect(removed.items).toEqual(expect.arrayContaining([expect.objectContaining({resource:'wood',amount:12})]));
+  });
+});
 
 describe('one authoritative object across rotated three-dimensional cells',()=>{
   it.each([0,1,2,3] as const)('places both bed halves at rotation %i and cancels the whole blueprint from either half',(rotation:BuildingRotation)=>{

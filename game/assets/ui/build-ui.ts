@@ -1,11 +1,12 @@
 import type { GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
-  BUILDING_DEFS, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS,
+  BUILDING_DEFS, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS, SHELF_BAYS, STORAGE_QUARTERS,
   CROP_DEFS, CROP_KINDS, CROP_SEEDS, CROP_TYPES, DEFAULT_CROP, DISH_TYPES, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, cropPlantingItem, cropForPlantingItem, inventorySpace, isCropSeed, isResource, isSupplyType, itemName, workPercent,
   type ColonyCommand, type ColonySnapshot, type CropSeed, type CropType, type DishType, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource, type SupplyType, type MapToolMenu,
 } from '../colony/contracts.ts';
 import { buildingDimensions } from '../colony/buildings.ts';
+import { packageSize, warehouseSlotContents } from '../colony/warehouse.ts';
 import { PLAZA_RECIPE } from '../colony/plaza.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
 import buildingIcons from './building-icons.json';
@@ -428,7 +429,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       crops.append(b);
     }
     root.append(crops);
-    const counts = make('p', 'panel-note', `农田 ${c.zones.filter(z => z.kind === 'farm').length} 片 · 仓储 ${c.zones.filter(z => z.kind === 'stockpile').length} 片 · 待执行 ${c.jobs.filter(j => j.state === 'queued').length} · 进行中 ${c.jobs.filter(j => j.state === 'working').length} · 受阻 ${c.jobs.filter(j => j.state === 'blocked').length}`); counts.style.marginTop = '12px'; root.append(counts);
+    const groundZones = c.zones.filter(z => z.kind === 'stockpile' && !z.shelfId).length;
+    const shelfZones = c.zones.filter(z => z.shelfId).length;
+    const counts = make('p', 'panel-note', `农田 ${c.zones.filter(z => z.kind === 'farm').length} 片 · 地面仓储 ${groundZones} 片 · 储物架 ${shelfZones} 座 · 待执行 ${c.jobs.filter(j => j.state === 'queued').length} · 进行中 ${c.jobs.filter(j => j.state === 'working').length} · 受阻 ${c.jobs.filter(j => j.state === 'blocked').length}`); counts.style.marginTop = '12px'; root.append(counts);
     for (const job of c.jobs.filter(j => j.state === 'blocked').slice(0, 5)) root.append(make('p', 'thought bad', `${JOB_NAMES[job.type]}：${job.label}`));
   }
   function renderWork(c: ColonySnapshot, root: HTMLElement) {
@@ -790,10 +793,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
 
     drawGrid();
 
-    const loose = c.items.filter((item) => item.amount > 0);
-    root.append(note(loose.length
-      ? `另有 ${loose.length} 堆物资还散在地上，居民会陆续搬回仓储。`
-      : '地面干净，没有待搬运的物资。'));
+    const loose = c.items.filter(item => isResource(item.resource) && !item.playerOnly).length;
+    const slots = [...warehouseSlotContents(c.warehouseStacks).values()];
+    const onShelves = slots.filter(contents => contents[0]!.shelfId).length;
+    const ground = slots.length-onShelves;
+    const blocked = c.jobs.some(job => job.state === 'blocked' && job.label === '等待可达且有空位的仓储区');
+    root.append(note(`架上 ${onShelves} 堆 · 地面仓储 ${ground} 堆 · 待搬运 ${loose} 堆${blocked ? ' · 等待可达的仓储空位' : ''}`));
     const deliveries = warehouseDeliveries(c);
     if (deliveries.length) {
       const section = make('section', 'warehouse-deliveries');
@@ -1168,7 +1173,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const stamp = JSON.stringify(panel === 'chest' ? [panel, c?.chests.find(chest => chest.id === chestPanelId)]
       : panel === 'followerBag' ? [panel, follower && [follower.id, follower.name, follower.task, follower.jobId,
         Math.round(follower.health), Math.round(follower.stamina), follower.bag, follower.carrying]]
-      : panel === 'warehouse' ? [panel, c?.resources, c?.items.length,c?.selectedColonistId,c && warehouseDeliveries(c)]
+      : panel === 'warehouse' ? [panel, c?.resources, c?.items.length,c?.warehouseStacks,c?.selectedColonistId,
+        c?.jobs.some(job => job.state === 'blocked' && job.label === '等待可达且有空位的仓储区'),c && warehouseDeliveries(c)]
       : [panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, state.buildHeight, state.buildRotation, state.terrain && [state.terrain.target, state.terrain.size, state.terrain.shape, state.terrain.sample], c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete, b.phase, b.blockedReason, b.rotation, b.doorOpen, percent(b.progress * 100)]), terrainPlans: c.terrainPlans?.map(p => [p.id, p.state, p.remainingCut, p.remainingFill, p.blockedReason]), jobs: c.jobs.map(j => [j.id, j.state, j.label, j.recipe && workPercent(j.progress, j.work)]), zones: c.zones.length, time: Math.floor(c.time) }]);
     if (!force && stamp === lastPanelStamp) return;
     lastPanelStamp = stamp;
@@ -1187,7 +1193,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const demolition = c.jobs.find(job => job.type === 'demolish' && job.targetId === b.id);
     const worker = demolition?.assignedTo && c.colonists.find(p => p.id === demolition.assignedTo);
     const progress = demolition ? workPercent(demolition.progress, demolition.work) : 0;
-    const stamp = JSON.stringify(['building', b, demolition?.id, demolition?.state, worker && worker.name, progress]);
+    const stacks = b.kind === 'shelf' && b.complete ? c.warehouseStacks.filter(stack => stack.shelfId === b.id) : null;
+    const cleanliness = c.rooms.find(room => room.id === b.roomId)?.cleanliness;
+    const stamp = JSON.stringify(['building', b, demolition?.id, demolition?.state, worker && worker.name, progress, stacks, cleanliness]);
     if (!force && stamp === lastInspectorStamp) return;
     lastInspectorStamp = stamp;
     get('inspector-kicker').textContent = '整体设施';
@@ -1201,6 +1209,15 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const measurements = make('p', 'building-dimensions', `占地 ${b.w} × ${b.d} 格 · 高 ${b.h} 格 · 朝向 ${orientationText(b.rotation)}`);
     measurements.dataset.testid = 'building-dimensions'; details.append(measurements);
     details.append(make('p', 'panel-note', `位置 [${b.x}, ${b.y}, ${b.z}] · 点击任一部分都选中整个物体。`));
+    if (stacks) {
+      const slots=[...warehouseSlotContents(stacks).values()];
+      const occupied=slots.reduce((total,contents) => total+packageSize(contents[0]!.resource),0);
+      details.append(note(`仓储区 · ${slots.length} 组物资 · 已用 ${occupied} / ${SHELF_BAYS*STORAGE_QUARTERS} 个子格`));
+      const totals=new Map<Resource,number>();
+      for (const stack of stacks) totals.set(stack.resource,(totals.get(stack.resource)??0)+stack.count);
+      if (totals.size) details.append(note([...totals].map(([resource,count]) => `${nameOf(resource)} × ${count}`).join('、')));
+    }
+    if (cleanliness !== undefined) details.append(note(`房间清洁度 ${cleanliness} / 100`));
     if (b.kind === 'bed' || b.kind === 'medicalBed') details.append(note('床头与床尾共用一座设施，整体建造、使用和拆除。'));
     if (b.kind==='campfirePlaza') details.append(note(plazaIngredients),note('测试阶段 · 以上材料消耗均为 0'));
     if (b.blockedReason) details.append(make('p', 'thought bad', b.blockedReason));

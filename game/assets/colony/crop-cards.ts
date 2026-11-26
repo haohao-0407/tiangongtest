@@ -3,7 +3,8 @@ import type { EntityHandle, World } from '@forgeax/engine/ecs';
 import { MeshFilter, MeshRenderer, ShadowParticipation } from '@forgeax/engine/render';
 import { Name, Transform } from '@forgeax/engine/scene';
 import type { AssetHandle } from '@forgeax/engine/types';
-import type { CropKind, CropSeed, CropType, CropView, DishType, SupplyType } from './contracts.ts';
+import type { CropKind, CropView } from './contracts.ts';
+import { ITEM_CARD_MESHES } from './item-cards.ts';
 
 type RenderCrop = Pick<CropView, 'x' | 'y' | 'z' | 'growth'> & Partial<Pick<CropView, 'id' | 'kind' | 'planted'>>;
 export const FARM_SOIL_HEIGHT = 0.05;
@@ -53,40 +54,6 @@ const CROP_MESHES: Record<CropKind, readonly [string, string, string]> = {
   ],
 };
 
-const PRODUCE_MESHES: Record<CropType, string> = {
-  blueberry: '01a1efdb-b959-71b1-8ad3-626e46b86571',
-  cabbage: '01a1efdb-b95a-728a-a024-f379aab2575d',
-  corn: '01a1efdb-b95a-728a-a024-f37ab37d2a39',
-  leek: '01a1efdb-b95a-728a-a024-f37bb4b5d99b',
-  potato: '01a1efdb-b95a-728a-a024-f37c1b678212',
-  sugarcane: '01a1efdb-b95a-728a-a024-f37d509080e4',
-  tomato: '01a1efdb-b95a-728a-a024-f37ef58dcc91',
-  wheat: '01a1efdb-b95a-728a-a024-f37ffe23b2c3',
-};
-
-const SEED_ITEM_MESHES: Record<CropSeed, string> = {
-  cabbageSeed: '01a1f3fb-2a1f-7238-8ac3-04ff43534a5d',
-  tomatoSeed: '01a1f3fb-2a1f-7238-8ac3-0500af905f71',
-  sugarcaneSeed: '01a1f3fb-2a1f-7238-8ac3-050119a3cf20',
-  leekSeed: '01a1f3fb-2a1f-7238-8ac3-0502ef916604',
-  potatoSeed: '01a1f3fb-2a1f-7238-8ac3-05034adfa5ea',
-  wheatSeed: '01a1f3fb-2a1f-7238-8ac3-05043a3917b5',
-  cornSeed: '01a1f3fb-2a1f-7238-8ac3-05053e8b8930',
-};
-
-const FOOD_AND_SUPPLY_MESHES = {
-  blueberryWine: '01a1f41a-056b-7fa4-adad-548a24188318',
-  flour: '01a1f41a-056b-7fa4-adad-548b2ae46ec1',
-  cheese: '01a1f41a-056b-7fa4-adad-548c9277b8b5',
-  chickenMeat: '01a1f41a-056b-7fa4-adad-548d6764b801',
-  beef: '01a1f41a-056b-7fa4-adad-548ecdf554fa',
-  pork: '01a1f41a-056b-7fa4-adad-548f92b44e99',
-  sugar: '01a1f41a-056b-7fa4-adad-54901049b389',
-  lambChopStew: '01a1fa01-d067-7fe2-88de-cfb33287de32',
-  mutton: '01a1fa01-d067-7fe2-88de-cfb42d633b6a',
-  wool: '01a1fa01-d067-7fe2-88de-cfb55560f7a9',
-} satisfies Partial<Record<SupplyType | DishType, string>>;
-
 interface Entry {
   readonly entity: EntityHandle;
   mesh: AssetHandle<'mesh'>;
@@ -97,7 +64,7 @@ interface Entry {
 
 export class CropCards {
   private readonly meshes = new Map<CropKind, AssetHandle<'mesh'>[]>();
-  private readonly itemMeshes = new Map<string, AssetHandle<'mesh'>>();
+  private readonly itemModels = new Map<string, { mesh:AssetHandle<'mesh'>; bottom:number }>();
   private readonly entries = new Map<string, Entry>();
 
   private constructor(private readonly world: World, private readonly assets: AssetRegistry) {}
@@ -106,7 +73,7 @@ export class CropCards {
     const cards = new CropCards(world, assets);
     await Promise.all([
       ...(Object.keys(CROP_MESHES) as CropKind[]).map(kind => cards.load(kind)),
-      ...Object.entries({ ...PRODUCE_MESHES, ...SEED_ITEM_MESHES, ...FOOD_AND_SUPPLY_MESHES }).map(([kind, guid]) => cards.loadItem(kind, guid)),
+      ...Object.entries(ITEM_CARD_MESHES).map(([kind, guid]) => cards.loadItem(kind, guid)),
     ]);
     return cards;
   }
@@ -124,7 +91,8 @@ export class CropCards {
 
   private async loadItem(kind: string, guid: string): Promise<void> {
     try {
-      this.itemMeshes.set(kind, await this.loadCutoutMesh(guid));
+      const mesh=await this.loadCutoutMesh(guid);
+      this.itemModels.set(kind,{mesh,bottom:this.assets.read(mesh).unwrap().aabb?.[1]??-.5});
     } catch (error) {
       console.warn(`物品贴图 ${kind} 加载失败。`, error);
     }
@@ -147,7 +115,11 @@ export class CropCards {
   }
 
   itemMesh(resource: string): AssetHandle<'mesh'> | undefined {
-    return this.itemMeshes.get(resource);
+    return this.itemModel(resource)?.mesh;
+  }
+
+  itemModel(resource:string) {
+    return this.itemModels.get(resource);
   }
 
   hasModel(kind?: CropKind): boolean {
@@ -200,7 +172,7 @@ export class CropCards {
       for (const mesh of stages) this.assets.release(mesh).unwrap();
     }
     this.meshes.clear();
-    for (const mesh of this.itemMeshes.values()) this.assets.release(mesh).unwrap();
-    this.itemMeshes.clear();
+    for (const {mesh} of this.itemModels.values()) this.assets.release(mesh).unwrap();
+    this.itemModels.clear();
   }
 }

@@ -13,8 +13,10 @@ export function rotateBuildingCell(x:number,z:number,w:number,d:number,rotation:
   return[x,z];
 }
 /** Every cell resolves to the same persistent building id, never an independently editable half. */
-export function buildingParts(b:Pick<BuildingView,'kind'|'x'|'y'|'z'|'rotation'>):BuildingPart[]{
-  const [w,d]=BUILDING_DEFS[b.kind].footprint??[1,1],h=BUILDING_DEFS[b.kind].height??1,result:BuildingPart[]=[];
+export function buildingParts(b:Pick<BuildingView,'kind'|'x'|'y'|'z'|'rotation'> & Partial<Pick<BuildingView,'w'|'h'|'d'>>):BuildingPart[]{
+  const dimensions=buildingDimensions(b.kind);
+  const w=(b.rotation%2 ? b.d : b.w)??dimensions.w, d=(b.rotation%2 ? b.w : b.d)??dimensions.d;
+  const h=b.h??dimensions.h,result:BuildingPart[]=[];
   for(let y=0;y<h;y++)for(let z=0;z<d;z++)for(let x=0;x<w;x++){
     const [rx,rz]=rotateBuildingCell(x,z,w,d,b.rotation);
     const role=b.kind==='door'?(y===0?'door-lower':'door-upper'):b.kind==='bed'||b.kind==='medicalBed'?(z===0?'bed-head':'bed-foot'):'body';

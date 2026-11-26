@@ -9,8 +9,9 @@ import { FARM_SOIL_HEIGHT, type CropCards } from './crop-cards.ts';
 import type { VoxelWorld } from '../voxel/model.ts';
 import type { WallPanel } from '../voxel/pcg/facade.ts';
 import { WALL_HEIGHT } from '../voxel/pcg/rules.ts';
-import { BUILDING_DEFS, buildingItemKind, isCropSeed, type BuildingKind, type CropKind, type PlayerInventorySlot } from './contracts.ts';
+import { BUILDING_DEFS, STORAGE_QUARTERS, buildingItemKind, isCropSeed, type BuildingKind, type CropKind, type PlayerInventorySlot, type StoredStack } from './contracts.ts';
 import { buildingDimensions } from './buildings.ts';
+import { cardLayers, isWarehouseCard, packageSize, warehouseSlotContents } from './warehouse.ts';
 import { PLAZA_LAYERS, plazaPoint, smooth } from './plaza.ts';
 import type { FinaleView } from './contracts.ts';
 import { PointLight } from '@forgeax/engine/render';
@@ -28,6 +29,7 @@ export type ColonyRenderState={
   zones:{id:string;kind:string;x:number;z:number;w:number;d:number}[];
   crops:{id?:string;x:number;y:number;z:number;growth:number;kind?:CropKind;planted?:boolean}[];
   items:{id:string;resource:string;amount:number;x:number;y:number;z:number;age?:number;scatter?:boolean}[];
+  warehouseStacks:StoredStack[];
   selectedColonistId?:string|null;
   selectedBuildingId?:string|null;
   buildPreview?:RenderBuilding|null;
@@ -39,12 +41,15 @@ const COLORS:Record<string,string>={
   dark:'#2e4247',cream:'#f0ddba',blanket:'#568b9b',white:'#fff3d5',green:'#63935e',gold:'#e5c66f',blue:'#4d7d96',black:'#233135',
   light:'#c5e4cd',soil:'#7e563b',
   blueprint:'#75cece',zoneFarm:'#90bd65',zoneStock:'#75baca',selected:'#ecd78c',health:'#9fc174',bad:'#c56b55',
-  playerMark:'#ffd76e', seedPack:'#ba955c',
+  playerMark:'#ffd76e', seedPack:'#ba955c', luggageStrap:'#473327', luggageTrim:'#987044',
 };
 const rgba=(hex:string):[number,number,number,number]=>{
   const n=parseInt(hex.slice(1),16);const f=(v:number)=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4;
   return [f(((n>>16)&255)/255),f(((n>>8)&255)/255),f((n&255)/255),1];
 };
+// Tops of the three shelf boards in the authored mesh, from bottom to top.
+const SHELF_BOARD_HEIGHTS = [.25,.80,1.35] as const;
+const shelfFit = (w:number,d:number) => Math.max(w,d) === 1 ? 1/1.8 : 1;
 
 /** Native meshes only. The simulation remains the authority; this layer never changes it. */
 export class ColonyView {
@@ -54,7 +59,7 @@ export class ColonyView {
   private residents = new Map<string, CharacterView>();
   private plazaLights=new Map<string,EntityHandle[]>();
   constructor(private world:World, private assets:AssetRegistry, private terrain:()=>VoxelWorld,
-    private characters:readonly CharacterAssets[], private readonly cropCards:Pick<CropCards,'update'|'hasModel'|'itemMesh'>,
+    private characters:readonly CharacterAssets[], private readonly cropCards:Pick<CropCards,'update'|'hasModel'|'itemMesh'|'itemModel'>,
     private readonly buildingModels:ReadonlyMap<string,BuildingModel>, private readonly windowedWalls:ReadonlyMap<string,WallPanel[]>,
     private readonly plazaMeshes:ReadonlyMap<string,AssetHandle<'mesh'>>){
     this.cube=assets.create(createBoxGeometry(1,1,1).unwrap()).unwrap();
@@ -174,7 +179,8 @@ export class ColonyView {
         }
       }else{
         const [sx,sy,sz]=model.scale;
-        parts.push({...body,p:[x,y,z],s:[sx*scale,sy*scale,sz*scale]});
+        const fit=scale*(b.kind==='shelf' ? shelfFit(w,d) : 1);
+        parts.push({...body,p:[x,y,z],s:[sx*fit,sy*fit,sz*fit]});
       }
       return parts;
     }
@@ -207,6 +213,63 @@ export class ColonyView {
     }
     if(b.complete&&['solar','battery','cooler'].includes(b.kind))part(.26,.7,.47,.08,.08,.025,b.powered?'green':'bad',false);
     return parts;
+  }
+  private drawStoredStack(contents:StoredStack[],shelf:RenderBuilding|undefined,active:Set<string>):void {
+    const stack=contents[0]!;
+    const fit=shelf ? shelfFit(shelf.w??1,shelf.d??1) : 1;
+    const yaw=-(shelf?.rotation??0)*Math.PI/2;
+    const sin=Math.sin(yaw/2), cos=Math.cos(yaw/2);
+    const rotation:Rotation=[0,sin,0,cos];
+    const quarter=stack.slot%STORAGE_QUARTERS, size=packageSize(stack.resource);
+    const bayWidth=(shelf ? .76 : 1)*fit, bayDepth=(shelf ? .68 : 1)*fit;
+    const width=bayWidth*(size===1 ? .5 : 1);
+    const depth=bayDepth*(size===4 ? 1 : .5);
+    let offsetX=quarter%2===0 ? -bayWidth/2+width/2 : bayWidth/4;
+    let offsetZ=quarter<2 ? -bayDepth/2+depth/2 : bayDepth/4;
+    let x=stack.x+.5,z=stack.z+.5,y=this.terrain().terrainHeight(stack.x,stack.z);
+    let key=`仓储地堆/${stack.x},${stack.z}/${stack.slot}`;
+    if (shelf) {
+      const bay=Math.floor(stack.slot/STORAGE_QUARTERS);
+      offsetX+=(bay%2===0 ? -.42 : .42)*fit;
+      x=shelf.x+(shelf.w??1)/2;
+      z=shelf.z+(shelf.d??1)/2;
+      y=shelf.y+SHELF_BOARD_HEIGHTS[Math.floor(bay/2)]!*fit;
+      key=`货架物资/${shelf.id}/${stack.slot}`;
+    }
+    const at=(dx:number,dy:number,dz:number):V3 => [
+      x+(offsetX+dx)*Math.cos(yaw)+(offsetZ+dz)*Math.sin(yaw),
+      y+dy,
+      z-(offsetX+dx)*Math.sin(yaw)+(offsetZ+dz)*Math.cos(yaw),
+    ];
+    const parts:Part[]=[];
+    const box=(dx:number,dy:number,dz:number,w:number,h:number,d:number,c:string) =>
+      parts.push({p:at(dx,dy,dz),s:[w,h,d],c});
+
+    if (isWarehouseCard(stack.resource)) {
+      const cards=[...contents].sort((a,b) => b.count-a.count);
+      const layers=cardLayers(contents.reduce((total,item) => total+item.count,0));
+      const cardSize=width*.91;
+      for (let layer=0;layer<layers;layer++) {
+        const model=this.cropCards.itemModel(cards[layer%cards.length]!.resource);
+        const height=-(model?.bottom??-.5)*cardSize;
+        const offset=layer-(layers-1)/2;
+        const dx=offset*width*.025, dz=offset*depth*.155;
+        if (model) parts.push({p:at(dx,height,dz),s:[cardSize,cardSize,cardSize],mesh:model.mesh});
+        else box(dx,height,dz,cardSize,cardSize,.012*fit,'cream');
+      }
+    } else {
+      const w=width*.90, d=depth*.90;
+      const height=(size===4 ? shelf ? .37 : .55 : size===2 ? .31 : .22)*fit;
+      const color=COLORS[stack.resource] ? stack.resource : 'gold';
+      box(0,height/2,0,w,height,d,color);
+      box(0,height*.73,0,w*1.025,.022*fit,d*1.025,'luggageTrim');
+      for (const side of [-1,1]) {
+        box(side*w*.29,height+.005*fit,0,w*.10,.018*fit,d*1.03,'luggageStrap');
+        box(side*w*.29,height*.50,d*.515,w*.10,height,.02*fit,'luggageStrap');
+      }
+      box(0,height+.035*fit,0,w*.24,.032*fit,d*.15,'luggageStrap');
+    }
+    this.put(key,parts,active,`${stack.resource}:${parts.map(part=>part.mesh??part.c).join('|')}`,rotation);
   }
 
   private plazaEffects(b:RenderBuilding, clock:number, finale:FinaleView|undefined, active:Set<string>){
@@ -287,9 +350,13 @@ export class ColonyView {
       if(state.selectedBuildingId===b.id)parts.push({p:[x,y+.025,z],s:[w+.04,.045,d+.04],c:'selected',shadow:false});
       this.put(`设施/${b.id}`,parts,active,`${b.kind}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
     }
+    const plannedCells = new Set<string>();
     for(const zone of state.showPlanningGrid ? state.zones : []){
       const parts:Part[]=[];
       for(let x=zone.x;x<zone.x+zone.w;x++)for(let z=zone.z;z<zone.z+zone.d;z++){
+        const key=`${x},${z}`;
+        if(plannedCells.has(key))continue;
+        plannedCells.add(key);
         const y=this.terrain().terrainHeight(x,z);
         parts.push({p:[x+.5,y+.026,z+.5],s:[.94,.045,.94],c:zone.kind==='farm'?'zoneFarm':'zoneStock',shadow:false});
       }
@@ -308,6 +375,12 @@ export class ColonyView {
         }
       }
       this.put(`作物/${p.id??`${p.x},${p.z}`}`,parts,active);
+    }
+    const shelves=new Map(state.buildings.filter(b=>b.kind==='shelf'&&b.complete).map(b=>[b.id,b]));
+    for (const contents of warehouseSlotContents(state.warehouseStacks).values()) {
+      const stack=contents[0]!;
+      const shelf=stack.shelfId ? shelves.get(stack.shelfId) : undefined;
+      if (!stack.shelfId || shelf) this.drawStoredStack(contents,shelf,active);
     }
     for(const item of state.items){
       if(item.amount<=0)continue;const scale=.2+Math.min(.38,Math.cbrt(item.amount)*.07);

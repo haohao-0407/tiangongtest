@@ -26,6 +26,7 @@ export type Resource = typeof RESOURCE_TYPES[number];
 export const isResource = (item: unknown): item is Resource => (RESOURCE_TYPES as readonly unknown[]).includes(item);
 export type Resources = Record<Resource, number>;
 export const PLAYER_SLOTS = 9, CHEST_SLOTS = 20, STACK_LIMIT = 99, CHEST_WOOD_COST = 4;
+export const SHELF_BAYS = 6, STORAGE_QUARTERS = 4, WAREHOUSE_STACK_LIMIT = 32, HAUL_LIMIT = 12;
 export const PLAYER_DELIVERY_TARGET = 'player-delivery';
 export const HAMMER = 'hammer', AXE = 'axe', PICKAXE = 'pickaxe', PLAYER_BUILD_MULTIPLIER = 2, PLAYER_BUILD_REACH = 3;
 /** 工具不是 Resource，但要走同一条搬运/存档流程。加新工具时只往这里加。 */
@@ -135,7 +136,7 @@ export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
   doubleBed:{id:'doubleBed',name:'双人床',description:'两位居民同住，节省空间。',cost:{plank:44,cloth:6},work:26,power:0,blocking:true,color:[0.60,0.42,0.23],footprint:[2,2],category:'furniture'},
   chair:{id:'chair',name:'椅子',description:'就餐与休闲。',cost:{plank:12},work:8,power:0,blocking:true,color:[0.64,0.44,0.23],category:'furniture'},
   stool:{id:'stool',name:'凳子',description:'最简单的座位。',cost:{wood:3},work:4,power:0,blocking:true,color:[0.66,0.47,0.27],category:'furniture'},
-  shelf:{id:'shelf',name:'储物架',description:'室内收纳，改善整洁度。',cost:{plank:28},work:16,power:0,blocking:true,color:[0.56,0.39,0.22],category:'furniture'},
+  shelf:{id:'shelf',name:'储物架',description:`自动规划为仓储区 · ${SHELF_BAYS} 个分区，每区可按体积放置物资。`,cost:{plank:28},work:16,power:0,blocking:true,color:[0.56,0.39,0.22],footprint:[2,1],height:2,category:'furniture'},
   planter:{id:'planter',name:'盆栽',description:'室内绿植，提升心情。',cost:{plank:12,stone:2},work:8,power:0,blocking:true,color:[0.42,0.60,0.36],category:'furniture'},
   painting:{id:'painting',name:'挂画',description:'墙上装饰，提升心情。',cost:{plank:10,cloth:2},work:10,power:0,blocking:false,color:[0.72,0.56,0.38],category:'furniture'},
   sculpture:{id:'sculpture',name:'雕塑',description:'艺术台产物，大幅提升心情。',cost:{stoneBrick:6},work:22,power:0,blocking:true,color:[0.72,0.70,0.64],category:'furniture'},
@@ -210,12 +211,14 @@ export type MapToolMenu = 'build' | 'plan';
 export interface ColonistView {id:string;name:string;traits:string[];skills:Record<JobType,number>;priorities:Record<JobType,number>;schedule:Schedule;position:Position;health:number;hunger:number;rest:number;recreation:number;mood:number;disease:number;task:string;jobId:string|null;color:Position;carrying:Partial<Resources>;bag:PlayerInventorySlot[];bagSelected:number;stamina:number;facing:number;comfort:number}
 export interface BuildingView {id:string;kind:BuildingKind;x:number;y:number;z:number;w:number;h:number;d:number;rotation:BuildingRotation;doorOpen?:boolean;phase:'preparingTerrain'|'readyToBuild'|'constructing'|'completed';terrainPlanId?:string;blockedReason?:string;complete:boolean;progress:number;reserved:Partial<Resources>;powered:boolean;comfort:number;roomId:number|null;storage?:PlayerInventorySlot[]}
 export interface TerrainPlanView {id:string;target:number;cells:[number,number][];remainingCut:number;remainingFill:number;progress:number;state:'queued'|'working'|'blocked'|'completed';blockedReason?:string;buildingId?:string}
-export interface ZoneView {id:string;kind:'farm'|'stockpile';x:number;y:number;z:number;w:number;d:number;crop:CropKind}
+export interface ZoneView {id:string;kind:'farm'|'stockpile';x:number;y:number;z:number;w:number;d:number;crop:CropKind;shelfId?:string}
+export type WarehouseSlot = {x:number;z:number;slot:number;shelfId?:string};
+export type StoredStack = WarehouseSlot & {resource:Resource;count:number};
 export interface CropView {id:string;kind:CropKind;x:number;y:number;z:number;growth:number;planted:boolean}
 export interface ItemView {id:string;resource:InventoryItem;amount:number;x:number;y:number;z:number;age:number;reservedBy:string|null;scatter?:boolean;playerOnly?:boolean}
 export interface JobView {id:string;type:OrderType;targetId:string;x:number;y:number;z:number;progress:number;work:number;state:'queued'|'working'|'blocked';assignedTo:string|null;reserved:Partial<Resources>;label:string;recipientId?:string;deliveryPhase?:'pickup'|'deliver';recipe?:string;craftAmount?:number;craftPhase?:'pickup'|'work'}
 export interface ColonyEvent {id:string;time:number;day:number;hour:number;type:'info'|'weather'|'health'|'research'|'arrival';text:string}
-export interface RoomView {id:number;cells:[number,number][];enclosed:boolean;comfort:number;temperature:number}
+export interface RoomView {id:number;cells:[number,number][];enclosed:boolean;comfort:number;temperature:number;cleanliness:number}
 export type FinalePhase = 'gathering' | 'show' | 'departing';
 export interface FinaleView {
   buildingId:string; phase:FinalePhase; elapsed:number; arrived:number; guests:number;
@@ -224,6 +227,7 @@ export interface ColonySnapshot {
   finale?:FinaleView;
   version:1;speed:number;day:number;hour:number;season:string;weather:string;temperature:number;time:number;
   resources:Resources;colonists:ColonistView[];buildings:BuildingView[];zones:ZoneView[];crops:CropView[];items:ItemView[];jobs:JobView[];rooms:RoomView[];terrainPlans:TerrainPlanView[];
+  warehouseStacks:StoredStack[];
   playerBag:PlayerInventorySlot[];bagSelected:number;controlledColonistId:string|null;chests:ChestView[];
   research:{active:string|null;progress:Record<string,number>;completed:string[]};
   power:{generation:number;demand:number;stored:number;capacity:number;supplied:number;coldStorage:boolean};
