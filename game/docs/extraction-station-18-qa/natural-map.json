@@ -1,0 +1,324 @@
+[
+  {
+    "label": "标准开局",
+    "day": 1,
+    "time": 120,
+    "stock": {
+      "wood": 140,
+      "stone": 110,
+      "pigIron": 0
+    },
+    "points": [],
+    "loose": [
+      [
+        "stone",
+        10
+      ]
+    ],
+    "cargo": [
+      {
+        "name": "林夏",
+        "task": "观察新营地",
+        "carrying": {},
+        "pickaxe": true
+      },
+      {
+        "name": "阿澈",
+        "task": "观察新营地",
+        "carrying": {},
+        "pickaxe": false
+      },
+      {
+        "name": "青禾",
+        "task": "观察新营地",
+        "carrying": {},
+        "pickaxe": false
+      }
+    ]
+  },
+  {
+    "label": "两处天然点下达蓝图",
+    "day": 1,
+    "time": 120,
+    "stock": {
+      "wood": 124,
+      "stone": 110,
+      "pigIron": 0
+    },
+    "points": [
+      {
+        "x": 105,
+        "y": 9,
+        "z": 88,
+        "complete": false,
+        "resource": "pigIron",
+        "remaining": 18,
+        "status": "待完工"
+      },
+      {
+        "x": 83,
+        "y": 9,
+        "z": 167,
+        "complete": false,
+        "resource": "stone",
+        "remaining": 24,
+        "status": "待完工"
+      }
+    ],
+    "loose": [
+      [
+        "stone",
+        10
+      ]
+    ],
+    "cargo": [
+      {
+        "name": "林夏",
+        "task": "观察新营地",
+        "carrying": {},
+        "pickaxe": true
+      },
+      {
+        "name": "阿澈",
+        "task": "观察新营地",
+        "carrying": {},
+        "pickaxe": false
+      },
+      {
+        "name": "青禾",
+        "task": "观察新营地",
+        "carrying": {},
+        "pickaxe": false
+      }
+    ]
+  },
+  {
+    "label": "pigIron首批已采出",
+    "day": 1,
+    "time": 196,
+    "stock": {
+      "wood": 136,
+      "stone": 120,
+      "pigIron": 0
+    },
+    "points": [
+      {
+        "x": 105,
+        "y": 9,
+        "z": 88,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 15,
+        "status": "等待采矿居民"
+      },
+      {
+        "x": 83,
+        "y": 9,
+        "z": 167,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 24,
+        "status": "等待可用石镐"
+      }
+    ],
+    "loose": [
+      [
+        "pigIron",
+        3
+      ]
+    ],
+    "cargo": [
+      {
+        "name": "林夏",
+        "task": "采集完成",
+        "carrying": {},
+        "pickaxe": true
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "carrying": {},
+        "pickaxe": false
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 自由活动",
+        "carrying": {},
+        "pickaxe": false
+      }
+    ]
+  },
+  {
+    "label": "stone首批已采出",
+    "day": 1,
+    "time": 251,
+    "stock": {
+      "wood": 136,
+      "stone": 120,
+      "pigIron": 3
+    },
+    "points": [
+      {
+        "x": 105,
+        "y": 9,
+        "z": 88,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 15,
+        "status": "林夏 · 携镐前往采集站"
+      },
+      {
+        "x": 83,
+        "y": 9,
+        "z": 167,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 21,
+        "status": "等待采矿居民"
+      }
+    ],
+    "loose": [
+      [
+        "stone",
+        3
+      ]
+    ],
+    "cargo": [
+      {
+        "name": "林夏",
+        "task": "前往采集生铁",
+        "carrying": {},
+        "pickaxe": true
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "carrying": {},
+        "pickaxe": false
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "carrying": {},
+        "pickaxe": false
+      }
+    ]
+  },
+  {
+    "label": "跨日",
+    "day": 2,
+    "time": 360,
+    "stock": {
+      "wood": 136,
+      "stone": 123,
+      "pigIron": 3
+    },
+    "points": [
+      {
+        "x": 105,
+        "y": 9,
+        "z": 88,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 9,
+        "status": "等待采矿居民"
+      },
+      {
+        "x": 83,
+        "y": 9,
+        "z": 167,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 21,
+        "status": "林夏 · 携镐前往采集站"
+      }
+    ],
+    "loose": [
+      [
+        "pigIron",
+        3
+      ],
+      [
+        "pigIron",
+        3
+      ]
+    ],
+    "cargo": [
+      {
+        "name": "林夏",
+        "task": "前往采集石材",
+        "carrying": {},
+        "pickaxe": true
+      },
+      {
+        "name": "阿澈",
+        "task": "前往搬运物资",
+        "carrying": {},
+        "pickaxe": false
+      },
+      {
+        "name": "青禾",
+        "task": "卧床休养",
+        "carrying": {},
+        "pickaxe": false
+      }
+    ]
+  },
+  {
+    "label": "两处全部入仓",
+    "day": 4,
+    "time": 1244,
+    "stock": {
+      "wood": 136,
+      "stone": 144,
+      "pigIron": 18
+    },
+    "points": [
+      {
+        "x": 105,
+        "y": 9,
+        "z": 88,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 0,
+        "status": "已采尽"
+      },
+      {
+        "x": 83,
+        "y": 9,
+        "z": 167,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 0,
+        "status": "已采尽"
+      }
+    ],
+    "loose": [],
+    "cargo": [
+      {
+        "name": "林夏",
+        "task": "工作完成",
+        "carrying": {},
+        "pickaxe": true
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "carrying": {},
+        "pickaxe": false
+      },
+      {
+        "name": "青禾",
+        "task": "前往休息",
+        "carrying": {},
+        "pickaxe": false
+      },
+      {
+        "name": "远山",
+        "task": "前往治疗青禾",
+        "carrying": {},
+        "pickaxe": false
+      }
+    ]
+  }
+]

@@ -1,0 +1,284 @@
+[
+  {
+    "name": "01-residents",
+    "tool": "inspect",
+    "status": "已恢复地图、居民、任务和生产进度",
+    "flags": {},
+    "guideBed": null,
+    "tailorBed": null,
+    "available": [
+      "bed-14-9",
+      "bed-22-9",
+      "bed-6-17",
+      "bed-14-21"
+    ],
+    "panel": "住户\n×\n⚑\n向导\n已到镇 · 待安排\n⚑\n厨师\n未到镇\n⚑\n裁缝\n已到镇 · 待安排\n⚑\n乳酪师\n未到镇\n⚑\n铁匠\n未到镇\n可分配住房 4 间\n安排入住"
+  },
+  {
+    "name": "02-preview",
+    "tool": "house:guide",
+    "status": "绿色地格可入住 · 左键插旗，右键或 Esc 取消",
+    "flags": {},
+    "guideBed": null,
+    "tailorBed": null,
+    "available": [
+      "bed-14-9",
+      "bed-22-9",
+      "bed-6-17",
+      "bed-14-21"
+    ],
+    "panel": null
+  },
+  {
+    "name": "03-outdoor",
+    "tool": "house:guide",
+    "status": "这里不在封闭房间内，请点击室内地格",
+    "flags": {},
+    "guideBed": null,
+    "tailorBed": null,
+    "available": [
+      "bed-14-9",
+      "bed-22-9",
+      "bed-6-17",
+      "bed-14-21"
+    ],
+    "panel": null
+  },
+  {
+    "name": "04-invalid",
+    "tool": "house:guide",
+    "status": "房间需要完工的床、餐桌和可达通路",
+    "flags": {},
+    "guideBed": null,
+    "tailorBed": null,
+    "available": [
+      "bed-14-9",
+      "bed-22-9",
+      "bed-6-17",
+      "bed-14-21"
+    ],
+    "panel": null
+  },
+  {
+    "name": "05-guide",
+    "tool": "inspect",
+    "status": "向导已入住 · 房间 0",
+    "flags": {
+      "guide": [
+        16.5,
+        5,
+        11.5
+      ]
+    },
+    "guideBed": "bed-14-9",
+    "tailorBed": null,
+    "available": [
+      "bed-22-9",
+      "bed-6-17",
+      "bed-14-21"
+    ],
+    "panel": null
+  },
+  {
+    "name": "06-occupied",
+    "tool": "house:tailor",
+    "status": "这间房已有向导入住，请另选空房",
+    "flags": {
+      "guide": [
+        16.5,
+        5,
+        11.5
+      ]
+    },
+    "guideBed": "bed-14-9",
+    "tailorBed": null,
+    "available": [
+      "bed-22-9",
+      "bed-6-17",
+      "bed-14-21"
+    ],
+    "panel": null
+  },
+  {
+    "name": "07-tailor",
+    "tool": "inspect",
+    "status": "裁缝已入住 · 房间 1",
+    "flags": {
+      "guide": [
+        16.5,
+        5,
+        11.5
+      ],
+      "tailor": [
+        24.5,
+        5,
+        11.5
+      ]
+    },
+    "guideBed": "bed-14-9",
+    "tailorBed": "bed-22-9",
+    "available": [
+      "bed-6-17",
+      "bed-14-21"
+    ],
+    "panel": null
+  },
+  {
+    "name": "08-cancel-right",
+    "tool": "inspect",
+    "status": "已取消安排入住",
+    "flags": {
+      "guide": [
+        16.5,
+        5,
+        11.5
+      ],
+      "tailor": [
+        24.5,
+        5,
+        11.5
+      ]
+    },
+    "guideBed": "bed-14-9",
+    "tailorBed": "bed-22-9",
+    "available": [
+      "bed-6-17",
+      "bed-14-21"
+    ],
+    "panel": "住户\n×\n⚑\n向导\n已入住 · 房间 0\n⚑\n厨师\n未到镇\n⚑\n裁缝\n已入住 · 房间 1\n⚑\n乳酪师\n未到镇\n⚑\n铁匠\n未到镇\n可分配住房 2 间\n安排入住"
+  },
+  {
+    "name": "09-cancel-esc",
+    "tool": "inspect",
+    "status": "已取消安排入住",
+    "flags": {
+      "guide": [
+        16.5,
+        5,
+        11.5
+      ],
+      "tailor": [
+        24.5,
+        5,
+        11.5
+      ]
+    },
+    "guideBed": "bed-14-9",
+    "tailorBed": "bed-22-9",
+    "available": [
+      "bed-6-17",
+      "bed-14-21"
+    ],
+    "panel": "住户\n×\n⚑\n向导\n已入住 · 房间 0\n⚑\n厨师\n未到镇\n⚑\n裁缝\n已入住 · 房间 1\n⚑\n乳酪师\n未到镇\n⚑\n铁匠\n未到镇\n可分配住房 2 间\n安排入住"
+  },
+  {
+    "name": "10-moved",
+    "tool": "inspect",
+    "status": "向导已入住 · 房间 3",
+    "flags": {
+      "guide": [
+        16.5,
+        5,
+        23.5
+      ],
+      "tailor": [
+        24.5,
+        5,
+        11.5
+      ]
+    },
+    "guideBed": "bed-14-21",
+    "tailorBed": "bed-22-9",
+    "available": [
+      "bed-14-9",
+      "bed-6-17"
+    ],
+    "panel": null
+  },
+  {
+    "name": "11-reloaded",
+    "tool": "inspect",
+    "status": "已恢复地图、居民、任务和生产进度",
+    "flags": {
+      "guide": [
+        16.5,
+        5,
+        23.5
+      ],
+      "tailor": [
+        24.5,
+        5,
+        11.5
+      ]
+    },
+    "guideBed": "bed-14-21",
+    "tailorBed": "bed-22-9",
+    "available": [
+      "bed-14-9",
+      "bed-6-17"
+    ],
+    "panel": "住户\n×\n⚑\n向导\n已入住 · 房间 3\n⚑\n厨师\n未到镇\n⚑\n裁缝\n已入住 · 房间 1\n⚑\n乳酪师\n未到镇\n⚑\n铁匠\n未到镇\n可分配住房 2 间\n安排入住"
+  },
+  {
+    "name": "12-face-trade",
+    "tool": "inspect",
+    "status": "已预留 19 银币，居民将领取布料 × 1",
+    "flags": {
+      "guide": [
+        16.5,
+        5,
+        23.5
+      ],
+      "tailor": [
+        24.5,
+        5,
+        11.5
+      ]
+    },
+    "guideBed": "bed-14-21",
+    "tailorBed": "bed-22-9",
+    "available": [
+      "bed-14-9",
+      "bed-6-17"
+    ],
+    "panel": "裁缝商店\n×\n🧵\n裁缝\n已入住 · 房间 1\n环境品质 75 · 买价 −7.5% / 回收 +7.5%\n商品货架\n可用 30 银币\n布料\n▨\n19 银币\n回收栏\n平日收购 ×1.2 · 羊毛\n羊毛 × 22\n已预留 19 银币，居民将领取布料 × 1\n布料 × 1 · 采购待取 · 等待居民\n等待居民 · 在途 0 · 入库 0/1\n预留余 19 · 已付 0 银币"
+  },
+  {
+    "name": "13-lost-home",
+    "tool": "inspect",
+    "status": "已选择居民",
+    "flags": {
+      "guide": [
+        16.5,
+        5,
+        23.5
+      ]
+    },
+    "guideBed": "bed-14-21",
+    "tailorBed": null,
+    "available": [
+      "bed-14-9",
+      "bed-6-17"
+    ],
+    "panel": "住户\n×\n⚑\n向导\n已入住 · 房间 3\n⚑\n厨师\n未到镇\n⚑\n裁缝\n已到镇 · 待安排\n⚑\n乳酪师\n未到镇\n⚑\n铁匠\n未到镇\n可分配住房 2 间\n安排入住"
+  },
+  {
+    "name": "14-trade-locked",
+    "tool": "inspect",
+    "status": "已附身阿澈 · 再按 R 返回俯视",
+    "flags": {
+      "guide": [
+        16.5,
+        5,
+        23.5
+      ]
+    },
+    "guideBed": "bed-14-21",
+    "tailorBed": null,
+    "available": [
+      "bed-14-9",
+      "bed-6-17"
+    ],
+    "panel": "裁缝 · 安排住所\n×\n🧵\n裁缝\n正在镇上寻找住所\n\n请为我安排一间有床、有桌子的合格空房。入住后就可以开店了。\n\n安排住所"
+  }
+]

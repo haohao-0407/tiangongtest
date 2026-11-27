@@ -59,10 +59,10 @@ export default async function chestDemolition(play) {
   const activity = page.locator('[data-testid="building-inspector"] .resident-activity');
   await page.locator('#inspector-close').click();
   await page.locator('[data-menu="plan"]').click();
-  await page.locator('[data-testid="tool-demolish"]').click();
+  await page.locator('[data-testid="tool-clear"]').click();
   await page.locator('#workspace').waitFor({ state: 'hidden' });
   const planning = await advance();
-  assert.equal(planning.tool, 'demolish');
+  assert.equal(planning.tool, 'clear');
   await aim(planning, chest);
   await page.mouse.click(...project(planning,[chest.x+.5,chest.y+.55,chest.z+.5]));
   assert.equal(order(await advance()).state, 'queued');

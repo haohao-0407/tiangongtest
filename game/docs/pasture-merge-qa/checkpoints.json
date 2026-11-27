@@ -1,0 +1,691 @@
+[
+  {
+    "name": "01-edge-preview",
+    "time": 497.5,
+    "pens": [
+      {
+        "id": "zone-38",
+        "cells": 48,
+        "capacity": 22,
+        "gate": [
+          22,
+          20
+        ],
+        "ready": true,
+        "seams": []
+      }
+    ],
+    "wood": 240,
+    "milk": 0,
+    "animals": [
+      [
+        "cow-37-34",
+        20,
+        21,
+        20,
+        21,
+        "home"
+      ],
+      [
+        "cow-38-37",
+        21,
+        21,
+        21,
+        21,
+        "home"
+      ],
+      [
+        "pig-29-2",
+        22,
+        21,
+        22,
+        21,
+        "home"
+      ],
+      [
+        "sheep-26-7",
+        23,
+        21,
+        23,
+        21,
+        "home"
+      ],
+      [
+        "chicken-22-44",
+        24,
+        21,
+        24,
+        21,
+        "home"
+      ]
+    ],
+    "stations": [
+      "building-120",
+      "building-124"
+    ],
+    "demolition": [],
+    "hint": "合并 1 片已有牧场 · 共 60 格 · 净容量 30 · 绿格为入口"
+  },
+  {
+    "name": "02-before-demolition",
+    "time": 497.5,
+    "pens": [
+      {
+        "id": "zone-38",
+        "cells": 60,
+        "capacity": 26,
+        "gate": [
+          22,
+          20
+        ],
+        "ready": false,
+        "seams": [
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ]
+      }
+    ],
+    "wood": 216,
+    "milk": 0,
+    "animals": [
+      [
+        "cow-37-34",
+        20,
+        21,
+        20,
+        21,
+        "home"
+      ],
+      [
+        "cow-38-37",
+        21,
+        21,
+        21,
+        21,
+        "home"
+      ],
+      [
+        "pig-29-2",
+        22,
+        21,
+        22,
+        21,
+        "home"
+      ],
+      [
+        "sheep-26-7",
+        23,
+        21,
+        23,
+        21,
+        "home"
+      ],
+      [
+        "chicken-22-44",
+        24,
+        21,
+        24,
+        21,
+        "home"
+      ]
+    ],
+    "stations": [
+      "building-120",
+      "building-124"
+    ],
+    "demolition": [],
+    "hint": "已恢复地图、居民、任务和生产进度"
+  },
+  {
+    "name": "03-corner-preview",
+    "time": 497.5,
+    "pens": [
+      {
+        "id": "zone-38",
+        "cells": 60,
+        "capacity": 26,
+        "gate": [
+          22,
+          20
+        ],
+        "ready": false,
+        "seams": [
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ]
+      }
+    ],
+    "wood": 216,
+    "milk": 0,
+    "animals": [
+      [
+        "cow-37-34",
+        20,
+        21,
+        20,
+        21,
+        "home"
+      ],
+      [
+        "cow-38-37",
+        21,
+        21,
+        21,
+        21,
+        "home"
+      ],
+      [
+        "pig-29-2",
+        22,
+        21,
+        22,
+        21,
+        "home"
+      ],
+      [
+        "sheep-26-7",
+        23,
+        21,
+        23,
+        21,
+        "home"
+      ],
+      [
+        "chicken-22-44",
+        24,
+        21,
+        24,
+        21,
+        "home"
+      ]
+    ],
+    "stations": [
+      "building-120",
+      "building-124"
+    ],
+    "demolition": [],
+    "hint": "净容量 1 · 绿格为入口"
+  },
+  {
+    "name": "04-third-pasture",
+    "time": 497.5,
+    "pens": [
+      {
+        "id": "zone-38",
+        "cells": 60,
+        "capacity": 26,
+        "gate": [
+          22,
+          20
+        ],
+        "ready": false,
+        "seams": [
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ]
+      },
+      {
+        "id": "zone-162",
+        "cells": 9,
+        "capacity": 1,
+        "gate": [
+          16,
+          18
+        ],
+        "ready": false,
+        "seams": []
+      }
+    ],
+    "wood": 192,
+    "milk": 0,
+    "animals": [
+      [
+        "cow-37-34",
+        20,
+        21,
+        20,
+        21,
+        "home"
+      ],
+      [
+        "cow-38-37",
+        21,
+        21,
+        21,
+        21,
+        "home"
+      ],
+      [
+        "pig-29-2",
+        22,
+        21,
+        22,
+        21,
+        "home"
+      ],
+      [
+        "sheep-26-7",
+        23,
+        21,
+        23,
+        21,
+        "home"
+      ],
+      [
+        "chicken-22-44",
+        24,
+        21,
+        24,
+        21,
+        "home"
+      ]
+    ],
+    "stations": [
+      "building-120",
+      "building-124"
+    ],
+    "demolition": [],
+    "hint": "净容量 1 · 绿格为入口"
+  },
+  {
+    "name": "05-overlap-three",
+    "time": 497.5,
+    "pens": [
+      {
+        "id": "zone-38",
+        "cells": 60,
+        "capacity": 26,
+        "gate": [
+          22,
+          20
+        ],
+        "ready": false,
+        "seams": [
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ]
+      },
+      {
+        "id": "zone-162",
+        "cells": 9,
+        "capacity": 1,
+        "gate": [
+          16,
+          18
+        ],
+        "ready": false,
+        "seams": []
+      },
+      {
+        "id": "zone-179",
+        "cells": 9,
+        "capacity": 1,
+        "gate": [
+          23,
+          17
+        ],
+        "ready": false,
+        "seams": []
+      }
+    ],
+    "wood": 168,
+    "milk": 0,
+    "animals": [
+      [
+        "cow-37-34",
+        20,
+        21,
+        20,
+        21,
+        "home"
+      ],
+      [
+        "cow-38-37",
+        21,
+        21,
+        21,
+        21,
+        "home"
+      ],
+      [
+        "pig-29-2",
+        22,
+        21,
+        22,
+        21,
+        "home"
+      ],
+      [
+        "sheep-26-7",
+        23,
+        21,
+        23,
+        21,
+        "home"
+      ],
+      [
+        "chicken-22-44",
+        24,
+        21,
+        24,
+        21,
+        "home"
+      ]
+    ],
+    "stations": [
+      "building-120",
+      "building-124"
+    ],
+    "demolition": [],
+    "hint": "合并 3 片已有牧场 · 共 92 格 · 净容量 52 · 绿格为入口"
+  },
+  {
+    "name": "06-protected-store",
+    "time": 497.5,
+    "pens": [
+      {
+        "id": "zone-38",
+        "cells": 92,
+        "capacity": 42,
+        "gate": [
+          23,
+          17
+        ],
+        "ready": false,
+        "seams": [
+          "building-39",
+          "building-40",
+          "building-41",
+          "building-42",
+          "building-43",
+          "building-44",
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ]
+      }
+    ],
+    "wood": 168,
+    "milk": 0,
+    "animals": [
+      [
+        "cow-37-34",
+        20,
+        21,
+        20,
+        21,
+        "home"
+      ],
+      [
+        "cow-38-37",
+        21,
+        21,
+        21,
+        21,
+        "home"
+      ],
+      [
+        "pig-29-2",
+        22,
+        21,
+        22,
+        21,
+        "home"
+      ],
+      [
+        "sheep-26-7",
+        23,
+        21,
+        23,
+        21,
+        "home"
+      ],
+      [
+        "chicken-22-44",
+        24,
+        21,
+        24,
+        21,
+        "home"
+      ]
+    ],
+    "stations": [
+      "building-120",
+      "building-124"
+    ],
+    "demolition": [],
+    "hint": "已选 6 格 · 1 格禁止规划"
+  },
+  {
+    "name": "07-demolition-orders",
+    "time": 542,
+    "pens": [
+      {
+        "id": "zone-38",
+        "cells": 92,
+        "capacity": 42,
+        "gate": [
+          23,
+          17
+        ],
+        "ready": false,
+        "seams": [
+          "building-39",
+          "building-40",
+          "building-41",
+          "building-42",
+          "building-43",
+          "building-44",
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ]
+      }
+    ],
+    "wood": 168,
+    "milk": 0,
+    "animals": [
+      [
+        "cow-37-34",
+        20,
+        21,
+        20,
+        21,
+        "home"
+      ],
+      [
+        "cow-38-37",
+        21,
+        21,
+        21,
+        21,
+        "home"
+      ],
+      [
+        "pig-29-2",
+        22,
+        21,
+        22,
+        21,
+        "home"
+      ],
+      [
+        "sheep-26-7",
+        23,
+        21,
+        23,
+        21,
+        "home"
+      ],
+      [
+        "chicken-22-44",
+        24,
+        21,
+        24,
+        21,
+        "home"
+      ]
+    ],
+    "stations": [
+      "building-120",
+      "building-124"
+    ],
+    "demolition": [
+      "building-39",
+      "building-40",
+      "building-41",
+      "building-42",
+      "building-43",
+      "building-44",
+      "building-47",
+      "building-49",
+      "building-51",
+      "building-53"
+    ],
+    "hint": "已恢复地图、居民、任务和生产进度"
+  },
+  {
+    "name": "08-after-demolition",
+    "time": 572,
+    "pens": [
+      {
+        "id": "zone-38",
+        "cells": 92,
+        "capacity": 52,
+        "gate": [
+          23,
+          17
+        ],
+        "ready": true,
+        "seams": []
+      }
+    ],
+    "wood": 168,
+    "milk": 0,
+    "animals": [
+      [
+        "cow-37-34",
+        20,
+        21,
+        20,
+        21,
+        "home"
+      ],
+      [
+        "cow-38-37",
+        21,
+        21,
+        21,
+        21,
+        "home"
+      ],
+      [
+        "pig-29-2",
+        22,
+        21,
+        22,
+        21,
+        "home"
+      ],
+      [
+        "sheep-26-7",
+        23,
+        21,
+        23,
+        21,
+        "home"
+      ],
+      [
+        "chicken-22-44",
+        24,
+        21,
+        24,
+        21,
+        "home"
+      ]
+    ],
+    "stations": [
+      "building-120",
+      "building-124"
+    ],
+    "demolition": [],
+    "hint": "已恢复地图、居民、任务和生产进度"
+  },
+  {
+    "name": "09-new-gate-and-milk",
+    "time": 597.75,
+    "pens": [
+      {
+        "id": "zone-38",
+        "cells": 92,
+        "capacity": 52,
+        "gate": [
+          23,
+          25
+        ],
+        "ready": true,
+        "seams": []
+      }
+    ],
+    "wood": 162,
+    "milk": 1,
+    "animals": [
+      [
+        "cow-37-34",
+        20,
+        21,
+        20,
+        21,
+        "home"
+      ],
+      [
+        "cow-38-37",
+        21,
+        21,
+        21,
+        21,
+        "home"
+      ],
+      [
+        "pig-29-2",
+        22,
+        21,
+        22,
+        21,
+        "home"
+      ],
+      [
+        "sheep-26-7",
+        23,
+        21,
+        23,
+        21,
+        "home"
+      ],
+      [
+        "chicken-22-44",
+        24,
+        21,
+        24,
+        21,
+        "home"
+      ]
+    ],
+    "stations": [
+      "building-120",
+      "building-124"
+    ],
+    "demolition": [],
+    "hint": "营地已暂停"
+  }
+]

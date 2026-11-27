@@ -287,7 +287,7 @@ export default async function multiblockPlaythrough(play) {
   });
   await play.step('door-upper-half-demolishes-both-parts-and-drops-one-door', async () => {
     const door = buildingBy(await read(), doorId);
-    await chooseTool('plan', 'tool-demolish', 'demolish');
+    await chooseTool('plan', 'tool-clear', 'clear');
     const hover = await hoverPart(door.id, [door.x, door.y + 1, door.z]);
     await play.mouse.click(hover.point);
     await wait(s => buildingBy(s,door.id) && s.colony.jobs.some(j => j.type === 'demolish' && j.targetId === door.id));

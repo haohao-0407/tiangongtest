@@ -1,6 +1,6 @@
 import type { FacadeLayout, FacadeWindowState } from './pcg/facade.ts';
 import {treeBounds,treeCells,type TreeInstance} from './trees.ts';
-import { planSurfaceOreVeins } from './surface-ore.ts';
+import { planSurfaceOreVeins, MINING_RULES } from './surface-ore.ts';
 import { planWildPlants, type WildPlant } from './wild-plants.ts';
 import { planWildAnimals, type WildAnimal } from './wild-animals.ts';
 
@@ -15,7 +15,7 @@ export const CHUNK_SIZE = 24;
 export const DETAIL_TILE_SIZE = 8;
 export const BLOCK = {
   Air: 0, Grass: 1, Dirt: 2, Stone: 3, Wood: 4,
-  Planks: 5, Brick: 6, Leaves: 7, Water: 8, Sand: 9, Road: 10, SteelOre: 11,
+  Planks: 5, Brick: 6, Leaves: 7, Water: 8, Sand: 9, Road: 10, SteelOre: 11, StoneDeposit: 12,
 } as const;
 export type BlockId = typeof BLOCK[keyof typeof BLOCK];
 export interface BlockDefinition {
@@ -38,7 +38,9 @@ export const BLOCKS: readonly BlockDefinition[] = [
   { id: 9, name: '沙土', color: [0.83, 0.74, 0.48], solid: true, buildable: true },
   { id: 10, name: '道路', color: [0.49, 0.51, 0.49], solid: true, buildable: true },
   { id: 11, name: '铁矿', color: [0.35, 0.39, 0.40], solid: true, buildable: false },
+  { id: 12, name: '石料点', color: [0.72, 0.69, 0.60], solid: true, buildable: false },
 ];
+export const depositResource = (block:number) => block === BLOCK.SteelOre ? 'pigIron' as const : block === BLOCK.StoneDeposit ? 'stone' as const : undefined;
 export interface BlockEdit { x: number; y: number; z: number; block: number }
 export interface ChunkCoord { x: number; y: number; z: number }
 export interface DetailTileCoord { x: number; z: number }
@@ -55,7 +57,7 @@ interface TreeChange { id:string; before:TreeInstance|null; after:TreeInstance|n
 interface EditTransaction { changes: Change[]; treeChanges:TreeChange[]; facadeBefore: FacadeLayout; facadeAfter: FacadeLayout }
 interface SavedWorld {
   version: 1;
-  generatorVersion: 1 | 2 | 3;
+  generatorVersion: 1 | 2 | 3 | 4;
   seed: string;
   size: [number, number, number];
   edits: [number, number][];
@@ -124,7 +126,7 @@ function validSeed(seed: unknown): asserts seed is string {
   }
 }
 function validBlock(block: number): block is BlockId {
-  return Number.isInteger(block) && block >= BLOCK.Air && block <= BLOCK.SteelOre;
+  return Number.isInteger(block) && block >= BLOCK.Air && block <= BLOCK.StoneDeposit;
 }
 function validSize(size: WorldSize): void {
   if (!size || ![size.width, size.height, size.depth].every(Number.isInteger)
@@ -158,7 +160,7 @@ export class VoxelWorld {
   private pcgReset = true;
   private _seed = '';
   private _revision = 0;
-  private _generatorVersion: 1 | 2 | 3 = 3;
+  private _generatorVersion: 1 | 2 | 3 | 4 = 3;
   private treeMap=new Map<string,TreeInstance>();
   private treeBaseline=new Map<string,TreeInstance>();
   private legacyVegetation=new Map<number,BlockId>();
@@ -183,10 +185,10 @@ export class VoxelWorld {
     return this.get(x, y - 1, z) === BLOCK.Grass && this.get(x, y, z) === BLOCK.Air && !this.treeAtColumn(x, z);
   }
 
-  constructor(seed = '森屿-042', size: WorldSize = WORLD_SIZE) { this.regenerate(seed, size, 3); }
+  constructor(seed = '森屿-042', size: WorldSize = WORLD_SIZE) { this.regenerate(seed, size, 4); }
   get seed(): string { return this._seed; }
   get revision(): number { return this._revision; }
-  get generatorVersion(): 1 | 2 | 3 { return this._generatorVersion; }
+  get generatorVersion(): 1 | 2 | 3 | 4 { return this._generatorVersion; }
   /** Number of changed raw cells and natural tree identities; also suitable for save status. */
   get editCount(): number { return this.changes.size+this.treeDiffs.size; }
   get treeRevision():number {return this._treeRevision;}
@@ -511,9 +513,9 @@ export class VoxelWorld {
   }
   /** A new map uses the current default; loading a legacy map does not pin new games to its size. */
   reset(seed = this.seed || '森屿-042', size: WorldSize = WORLD_SIZE): void {
-    this.regenerate(seed, size, 3);
+    this.regenerate(seed, size, 4);
   }
-  private regenerate(seed: string, size: WorldSize, generatorVersion: 1 | 2 | 3): void {
+  private regenerate(seed: string, size: WorldSize, generatorVersion: 1 | 2 | 3 | 4): void {
     validSeed(seed);
     validSize(size);
     this.size = { width: size.width, height: size.height, depth: size.depth };
@@ -568,7 +570,10 @@ export class VoxelWorld {
         return y;
       },
     }, seedHash(this.seed) ^ 0x6f726533);
-    for (const vein of veins) for (const { x, y, z } of vein) this.blocks[this.index(x, y, z)] = BLOCK.SteelOre;
+    for (const [i, vein] of veins.entries()) {
+      const block = (i + 1) % MINING_RULES.stoneEveryNVeins === 0 ? BLOCK.StoneDeposit : BLOCK.SteelOre;
+      for (const { x, y, z } of vein) this.blocks[this.index(x, y, z)] = block;
+    }
   }
   private recount(): void {
     this.blockCounts.fill(0);
@@ -725,7 +730,7 @@ export class VoxelWorld {
     const saved: unknown = JSON.parse(json);
     if (!saved || typeof saved !== 'object') throw new RangeError('存档格式不正确。');
     const data = saved as Partial<SavedWorld>;
-    if (data.version !== 1 || (data.generatorVersion !== 1 && data.generatorVersion !== 2 && data.generatorVersion !== 3)) throw new RangeError('不支持此存档版本。');
+    if (data.version !== 1 || (data.generatorVersion !== 1 && data.generatorVersion !== 2 && data.generatorVersion !== 3 && data.generatorVersion !== 4)) throw new RangeError('不支持此存档版本。');
     validSeed(data.seed);
     if (!Array.isArray(data.size) || data.size.length !== 3) throw new RangeError('存档地图尺寸不正确。');
     const size = { width: data.size[0], height: data.size[1], depth: data.size[2] };
@@ -741,7 +746,8 @@ export class VoxelWorld {
       seen.add(row[0]);
     }
     const world = new VoxelWorld(data.seed, size);
-    if (data.generatorVersion !== world.generatorVersion) world.regenerate(data.seed, size, data.generatorVersion);
+    // Version 4 reuses every v3 vein position. Apply the old sparse edits last so mined cells stay empty.
+    if (data.generatorVersion < 3 && data.generatorVersion !== world.generatorVersion) world.regenerate(data.seed, size, data.generatorVersion);
     const legacy=data.treeVersion===undefined&&data.trees===undefined;
     if(!legacy&&(data.treeVersion!==1||!Array.isArray(data.trees)))throw new RangeError('树木物体存档版本或格式不正确。');
     // Old saves store sparse edits relative to terrain with generated trees still baked into its cells.

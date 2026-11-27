@@ -1,6 +1,6 @@
 import {describe,expect,it} from 'vitest';
 import {BLOCK,VoxelWorld} from '../../voxel/model.ts';
-import {ColonySimulation,JOB_TYPES,IRON_ORE_YIELD} from '../simulation.ts';
+import {ColonySimulation,JOB_TYPES} from '../simulation.ts';
 import type { CropView } from '../contracts.ts';
 
 function setup(generatorVersion:1|2|3=3){
@@ -22,13 +22,16 @@ function enable(sim:ColonySimulation,...types:string[]){
 }
 function until(sim:ColonySimulation,predicate:()=>boolean,seconds=160){
   for(let n=0;n<seconds*4&&!predicate();n++)sim.tick(.25);
-  expect(predicate()).toBe(true);
+  if(!predicate()){
+    const {buildings,items,colonists,resources,jobs}=sim.snapshot();
+    throw Error(JSON.stringify({buildings,items,stock:[resources.stone,resources.pigIron],jobs,colonists:colonists.map(c=>[c.name,c.task,c.position,c.carrying])}));
+  }
 }
 const loose=(sim:ColonySimulation,resource:string)=>sim.snapshot().items.filter(item=>item.resource===resource).reduce((n,item)=>n+item.amount,0);
 const mining=(sim:ColonySimulation)=>sim.snapshot().jobs.filter(job=>job.type==='mine');
 
 describe('finite iron ore mining',()=>{
-  it('lets the player collect dirt by hand and stone or steel with the pickaxe exactly once',()=>{
+  it('lets the player collect dirt by hand and stone or ordinary terrain without ore yield',()=>{
     const{world,sim}=setup();
     world.set(21,5,20,BLOCK.Stone);
     world.set(22,5,20,BLOCK.SteelOre);
@@ -45,17 +48,17 @@ describe('finite iron ore mining',()=>{
     sim.selectBagSlot(2);
     expect(sim.playerHarvestTerrain([21,5,20],BLOCK.Stone,position).ok).toBe(true);
     expect(sim.playerHarvestTerrain([22,5,20],BLOCK.SteelOre,position).ok).toBe(false);
-    expect(sim.playerHarvestTerrain([22,5,20],BLOCK.SteelOre,[21.5,6,20.5]).ok).toBe(true);
+    expect(sim.playerHarvestTerrain([22,5,20],BLOCK.SteelOre,[21.5,6,20.5]).ok).toBe(false);
     expect(sim.playerHarvestTerrain([22,5,20],BLOCK.SteelOre,position).ok).toBe(false);
     expect(mining(sim)).toHaveLength(0);
     expect(sim.snapshot().resources).toEqual(initial);
     const restoredWorld=VoxelWorld.deserialize(world.serialize()),restored=new ColonySimulation(restoredWorld);
     restored.load(sim.serialize());
-    expect(restoredWorld.get(22,5,20)).toBe(BLOCK.Air);
+    expect(restoredWorld.get(22,5,20)).toBe(BLOCK.SteelOre);
     restored.possessColonist(id);
     restored.tick(.75,[21.5,6,20.5]);
     expect(restored.snapshot().playerBag).toEqual(expect.arrayContaining([
-      {resource:'dirt',count:1},{resource:'stone',count:8},{resource:'pigIron',count:IRON_ORE_YIELD},
+      {resource:'dirt',count:1},
     ]));
     expect(restored.snapshot().bagSelected).toBe(2);
   });
@@ -118,72 +121,85 @@ describe('finite iron ore mining',()=>{
     expect(world.get(21, 5, 20)).toBe(BLOCK.Grass);
   });
 
-  it('walks beside ore, completes real work, drops steel and then hauls it into storage',()=>{
-    const{world,sim}=setup();world.set(20,5,20,BLOCK.SteelOre);enable(sim,'mine');
-    const iron=sim.snapshot().resources.pigIron,stone=sim.snapshot().resources.stone;
-    expect(sim.command({action:'designate',kind:'mine',x:20,z:20}).ok).toBe(true);
-    expect(mining(sim)[0]).toMatchObject({y:5,progress:0,label:'开采铁矿'});
-    expect(world.get(20,5,20)).toBe(BLOCK.SteelOre);expect(loose(sim,'pigIron')).toBe(0);
-    until(sim,()=>mining(sim).some(job=>job.progress>0));
-    const job=mining(sim)[0]!,worker=sim.snapshot().colonists.find(c=>c.id===job.assignedTo)!;
-    expect(Math.abs(Math.floor(worker.position[0])-20)+Math.abs(Math.floor(worker.position[2])-20)).toBe(1);
-    expect(worker.position[1]).toBe(6);expect(sim.snapshot().metrics.distanceWalked).toBeGreaterThan(0);
-    expect(sim.snapshot().resources.pigIron).toBe(iron);expect(loose(sim,'pigIron')).toBe(0);
-    until(sim,()=>world.get(20,5,20)===BLOCK.Air);
-    expect(loose(sim,'pigIron')).toBe(IRON_ORE_YIELD);expect(loose(sim,'stone')).toBe(0);
-    expect(sim.snapshot().resources.pigIron).toBe(iron);expect(sim.snapshot().resources.stone).toBe(stone);
-    expect(sim.command({action:'designate',kind:'stockpile',x:16,z:16,w:2,d:2}).ok).toBe(true);enable(sim,'haul');
-    until(sim,()=>sim.snapshot().resources.pigIron===iron+IRON_ORE_YIELD);
-    expect(loose(sim,'pigIron')).toBe(0);expect(sim.snapshot().metrics.hauled).toBe(IRON_ORE_YIELD);
+  it.each([[BLOCK.StoneDeposit,'stone',24],[BLOCK.SteelOre,'pigIron',18]] as const)(
+    'requires a finished station and its worker’s physical tool for block %i', (block,resource,capacity)=>{
+      const {world,sim}=setup();
+      const opening:any=sim.serialize();opening.items=[];opening.warehouseStacks=[];
+      for(const r of Object.keys(opening.resources))opening.resources[r]=0;
+      opening.resources.wood=16;
+      sim.load(opening);world.set(20,5,20,block);enable(sim,'construct','mine');
+      const initial=sim.snapshot().resources[resource];
+      expect(sim.command({action:'build',kind:'extractionStation',x:21,z:20}).ok).toBe(false);
+      expect(sim.command({action:'designate',kind:'mine',x:20,z:20}).ok).toBe(false);
+      const station=sim.command({action:'build',kind:'extractionStation',x:20,z:20});
+      expect(station.ok).toBe(true);
+      expect(mining(sim)).toHaveLength(0);
+      until(sim,()=>sim.snapshot().buildings.some(b=>b.id===station.id&&b.complete));
+      until(sim,()=>mining(sim).some(j=>j.progress>0));
+      const worker=sim.snapshot().colonists.find(c=>c.id===mining(sim)[0]!.assignedTo)!;
+      expect(worker.bag.some(s=>s?.resource==='pickaxe')).toBe(true);
+      expect(Math.abs(Math.floor(worker.position[0])-20)+Math.abs(Math.floor(worker.position[2])-20)).toBe(1);
+      expect(sim.depositAt(20,20)?.remaining).toBe(capacity);
+      until(sim,()=>loose(sim,resource)===3);
+      expect(sim.snapshot().resources[resource]).toBe(initial);
+      const second=new ColonySimulation(VoxelWorld.deserialize(world.serialize()));second.load(sim.serialize());
+      expect(second.depositAt(20,20)?.remaining).toBe(capacity-3);
+      expect(second.command({action:'designate',kind:'stockpile',x:16,z:16,w:2,d:2}).ok).toBe(true);
+      enable(second,'haul','mine');until(second,()=>second.snapshot().resources[resource]===initial+capacity,360);
+      expect(second.depositAt(20,20)?.remaining).toBe(0);
+      expect(mining(second)).toHaveLength(0);
+      expect(second.snapshot().buildings.find(b=>b.id===station.id)?.mining?.status).toBe('已采尽');
+      enable(second,'construct');
+      expect(second.command({action:'demolish',id:station.id}).ok).toBe(true);
+      until(second,()=>!second.snapshot().buildings.some(b=>b.id===station.id));
+      const rebuilt=second.command({action:'build',kind:'extractionStation',x:20,z:20});expect(rebuilt.ok).toBe(true);
+      until(second,()=>second.snapshot().buildings.some(b=>b.id===rebuilt.id&&b.complete));
+      expect(second.snapshot().buildings.find(b=>b.id===rebuilt.id)?.mining?.status).toBe('已采尽');
+      expect(mining(second)).toHaveLength(0);
+    });
+  it('preserves a partially mined cell when its station is dismantled, saved and built again',()=>{
+    const {world,sim}=setup();world.set(20,5,20,BLOCK.SteelOre);enable(sim,'construct','mine');
+    const first=sim.command({action:'build',kind:'extractionStation',x:20,z:20});
+    until(sim,()=>sim.depositAt(20,20)?.remaining===15);
+    const balance=sim.snapshot().resources.pigIron;
+    expect(sim.command({action:'demolish',id:first.id}).ok).toBe(true);
+    until(sim,()=>!sim.snapshot().buildings.some(b=>b.id===first.id));
+    const restored=new ColonySimulation(VoxelWorld.deserialize(world.serialize()));restored.load(sim.serialize());
+    expect(restored.depositAt(20,20)?.remaining).toBe(15);expect(loose(restored,'pigIron')).toBe(3);
+    enable(restored,'construct');
+    const second=restored.command({action:'build',kind:'extractionStation',x:20,z:20});
+    until(restored,()=>restored.snapshot().buildings.some(b=>b.id===second.id&&b.complete));
+    expect(restored.depositAt(20,20)?.remaining).toBe(15);expect(restored.snapshot().resources.pigIron).toBe(balance);
   });
-
-  it.each([1,2,3] as const)('keeps ordinary stone yield compatible with generator version %s',(generatorVersion:1|2|3)=>{
-    const{world,sim}=setup(generatorVersion);world.set(20,5,20,BLOCK.Stone);enable(sim,'mine');
-    expect(sim.command({action:'designate',kind:'mine',x:20,z:20}).ok).toBe(true);
-    until(sim,()=>world.get(20,5,20)===BLOCK.Air);
-    expect(loose(sim,'stone')).toBe(8);expect(loose(sim,'pigIron')).toBe(generatorVersion<3?2:0);
+  it('waits for the real pickaxe, fetches it from storage and pauses if it leaves the miner’s bag',()=>{
+    const {world,sim}=setup();
+    world.set(20,5,20,BLOCK.StoneDeposit);
+    const chest=sim.command({action:'place-chest',x:14,z:15});expect(chest.ok).toBe(true);
+    const [owner,worker]=sim.snapshot().colonists;enable(sim,'construct');
+    sim.command({action:'priority',colonistId:worker!.id,job:'mine',value:1});
+    expect(sim.command({action:'build',kind:'extractionStation',x:20,z:20}).ok).toBe(true);
+    const station=()=>sim.snapshot().buildings.find(b=>b.kind==='extractionStation')!;
+    until(sim,()=>station().complete);sim.tick(5);
+    expect(station().mining?.status).toContain('等待可用石镐');
+    expect(station().mining?.remaining).toBe(24);
+    const box={kind:'chest' as const,id:chest.id!,slot:0};
+    expect(sim.transferInventory({kind:'follower',id:owner!.id,slot:2},box,'pickaxe',1).ok).toBe(true);
+    until(sim,()=>mining(sim).some(j=>j.progress>0));
+    const carrier=sim.snapshot().colonists.find(c=>c.id===worker!.id)!;
+    const slot=carrier.bag.findIndex(s=>s?.resource==='pickaxe');expect(slot).toBeGreaterThanOrEqual(0);
+    expect(sim.snapshot().chests.find(b=>b.id===chest.id)?.slots[0]).toBeNull();
+    expect(sim.transferInventory({kind:'follower',id:worker!.id,slot},{kind:'follower',id:owner!.id,slot:2},'pickaxe',1).ok).toBe(true);
+    sim.tick(10);expect(station().mining?.remaining).toBe(24);expect(loose(sim,'stone')).toBe(0);
   });
-
-  it('resumes in-progress mining and persists depletion without regenerating ore or duplicating steel',()=>{
-    const{world,sim}=setup();world.set(20,5,20,BLOCK.SteelOre);enable(sim,'mine');
-    sim.command({action:'designate',kind:'mine',x:20,z:20});until(sim,()=>mining(sim).some(job=>job.progress>2));
-    const restoredWorld=VoxelWorld.deserialize(world.serialize()),restored=new ColonySimulation(restoredWorld);restored.load(sim.serialize());
-    for(let n=0;n<160;n++){sim.tick(.25);restored.tick(.25);}
-    expect(restored.serialize()).toEqual(sim.serialize());expect(restoredWorld.serialize()).toEqual(world.serialize());
-    expect(restoredWorld.get(20,5,20)).toBe(BLOCK.Air);expect(loose(restored,'pigIron')).toBe(IRON_ORE_YIELD);
-    const depletedWorld=VoxelWorld.deserialize(restoredWorld.serialize()),depleted=new ColonySimulation(depletedWorld);depleted.load(restored.serialize());
-    depleted.tick(30);expect(depletedWorld.get(20,5,20)).toBe(BLOCK.Air);expect(loose(depleted,'pigIron')).toBe(IRON_ORE_YIELD);
-  });
-
-  it('protects ore during earthwork and lets explicit mining unblock an unfinished foundation',()=>{
-    const{world,sim}=setup();world.set(20,6,20,BLOCK.SteelOre);enable(sim,'terraform','construct');
-    const overlap=sim.command({action:'build',kind:'floor',x:20,z:20,target:6});
-    expect(overlap.ok).toBe(false);expect(overlap.message).toContain('先开采铁矿');
-    const order=sim.command({action:'build',kind:'floor',x:20,z:20,target:5});expect(order.ok).toBe(true);
-    const building=()=>sim.snapshot().buildings.find(b=>b.id===order.id)!;
-    expect(building().phase).toBe('preparingTerrain');expect(building().blockedReason).toContain('先开采铁矿');
-    sim.tick(15);expect(world.get(20,6,20)).toBe(BLOCK.SteelOre);expect(loose(sim,'pigIron')).toBe(0);
-    expect(sim.command({action:'designate',kind:'mine',x:20,z:20}).ok).toBe(true);enable(sim,'mine','terraform','construct');
-    until(sim,()=>building().complete);
-    expect(world.get(20,6,20)).toBe(BLOCK.Air);expect(loose(sim,'pigIron')).toBe(IRON_ORE_YIELD);
-  });
-
-  it('blocks a high ore target until an adjacent working level is reachable',()=>{
-    const{world,sim}=setup();world.edit([{x:20,y:6,z:20,block:BLOCK.Stone},{x:20,y:7,z:20,block:BLOCK.SteelOre}]);enable(sim,'mine');
-    expect(sim.command({action:'designate',kind:'mine',x:20,z:20}).ok).toBe(true);sim.tick(25);
-    expect(mining(sim)[0]).toMatchObject({state:'blocked',progress:0});expect(loose(sim,'pigIron')).toBe(0);
-    world.set(19,6,20,BLOCK.Stone);
-    until(sim,()=>world.get(20,7,20)===BLOCK.Air);expect(loose(sim,'pigIron')).toBe(IRON_ORE_YIELD);
-  });
-
-  it('does not pay ore for stale jobs or restore mined cells through sandbox undo',()=>{
-    const stale=setup();stale.world.set(20,5,20,BLOCK.SteelOre);enable(stale.sim,'mine');
-    stale.sim.command({action:'designate',kind:'mine',x:20,z:20});const queued=stale.sim.serialize();
-    stale.world.set(20,5,20,BLOCK.Air);stale.sim.tick(0);expect(mining(stale.sim)).toHaveLength(0);
-    stale.sim.load(queued);stale.sim.tick(30);expect(loose(stale.sim,'pigIron')).toBe(0);expect(stale.world.get(20,4,20)).toBe(BLOCK.Dirt);
-    const mined=setup();mined.world.set(20,5,20,BLOCK.SteelOre);enable(mined.sim,'mine');
-    mined.sim.command({action:'designate',kind:'mine',x:20,z:20});until(mined.sim,()=>mined.world.get(20,5,20)===BLOCK.Air);
-    while(mined.world.undo()){/* unrelated sandbox edits may remain undoable */}
-    expect(mined.world.get(20,5,20)).toBe(BLOCK.Air);expect(loose(mined.sim,'pigIron')).toBe(IRON_ORE_YIELD);
+  it('retires a legacy ground order without paying it or touching its old loose stack',()=>{
+    const {world,sim}=setup();world.set(20,5,20,BLOCK.Air);
+    const s:any=sim.serialize(),owner=s.colonists[0];
+    s.jobs.push({id:'old-job',type:'mine',targetId:'rock:20:20:5',x:20,y:5,z:20,progress:18,work:19,
+      state:'working',assignedTo:owner.id,reserved:{},label:'开采铁矿',phase:'work',amount:0,destination:null});
+    owner.jobId='old-job';
+    s.items.push({id:'old-drop',resource:'pigIron',amount:12,x:20,y:5,z:20,age:1,reservedBy:null});
+    sim.load(s);
+    expect(mining(sim)).toHaveLength(0);expect(sim.depositAt(20,20)).toBeUndefined();
+    expect(loose(sim,'pigIron')).toBe(12);expect(sim.snapshot().resources.pigIron).toBe(0);
   });
 });

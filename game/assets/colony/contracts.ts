@@ -101,7 +101,9 @@ export function coldEffect(resource: InventoryItem) {
 }
 export const STORAGE_CLASSES = {general:'普通仓', food:'食材仓', materials:'建材仓'} as const;
 export type StorageClass = keyof typeof STORAGE_CLASSES;
-export interface BuildingView { storageClass?: StorageClass }
+export interface BuildingView {
+  mining?: {resource:'stone'|'pigIron'; remaining:number; status:string};
+  storageClass?: StorageClass }
 export interface BuildingView {
   /** The standing structure while residents convert a fence section into a gate or back. */
   previousBoundary?: {kind:'fence'|'pastureGate';rotation:BuildingRotation};
@@ -129,7 +131,7 @@ export type JobType = typeof JOB_TYPES[number];
 export type OrderType = JobType | 'demolish'|'herd'|'husbandry';
 export const JOB_NAMES: Record<OrderType,string> = {herd:'领动物',husbandry:'采集畜产',terraform:'整地',construct:'建造',demolish:'拆除',grow:'种植',harvest:'收获',haul:'搬运',cook:'烹饪',chop:'伐木',mine:'采矿',research:'研究',doctor:'医疗',craft:'制作'};
 export type BuildingKind =
-  | 'sugarPress'
+  | 'extractionStation' | 'sugarPress'
   // 原有 12 种
   | 'bed'|'table'|'stove'|'workbench'|'researchDesk'|'solar'|'battery'|'cooler'|'medicalBed'|'wall'|'door'|'floor'
   // 结构类（飞书「结构类」表）——木门/石墙沿用已有的 door/wall
@@ -148,6 +150,7 @@ export type BuildingRotation = 0|1|2|3;
 export interface BuildingDefinition { id: BuildingKind; name: string; description: string; cost: Partial<Resources>; work: number; research?: string; power: number; blocking: boolean; color: [number,number,number]; footprint?:[number,number]; height?:number; category?: BuildingCategory; storageSlots?:number }
 export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
   sugarPress,
+  extractionStation:{id:'extractionStation',name:'采集站',description:'建在石料点或铁矿点上。居民携石镐分批采出，由搬运员送仓。',cost:{wood:8},work:12,power:0,blocking:true,color:[.62,.48,.32],category:'production'},
   pastureGate:{id:'pastureGate',name:'牧场门',description:'供居民领动物进出。',cost:{wood:3},work:4,power:0,blocking:false,color:[.6,.39,.2],category:'structure'},
   milker:{id:'milker',name:'挤奶器',description:'在牧场内为成年母牛挤奶。',cost:{wood:6,steel:2},work:12,power:0,blocking:true,color:[.7,.75,.7],category:'agriculture'},
   henNest:{id:'henNest',name:'鸡窝',description:'居民在巢内收取母鸡产下的蛋。',cost:{wood:4},work:6,power:0,blocking:true,color:[.73,.59,.27],category:'agriculture'},
@@ -263,11 +266,12 @@ export interface SpecialistMerchantView {
   housing:MerchantHousing|null;
 }
 export interface SpecialistMarketView {
+  flags?: Partial<Record<MerchantId, Position>>;
   availableRooms:{roomId:number;bedId:string;position:Position;comfort:number;cleanliness:number}[];
   merchants:SpecialistMerchantView[];
   events:import('./market-calendar.ts').MarketEvent[];
 }
-export type MapToolMenu = 'build' | 'plan';
+export type MapToolMenu = 'build' | 'plan' | 'residents';
 export interface ColonistView {id:string;name:string;traits:string[];skills:Record<JobType,number>;priorities:Record<JobType,number>;schedule:Schedule;position:Position;health:number;hunger:number;rest:number;recreation:number;mood:number;disease:number;task:string;jobId:string|null;color:Position;carrying:Partial<Resources>;bag:PlayerInventorySlot[];bagSelected:number;stamina:number;facing:number;comfort:number}
 export interface BuildingView {id:string;kind:BuildingKind;x:number;y:number;z:number;w:number;h:number;d:number;rotation:BuildingRotation;doorOpen?:boolean;phase:'preparingTerrain'|'readyToBuild'|'constructing'|'completed';terrainPlanId?:string;blockedReason?:string;complete:boolean;progress:number;reserved:Partial<Resources>;powered:boolean;comfort:number;roomId:number|null;storage?:PlayerInventorySlot[]}
 export interface TerrainPlanView {id:string;target:number;cells:[number,number][];remainingCut:number;remainingFill:number;progress:number;state:'queued'|'working'|'blocked'|'completed';blockedReason?:string;buildingId?:string}

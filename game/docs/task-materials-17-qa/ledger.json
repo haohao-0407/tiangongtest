@@ -1,0 +1,283 @@
+[
+  {
+    "name": "01-orders",
+    "time": 120,
+    "stock": {
+      "wood": 1,
+      "flour": 1,
+      "tomato": 6
+    },
+    "flourOnGround": 1,
+    "blueprints": [
+      {
+        "kind": "torch",
+        "reserved": {}
+      }
+    ],
+    "orders": [
+      {
+        "id": "job-42",
+        "recipe": "pasta",
+        "craftAmount": 1,
+        "reserved": {}
+      },
+      {
+        "id": "job-43",
+        "recipe": "pasta",
+        "craftAmount": 5,
+        "reserved": {}
+      }
+    ],
+    "hud": [
+      "木材缺 1规划 → 伐木，选择树木",
+      "面粉缺 5地上 1 份 · 工作 → 搬运入库另缺 4 · 制作清单 → 面粉机制作面粉"
+    ]
+  },
+  {
+    "name": "02-chop-tool",
+    "time": 120,
+    "stock": {
+      "wood": 1,
+      "flour": 1,
+      "tomato": 6
+    },
+    "flourOnGround": 1,
+    "blueprints": [
+      {
+        "kind": "torch",
+        "reserved": {}
+      }
+    ],
+    "orders": [
+      {
+        "id": "job-42",
+        "recipe": "pasta",
+        "craftAmount": 1,
+        "reserved": {}
+      },
+      {
+        "id": "job-43",
+        "recipe": "pasta",
+        "craftAmount": 5,
+        "reserved": {}
+      }
+    ],
+    "hud": [
+      "木材缺 1规划 → 伐木，选择树木",
+      "面粉缺 5地上 1 份 · 工作 → 搬运入库另缺 4 · 制作清单 → 面粉机制作面粉"
+    ]
+  },
+  {
+    "name": "03-claimed",
+    "time": 120.75,
+    "stock": {
+      "wood": 1,
+      "flour": 0,
+      "tomato": 5
+    },
+    "flourOnGround": 1,
+    "blueprints": [
+      {
+        "kind": "torch",
+        "reserved": {}
+      }
+    ],
+    "orders": [
+      {
+        "id": "job-42",
+        "recipe": "pasta",
+        "craftAmount": 1,
+        "reserved": {
+          "flour": 1,
+          "tomato": 1
+        }
+      },
+      {
+        "id": "job-43",
+        "recipe": "pasta",
+        "craftAmount": 5,
+        "reserved": {}
+      }
+    ],
+    "hud": [
+      "木材缺 1规划 → 伐木，选择树木",
+      "面粉缺 5地上 1 份 · 工作 → 搬运入库另缺 4 · 制作清单 → 面粉机制作面粉"
+    ]
+  },
+  {
+    "name": "04-reload",
+    "time": 120.75,
+    "stock": {
+      "wood": 1,
+      "flour": 0,
+      "tomato": 5
+    },
+    "flourOnGround": 1,
+    "blueprints": [
+      {
+        "kind": "torch",
+        "reserved": {}
+      }
+    ],
+    "orders": [
+      {
+        "id": "job-42",
+        "recipe": "pasta",
+        "craftAmount": 1,
+        "reserved": {
+          "flour": 1,
+          "tomato": 1
+        }
+      },
+      {
+        "id": "job-43",
+        "recipe": "pasta",
+        "craftAmount": 5,
+        "reserved": {}
+      }
+    ],
+    "hud": [
+      "木材缺 1规划 → 伐木，选择树木",
+      "面粉缺 5地上 1 份 · 工作 → 搬运入库另缺 4 · 制作清单 → 面粉机制作面粉"
+    ]
+  },
+  {
+    "name": "05-refund",
+    "time": 120.75,
+    "stock": {
+      "wood": 1,
+      "flour": 1,
+      "tomato": 6
+    },
+    "flourOnGround": 1,
+    "blueprints": [
+      {
+        "kind": "torch",
+        "reserved": {}
+      }
+    ],
+    "orders": [
+      {
+        "id": "job-43",
+        "recipe": "pasta",
+        "craftAmount": 5,
+        "reserved": {}
+      }
+    ],
+    "hud": [
+      "木材缺 1规划 → 伐木，选择树木",
+      "面粉缺 4地上 1 份 · 工作 → 搬运入库另缺 3 · 制作清单 → 面粉机制作面粉"
+    ]
+  },
+  {
+    "name": "06-restocked",
+    "time": 127.5,
+    "stock": {
+      "wood": 1,
+      "flour": 2,
+      "tomato": 6
+    },
+    "flourOnGround": 0,
+    "blueprints": [
+      {
+        "kind": "torch",
+        "reserved": {}
+      }
+    ],
+    "orders": [
+      {
+        "id": "job-43",
+        "recipe": "pasta",
+        "craftAmount": 5,
+        "reserved": {}
+      }
+    ],
+    "hud": [
+      "木材缺 1规划 → 伐木，选择树木",
+      "面粉缺 3制作清单 → 面粉机制作面粉"
+    ]
+  },
+  {
+    "name": "07-cancel",
+    "time": 127.5,
+    "stock": {
+      "wood": 1,
+      "flour": 2,
+      "tomato": 6
+    },
+    "flourOnGround": 0,
+    "blueprints": [
+      {
+        "kind": "torch",
+        "reserved": {}
+      }
+    ],
+    "orders": [],
+    "hud": [
+      "木材缺 1规划 → 伐木，选择树木"
+    ]
+  },
+  {
+    "name": "08-clear",
+    "time": 127.5,
+    "stock": {
+      "wood": 1,
+      "flour": 2,
+      "tomato": 6
+    },
+    "flourOnGround": 0,
+    "blueprints": [],
+    "orders": [],
+    "hud": []
+  },
+  {
+    "name": "09-deposit-sites",
+    "time": 120,
+    "stock": {
+      "wood": 30,
+      "flour": 1,
+      "tomato": 6
+    },
+    "flourOnGround": 0,
+    "blueprints": [
+      {
+        "kind": "campfire",
+        "reserved": {}
+      },
+      {
+        "kind": "forgery",
+        "reserved": {}
+      }
+    ],
+    "orders": [],
+    "hud": [
+      "石材缺 4建造 → 在石料点放置采集站",
+      "生铁缺 12建造 → 在铁矿点放置采集站"
+    ]
+  },
+  {
+    "name": "10-pickaxe-haul",
+    "time": 120,
+    "stock": {
+      "wood": 22,
+      "flour": 1,
+      "tomato": 6
+    },
+    "flourOnGround": 0,
+    "blueprints": [
+      {
+        "kind": "campfire",
+        "reserved": {}
+      },
+      {
+        "kind": "forgery",
+        "reserved": {}
+      }
+    ],
+    "orders": [],
+    "hud": [
+      "石材缺 4地上 2 份 · 工作 → 搬运入库另缺 2 · 采集站 · 等待可用石镐 · 给采矿居民装备石镐，或将石镐放入木箱",
+      "生铁缺 12建造 → 在铁矿点放置采集站"
+    ]
+  }
+]

@@ -191,7 +191,7 @@ export default async function colonyPlaythrough(play) {
     await closePanel();
     await play.mouse.move(temporary.plot.point);
     await play.keyboard.press('KeyX');
-    await wait((s) => s.tool === 'cancel');
+    await wait((s) => s.tool === 'clear');
     await play.mouse.click(temporary.plot.point);
     const after = await wait((s) => !buildingBy(s, temporary.id));
     assert.ok(!after.colony.jobs.some((j) => j.targetId === temporary.id));

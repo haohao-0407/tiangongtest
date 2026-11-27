@@ -1,0 +1,3309 @@
+{
+  "schemaVersion": "1.0.0",
+  "passed": true,
+  "root": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\resident16",
+  "script": "scripts\\resident-housing-playthrough.mjs",
+  "outputDir": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\resident16\\artifacts\\play\\scripts\\resident-housing-playthrough",
+  "report": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\resident16\\artifacts\\play\\scripts\\resident-housing-playthrough\\play.json",
+  "captureReport": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\resident16\\artifacts\\play\\scripts\\resident-housing-playthrough\\capture.json",
+  "url": "http://localhost:57219/",
+  "backend": "hardware",
+  "timings": {
+    "openMs": 339433,
+    "readyMs": 66976,
+    "scriptMs": 200513,
+    "verifyMs": 1995,
+    "totalMs": 610479
+  },
+  "steps": [
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 115
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 96
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 77
+    },
+    {
+      "name": "advance 0.12 s",
+      "ok": true,
+      "ms": 75
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 76
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 84
+    },
+    {
+      "name": "advance 0.12 s",
+      "ok": true,
+      "ms": 72
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 96
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 96
+    },
+    {
+      "name": "advance 0.12 s",
+      "ok": true,
+      "ms": 98
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 77
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 77
+    },
+    {
+      "name": "advance 0.12 s",
+      "ok": true,
+      "ms": 105
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 73
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 83
+    },
+    {
+      "name": "advance 0.12 s",
+      "ok": true,
+      "ms": 97
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 74
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.12 s",
+      "ok": true,
+      "ms": 90
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 87
+    },
+    {
+      "name": "advance 0.12 s",
+      "ok": true,
+      "ms": 85
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 75
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 89
+    },
+    {
+      "name": "advance 0.12 s",
+      "ok": true,
+      "ms": 90
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.15 s",
+      "ok": true,
+      "ms": 104
+    },
+    {
+      "name": "advance 0.6 s",
+      "ok": true,
+      "ms": 123
+    },
+    {
+      "name": "advance 0.12 s",
+      "ok": true,
+      "ms": 169
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 116
+    },
+    {
+      "name": "advance 0.15 s",
+      "ok": true,
+      "ms": 90
+    },
+    {
+      "name": "advance 0.6 s",
+      "ok": true,
+      "ms": 133
+    },
+    {
+      "name": "advance 0.12 s",
+      "ok": true,
+      "ms": 106
+    },
+    {
+      "name": "advance 0.1 s",
+      "ok": true,
+      "ms": 85
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "final",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\resident16\\artifacts\\play\\scripts\\resident-housing-playthrough\\01-final.png",
+      "rendered": true,
+      "digest": "sha256:1ac64b6b71c93b44a4559ad7df7455ef838835a11430d6d42b7fe68dde694f13"
+    }
+  ],
+  "viewports": [
+    "1280x720"
+  ],
+  "layout": [],
+  "returned": {
+    "checkpoints": 14,
+    "flags": {
+      "guide": [
+        16.5,
+        5,
+        23.5
+      ],
+      "tailor": [
+        24.5,
+        5,
+        11.5
+      ]
+    }
+  },
+  "state": {
+    "seed": "森屿-跨格立面验收-16",
+    "generatorVersion": 2,
+    "selected": 5,
+    "mode": "build",
+    "tool": "inspect",
+    "crop": "cabbage",
+    "colony": {
+      "version": 1,
+      "speed": 0,
+      "time": 129,
+      "day": 1,
+      "hour": 8.6,
+      "season": "春季",
+      "weather": "晴朗",
+      "temperature": 20.782172325201152,
+      "resources": {
+        "wood": 0,
+        "stone": 0,
+        "steel": 30,
+        "food": 0,
+        "meal": 0,
+        "medicine": 0,
+        "cloth": 18,
+        "silver": 30,
+        "components": 0,
+        "wheat": 0,
+        "corn": 0,
+        "blueberry": 0,
+        "sugarcane": 0,
+        "cabbage": 0,
+        "leek": 0,
+        "potato": 0,
+        "tomato": 26,
+        "cabbageSeed": 0,
+        "tomatoSeed": 0,
+        "sugarcaneSeed": 0,
+        "wheatSeed": 0,
+        "potatoSeed": 0,
+        "leekSeed": 0,
+        "cornSeed": 0,
+        "friedEgg": 0,
+        "bread": 14,
+        "salad": 0,
+        "pasta": 0,
+        "pancake": 0,
+        "blueberryPie": 7,
+        "pizza": 0,
+        "perfectBreakfast": 0,
+        "lambChopStew": 0,
+        "sugar": 0,
+        "flour": 0,
+        "oil": 0,
+        "blueberryWine": 0,
+        "cheese": 0,
+        "milk": 20,
+        "egg": 0,
+        "wool": 22,
+        "chickenMeat": 0,
+        "mutton": 0,
+        "beef": 0,
+        "pork": 0,
+        "dirt": 0,
+        "pigIron": 0,
+        "plank": 0,
+        "stoneBrick": 0
+      },
+      "playerBag": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "controlledColonistId": "colonist-22",
+      "chests": [],
+      "colonists": [
+        {
+          "id": "colonist-21",
+          "name": "林夏",
+          "traits": [
+            "勤劳",
+            "巧手"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 9,
+            "grow": 6,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 4,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 0,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 1,
+            "cook": 0,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "day",
+          "position": [
+            17.5,
+            5,
+            16.5
+          ],
+          "health": 100,
+          "hunger": 98.91999999999996,
+          "rest": 99.37000000000006,
+          "recreation": 99.50499999999994,
+          "mood": 78.75598114047962,
+          "disease": 0,
+          "task": "已交货给向导",
+          "jobId": null,
+          "color": [
+            0.78,
+            0.44,
+            0.25
+          ],
+          "carrying": {},
+          "bag": [
+            {
+              "resource": "hammer",
+              "count": 1
+            },
+            {
+              "resource": "axe",
+              "count": 1
+            },
+            {
+              "resource": "pickaxe",
+              "count": 1
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 3.141592653589793,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-22",
+          "name": "阿澈",
+          "traits": [
+            "体贴",
+            "乐观"
+          ],
+          "skills": {
+            "terraform": 2,
+            "construct": 2,
+            "grow": 3,
+            "harvest": 6,
+            "haul": 3,
+            "cook": 8,
+            "chop": 3,
+            "mine": 3,
+            "research": 7,
+            "doctor": 7,
+            "craft": 4
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 0,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 0,
+            "cook": 0,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "day",
+          "position": [
+            22.5,
+            5,
+            18.5
+          ],
+          "health": 100,
+          "hunger": 98.91999999999996,
+          "rest": 99.37000000000006,
+          "recreation": 99.50499999999994,
+          "mood": 80.37236025555646,
+          "disease": 0,
+          "task": "由玩家控制",
+          "jobId": null,
+          "color": [
+            0.29,
+            0.54,
+            0.69
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-23",
+          "name": "青禾",
+          "traits": [
+            "园艺爱好者",
+            "好学"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 5,
+            "grow": 9,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 8,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 0,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 0,
+            "cook": 0,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "day",
+          "position": [
+            15.5,
+            5,
+            15.5
+          ],
+          "health": 100,
+          "hunger": 98.91999999999996,
+          "rest": 99.37000000000006,
+          "recreation": 99.50499999999994,
+          "mood": 78.75598114047962,
+          "disease": 0,
+          "task": "等待工作 · 自由活动",
+          "jobId": null,
+          "color": [
+            0.55,
+            0.66,
+            0.32
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 1.5707963267948966,
+          "comfort": 0
+        }
+      ],
+      "buildings": [
+        {
+          "id": "woodWall-13-8",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-13-9",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 9,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-13-10",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 10,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-13-11",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 11,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-13-12",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 12,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-13-13",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-14-8",
+          "kind": "woodWall",
+          "x": 14,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-14-13",
+          "kind": "woodWall",
+          "x": 14,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-15-8",
+          "kind": "woodWall",
+          "x": 15,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-15-13",
+          "kind": "woodWall",
+          "x": 15,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-16-8",
+          "kind": "woodWall",
+          "x": 16,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "door-16-13",
+          "kind": "door",
+          "x": 16,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "doorOpen": false,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-17-8",
+          "kind": "woodWall",
+          "x": 17,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-17-13",
+          "kind": "woodWall",
+          "x": 17,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-8",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-9",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 9,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-10",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 10,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-11",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 11,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-12",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 12,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-13",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "bed-14-9",
+          "kind": "bed",
+          "x": 14,
+          "z": 9,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 2,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 49,
+          "roomId": 0,
+          "reserved": {}
+        },
+        {
+          "id": "table-16-10",
+          "kind": "table",
+          "x": 16,
+          "z": 10,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 49,
+          "roomId": 0,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-21-8",
+          "kind": "woodWall",
+          "x": 21,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-21-9",
+          "kind": "woodWall",
+          "x": 21,
+          "z": 9,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-21-10",
+          "kind": "woodWall",
+          "x": 21,
+          "z": 10,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-21-11",
+          "kind": "woodWall",
+          "x": 21,
+          "z": 11,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-21-12",
+          "kind": "woodWall",
+          "x": 21,
+          "z": 12,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-21-13",
+          "kind": "woodWall",
+          "x": 21,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-22-8",
+          "kind": "woodWall",
+          "x": 22,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-22-13",
+          "kind": "woodWall",
+          "x": 22,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-23-8",
+          "kind": "woodWall",
+          "x": 23,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-23-13",
+          "kind": "woodWall",
+          "x": 23,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-24-8",
+          "kind": "woodWall",
+          "x": 24,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "door-24-13",
+          "kind": "door",
+          "x": 24,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "doorOpen": false,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-25-8",
+          "kind": "woodWall",
+          "x": 25,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-25-13",
+          "kind": "woodWall",
+          "x": 25,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-26-8",
+          "kind": "woodWall",
+          "x": 26,
+          "z": 8,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-26-9",
+          "kind": "woodWall",
+          "x": 26,
+          "z": 9,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-26-10",
+          "kind": "woodWall",
+          "x": 26,
+          "z": 10,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-26-11",
+          "kind": "woodWall",
+          "x": 26,
+          "z": 11,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-26-12",
+          "kind": "woodWall",
+          "x": 26,
+          "z": 12,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-26-13",
+          "kind": "woodWall",
+          "x": 26,
+          "z": 13,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "bed-22-9",
+          "kind": "bed",
+          "x": 22,
+          "z": 9,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 2,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 42,
+          "roomId": 1,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-5-16",
+          "kind": "woodWall",
+          "x": 5,
+          "z": 16,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-5-17",
+          "kind": "woodWall",
+          "x": 5,
+          "z": 17,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-5-18",
+          "kind": "woodWall",
+          "x": 5,
+          "z": 18,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-5-19",
+          "kind": "woodWall",
+          "x": 5,
+          "z": 19,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-5-20",
+          "kind": "woodWall",
+          "x": 5,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-5-21",
+          "kind": "woodWall",
+          "x": 5,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-6-16",
+          "kind": "woodWall",
+          "x": 6,
+          "z": 16,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-6-21",
+          "kind": "woodWall",
+          "x": 6,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-7-16",
+          "kind": "woodWall",
+          "x": 7,
+          "z": 16,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-7-21",
+          "kind": "woodWall",
+          "x": 7,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-8-16",
+          "kind": "woodWall",
+          "x": 8,
+          "z": 16,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "door-8-21",
+          "kind": "door",
+          "x": 8,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "doorOpen": false,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-9-16",
+          "kind": "woodWall",
+          "x": 9,
+          "z": 16,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-9-21",
+          "kind": "woodWall",
+          "x": 9,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-10-16",
+          "kind": "woodWall",
+          "x": 10,
+          "z": 16,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-10-17",
+          "kind": "woodWall",
+          "x": 10,
+          "z": 17,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-10-18",
+          "kind": "woodWall",
+          "x": 10,
+          "z": 18,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-10-19",
+          "kind": "woodWall",
+          "x": 10,
+          "z": 19,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-10-20",
+          "kind": "woodWall",
+          "x": 10,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-10-21",
+          "kind": "woodWall",
+          "x": 10,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "bed-6-17",
+          "kind": "bed",
+          "x": 6,
+          "z": 17,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 2,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 49,
+          "roomId": 2,
+          "reserved": {}
+        },
+        {
+          "id": "table-8-18",
+          "kind": "table",
+          "x": 8,
+          "z": 18,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 49,
+          "roomId": 2,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-13-20",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-13-21",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-13-22",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 22,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-13-23",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 23,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-13-24",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 24,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-13-25",
+          "kind": "woodWall",
+          "x": 13,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-14-20",
+          "kind": "woodWall",
+          "x": 14,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-14-25",
+          "kind": "woodWall",
+          "x": 14,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-15-20",
+          "kind": "woodWall",
+          "x": 15,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-15-25",
+          "kind": "woodWall",
+          "x": 15,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-16-20",
+          "kind": "woodWall",
+          "x": 16,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "door-16-25",
+          "kind": "door",
+          "x": 16,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "doorOpen": false,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-17-20",
+          "kind": "woodWall",
+          "x": 17,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-17-25",
+          "kind": "woodWall",
+          "x": 17,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-20",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-21",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-22",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 22,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-23",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 23,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-24",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 24,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-18-25",
+          "kind": "woodWall",
+          "x": 18,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "bed-14-21",
+          "kind": "bed",
+          "x": 14,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 2,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 49,
+          "roomId": 3,
+          "reserved": {}
+        },
+        {
+          "id": "table-16-22",
+          "kind": "table",
+          "x": 16,
+          "z": 22,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 49,
+          "roomId": 3,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-22-20",
+          "kind": "woodWall",
+          "x": 22,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-22-21",
+          "kind": "woodWall",
+          "x": 22,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-22-22",
+          "kind": "woodWall",
+          "x": 22,
+          "z": 22,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-22-23",
+          "kind": "woodWall",
+          "x": 22,
+          "z": 23,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-22-24",
+          "kind": "woodWall",
+          "x": 22,
+          "z": 24,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-22-25",
+          "kind": "woodWall",
+          "x": 22,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-23-20",
+          "kind": "woodWall",
+          "x": 23,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-23-25",
+          "kind": "woodWall",
+          "x": 23,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-24-20",
+          "kind": "woodWall",
+          "x": 24,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-24-25",
+          "kind": "woodWall",
+          "x": 24,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-25-20",
+          "kind": "woodWall",
+          "x": 25,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "door-25-25",
+          "kind": "door",
+          "x": 25,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "doorOpen": false,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-26-20",
+          "kind": "woodWall",
+          "x": 26,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-26-25",
+          "kind": "woodWall",
+          "x": 26,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-27-20",
+          "kind": "woodWall",
+          "x": 27,
+          "z": 20,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-27-21",
+          "kind": "woodWall",
+          "x": 27,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-27-22",
+          "kind": "woodWall",
+          "x": 27,
+          "z": 22,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-27-23",
+          "kind": "woodWall",
+          "x": 27,
+          "z": 23,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-27-24",
+          "kind": "woodWall",
+          "x": 27,
+          "z": 24,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "woodWall-27-25",
+          "kind": "woodWall",
+          "x": 27,
+          "z": 25,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "reserved": {}
+        },
+        {
+          "id": "bed-23-21",
+          "kind": "bed",
+          "x": 23,
+          "z": 21,
+          "y": 5,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 2,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "powered": true,
+          "comfort": 42,
+          "roomId": 4,
+          "reserved": {}
+        }
+      ],
+      "zones": [
+        {
+          "id": "store",
+          "kind": "stockpile",
+          "x": 5,
+          "y": 5,
+          "z": 10,
+          "w": 3,
+          "d": 3,
+          "crop": "cabbage"
+        }
+      ],
+      "crops": [],
+      "warehouseStacks": [
+        {
+          "x": 5,
+          "z": 10,
+          "slot": 0,
+          "resource": "bread",
+          "count": 14,
+          "premium": {
+            "day": 1,
+            "count": 2
+          }
+        },
+        {
+          "x": 5,
+          "z": 10,
+          "slot": 1,
+          "resource": "silver",
+          "count": 19
+        }
+      ],
+      "items": [],
+      "jobs": [
+        {
+          "id": "job-41",
+          "type": "haul",
+          "targetId": "guide-delivery",
+          "x": 22,
+          "y": 5,
+          "z": 19,
+          "progress": 0,
+          "work": 1,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {
+            "silver": 19
+          },
+          "label": "采购待取 · 等待居民",
+          "guideSale": {
+            "merchantId": "tailor",
+            "side": "buy",
+            "item": "cloth",
+            "count": 1,
+            "premium": 0,
+            "total": 19,
+            "delivered": 0,
+            "paid": 0,
+            "inTransit": 0,
+            "lots": []
+          }
+        }
+      ],
+      "rooms": [
+        {
+          "id": 0,
+          "cells": [
+            [
+              14,
+              9
+            ],
+            [
+              15,
+              9
+            ],
+            [
+              14,
+              10
+            ],
+            [
+              16,
+              9
+            ],
+            [
+              15,
+              10
+            ],
+            [
+              14,
+              11
+            ],
+            [
+              17,
+              9
+            ],
+            [
+              16,
+              10
+            ],
+            [
+              15,
+              11
+            ],
+            [
+              14,
+              12
+            ],
+            [
+              17,
+              10
+            ],
+            [
+              16,
+              11
+            ],
+            [
+              15,
+              12
+            ],
+            [
+              17,
+              11
+            ],
+            [
+              16,
+              12
+            ],
+            [
+              17,
+              12
+            ]
+          ],
+          "enclosed": true,
+          "comfort": 49,
+          "temperature": 20.91286893008046,
+          "cleanliness": 100
+        },
+        {
+          "id": 1,
+          "cells": [
+            [
+              22,
+              9
+            ],
+            [
+              23,
+              9
+            ],
+            [
+              22,
+              10
+            ],
+            [
+              24,
+              9
+            ],
+            [
+              23,
+              10
+            ],
+            [
+              22,
+              11
+            ],
+            [
+              25,
+              9
+            ],
+            [
+              24,
+              10
+            ],
+            [
+              23,
+              11
+            ],
+            [
+              22,
+              12
+            ],
+            [
+              25,
+              10
+            ],
+            [
+              24,
+              11
+            ],
+            [
+              23,
+              12
+            ],
+            [
+              25,
+              11
+            ],
+            [
+              24,
+              12
+            ],
+            [
+              25,
+              12
+            ]
+          ],
+          "enclosed": true,
+          "comfort": 42,
+          "temperature": 20.91286893008046,
+          "cleanliness": 100
+        },
+        {
+          "id": 2,
+          "cells": [
+            [
+              6,
+              17
+            ],
+            [
+              7,
+              17
+            ],
+            [
+              6,
+              18
+            ],
+            [
+              8,
+              17
+            ],
+            [
+              7,
+              18
+            ],
+            [
+              6,
+              19
+            ],
+            [
+              9,
+              17
+            ],
+            [
+              8,
+              18
+            ],
+            [
+              7,
+              19
+            ],
+            [
+              6,
+              20
+            ],
+            [
+              9,
+              18
+            ],
+            [
+              8,
+              19
+            ],
+            [
+              7,
+              20
+            ],
+            [
+              9,
+              19
+            ],
+            [
+              8,
+              20
+            ],
+            [
+              9,
+              20
+            ]
+          ],
+          "enclosed": true,
+          "comfort": 49,
+          "temperature": 20.91286893008046,
+          "cleanliness": 100
+        },
+        {
+          "id": 3,
+          "cells": [
+            [
+              14,
+              21
+            ],
+            [
+              15,
+              21
+            ],
+            [
+              14,
+              22
+            ],
+            [
+              16,
+              21
+            ],
+            [
+              15,
+              22
+            ],
+            [
+              14,
+              23
+            ],
+            [
+              17,
+              21
+            ],
+            [
+              16,
+              22
+            ],
+            [
+              15,
+              23
+            ],
+            [
+              14,
+              24
+            ],
+            [
+              17,
+              22
+            ],
+            [
+              16,
+              23
+            ],
+            [
+              15,
+              24
+            ],
+            [
+              17,
+              23
+            ],
+            [
+              16,
+              24
+            ],
+            [
+              17,
+              24
+            ]
+          ],
+          "enclosed": true,
+          "comfort": 49,
+          "temperature": 20.91286893008046,
+          "cleanliness": 100
+        },
+        {
+          "id": 4,
+          "cells": [
+            [
+              23,
+              21
+            ],
+            [
+              24,
+              21
+            ],
+            [
+              23,
+              22
+            ],
+            [
+              25,
+              21
+            ],
+            [
+              24,
+              22
+            ],
+            [
+              23,
+              23
+            ],
+            [
+              26,
+              21
+            ],
+            [
+              25,
+              22
+            ],
+            [
+              24,
+              23
+            ],
+            [
+              23,
+              24
+            ],
+            [
+              26,
+              22
+            ],
+            [
+              25,
+              23
+            ],
+            [
+              24,
+              24
+            ],
+            [
+              26,
+              23
+            ],
+            [
+              25,
+              24
+            ],
+            [
+              26,
+              24
+            ]
+          ],
+          "enclosed": true,
+          "comfort": 42,
+          "temperature": 20.91286893008046,
+          "cleanliness": 100
+        }
+      ],
+      "guideHousing": {
+        "npcId": "guide",
+        "status": "housed",
+        "position": [
+          15.5,
+          5,
+          11.5
+        ],
+        "roomId": 3,
+        "bedId": "bed-14-21",
+        "comfort": 49,
+        "cleanliness": 100,
+        "quality": 74.5,
+        "buyFactor": 0.9255,
+        "recycleFactor": 1.0745
+      },
+      "specialistMarket": {
+        "flags": {
+          "guide": [
+            16.5,
+            5,
+            23.5
+          ]
+        },
+        "events": [
+          {
+            "id": "tailor-4",
+            "merchantId": "tailor",
+            "item": "cloth",
+            "announcedDay": 1,
+            "startDay": 4,
+            "endDay": 5,
+            "limit": 10,
+            "remaining": 10
+          }
+        ],
+        "merchants": [
+          {
+            "id": "chef",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "tailor",
+            "sold": 6,
+            "arrivalDay": 1,
+            "status": "arrived",
+            "housing": {
+              "npcId": "tailor",
+              "status": "camp",
+              "position": [
+                22.5,
+                5,
+                19.5
+              ],
+              "roomId": null,
+              "bedId": null,
+              "comfort": 0,
+              "cleanliness": 0,
+              "quality": 0,
+              "buyFactor": 1,
+              "recycleFactor": 1
+            }
+          },
+          {
+            "id": "cheesemaker",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "blacksmith",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          }
+        ],
+        "availableRooms": [
+          {
+            "roomId": 0,
+            "bedId": "bed-14-9",
+            "position": [
+              15.5,
+              5,
+              9.5
+            ],
+            "comfort": 49,
+            "cleanliness": 100
+          },
+          {
+            "roomId": 2,
+            "bedId": "bed-6-17",
+            "position": [
+              7.5,
+              5,
+              17.5
+            ],
+            "comfort": 49,
+            "cleanliness": 100
+          }
+        ]
+      },
+      "research": {
+        "active": null,
+        "progress": {},
+        "completed": []
+      },
+      "power": {
+        "generation": 0,
+        "demand": 0,
+        "stored": 0,
+        "capacity": 0,
+        "supplied": 0,
+        "coldStorage": false
+      },
+      "events": [
+        {
+          "id": "event-26",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "三位旅人抵达河谷。和平营地已建立：先种田、搬运物资，再安排研究与建设。"
+        },
+        {
+          "id": "event-39",
+          "time": 129,
+          "day": 1,
+          "hour": 8.6,
+          "type": "arrival",
+          "text": "裁缝来到了小镇，正在等待安排住所"
+        },
+        {
+          "id": "event-40",
+          "time": 129,
+          "day": 1,
+          "hour": 8.6,
+          "type": "info",
+          "text": "向导回收已交付 · 羊毛 × 6 · 收到 19 银币"
+        }
+      ],
+      "metrics": {
+        "jobsCompleted": 0,
+        "built": 0,
+        "harvested": 0,
+        "hauled": 0,
+        "cooked": 0,
+        "researched": 0,
+        "treated": 0,
+        "spoiled": 0,
+        "distanceWalked": 30.69300046816471
+      },
+      "selectedColonistId": "colonist-22",
+      "terrainPlans": []
+    },
+    "blocks": 5120,
+    "nonAirCount": 5120,
+    "minerals": {
+      "steelOre": {
+        "cells": 0
+      },
+      "stoneDeposit": {
+        "cells": 0
+      }
+    },
+    "edits": 3586,
+    "editCount": 3586,
+    "revision": 2,
+    "manualCropEdits": 0,
+    "mapToolReturn": 0,
+    "planningGridVisible": false,
+    "zonePreview": null,
+    "undo": false,
+    "redo": false,
+    "hoverCell": null,
+    "status": "已附身阿澈 · 再按 R 返回俯视",
+    "lastEdit": null,
+    "buildRotation": 0,
+    "selectedBuildingId": null,
+    "hoverBuildingId": null,
+    "hoverBuildingPart": null,
+    "selectedTreeId": null,
+    "hoverTreeId": null,
+    "hoverTreePart": null,
+    "trees": [],
+    "treeModel": {
+      "revision": 2,
+      "instances": 0,
+      "meshes": 0,
+      "materials": 2,
+      "selectedTreeId": null,
+      "triangles": 0,
+      "uniqueTriangles": 0,
+      "models": []
+    },
+    "wildPlants": {
+      "daisy": 0,
+      "poppy": 0,
+      "lavender": 0,
+      "marigold": 0,
+      "hairgrass": 0,
+      "foxtail": 0,
+      "blueberry": 0
+    },
+    "wildAnimals": {
+      "chicken": 0,
+      "cow": 0,
+      "sheep": 0,
+      "pig": 0
+    },
+    "characters": {
+      "residents": [
+        {
+          "id": "colonist-21",
+          "outfit": 6,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-22",
+          "outfit": 7,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-23",
+          "outfit": 8,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "merchants": [
+        {
+          "id": "guide",
+          "position": [
+            15.5,
+            5,
+            11.5
+          ],
+          "outfit": 1,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "tailor",
+          "position": [
+            22.5,
+            5,
+            19.5
+          ],
+          "outfit": 3,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "player": {
+        "id": "colonist-22",
+        "outfit": 7,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    },
+    "placementPreview": null,
+    "camera": {
+      "target": [
+        22.5,
+        6.1,
+        18.5
+      ],
+      "eye": [
+        22.5,
+        10.327290799301078,
+        7.269238115864782
+      ],
+      "distance": 12,
+      "yaw": 3.141592653589793,
+      "pitch": 0.36,
+      "overhead": false,
+      "sunShadows": "auto",
+      "shadowDistance": 100,
+      "mode": "character",
+      "followId": "colonist-22"
+    },
+    "player": {
+      "id": "colonist-22",
+      "name": "阿澈",
+      "x": 22.5,
+      "y": 5,
+      "z": 18.5,
+      "grounded": true,
+      "moving": false,
+      "facing": 0,
+      "embedded": false,
+      "bag": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "constructionId": null,
+      "demolitionHint": null,
+      "destructionProgress": null,
+      "vitals": {
+        "maxHealth": 100,
+        "stamina": 100,
+        "maxStamina": 100,
+        "health": 100,
+        "gold": 30
+      },
+      "chest": null,
+      "nearChest": null,
+      "nearColonist": null,
+      "nearHint": null
+    },
+    "chunks": 4,
+    "dimensions": [
+      32,
+      24,
+      32
+    ],
+    "worldSize": [
+      32,
+      24,
+      32
+    ],
+    "terrain": {
+      "target": 6,
+      "size": 3,
+      "shape": "brush",
+      "sample": false,
+      "preview": {
+        "cells": 0,
+        "cut": 0,
+        "fill": 0
+      },
+      "minHeight": 1,
+      "maxHeight": 22
+    },
+    "buildHeight": null,
+    "pcg": {
+      "resolution": 16,
+      "version": 2,
+      "revision": 2,
+      "tiles": 0,
+      "pendingTiles": 0,
+      "facades": 0,
+      "windowGroups": 0,
+      "layout": {
+        "version": 2,
+        "groups": []
+      },
+      "windows": 0,
+      "sills": 0,
+      "sidewalks": 0,
+      "stairs": 0,
+      "triangles": 0,
+      "rebuiltTiles": [
+        "1,0",
+        "2,0",
+        "1,1",
+        "2,1",
+        "1,2",
+        "2,2",
+        "3,0",
+        "3,1",
+        "3,2",
+        "0,1",
+        "0,2",
+        "0,3",
+        "1,3",
+        "2,3",
+        "3,3"
+      ],
+      "features": []
+    },
+    "finaleFade": 0
+  },
+  "execution": "healthy",
+  "errors": {
+    "console": [],
+    "page": [],
+    "inputWarnings": 0
+  },
+  "log": []
+}

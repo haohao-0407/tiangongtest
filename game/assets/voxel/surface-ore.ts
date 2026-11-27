@@ -1,3 +1,10 @@
+export const MINING_RULES = Object.freeze({
+  stoneEveryNVeins: 2,
+  reserves: {stone: 24, pigIron: 18},
+  batch: 3,
+  workPerBatch: 8,
+});
+
 export interface SurfaceOreCell { x: number; y: number; z: number }
 export interface SurfaceOreSettings {
   readonly veinsPer10kCells: number;

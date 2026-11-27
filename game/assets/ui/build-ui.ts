@@ -1,7 +1,9 @@
 import { STOCK_NAMES, stockVolume } from '../colony/pasture.ts';
 import { mountZoneMarquee } from './zone-marquee.ts';
 import { renderMarketCalendar } from './market-calendar.ts';
+import { materialHud } from './task-materials.ts';
 import { createGuideShop } from './guide-shop.ts';
+import { residentMap, residentWindow, type HousingCamera } from './resident-housing.ts';
 import type { MerchantId } from '../colony/contracts.ts';
 import { STORAGE_CLASSES } from '../colony/contracts.ts';
 import type { GameHost } from '@forgeax/engine/app';
@@ -23,13 +25,13 @@ const SAVE_KEY = 'homestead.colony.v2';
 const MANUAL_KEY = 'homestead.colony.v2.manual';
 const LEGACY_KEY = 'homestead.voxel.v1';
 const SHADOW_SETTING_KEY = 'homestead.settings.sunShadows';
-type State = { seed: string; selected: number; mode: string; tool?: string; crop?: string; edits: number; undo: boolean; redo: boolean; hoverCell?: unknown; status?: string; revision?: number; colony?: ColonySnapshot;
+type State = { seed: string; selected: number; mode: string; tool?: string; crop?: string; edits: number; undo: boolean; redo: boolean; hoverCell?: unknown; depositHint?:string; status?: string; revision?: number; colony?: ColonySnapshot;
   manualCropEdits?: number; finaleFade?:number; mapToolReturn?: number;
   worldSize?: [number, number, number]; buildHeight?: number | null; buildRotation?: number; selectedBuildingId?: string | null;
   trees?: TreeInstance[]; selectedTreeId?: string | null;
   terrain?: { target: number; size: number; shape: 'brush' | 'rectangle'; sample: boolean; minHeight: number; maxHeight: number; preview?: { cells: number; cut: number; fill: number } };
   /** 相机状态。mode 决定哪些 HUD 该出现：指挥官视角要菜单，玩家视角不要。 */
-  camera?: { mode?: 'god' | 'character'; followId?: string | null };
+  camera?: HousingCamera & { followId?: string | null };
   /** 当前由玩家控制的村民。 */
   player?: {
     id: string; name: string; x: number; y: number; z: number; grounded: boolean; moving: boolean; facing: number;
@@ -95,6 +97,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   }
   const releases: (() => void)[] = [];
   const get = <T extends HTMLElement>(id: string) => shadow.getElementById(id) as T;
+  const updateMaterials = materialHud(shadow.querySelector<HTMLElement>('.shell')!);
   const make = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?: string): HTMLElementTagNameMap[K] => {
     const el = doc.createElement(tag); el.className = className; if (text !== undefined) el.textContent = text; return el;
   };
@@ -106,6 +109,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       icon.width = icon.height = 48;
       return icon;
     }
+    if(id==='extractionStation')return make('span','building-thumbnail','⛏️');
     if(id==='milker'||id==='henNest'||id==='pastureGate') return make('span','building-thumbnail',id==='milker'?'🥛':id==='henNest'?'🥚':'🚪');
     const [column, row] = buildingIcons.tiles[id]!;
     const { columns, rows } = buildingIcons;
@@ -134,6 +138,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const send = (action: string, data: Record<string, unknown> = {}) => port?.postMessage({ type: 'voxel:command', action, ...data });
   const zoneMarquee=mountZoneMarquee(shadow.querySelector<HTMLElement>('.shell')!,send);
   releases.push(()=>zoneMarquee.dispose());
+  const housingMap=residentMap(shadow.querySelector<HTMLElement>('.shell')!);
+  releases.push(()=>housingMap.dispose());
   const colonyCommand = (command: ColonyCommand) => send('colony', { command });
   const portrait = ui.resourceUrl('ui/guide-portrait.png');
   if (!portrait.ok) { ui.dispose(); throw portrait.error; }
@@ -299,7 +305,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   });
 
   const showTool = (tool: string) => {
-    const hints: Record<string, string> = { inspect: '查看模式 · 左键选中村民，按 R 附身', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '拆除任务 · 点击设施任一部分，居民按建造优先级接单', 'zone:pasture': '牧场规划 · 拖框选地，外圈留给围栏', 'pasture-gate':'点击牧场外围栏，指定新门位', 'zone:farm': '农田规划 · 拖框划定种植区 · 单击一格', 'zone:stockpile': '仓储规划 · 拖框划定地面仓储 · 单击一格', chop: '伐木规划 · 点击树干或树冠，安排整棵砍伐', mine: '采矿规划 · 点击地表铁矿或石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
+    const hints: Record<string, string> = { inspect: '查看模式 · 左键选中村民，按 R 附身', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', clear: '清除 · 点击蓝图取消，点击建筑安排拆除，点击农田收回这一格', 'zone:pasture': '牧场规划 · 拖框选地，外圈留给围栏', 'pasture-gate':'点击牧场外围栏，指定新门位', 'zone:farm': '农田规划 · 拖框划定种植区 · 单击一格', 'zone:stockpile': '仓储规划 · 拖框划定地面仓储 · 单击一格', chop: '伐木规划 · 拖框选择树木，或点击树冠安排单棵砍伐', harvest: '收获规划 · 点击成熟作物', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
     if (state?.selected === 10) hints['sandbox:build'] = '铺设道路 · 左键替换地表 · 路沿与台阶随连接自动更新';
     else if (state?.selected === 6) hints['sandbox:build'] = '砖墙 · 三格起宽、两格高自动排窗组 · 留空作入口 · 增删保留有效窗位';
     const placementHint = mapToolSession?.menu === 'build' ? ' · Ctrl + 左键连续摆放' : '';
@@ -307,6 +313,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       ? `等高整地 · 标高 ${state?.terrain?.target ?? 6} · ${state?.terrain?.shape === 'rectangle' ? '左键拖框' : '左键拖涂'} · 松开提交 · Shift 取样`
       : tool.startsWith('herd:') ? '点击野外的牛、猪、羊或鸡，居民会将其领入选定的牧场' : tool.startsWith('build:') ? `建造 ${BUILDING_DEFS[tool.slice(6) as keyof typeof BUILDING_DEFS]?.name ?? ''} · R 旋转 ${orientationText(state?.buildRotation)}${placementHint} · ${state?.buildHeight == null ? '取落点标高' : `地基标高 ${state.buildHeight}`}`
         : tool === 'place-chest' ? `木箱 · 左键放置${placementHint}` : hints[tool] ?? '点击地图执行当前规划';
+    if(tool==='build:extractionStation')get('tool-hint').textContent=state?.depositHint??'采集站 · 在石料点或铁矿点选择一格';
+    if(tool.startsWith('house:'))get('tool-hint').textContent='左键插旗 · 右键或 Esc 取消';
     syncTerrainControls();
   };
   const chooseTool = (tool: string, menu?: MapToolMenu) => {
@@ -343,12 +351,13 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     guideShop.open(id);
     openPanel('guide',false);
   }
+  const renderResidents=residentWindow(doc,()=>renderPanel(true),id=>startMapTool('residents','house:'+id));
 
   function renderBuild(c: ColonySnapshot, root: HTMLElement) {
     root.append(note('选择建筑后到地图上左键放置。Ctrl + 左键连续摆放，Esc 或右键返回建造面板，R 旋转。'));
     root.append(buildControls); syncBuildControls();
     const actions = make('div', 'building-tool-actions');
-    actions.append(toolButton('⌖ 查看物体', 'inspect', 'tool-inspect'), toolButton('↔ 开关门', 'interact', 'tool-interact'), toolButton('⌫ 拆除任务', 'demolish', 'tool-demolish', 'danger'));
+    actions.append(toolButton('⌖ 查看物体', 'inspect', 'tool-inspect'), toolButton('↔ 开关门', 'interact', 'tool-interact'), toolButton('⌫ 清除', 'clear', 'tool-clear', 'danger'));
     root.append(actions);
     const foundation = make('div', 'foundation-controls'), autoLabel = make('label', 'foundation-auto'), auto = make('input');
     auto.type = 'checkbox'; auto.id = 'build-height-auto'; auto.dataset.testid = 'build-height-auto'; auto.checked = state?.buildHeight == null;
@@ -417,9 +426,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       ['level', '等高整地', '涂抹或框选，将选区填挖到同一标高。', 'tool-level'],
       ['zone:pasture', '牧场', '框选连通空地，居民沿边缘建围栏并留门。', 'tool-zone-pasture'],
       ['zone:farm', '农田', '每格播种消耗 1 包对应种子。', 'tool-zone-farm'], ['zone:stockpile', '仓储', '搬运散落物资，集中保管。', 'tool-zone-stockpile'],
-      ['chop', '伐木', '点击任一部分，整棵砍伐获取木材。', 'tool-chop'], ['mine', '采矿', '地表铁矿产出生铁，普通石块产出石材。', 'tool-mine'],
-      ['harvest', '收获', '标记成熟作物。', 'tool-harvest'], ['cancel', '取消规划', '移除未完成的规划或工作。', 'tool-cancel'],
-      ['interact', '开关门', '点击门的任一部分开关；关闭时阻挡通行。', 'tool-interact'], ['demolish', '拆除任务', '点击设施任一部分，居民按建造优先级前往拆除。', 'tool-demolish'],
+      ['chop', '伐木', '俯视拖框安排多棵伐木，也可单击一棵树。', 'tool-chop'],
+      ['clear', '清除', '取消规划、拆除建筑。点一格农田收回作物或种子。', 'tool-clear'],
+      ['interact', '开关门', '点击门的任一部分开关；关闭时阻挡通行。', 'tool-interact'],
     ];
     for (const [tool, name, detail, id] of entries) { const b = toolButton('', tool!, id!); b.append(make('strong', '', name), make('span', '', detail)); grid.append(b); }
     root.append(grid);
@@ -1263,7 +1272,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const nameEl = get('hotbar-name');
     if (nameEl) {
       const cur = bag[selected];
-      const toolHints: Record<string, string> = { hammer: '锤子 · 左键蓝图施工', axe: '木斧 · 左键砍树（更快）', pickaxe: '石镐 · 长按左键采石和铁矿' };
+      const toolHints: Record<string, string> = { hammer: '锤子 · 左键蓝图施工', axe: '木斧 · 左键砍树（更快）', pickaxe: '石镐 · 居民携带后可在采集站工作' };
       nameEl.textContent = cur ? (toolHints[cur.resource] ?? (buildingItemKind(cur.resource) ? `${nameOf(cur.resource)} · 左键放置 · T 旋转` : cropForPlantingItem(cur.resource) ? `${nameOf(cur.resource)} · 右键播种` : nameOf(cur.resource))) : '';
     }
   }
@@ -1279,6 +1288,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const c = state.colony;
     const follower = panel === 'followerBag' ? c?.colonists.find(p => p.id === followerPanelId) : undefined;
     const stamp = JSON.stringify(panel === 'guide' ? [panel,c?.resources,c?.day,c?.guideHousing.status,c?.guideHousing.quality,c?.specialistMarket.availableRooms,c?.specialistMarket.events,c?.specialistMarket.merchants.map(m=>[m.id,m.housing?.status,m.housing?.quality]),c?.warehouseStacks.map(s=>s.premium),c?.jobs.filter(j=>j.guideSale),c?.events[0],c?.events.at(-1)]
+      : panel === 'residents' ? [panel,c?.guideHousing.roomId,c?.specialistMarket.flags,c?.specialistMarket.availableRooms.length,
+          c?.specialistMarket.merchants.map(m=>[m.status,m.housing?.roomId])]
       : panel === 'calendar' ? [panel, c?.day, c?.guideHousing.status, c?.specialistMarket.events,
         c?.specialistMarket.merchants.map(m => [m.id, m.sold, m.status, m.arrivalDay, m.housing?.status])]
       : panel === 'chest' ? [panel, c?.day, c?.chests.find(chest => chest.id === chestPanelId)]
@@ -1303,6 +1314,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       return;
     }
     if (panel === 'guide') { guideShop.render(c,root); root.scrollTop=scrollTop; return; }
+    if (panel === 'residents') {get('panel-title').textContent='住户';renderResidents(c,root);root.scrollTop=scrollTop;return;}
     ({ build: renderBuild, plan: renderPlan, work: renderWork, production: renderProduction, research: renderResearch, logs: renderLogs, warehouse: renderWarehouse, follower: renderFollower, chest: renderChest, followerBag: renderFollowerBag } as Record<string, (c: ColonySnapshot, root: HTMLElement) => void>)[panel]?.(c, root);
     root.scrollTop = scrollTop;
   }
@@ -1328,6 +1340,10 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const measurements = make('p', 'building-dimensions', `占地 ${b.w} × ${b.d} 格 · 高 ${b.h} 格 · 朝向 ${orientationText(b.rotation)}`);
     measurements.dataset.testid = 'building-dimensions'; details.append(measurements);
     details.append(make('p', 'panel-note', `位置 [${b.x}, ${b.y}, ${b.z}] · 点击任一部分都选中整个物体。`));
+    if (b.kind==='extractionStation') {
+      const info=note(b.mining?`${b.mining.resource==='stone'?'石料点':'铁矿点'} · 剩余 ${b.mining.remaining} · ${b.mining.status}`:'地基下的资源点已移除');
+      info.dataset.testid='extraction-station-status';details.append(info);
+    }
     if (stacks) {
       const slots=[...warehouseSlotContents(stacks).values()];
       const occupied=slots.reduce((total,contents) => total+packageSize(contents[0]!.resource),0);
@@ -1411,6 +1427,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const carrying = costText(p.carrying); if (carrying) thoughts.append(make('p', 'thought', `携带：${carrying}`)); root.append(thoughts); get('inspector').scrollTop = scrollTop;
   }
   function renderColony(c: ColonySnapshot) {
+    updateMaterials(c);
     get('date').textContent = `第 ${c.day} 天 · ${c.season} · ${clockText(c.hour)}`;
     get('weather').textContent = `${c.weather} · ${Math.round(c.temperature)}°C${c.speed === 0 ? ' · 已暂停' : ''}`;
     for (const b of shadow.querySelectorAll<HTMLElement>('[data-speed]')) b.classList.toggle('active', Number(b.dataset.speed) === c.speed);
@@ -1660,6 +1677,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       }
     }
     zoneMarquee.setTool(viewMode==='god' && !state.colony?.finale ? state.tool ?? '' : '');
+    if(state.colony && state.camera)housingMap.update(state.colony,state.camera,state.tool??'');
     if (state.tool) { currentTool = state.tool; showTool(currentTool); }
     if ((state.mapToolReturn ?? 0) !== mapToolReturn) {
       mapToolReturn = state.mapToolReturn ?? 0;
@@ -1671,6 +1689,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         get('panel-content').scrollTop = session.scrollTop;
       }
     }
+    if(mapToolSession?.menu==='residents' && state.tool==='inspect' && !panel)mapToolSession=null;
     get('status').textContent = zoneMarquee.hint || state.status || '选择一项规划，让居民开始工作';
     get('cell').textContent = Array.isArray(state.hoverCell) ? `[ ${state.hoverCell.join(', ')} ]` : '';
     if (state.seed !== lastWorldSeed) { lastWorldSeed = state.seed; get<HTMLInputElement>('seed').value = state.seed; }
@@ -1678,7 +1697,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const c = state.colony;
     latestStamp = JSON.stringify([state.seed, state.revision, state.edits, state.manualCropEdits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase, b.rotation, b.doorOpen]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.research.active, c.playerBag, c.bagSelected, c.chests, c.colonists.map(p => [p.id, p.priorities, p.schedule, p.bag,p.bagSelected]),c.jobs.filter(j => j.type === 'demolish' || j.recipe).map(j => [j.id, j.craftPhase]),c.controlledColonistId,state.player&&[state.player.x,state.player.y,state.player.z].map(n=>Math.round(n*10)),warehouseDeliveries(c)]]);
     if (c?.finale) latestStamp+=`/晚会/${c.finale.phase}/${Math.floor(c.finale.elapsed/3)}`;
-    if (c) latestStamp+=JSON.stringify([c.resources,c.jobs.filter(j=>j.guideSale)]);
+    if (c) latestStamp+=JSON.stringify([c.resources,c.jobs.filter(j=>j.guideSale),c.specialistMarket.flags]);
     updateItemAmount();
     if (c) renderColony(c); else renderPanel();
     if (c) renderHotbar();

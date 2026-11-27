@@ -1,0 +1,769 @@
+[
+  {
+    "stage": "original",
+    "time": 497.5,
+    "zones": [
+      {
+        "id": "zone-38",
+        "cells": 48,
+        "gate": [
+          22,
+          20
+        ],
+        "capacity": 22,
+        "border": 24,
+        "seams": [],
+        "ready": true
+      }
+    ],
+    "animals": [
+      [
+        "cow-37-34",
+        "home",
+        20,
+        21
+      ],
+      [
+        "cow-38-37",
+        "home",
+        21,
+        21
+      ],
+      [
+        "pig-29-2",
+        "home",
+        22,
+        21
+      ],
+      [
+        "sheep-26-7",
+        "home",
+        23,
+        21
+      ],
+      [
+        "chicken-22-44",
+        "home",
+        24,
+        21
+      ]
+    ],
+    "demolitions": [],
+    "installed": [
+      [
+        "milker",
+        "building-120",
+        true
+      ],
+      [
+        "henNest",
+        "building-124",
+        true
+      ]
+    ],
+    "wood": 240,
+    "milk": 0
+  },
+  {
+    "stage": "edge",
+    "time": 497.5,
+    "zones": [
+      {
+        "id": "zone-38",
+        "cells": 60,
+        "gate": [
+          22,
+          20
+        ],
+        "capacity": 26,
+        "border": 28,
+        "seams": [
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ],
+        "ready": false
+      }
+    ],
+    "animals": [
+      [
+        "cow-37-34",
+        "home",
+        20,
+        21
+      ],
+      [
+        "cow-38-37",
+        "home",
+        21,
+        21
+      ],
+      [
+        "pig-29-2",
+        "home",
+        22,
+        21
+      ],
+      [
+        "sheep-26-7",
+        "home",
+        23,
+        21
+      ],
+      [
+        "chicken-22-44",
+        "home",
+        24,
+        21
+      ]
+    ],
+    "demolitions": [],
+    "installed": [
+      [
+        "milker",
+        "building-120",
+        true
+      ],
+      [
+        "henNest",
+        "building-124",
+        true
+      ]
+    ],
+    "wood": 216,
+    "milk": 0
+  },
+  {
+    "stage": "corner",
+    "time": 497.5,
+    "zones": [
+      {
+        "id": "zone-38",
+        "cells": 60,
+        "gate": [
+          22,
+          20
+        ],
+        "capacity": 26,
+        "border": 28,
+        "seams": [
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ],
+        "ready": false
+      },
+      {
+        "id": "zone-162",
+        "cells": 9,
+        "gate": [
+          16,
+          18
+        ],
+        "capacity": 1,
+        "border": 8,
+        "seams": [],
+        "ready": false
+      }
+    ],
+    "animals": [
+      [
+        "cow-37-34",
+        "home",
+        20,
+        21
+      ],
+      [
+        "cow-38-37",
+        "home",
+        21,
+        21
+      ],
+      [
+        "pig-29-2",
+        "home",
+        22,
+        21
+      ],
+      [
+        "sheep-26-7",
+        "home",
+        23,
+        21
+      ],
+      [
+        "chicken-22-44",
+        "home",
+        24,
+        21
+      ]
+    ],
+    "demolitions": [],
+    "installed": [
+      [
+        "milker",
+        "building-120",
+        true
+      ],
+      [
+        "henNest",
+        "building-124",
+        true
+      ]
+    ],
+    "wood": 192,
+    "milk": 0
+  },
+  {
+    "stage": "third",
+    "time": 497.5,
+    "zones": [
+      {
+        "id": "zone-38",
+        "cells": 60,
+        "gate": [
+          22,
+          20
+        ],
+        "capacity": 26,
+        "border": 28,
+        "seams": [
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ],
+        "ready": false
+      },
+      {
+        "id": "zone-162",
+        "cells": 9,
+        "gate": [
+          16,
+          18
+        ],
+        "capacity": 1,
+        "border": 8,
+        "seams": [],
+        "ready": false
+      },
+      {
+        "id": "zone-179",
+        "cells": 9,
+        "gate": [
+          23,
+          17
+        ],
+        "capacity": 1,
+        "border": 8,
+        "seams": [],
+        "ready": false
+      }
+    ],
+    "animals": [
+      [
+        "cow-37-34",
+        "home",
+        20,
+        21
+      ],
+      [
+        "cow-38-37",
+        "home",
+        21,
+        21
+      ],
+      [
+        "pig-29-2",
+        "home",
+        22,
+        21
+      ],
+      [
+        "sheep-26-7",
+        "home",
+        23,
+        21
+      ],
+      [
+        "chicken-22-44",
+        "home",
+        24,
+        21
+      ]
+    ],
+    "demolitions": [],
+    "installed": [
+      [
+        "milker",
+        "building-120",
+        true
+      ],
+      [
+        "henNest",
+        "building-124",
+        true
+      ]
+    ],
+    "wood": 168,
+    "milk": 0
+  },
+  {
+    "stage": "bridge-three",
+    "time": 497.5,
+    "zones": [
+      {
+        "id": "zone-38",
+        "cells": 92,
+        "gate": [
+          23,
+          17
+        ],
+        "capacity": 42,
+        "border": 38,
+        "seams": [
+          "building-39",
+          "building-40",
+          "building-41",
+          "building-42",
+          "building-43",
+          "building-44",
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ],
+        "ready": false
+      }
+    ],
+    "animals": [
+      [
+        "cow-37-34",
+        "home",
+        20,
+        21
+      ],
+      [
+        "cow-38-37",
+        "home",
+        21,
+        21
+      ],
+      [
+        "pig-29-2",
+        "home",
+        22,
+        21
+      ],
+      [
+        "sheep-26-7",
+        "home",
+        23,
+        21
+      ],
+      [
+        "chicken-22-44",
+        "home",
+        24,
+        21
+      ]
+    ],
+    "demolitions": [],
+    "installed": [
+      [
+        "milker",
+        "building-120",
+        true
+      ],
+      [
+        "henNest",
+        "building-124",
+        true
+      ]
+    ],
+    "wood": 168,
+    "milk": 0
+  },
+  {
+    "stage": "reload-before-demolition",
+    "time": 497.5,
+    "zones": [
+      {
+        "id": "zone-38",
+        "cells": 92,
+        "gate": [
+          23,
+          17
+        ],
+        "capacity": 42,
+        "border": 38,
+        "seams": [
+          "building-39",
+          "building-40",
+          "building-41",
+          "building-42",
+          "building-43",
+          "building-44",
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ],
+        "ready": false
+      }
+    ],
+    "animals": [
+      [
+        "cow-37-34",
+        "home",
+        20,
+        21
+      ],
+      [
+        "cow-38-37",
+        "home",
+        21,
+        21
+      ],
+      [
+        "pig-29-2",
+        "home",
+        22,
+        21
+      ],
+      [
+        "sheep-26-7",
+        "home",
+        23,
+        21
+      ],
+      [
+        "chicken-22-44",
+        "home",
+        24,
+        21
+      ]
+    ],
+    "demolitions": [],
+    "installed": [
+      [
+        "milker",
+        "building-120",
+        true
+      ],
+      [
+        "henNest",
+        "building-124",
+        true
+      ]
+    ],
+    "wood": 168,
+    "milk": 0
+  },
+  {
+    "stage": "outer-complete",
+    "time": 539.25,
+    "zones": [
+      {
+        "id": "zone-38",
+        "cells": 92,
+        "gate": [
+          23,
+          17
+        ],
+        "capacity": 42,
+        "border": 38,
+        "seams": [
+          "building-39",
+          "building-40",
+          "building-41",
+          "building-42",
+          "building-43",
+          "building-44",
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ],
+        "ready": false
+      }
+    ],
+    "animals": [
+      [
+        "cow-37-34",
+        "home",
+        20,
+        21
+      ],
+      [
+        "cow-38-37",
+        "home",
+        21,
+        21
+      ],
+      [
+        "pig-29-2",
+        "home",
+        22,
+        21
+      ],
+      [
+        "sheep-26-7",
+        "home",
+        23,
+        21
+      ],
+      [
+        "chicken-22-44",
+        "home",
+        24,
+        21
+      ]
+    ],
+    "demolitions": [
+      "building-39",
+      "building-40",
+      "building-41",
+      "building-42",
+      "building-43",
+      "building-44",
+      "building-47",
+      "building-49",
+      "building-51",
+      "building-53"
+    ],
+    "installed": [
+      [
+        "milker",
+        "building-120",
+        true
+      ],
+      [
+        "henNest",
+        "building-124",
+        true
+      ]
+    ],
+    "wood": 168,
+    "milk": 0
+  },
+  {
+    "stage": "reload-demolition-queued",
+    "time": 539.25,
+    "zones": [
+      {
+        "id": "zone-38",
+        "cells": 92,
+        "gate": [
+          23,
+          17
+        ],
+        "capacity": 42,
+        "border": 38,
+        "seams": [
+          "building-39",
+          "building-40",
+          "building-41",
+          "building-42",
+          "building-43",
+          "building-44",
+          "building-47",
+          "building-49",
+          "building-51",
+          "building-53"
+        ],
+        "ready": false
+      }
+    ],
+    "animals": [
+      [
+        "cow-37-34",
+        "home",
+        20,
+        21
+      ],
+      [
+        "cow-38-37",
+        "home",
+        21,
+        21
+      ],
+      [
+        "pig-29-2",
+        "home",
+        22,
+        21
+      ],
+      [
+        "sheep-26-7",
+        "home",
+        23,
+        21
+      ],
+      [
+        "chicken-22-44",
+        "home",
+        24,
+        21
+      ]
+    ],
+    "demolitions": [
+      "building-39",
+      "building-40",
+      "building-41",
+      "building-42",
+      "building-43",
+      "building-44",
+      "building-47",
+      "building-49",
+      "building-51",
+      "building-53"
+    ],
+    "installed": [
+      [
+        "milker",
+        "building-120",
+        true
+      ],
+      [
+        "henNest",
+        "building-124",
+        true
+      ]
+    ],
+    "wood": 168,
+    "milk": 0
+  },
+  {
+    "stage": "reload-after-demolition",
+    "time": 567.75,
+    "zones": [
+      {
+        "id": "zone-38",
+        "cells": 92,
+        "gate": [
+          23,
+          17
+        ],
+        "capacity": 52,
+        "border": 38,
+        "seams": [],
+        "ready": true
+      }
+    ],
+    "animals": [
+      [
+        "cow-37-34",
+        "home",
+        20,
+        21
+      ],
+      [
+        "cow-38-37",
+        "home",
+        21,
+        21
+      ],
+      [
+        "pig-29-2",
+        "home",
+        22,
+        21
+      ],
+      [
+        "sheep-26-7",
+        "home",
+        23,
+        21
+      ],
+      [
+        "chicken-22-44",
+        "home",
+        24,
+        21
+      ]
+    ],
+    "demolitions": [],
+    "installed": [
+      [
+        "milker",
+        "building-120",
+        true
+      ],
+      [
+        "henNest",
+        "building-124",
+        true
+      ]
+    ],
+    "wood": 168,
+    "milk": 0
+  },
+  {
+    "stage": "new-gate-and-milk",
+    "time": 598,
+    "zones": [
+      {
+        "id": "zone-38",
+        "cells": 92,
+        "gate": [
+          23,
+          25
+        ],
+        "capacity": 52,
+        "border": 38,
+        "seams": [],
+        "ready": true
+      }
+    ],
+    "animals": [
+      [
+        "cow-37-34",
+        "home",
+        20,
+        21
+      ],
+      [
+        "cow-38-37",
+        "home",
+        21,
+        21
+      ],
+      [
+        "pig-29-2",
+        "home",
+        22,
+        21
+      ],
+      [
+        "sheep-26-7",
+        "home",
+        23,
+        21
+      ],
+      [
+        "chicken-22-44",
+        "home",
+        24,
+        21
+      ]
+    ],
+    "demolitions": [],
+    "installed": [
+      [
+        "milker",
+        "building-120",
+        true
+      ],
+      [
+        "henNest",
+        "building-124",
+        true
+      ]
+    ],
+    "wood": 162,
+    "milk": 1
+  }
+]

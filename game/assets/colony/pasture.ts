@@ -9,6 +9,8 @@ export interface HerdAnimal {
 }
 export interface Pasture {
   capacity?:number; ready?:boolean; gate:ZoneCell; pendingGate?:ZoneCell; animals:HerdAnimal[];
+  /** Completed sections of the former perimeter awaiting resident demolition. */
+  seamIds?:string[];
 }
 
 const HARVEST = {
@@ -25,6 +27,30 @@ export function pastureHarvest(animal:HerdAnimal, time:number) {
 export const stockVolume=(a:Pick<HerdAnimal,'kind'|'young'>)=>STOCK_VOLUME[a.kind]*(a.young ? .5 : 1);
 const shifts:ZoneCell[]=[[1,0],[-1,0],[0,1],[0,-1]];
 const cellKey=([x,z]:ZoneCell)=>x+','+z;
+
+export function pastureUnion<T extends Footprint>(selection:Iterable<ZoneCell>, pens:T[]) {
+  const cells=new Map<string,ZoneCell>();
+  const owners=new Map<string,T>();
+  for(const pen of pens)for(const cell of footprintCells(pen))owners.set(cellKey(cell),pen);
+  const queue:ZoneCell[]=[], touched=new Set<T>();
+  const add=(cell:ZoneCell)=>{
+    const key=cellKey(cell);
+    if(!cells.has(key)){cells.set(key,cell);queue.push(cell);}
+  };
+  for(const cell of selection)add(cell);
+  for(let i=0;i<queue.length;i++){
+    const [x,z]=queue[i]!;
+    for(const [dx,dz] of [[0,0] as ZoneCell,...shifts]){
+      const owner=owners.get(cellKey([x+dx,z+dz]));
+      if(!owner||touched.has(owner))continue;
+      touched.add(owner);
+      for(const cell of footprintCells(owner))add(cell);
+    }
+  }
+  const merged=[...cells.values()].sort((a,b)=>a[1]-b[1]||a[0]-b[0]);
+  const xs=merged.map(p=>p[0]), zs=merged.map(p=>p[1]), x=Math.min(...xs), z=Math.min(...zs);
+  return {area:{x,z,w:Math.max(...xs)-x+1,d:Math.max(...zs)-z+1,cells:merged},pens:pens.filter(p=>touched.has(p))};
+}
 
 function computeLayout(area:Footprint) {
   const cells=[...footprintCells(area)];
@@ -47,7 +73,18 @@ function computeLayout(area:Footprint) {
     }
     return visited.size===group.size;
   };
-  return {border,interior,gates,connected:connected(inner,interior[0])&&connected(selected,cells[0])};
+  const footprintConnected=connected(selected,cells[0]);
+  const pocket=new Map<string,number>();
+  let pockets=0;
+  for(const first of interior){
+    if(pocket.has(cellKey(first)))continue;
+    const queue=[first], id=pockets++;pocket.set(cellKey(first),id);
+    for(let i=0;i<queue.length;i++)for(const [dx,dz] of shifts){
+      const next:ZoneCell=[queue[i]![0]+dx,queue[i]![1]+dz], key=cellKey(next);
+      if(inner.has(key)&&!pocket.has(key)){pocket.set(key,id);queue.push(next);}
+    }
+  }
+  return {border,interior,gates,pocket,pockets,footprintConnected,connected:pockets===1&&footprintConnected};
 }
 
 const layouts=new WeakMap<Footprint,ReturnType<typeof computeLayout>>();

@@ -1,4 +1,4 @@
-import type { ScreenPoint, ZoneGesture, ZoneSelection } from '../voxel/zone-selection.ts';
+import { isMarqueeTool, type ScreenPoint, type ZoneGesture, type ZoneSelection } from '../voxel/zone-selection.ts';
 
 export function mountZoneMarquee(shell:HTMLElement, send:(action:string,data:Record<string,unknown>)=>void){
   const doc=shell.ownerDocument, win=doc.defaultView!;
@@ -17,7 +17,7 @@ export function mountZoneMarquee(shell:HTMLElement, send:(action:string,data:Rec
     if(canvas.width!==Math.round(w*dpr)) canvas.width=Math.round(w*dpr);
     if(canvas.height!==Math.round(h*dpr)) canvas.height=Math.round(h*dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
-    const color=tool==='zone:pasture'?'#d8ad69':tool==='zone:farm'?'#90bd65':'#75baca';
+    const color=tool==='chop'?'#e5b269':tool==='zone:pasture'?'#d8ad69':tool==='zone:farm'?'#90bd65':'#75baca';
     for(const face of faces){
       ctx.beginPath();
       face.corners.forEach(([x,y],i)=>i?ctx.lineTo(x*w,y*h):ctx.moveTo(x*w,y*h));
@@ -54,7 +54,7 @@ export function mountZoneMarquee(shell:HTMLElement, send:(action:string,data:Rec
   };
   const abort=()=>{if(gesture){send('zone-abort',{});clear();}};
   const down=(event:PointerEvent)=>{
-    if(!tool.startsWith('zone:') || !event.isPrimary) return;
+    if(!isMarqueeTool(tool) || !event.isPrimary) return;
     if(event.button===2 && gesture){abort();send('cancel-map-tool',{});return;}
     if(event.button!==0 || pointer!==null || !event.composedPath().some(el=>(el as HTMLElement).tagName==='CANVAS')) return;
     pointer=event.pointerId; sequence++;
@@ -83,7 +83,8 @@ export function mountZoneMarquee(shell:HTMLElement, send:(action:string,data:Rec
       if(!gesture || id!==sequence) return;
       faces=next;
       const invalid=next.filter(face=>face.blocked).length;
-      selectionHint=invalid ? `已选 ${next.length} 格 · ${invalid} 格禁止规划` : pastureHint??`已选 ${next.length} 格 · 松开左键提交`;
+      selectionHint=tool==='chop' ? `已选 ${next.length} 棵树 · 松开左键安排伐木` :
+        invalid ? `已选 ${next.length} 格 · ${invalid} 格禁止规划` : pastureHint??`已选 ${next.length} 格 · 松开左键提交`;
       draw();
     },
     dispose(){listeners.abort();canvas.remove();},

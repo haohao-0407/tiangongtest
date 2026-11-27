@@ -1,0 +1,1511 @@
+[
+  {
+    "name": "01-planning",
+    "day": 1,
+    "time": 325,
+    "wood": 24,
+    "stone": 0,
+    "pigIron": 0,
+    "stations": [],
+    "jobs": [],
+    "items": [],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          18.5
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          19.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          20.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "02-stone-site",
+    "day": 1,
+    "time": 325,
+    "wood": 24,
+    "stone": 0,
+    "pigIron": 0,
+    "stations": [],
+    "jobs": [],
+    "items": [],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          18.5
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          19.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          20.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "03-iron-site",
+    "day": 1,
+    "time": 325,
+    "wood": 16,
+    "stone": 0,
+    "pigIron": 0,
+    "stations": [
+      {
+        "id": "building-38",
+        "x": 16,
+        "z": 20,
+        "complete": false,
+        "resource": "stone",
+        "remaining": 24,
+        "status": "待完工"
+      }
+    ],
+    "jobs": [],
+    "items": [],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          18.5
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          19.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          20.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "04-blueprints",
+    "day": 1,
+    "time": 325,
+    "wood": 8,
+    "stone": 0,
+    "pigIron": 0,
+    "stations": [
+      {
+        "id": "building-38",
+        "x": 16,
+        "z": 20,
+        "complete": false,
+        "resource": "stone",
+        "remaining": 24,
+        "status": "待完工"
+      },
+      {
+        "id": "building-42",
+        "x": 21,
+        "z": 17,
+        "complete": false,
+        "resource": "pigIron",
+        "remaining": 18,
+        "status": "待完工"
+      }
+    ],
+    "jobs": [],
+    "items": [],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          18.5
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          19.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          20.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "05-wait-for-tool",
+    "day": 1,
+    "time": 341.25,
+    "wood": 8,
+    "stone": 0,
+    "pigIron": 0,
+    "stations": [
+      {
+        "id": "building-38",
+        "x": 16,
+        "z": 20,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 24,
+        "status": "等待可用石镐 · 给采矿居民装备石镐，或将石镐放入木箱"
+      },
+      {
+        "id": "building-42",
+        "x": 21,
+        "z": 17,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 18,
+        "status": "等待可用石镐 · 给采矿居民装备石镐，或将石镐放入木箱"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-47",
+        "type": "mine",
+        "targetId": "building-38",
+        "x": 16,
+        "y": 5,
+        "z": 20,
+        "progress": 0,
+        "work": 8,
+        "state": "blocked",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "等待可用石镐"
+      }
+    ],
+    "items": [],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          21.4556565858206,
+          5,
+          18.48447980503721
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          20.1625,
+          5,
+          17.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          21.5,
+          5,
+          22.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "06-miner-pigIron",
+    "day": 1,
+    "time": 343,
+    "wood": 8,
+    "stone": 0,
+    "pigIron": 0,
+    "stations": [
+      {
+        "id": "building-38",
+        "x": 16,
+        "z": 20,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 24,
+        "status": "等待可用石镐"
+      },
+      {
+        "id": "building-42",
+        "x": 21,
+        "z": 17,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 18,
+        "status": "林夏 · 持镐采集中"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-47",
+        "type": "mine",
+        "targetId": "building-38",
+        "x": 16,
+        "y": 5,
+        "z": 20,
+        "progress": 0,
+        "work": 8,
+        "state": "blocked",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "等待可用石镐"
+      },
+      {
+        "id": "job-49",
+        "type": "mine",
+        "targetId": "building-42",
+        "x": 21,
+        "y": 5,
+        "z": 17,
+        "progress": 0.6875,
+        "work": 8,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {},
+        "label": "采集生铁"
+      }
+    ],
+    "items": [],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "采集生铁",
+        "position": [
+          22.5,
+          5,
+          17.5
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          17.80000000000001,
+          5,
+          17.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          20.150000000000006,
+          5,
+          22.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "07-first-drop",
+    "day": 1,
+    "time": 348.5,
+    "wood": 8,
+    "stone": 0,
+    "pigIron": 0,
+    "stations": [
+      {
+        "id": "building-38",
+        "x": 16,
+        "z": 20,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 24,
+        "status": "等待可用石镐"
+      },
+      {
+        "id": "building-42",
+        "x": 21,
+        "z": 17,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 15,
+        "status": "等待采矿居民"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-47",
+        "type": "mine",
+        "targetId": "building-38",
+        "x": 16,
+        "y": 5,
+        "z": 20,
+        "progress": 0,
+        "work": 8,
+        "state": "blocked",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "等待可用石镐"
+      }
+    ],
+    "items": [
+      {
+        "id": "item-50",
+        "resource": "pigIron",
+        "amount": 3,
+        "x": 20,
+        "y": 5,
+        "z": 17,
+        "age": 0,
+        "reservedBy": null
+      }
+    ],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "采集完成",
+        "position": [
+          22.5,
+          5,
+          17.5
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          18.8375,
+          5,
+          16.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          15.5,
+          5,
+          23.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "08-in-transit",
+    "day": 1,
+    "time": 350.25,
+    "wood": 8,
+    "stone": 0,
+    "pigIron": 0,
+    "stations": [
+      {
+        "id": "building-38",
+        "x": 16,
+        "z": 20,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 24,
+        "status": "林夏 · 携镐前往采集站"
+      },
+      {
+        "id": "building-42",
+        "x": 21,
+        "z": 17,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 15,
+        "status": "等待可用石镐"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-47",
+        "type": "mine",
+        "targetId": "building-38",
+        "x": 16,
+        "y": 5,
+        "z": 20,
+        "progress": 0,
+        "work": 8,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {},
+        "label": "采集石材"
+      },
+      {
+        "id": "job-51",
+        "type": "mine",
+        "targetId": "building-42",
+        "x": 21,
+        "y": 5,
+        "z": 17,
+        "progress": 0,
+        "work": 8,
+        "state": "blocked",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "等待可用石镐"
+      },
+      {
+        "id": "job-52",
+        "type": "haul",
+        "targetId": "item-50",
+        "x": 20,
+        "y": 5,
+        "z": 17,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {},
+        "label": "搬运物资"
+      }
+    ],
+    "items": [],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "前往采集石材",
+        "position": [
+          20.5,
+          5,
+          19.17499999999999
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "前往搬运物资",
+        "position": [
+          19.975,
+          5,
+          17.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {
+          "pigIron": 3
+        }
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          15.5,
+          5,
+          23.1625
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "09-reloaded-cargo",
+    "day": 1,
+    "time": 350.25,
+    "wood": 8,
+    "stone": 0,
+    "pigIron": 0,
+    "stations": [
+      {
+        "id": "building-38",
+        "x": 16,
+        "z": 20,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 24,
+        "status": "林夏 · 携镐前往采集站"
+      },
+      {
+        "id": "building-42",
+        "x": 21,
+        "z": 17,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 15,
+        "status": "等待可用石镐"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-47",
+        "type": "mine",
+        "targetId": "building-38",
+        "x": 16,
+        "y": 5,
+        "z": 20,
+        "progress": 0,
+        "work": 8,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {},
+        "label": "采集石材"
+      },
+      {
+        "id": "job-51",
+        "type": "mine",
+        "targetId": "building-42",
+        "x": 21,
+        "y": 5,
+        "z": 17,
+        "progress": 0,
+        "work": 8,
+        "state": "blocked",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "等待可用石镐"
+      },
+      {
+        "id": "job-52",
+        "type": "haul",
+        "targetId": "item-50",
+        "x": 20,
+        "y": 5,
+        "z": 17,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {},
+        "label": "搬运物资"
+      }
+    ],
+    "items": [],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "前往采集石材",
+        "position": [
+          20.5,
+          5,
+          19.17499999999999
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "前往搬运物资",
+        "position": [
+          19.975,
+          5,
+          17.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {
+          "pigIron": 3
+        }
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          15.5,
+          5,
+          23.1625
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "06-miner-stone",
+    "day": 1,
+    "time": 352.75,
+    "wood": 8,
+    "stone": 0,
+    "pigIron": 3,
+    "stations": [
+      {
+        "id": "building-38",
+        "x": 16,
+        "z": 20,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 24,
+        "status": "林夏 · 持镐采集中"
+      },
+      {
+        "id": "building-42",
+        "x": 21,
+        "z": 17,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 15,
+        "status": "等待可用石镐"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-47",
+        "type": "mine",
+        "targetId": "building-38",
+        "x": 16,
+        "y": 5,
+        "z": 20,
+        "progress": 0.6941,
+        "work": 8,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {},
+        "label": "采集石材"
+      },
+      {
+        "id": "job-51",
+        "type": "mine",
+        "targetId": "building-42",
+        "x": 21,
+        "y": 5,
+        "z": 17,
+        "progress": 0,
+        "work": 8,
+        "state": "blocked",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "等待可用石镐"
+      }
+    ],
+    "items": [],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "采集石材",
+        "position": [
+          17.5,
+          5,
+          20.5
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          17.5,
+          5,
+          15.812500000000007
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          15.5,
+          5,
+          19.787500000000016
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "10-exhausted-stock",
+    "day": 2,
+    "time": 470.25,
+    "wood": 8,
+    "stone": 24,
+    "pigIron": 18,
+    "stations": [
+      {
+        "id": "building-38",
+        "x": 16,
+        "z": 20,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 0,
+        "status": "已采尽"
+      },
+      {
+        "id": "building-42",
+        "x": 21,
+        "z": 17,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 0,
+        "status": "已采尽"
+      }
+    ],
+    "jobs": [],
+    "items": [],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          20.5,
+          5,
+          22.5
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          14.5,
+          5,
+          20.512499999999996
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          22.825000000000003,
+          5,
+          0.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "11-dismantled",
+    "day": 2,
+    "time": 479.75,
+    "wood": 8,
+    "stone": 24,
+    "pigIron": 18,
+    "stations": [
+      {
+        "id": "building-42",
+        "x": 21,
+        "z": 17,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 0,
+        "status": "已采尽"
+      }
+    ],
+    "jobs": [],
+    "items": [
+      {
+        "id": "item-95",
+        "resource": "building:extractionStation",
+        "amount": 1,
+        "x": 16,
+        "y": 5,
+        "z": 20,
+        "age": 0.25,
+        "reservedBy": null,
+        "playerOnly": true
+      }
+    ],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          17.1625,
+          5,
+          20.5
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          16.5,
+          5,
+          19.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          23.5,
+          5,
+          4.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "12-rebuilt-and-reloaded",
+    "day": 2,
+    "time": 648.25,
+    "wood": 0,
+    "stone": 24,
+    "pigIron": 18,
+    "stations": [
+      {
+        "id": "building-42",
+        "x": 21,
+        "z": 17,
+        "complete": true,
+        "resource": "pigIron",
+        "remaining": 0,
+        "status": "已采尽"
+      },
+      {
+        "id": "building-97",
+        "x": 16,
+        "z": 20,
+        "complete": true,
+        "resource": "stone",
+        "remaining": 0,
+        "status": "已采尽"
+      }
+    ],
+    "jobs": [],
+    "items": [
+      {
+        "id": "item-95",
+        "resource": "building:extractionStation",
+        "amount": 1,
+        "x": 16,
+        "y": 5,
+        "z": 20,
+        "age": 168.75,
+        "reservedBy": null,
+        "playerOnly": true
+      }
+    ],
+    "people": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          17.19999999999999,
+          5,
+          19.5
+        ],
+        "bag": [
+          {
+            "resource": "hammer",
+            "count": 1
+          },
+          {
+            "resource": "axe",
+            "count": 1
+          },
+          {
+            "resource": "pickaxe",
+            "count": 1
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          17.5,
+          5,
+          13.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          27.512499999999996,
+          5,
+          1.5
+        ],
+        "bag": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "carrying": {}
+      }
+    ]
+  }
+]

@@ -2,6 +2,12 @@ import type { Resource } from './contracts.ts';
 
 export type SpecialistId = 'chef' | 'tailor' | 'cheesemaker' | 'blacksmith';
 
+export function housingToolResident(tool:string) {
+  if(!tool.startsWith('house:'))return null;
+  const id=tool.slice(6);
+  return id==='guide' || Object.hasOwn(SPECIALISTS,id) ? id as SpecialistId|'guide' : null;
+}
+
 export interface SpecialistDefinition {
   name: string;
   unlockItems: readonly Resource[];

@@ -39,6 +39,7 @@ export type ColonyRenderState={
   selectedBuildingId?:string|null;
   buildPreview?:RenderBuilding|null;
   showPlanningGrid?:boolean;
+  hideClouds?:boolean;
   controlledColonistId?:string|null;
 };
 const COLORS:Record<string,string>={
@@ -203,6 +204,13 @@ export class ColonyView {
       parts.push({p:[x,y+h+.02,z],s:[w*.8*Math.max(.02,Math.min(1,b.progress)),.06,.07],c:'light',shadow:false});
     }
     else switch(b.kind){
+      case 'extractionStation':
+        for(const dx of [-.36,.36]) part(dx,.46,.13,.12,.92,.16,'wood');
+        part(0,.93,.13,.90,.12,.20,'plank');
+        part(.1,.65,.13,.045,.48,.045,'dark');
+        part(.1,.34,.13,.29,.22,.27,'steel');
+        for(const dz of [-.30,-.05]) part(-.13,.14,dz,.55,.20,.06,'plank');
+        break;
       case 'sugarPress':
         for (const box of sugarPressParts) part(...box);
         break;
@@ -376,7 +384,7 @@ export class ColonyView {
 
   update(state:ColonyRenderState,time:number){
     const active=new Set<string>();
-    if (!state.finale) this.renderClouds(time, active);
+    if (!state.finale && !state.hideClouds) this.renderClouds(time, active);
     for (const [id,lights] of this.plazaLights) if (!state.buildings.some(b=>b.id===id && b.complete)) {
       for (const e of lights) this.world.despawn(e).unwrap();
       this.plazaLights.delete(id);

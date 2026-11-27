@@ -54,6 +54,11 @@ export default async function treePlaythrough(play) {
   };
   const inspect = async () => { await clearUi(); await returnToMap(play); await wait(state => state.tool === 'inspect'); };
   const project = (state, position) => {
+    if (state.camera.overhead) {
+      const {target,distance}=state.camera,{width,height}=play.page.viewportSize();
+      const span=2*distance*Math.tan(Math.PI/8);
+      return [.5+(position[0]-target[0])/(span*width/height),.5+(position[2]-target[2])/span];
+    }
     const camera = state.camera, forward = unit(camera.target.map((n, i) => n - camera.eye[i]));
     const right = unit(cross(forward, [0, 1, 0])), up = cross(right, forward);
     const relative = position.map((n, i) => n - camera.eye[i]), depth = dot(relative, forward);
@@ -154,10 +159,10 @@ export default async function treePlaythrough(play) {
 
   await play.step('mining-a-tree-cannot-remove-its-root-support', async () => {
     const before = clone(await read());
-    await choose('plan', 'tool-mine', 'mine');
-    const hit = await hoverPart(harvested, 'crown'); assert.ok(hit);
-    await play.mouse.click(hit.point);
-    const after = await wait(state => /请先使用伐木/.test(state.status));
+    await clearUi();await click('menu-plan');
+    assert.equal(await control('tool-mine').count(),0);
+    await closePanel();
+    const after=await read();
     assert.deepEqual(clone(after.trees), before.trees);
     assert.equal(after.nonAirCount, before.nonAirCount);
     assert.equal(after.colony.jobs.filter(job => job.type === 'mine').length, before.colony.jobs.filter(job => job.type === 'mine').length);
@@ -170,7 +175,7 @@ export default async function treePlaythrough(play) {
     assert.ok(await control('tree-cancel-chop').isVisible());
     await click('tree-cancel-chop'); await wait(state => jobsFor(state, harvested.id).length === 0);
     assert.ok(treeBy(await read(), harvested.id), 'Cancel leaves the complete model alive.');
-    for (const role of ['trunk', 'crown', 'crown']) {
+    for (const role of ['crown', 'crown']) {
       await choose('plan', 'tool-chop', 'chop');
       const hit = await hoverPart(harvested, role); assert.ok(hit);
       await play.mouse.click(hit.point); await wait(state => jobsFor(state, harvested.id).length === 1);

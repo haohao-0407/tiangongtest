@@ -40,7 +40,7 @@ export function buildChunkMesh(world: VoxelSource, chunk: ChunkCoordinate): Mesh
           if (neighbor !== 0 && !(neighbor === 8 && block !== 8)) continue;
           const rgb = LINEAR_COLORS[block === 1 && face.n[1] !== 1 ? 2 : block]!;
           const brightness = face.light * variant;
-          if (block !== BLOCK.SteelOre) {
+          if (block !== BLOCK.SteelOre && block !== BLOCK.StoneDeposit) {
             const offset = position.length / 3;
             for (let i = 0; i < 4; i++) {
               const corner = face.corners[i]!;
@@ -55,7 +55,7 @@ export function buildChunkMesh(world: VoxelSource, chunk: ChunkCoordinate): Mesh
           for (let v = 0; v < divisions; v++) for (let u = 0; u < divisions; u++) {
             const speck = ((Math.imul(x + u, 73856093) ^ Math.imul(z + v, 19349663)
               ^ Math.imul(y + face.n[0] + face.n[2], 83492791)) >>> 0) % 7;
-            const tint = speck < 3 ? ORE_INCLUSIONS[speck === 0 ? 1 : 0]! : rgb;
+            const tint = block === BLOCK.StoneDeposit ? (speck < 2 ? LINEAR_COLORS[BLOCK.Stone]! : rgb) : speck < 3 ? ORE_INCLUSIONS[speck === 0 ? 1 : 0]! : rgb;
             const offset = position.length / 3;
             for (let i = 0; i < 4; i++) {
               const s = (u + (i === 1 || i === 2 ? 1 : 0)) / divisions;

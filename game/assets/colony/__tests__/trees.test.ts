@@ -69,13 +69,13 @@ describe('whole-tree colony work',()=>{
   it('refuses to mine a standing tree foundation without changing the tree, ground or resources',()=>{
     const{world,sim}=setup(),beforeWorld=world.serialize(),before=sim.serialize();
     const result=sim.command({action:'designate',kind:'mine',x:20,z:20});
-    expect(result.ok).toBe(false);expect(result.message).toContain('先砍伐');
+    expect(result.ok).toBe(false);expect(result.message).toContain('采集站');
     expect(world.serialize()).toBe(beforeWorld);expect(sim.serialize()).toEqual(before);
     expect(world.get(20,5,20)).toBe(BLOCK.Grass);expect(looseWood(sim)).toBe(0);
   });
   it('cancels queued or restored mining when a sandbox undo restores the tree above its target',()=>{
     const{world,sim}=setup();world.removeTree('tree-a');
-    expect(sim.command({action:'designate',kind:'mine',x:20,z:20}).ok).toBe(true);
+    expect(sim.command({action:'designate',kind:'mine',x:20,z:20}).ok).toBe(false);
     const queued=sim.serialize();expect(world.undo()).toBe(true);sim.tick(0);
     expect(sim.snapshot().jobs.some(j=>j.type==='mine')).toBe(false);
     sim.load(queued);expect(sim.snapshot().jobs.some(j=>j.type==='mine')).toBe(false);

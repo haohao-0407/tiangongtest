@@ -9,8 +9,10 @@ function oreCells(world: VoxelWorld): number[] {
   world.blocks.forEach((block, index) => { if (block === BLOCK.SteelOre) cells.push(index); });
   return cells;
 }
-function veinComponents(world: VoxelWorld): number[][] {
-  const remaining = new Set(oreCells(world)), components: number[][] = [];
+function veinComponents(world: VoxelWorld, blockId:number=BLOCK.SteelOre): number[][] {
+  const remaining = new Set<number>();
+  world.blocks.forEach((block,i)=>{if(block===blockId)remaining.add(i);});
+  const components: number[][] = [];
   while (remaining.size) {
     const component = [remaining.values().next().value!]; remaining.delete(component[0]!);
     for (let head = 0; head < component.length; head++) {
@@ -29,7 +31,8 @@ function veinComponents(world: VoxelWorld): number[][] {
 
 describe('surface steel ore generation', () => {
   it.each(['森屿-042', 'ore-2', 'ore-river', 'ore-ridge'])('places exposed connected separated veins for %s', (seed: string) => {
-    const world = new VoxelWorld(seed), veins = veinComponents(world);
+    const world = new VoxelWorld(seed), iron=veinComponents(world), stone=veinComponents(world,BLOCK.StoneDeposit), veins=[...iron,...stone];
+    expect(stone.length).toBe(iron.length);
     expect(BLOCKS[BLOCK.SteelOre]).toMatchObject({ name: '铁矿', solid: true, buildable: false });
     expect(veins).toHaveLength(24);
     for (const vein of veins) {
@@ -54,10 +57,10 @@ describe('surface steel ore generation', () => {
     expect(digest(a)).toBe(digest(b));
     expect(oreCells(a)).not.toEqual(oreCells(c));
     const legacy = VoxelWorld.deserialize(JSON.stringify({ version: 1, generatorVersion: 2, seed: a.seed, size: [250, 24, 250], edits: [] }));
-    const onlyOresChanged = a.blocks.every((block, index) => block === legacy.blocks[index] || block === BLOCK.SteelOre);
+    const onlyOresChanged = a.blocks.every((block, index) => block === legacy.blocks[index] || block === BLOCK.SteelOre || block === BLOCK.StoneDeposit);
     expect(onlyOresChanged).toBe(true);
     expect(a.getTrees()).toEqual(legacy.getTrees());
-  });
+  }, 15000);
 
   it.each([[8, 8, 8], [31, 24, 29], [48, 24, 48], [64, 12, 32]])('handles custom size %j without partial singleton veins', (width: number, height: number, depth: number) => {
     const world = new VoxelWorld('small-ore', { width, height, depth });
@@ -81,7 +84,7 @@ describe('surface steel ore generation', () => {
     world.undo(); expect(world.get(x, y, z)).toBe(BLOCK.SteelOre);
     world.redo(); expect(world.get(x, y, z)).toBe(BLOCK.Air);
     const restored = VoxelWorld.deserialize(world.serialize());
-    expect(restored.generatorVersion).toBe(3);
+    expect(restored.generatorVersion).toBe(4);
     expect(restored.get(x, y, z)).toBe(BLOCK.Air);
     expect(digest(restored)).toBe(digest(world));
     expect(restored.count(BLOCK.SteelOre)).toBe(before - 1);
@@ -99,6 +102,18 @@ describe('surface steel ore generation', () => {
     expect(restored.getTrees()).toEqual(world.getTrees());
   });
 
+  it('migrates old iron veins after applying old mining edits without restoring a mined point',()=>{
+    const world=new VoxelWorld('old-v3-veins');
+    const oldMined=world.blocks.indexOf(BLOCK.StoneDeposit);
+    const oldIron=world.blocks.indexOf(BLOCK.SteelOre);
+    const saved=JSON.parse(world.serialize());
+    saved.generatorVersion=3;saved.edits=[[oldMined,BLOCK.Air],[oldIron,BLOCK.Air]];
+    const restored=VoxelWorld.deserialize(JSON.stringify(saved));
+    expect(restored.blocks[oldMined]).toBe(BLOCK.Air);expect(restored.blocks[oldIron]).toBe(BLOCK.Air);
+    expect(restored.count(BLOCK.StoneDeposit)).toBe(world.count(BLOCK.StoneDeposit)-1);
+    expect(restored.count(BLOCK.SteelOre)).toBe(world.count(BLOCK.SteelOre)-1);
+    expect(VoxelWorld.deserialize(restored.serialize()).serialize()).toEqual(restored.serialize());
+  });
   it('cannot recover harvested ore through earlier sandbox undo or redo', () => {
     const world = new VoxelWorld('ore-consumed'), [x, y, z] = world.coordinates(oreCells(world)[0]!);
     world.set(125, 8, 125, BLOCK.Planks);

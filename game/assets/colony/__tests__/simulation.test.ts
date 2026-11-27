@@ -476,6 +476,43 @@ describe('resident needs and civilian production',()=>{
       expect(after.items.some(item => item.resource === crop.kind + 'Seed' && item.x === crop.x && item.z === crop.z)).toBe(crop.kind !== 'blueberry');
     }
   });
+  it('clears only the tapped farm tile, paying harvest or seed once, including through a reload', () => {
+    const {sim} = setup();
+    const save = sim.serialize() as Pick<ReturnType<ColonySimulation['snapshot']>, 'zones'|'jobs'|'crops'>;
+    const farm = save.zones.find(zone => zone.kind === 'farm')!;
+    const tiles = save.crops.filter(p => p.x >= farm.x && p.x < farm.x+farm.w && p.z >= farm.z && p.z < farm.z+farm.d);
+    const [ripe, young, empty] = tiles;
+    Object.assign(ripe!, {kind:'cabbage',planted:true,growth:1});
+    Object.assign(young!, {kind:'blueberry',planted:true,growth:.25});
+    Object.assign(empty!, {planted:false,growth:0});
+    save.jobs = save.jobs.filter(j => !tiles.some(p => p.id === j.targetId));
+    sim.load(save);
+    const clear = (tile:typeof tiles[number]) => sim.command({action:'clear',x:tile.x,z:tile.z});
+    const totals = () => {
+      const counts: Record<string,number> = {};
+      for (const item of sim.snapshot().items) if (!item.playerOnly) counts[item.resource] = (counts[item.resource]??0) + item.amount;
+      return counts;
+    };
+    const before = totals(), stock = sim.snapshot().resources;
+    expect(clear(ripe!).ok).toBe(true);
+    expect(clear(ripe!).ok).toBe(false);
+    expect(sim.snapshot().crops.some(p=>p.id===young!.id)).toBe(true);
+    expect(clear(young!).ok).toBe(true);
+    const afterHarvest = totals();
+    expect(afterHarvest.cabbage).toBe((before.cabbage??0)+6);
+    expect(afterHarvest.cabbageSeed).toBe((before.cabbageSeed??0)+1);
+    expect(afterHarvest.blueberry).toBe((before.blueberry??0)+1);
+    expect(clear(empty!).ok).toBe(true);
+    expect(totals()).toEqual(afterHarvest);
+    expect(sim.snapshot().resources).toEqual(stock);
+    sim.load(sim.serialize());
+    for (const tile of [ripe!,young!,empty!]) {
+      expect(sim.zoneCellBlocker(tile.x,tile.z)).toBeNull();
+      expect(sim.snapshot().jobs.some(j=>j.targetId===tile.id)).toBe(false);
+    }
+    expect(sim.snapshot().crops).toHaveLength(save.crops.length-3);
+    expect(totals()).toEqual(afterHarvest);
+  });
   it('replaces retired rice fields and seeds in a save without losing growth or seed reservations', () => {
     const { sim, world } = setup();
     const saved = raw(sim);
@@ -748,8 +785,8 @@ describe('resident needs and civilian production',()=>{
     expect(sim.command({action:'designate',kind:'chop',...tree}).ok).toBe(true);run(sim,90);
     expect(sim.snapshot().resources.wood).toBe(initialWood);expect(sim.snapshot().items.filter(i=>i.resource==='wood').reduce((n,i)=>n+i.amount,0)).toBeGreaterThan(12);
     onlyJob(sim,'mine');const pos=freeCell(sim,world),h=world.surfaceHeight(pos.x,pos.z);
-    expect(sim.command({action:'designate',kind:'mine',...pos}).ok).toBe(true);run(sim,60);
-    expect(world.surfaceHeight(pos.x,pos.z)).toBe(h-1);expect(sim.snapshot().items.some(i=>i.resource==='stone')).toBe(true);
+    expect(sim.command({action:'designate',kind:'mine',...pos}).ok).toBe(false);run(sim,60);
+    expect(world.surfaceHeight(pos.x,pos.z)).toBe(h);expect(sim.snapshot().jobs.some(j=>j.type==='mine')).toBe(false);
   });
 });
 

@@ -3,6 +3,7 @@ import {VoxelWorld,BLOCK} from '../../voxel/model.ts';
 import {ColonySimulation,JOB_TYPES} from '../simulation.ts';
 import {pastureLayout,STOCK_VOLUME,stockVolume} from '../pasture.ts';
 import type {WildAnimal} from '../../voxel/wild-animals.ts';
+import {readFileSync} from 'node:fs';
 
 it('fits mixed adult and young stock in the inner area and rejects disconnected pens',()=>{
   expect(Object.values(STOCK_VOLUME)).toEqual([4,3,2,1]);
@@ -62,6 +63,24 @@ it('builds an enclosure, changes its entrance, leads an animal, milks and hauls 
   wildlife.mockReturnValue([wild,{...wild,x:9}]);
   expect(sim.command({action:'herdAnimal',id:result.id,kind:'cow'}).message).toContain('容量不足');
   expect(pen().animals.length).toBe(1);
+  until(()=>pen().animals[0]?.state==='leading');
+  const branch=new ColonySimulation(world);branch.load(sim.serialize());
+  const active=branch.snapshot().jobs.find(j=>j.type==='herd')!;
+  expect(branch.command({action:'designate',kind:'pasture',x:12,z:8,w:3,d:4}).ok).toBe(true);
+  branch.load(branch.serialize());
+  let arrived=false;
+  for(let n=0;n<2000&&!arrived;n++){
+    branch.tick(.25);
+    const state=branch.snapshot(),animal=state.zones.find(z=>z.id===result.id)!.pasture!.animals[0]!;
+    expect(animal.id).toBe(active.targetId);
+    expect(state.buildings.some(b=>b.complete&&b.kind==='fence'&&b.x===animal.x&&b.z===animal.z)).toBe(false);
+    const orders=state.jobs.filter(j=>j.type==='herd');
+    arrived=animal.state==='home';
+    expect(orders.map(j=>j.id)).toEqual(arrived?[]:[active.id]);
+  }
+  const stalled=branch.snapshot();
+  expect(arrived,JSON.stringify({animals:stalled.zones.find(z=>z.id===result.id)?.pasture,wood:stalled.resources.wood,
+    jobs:stalled.jobs.map(j=>[j.label,j.state]),worker:stalled.colonists[0]?.task})).toBe(true);
   until(()=>pen().animals[0]?.state==='home');sim.load(sim.serialize());
   expect(sim.snapshot().jobs.some(j=>j.type==='husbandry')).toBe(false);
   const machine=sim.command({action:'build',kind:'milker',x:18,z:10});
@@ -84,3 +103,46 @@ it('builds an enclosure, changes its entrance, leads an animal, milks and hauls 
   expect(pen().animals.find(a=>a.young)?.readyAt).toBe(0);
   expect(pen().animals.find(a=>!a.young)!.readyAt).toBeGreaterThan(sim.simulationTime);
 },60000);
+
+it('restores a shared edge from a legacy save, preserves private fixtures, and resumes each demolition once',()=>{
+  const file=JSON.parse(readFileSync(new URL('../../../docs/pasture-harvest-04-qa-2026-11-27/pasture-final-save.json',import.meta.url),'utf8'));
+  const sim=new ColonySimulation(VoxelWorld.deserialize(file.voxel)), s=file.colony;
+  const original=s.zones.find((z:any)=>z.pasture);
+  const added={...original,id:'legacy-neighbour',z:16,w:8,d:4,pasture:{gate:[22,16],animals:[]}};
+  s.zones.push(added);
+  const template=s.buildings.find((b:any)=>b.kind==='fence');
+  for(const [x,z] of pastureLayout(added).border)
+    s.buildings.push({...template,id:'legacy-'+x+'-'+z,x,z,kind:x===22&&z===16?'pastureGate':'fence',rotation:0});
+  const privateFence={...template,id:'player-fence',x:25,z:24};
+  s.buildings.push(privateFence);
+  const oldGate=s.buildings.find((b:any)=>b.x===22&&b.z===20).id;
+  const interior=s.buildings.filter((b:any)=>b.x>19&&b.x<26&&(b.z===19||b.z===20));
+  const before=s.resources.wood;
+  const check=()=>{
+    const c=sim.snapshot(),zones=c.zones.filter(z=>z.pasture),p=zones[0]!.pasture!;
+    expect(zones).toHaveLength(1);
+    expect(p.animals.map(({readyAt,...a})=>a)).toEqual(original.pasture.animals.map(({readyAt,...a}:typeof p.animals[number])=>a));
+    expect(p.gate).toEqual([22,16]);
+    expect(c.buildings.some(b=>b.id===privateFence.id)).toBe(true);
+    expect(c.buildings.filter(b=>b.kind==='milker'||b.kind==='henNest')).toHaveLength(2);
+    expect(c.resources.wood).toBe(before);
+    return c;
+  };
+  sim.load(s);
+  const pending=check().jobs.filter(j=>j.type==='demolish');
+  expect(pending.map(j=>j.targetId).sort()).toEqual(interior.map((b:any)=>b.id).sort());
+  expect(pending.some(j=>j.targetId===oldGate)).toBe(true);
+  const empty:any=sim.serialize();empty.zones.find((z:any)=>z.pasture).pasture.animals=[];
+  const cancelSim=new ColonySimulation(VoxelWorld.deserialize(file.voxel));cancelSim.load(empty);
+  expect(cancelSim.command({action:'cancel',id:original.id}).ok).toBe(true);
+  expect(cancelSim.snapshot().jobs.filter(j=>j.type==='demolish')).toEqual([]);
+  expect(cancelSim.snapshot().buildings.map(b=>b.id)).toEqual(empty.buildings.map((b:any)=>b.id));
+  sim.load(sim.serialize());expect(check().jobs.filter(j=>j.type==='demolish')).toEqual(pending);
+  sim.command({action:'speed',value:1});
+  for(let i=0;i<2400&&sim.snapshot().jobs.some(j=>j.type==='demolish');i++)sim.tick(.25);
+  const done=check();
+  expect(done.jobs.filter(j=>j.type==='demolish')).toHaveLength(0);
+  expect(done.items.filter(i=>i.resource==='building:fence'||i.resource==='building:pastureGate').reduce((n,i)=>n+i.amount,0)
+    -s.items.filter((i:any)=>i.resource==='building:fence'||i.resource==='building:pastureGate').reduce((n:number,i:any)=>n+i.amount,0)).toBe(interior.length);
+  sim.load(sim.serialize());expect(check().zones.find(z=>z.pasture)?.pasture?.capacity).toBe(45);
+});

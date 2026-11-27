@@ -1,0 +1,1159 @@
+{
+  "schemaVersion": "1.0.0",
+  "passed": true,
+  "root": "C:\\Users\\26853\\AppData\\Local\\Temp\\materials17-2cbae1",
+  "script": "scripts\\task-materials-playthrough.mjs",
+  "outputDir": "C:\\Users\\26853\\AppData\\Local\\Temp\\materials17-2cbae1\\artifacts\\play\\scripts\\task-materials-playthrough",
+  "report": "C:\\Users\\26853\\AppData\\Local\\Temp\\materials17-2cbae1\\artifacts\\play\\scripts\\task-materials-playthrough\\play.json",
+  "captureReport": "C:\\Users\\26853\\AppData\\Local\\Temp\\materials17-2cbae1\\artifacts\\play\\scripts\\task-materials-playthrough\\capture.json",
+  "url": "http://localhost:57378/",
+  "backend": "hardware",
+  "timings": {
+    "openMs": 263043,
+    "readyMs": 64524,
+    "scriptMs": 265387,
+    "verifyMs": 1853,
+    "totalMs": 595771
+  },
+  "steps": [
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 80
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 70
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 92
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 85
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 78
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 115
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 100
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 100
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 109
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 77
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 101
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 82
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 70
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 107
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 87
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 112
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 98
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 83
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 91
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 91
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 79
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 73
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 71
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 79
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 84
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 86
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 74
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "final",
+      "path": "C:\\Users\\26853\\AppData\\Local\\Temp\\materials17-2cbae1\\artifacts\\play\\scripts\\task-materials-playthrough\\01-final.png",
+      "rendered": true,
+      "digest": "sha256:24805814418ec7b8ee7470a99e49ad721b0fd03d312eb297a6b489f7f6b4f32b"
+    }
+  ],
+  "viewports": [
+    "1280x720"
+  ],
+  "layout": [],
+  "state": {
+    "seed": "森屿-缺料账目",
+    "generatorVersion": 2,
+    "selected": 5,
+    "mode": "build",
+    "tool": "inspect",
+    "crop": "cabbage",
+    "colony": {
+      "version": 1,
+      "speed": 0,
+      "time": 120,
+      "day": 1,
+      "hour": 8,
+      "season": "春季",
+      "weather": "晴朗",
+      "temperature": 22,
+      "resources": {
+        "wood": 22,
+        "stone": 0,
+        "steel": 0,
+        "food": 0,
+        "meal": 0,
+        "medicine": 0,
+        "cloth": 0,
+        "silver": 0,
+        "components": 0,
+        "wheat": 0,
+        "corn": 0,
+        "blueberry": 0,
+        "sugarcane": 0,
+        "cabbage": 0,
+        "leek": 0,
+        "potato": 0,
+        "tomato": 6,
+        "cabbageSeed": 0,
+        "tomatoSeed": 0,
+        "sugarcaneSeed": 0,
+        "wheatSeed": 0,
+        "potatoSeed": 0,
+        "leekSeed": 0,
+        "cornSeed": 0,
+        "friedEgg": 0,
+        "bread": 0,
+        "salad": 0,
+        "pasta": 0,
+        "pancake": 0,
+        "blueberryPie": 0,
+        "pizza": 0,
+        "perfectBreakfast": 0,
+        "lambChopStew": 0,
+        "sugar": 0,
+        "flour": 1,
+        "oil": 0,
+        "blueberryWine": 0,
+        "cheese": 0,
+        "milk": 0,
+        "egg": 0,
+        "wool": 0,
+        "chickenMeat": 0,
+        "mutton": 0,
+        "beef": 0,
+        "pork": 0,
+        "dirt": 0,
+        "pigIron": 0,
+        "plank": 0,
+        "stoneBrick": 10
+      },
+      "playerBag": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "controlledColonistId": null,
+      "chests": [],
+      "colonists": [
+        {
+          "id": "colonist-21",
+          "name": "林夏",
+          "traits": [
+            "勤劳",
+            "巧手"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 9,
+            "grow": 6,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 4,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 1,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 0,
+            "cook": 1,
+            "chop": 0,
+            "mine": 1,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "day",
+          "position": [
+            26.5,
+            6,
+            26.5
+          ],
+          "health": 100,
+          "hunger": 100,
+          "rest": 100,
+          "recreation": 100,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.78,
+            0.44,
+            0.25
+          ],
+          "carrying": {},
+          "bag": [
+            {
+              "resource": "hammer",
+              "count": 1
+            },
+            {
+              "resource": "axe",
+              "count": 1
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-22",
+          "name": "阿澈",
+          "traits": [
+            "体贴",
+            "乐观"
+          ],
+          "skills": {
+            "terraform": 2,
+            "construct": 2,
+            "grow": 3,
+            "harvest": 6,
+            "haul": 3,
+            "cook": 8,
+            "chop": 3,
+            "mine": 3,
+            "research": 7,
+            "doctor": 7,
+            "craft": 4
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 1,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 0,
+            "cook": 1,
+            "chop": 0,
+            "mine": 1,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "day",
+          "position": [
+            26.5,
+            6,
+            27.5
+          ],
+          "health": 100,
+          "hunger": 100,
+          "rest": 100,
+          "recreation": 100,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.29,
+            0.54,
+            0.69
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-23",
+          "name": "青禾",
+          "traits": [
+            "园艺爱好者",
+            "好学"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 5,
+            "grow": 9,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 8,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 1,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 0,
+            "cook": 1,
+            "chop": 0,
+            "mine": 1,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "day",
+          "position": [
+            26.5,
+            6,
+            28.5
+          ],
+          "health": 100,
+          "hunger": 100,
+          "rest": 100,
+          "recreation": 100,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.55,
+            0.66,
+            0.32
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        }
+      ],
+      "buildings": [
+        {
+          "id": "building-16",
+          "kind": "stove",
+          "x": 30,
+          "y": 6,
+          "z": 26,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-38",
+          "kind": "campfire",
+          "x": 19,
+          "y": 6,
+          "z": 19,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null,
+          "terrainPlanId": "terrain-39",
+          "blockedReason": "等待建筑材料"
+        },
+        {
+          "id": "building-41",
+          "kind": "forgery",
+          "x": 20,
+          "y": 6,
+          "z": 19,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null,
+          "terrainPlanId": "terrain-42",
+          "blockedReason": "等待建筑材料"
+        },
+        {
+          "id": "building-44",
+          "kind": "extractionStation",
+          "x": 21,
+          "y": 6,
+          "z": 19,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null,
+          "terrainPlanId": "terrain-45",
+          "mining": {
+            "resource": "stone",
+            "remaining": 24,
+            "status": "等待可用石镐 · 给采矿居民装备石镐，或将石镐放入木箱"
+          }
+        }
+      ],
+      "zones": [
+        {
+          "id": "zone-1",
+          "kind": "stockpile",
+          "x": 17,
+          "y": 6,
+          "z": 21,
+          "w": 9,
+          "d": 9,
+          "crop": "cabbage"
+        }
+      ],
+      "crops": [],
+      "warehouseStacks": [
+        {
+          "x": 17,
+          "z": 21,
+          "slot": 0,
+          "resource": "wood",
+          "count": 22
+        },
+        {
+          "x": 18,
+          "z": 21,
+          "slot": 0,
+          "resource": "stoneBrick",
+          "count": 10
+        },
+        {
+          "x": 19,
+          "z": 21,
+          "slot": 0,
+          "resource": "tomato",
+          "count": 6
+        },
+        {
+          "x": 19,
+          "z": 21,
+          "slot": 0,
+          "resource": "flour",
+          "count": 1
+        }
+      ],
+      "items": [
+        {
+          "id": "qa-loose-stone",
+          "resource": "stone",
+          "amount": 2,
+          "x": 26,
+          "y": 6,
+          "z": 26,
+          "age": 10,
+          "reservedBy": null
+        }
+      ],
+      "jobs": [],
+      "rooms": [],
+      "guideHousing": {
+        "npcId": "guide",
+        "status": "camp",
+        "position": [
+          27.5,
+          6,
+          27.5
+        ],
+        "roomId": null,
+        "bedId": null,
+        "comfort": 0,
+        "cleanliness": 0,
+        "quality": 0,
+        "buyFactor": 1,
+        "recycleFactor": 1
+      },
+      "specialistMarket": {
+        "flags": {},
+        "events": [],
+        "merchants": [
+          {
+            "id": "chef",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "tailor",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "cheesemaker",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "blacksmith",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          }
+        ],
+        "availableRooms": []
+      },
+      "research": {
+        "active": null,
+        "progress": {},
+        "completed": []
+      },
+      "power": {
+        "generation": 0,
+        "demand": 0,
+        "stored": 0,
+        "capacity": 0,
+        "supplied": 0,
+        "coldStorage": false
+      },
+      "events": [
+        {
+          "id": "event-26",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "三位旅人抵达河谷。和平营地已建立：先种田、搬运物资，再安排研究与建设。"
+        },
+        {
+          "id": "event-40",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "已规划篝火，地基整平后再施工。"
+        },
+        {
+          "id": "event-43",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "已规划锻造台，地基整平后再施工。"
+        },
+        {
+          "id": "event-47",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "已规划采集站，地基整平后再施工。"
+        }
+      ],
+      "metrics": {
+        "jobsCompleted": 0,
+        "built": 0,
+        "harvested": 0,
+        "hauled": 0,
+        "cooked": 0,
+        "researched": 0,
+        "treated": 0,
+        "spoiled": 0,
+        "distanceWalked": 0
+      },
+      "selectedColonistId": null,
+      "terrainPlans": [
+        {
+          "id": "terrain-39",
+          "target": 6,
+          "remainingCut": 0,
+          "remainingFill": 0,
+          "progress": 1,
+          "state": "completed",
+          "buildingId": "building-38",
+          "cells": [
+            [
+              19,
+              19
+            ]
+          ]
+        },
+        {
+          "id": "terrain-42",
+          "target": 6,
+          "remainingCut": 0,
+          "remainingFill": 0,
+          "progress": 1,
+          "state": "completed",
+          "buildingId": "building-41",
+          "cells": [
+            [
+              20,
+              19
+            ]
+          ]
+        },
+        {
+          "id": "terrain-45",
+          "target": 6,
+          "remainingCut": 0,
+          "remainingFill": 0,
+          "progress": 1,
+          "state": "completed",
+          "buildingId": "building-44",
+          "cells": [
+            [
+              21,
+              19
+            ]
+          ]
+        }
+      ]
+    },
+    "blocks": 15722,
+    "nonAirCount": 15722,
+    "minerals": {
+      "steelOre": {
+        "cells": 0
+      },
+      "stoneDeposit": {
+        "cells": 1
+      }
+    },
+    "edits": 1,
+    "editCount": 1,
+    "revision": 2,
+    "manualCropEdits": 0,
+    "mapToolReturn": 0,
+    "planningGridVisible": false,
+    "zonePreview": null,
+    "undo": false,
+    "redo": false,
+    "hoverCell": null,
+    "status": "已恢复地图、居民、任务和生产进度",
+    "lastEdit": null,
+    "buildRotation": 0,
+    "selectedBuildingId": null,
+    "hoverBuildingId": null,
+    "hoverBuildingPart": null,
+    "selectedTreeId": null,
+    "hoverTreeId": null,
+    "hoverTreePart": null,
+    "trees": [
+      {
+        "id": "tree:24:4",
+        "x": 24,
+        "y": 7,
+        "z": 4,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 1,
+        "rotation": 3
+      },
+      {
+        "id": "tree:29:43",
+        "x": 29,
+        "y": 9,
+        "z": 43,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 2,
+        "rotation": 1
+      },
+      {
+        "id": "tree:29:8",
+        "x": 29,
+        "y": 6,
+        "z": 8,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 0,
+        "rotation": 0
+      },
+      {
+        "id": "tree:3:13",
+        "x": 3,
+        "y": 7,
+        "z": 13,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 1,
+        "rotation": 3
+      },
+      {
+        "id": "tree:3:28",
+        "x": 3,
+        "y": 9,
+        "z": 28,
+        "trunkHeight": 3,
+        "crownRadius": 2,
+        "variant": 0,
+        "rotation": 2
+      },
+      {
+        "id": "tree:3:38",
+        "x": 3,
+        "y": 6,
+        "z": 38,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 0,
+        "rotation": 1
+      },
+      {
+        "id": "tree:3:43",
+        "x": 3,
+        "y": 8,
+        "z": 43,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 0,
+        "rotation": 2
+      },
+      {
+        "id": "tree:33:44",
+        "x": 33,
+        "y": 6,
+        "z": 44,
+        "trunkHeight": 3,
+        "crownRadius": 2,
+        "variant": 1,
+        "rotation": 2
+      },
+      {
+        "id": "tree:34:39",
+        "x": 34,
+        "y": 8,
+        "z": 39,
+        "trunkHeight": 3,
+        "crownRadius": 2,
+        "variant": 1,
+        "rotation": 2
+      },
+      {
+        "id": "tree:39:9",
+        "x": 39,
+        "y": 9,
+        "z": 9,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 1,
+        "rotation": 3
+      },
+      {
+        "id": "tree:4:34",
+        "x": 4,
+        "y": 6,
+        "z": 34,
+        "trunkHeight": 3,
+        "crownRadius": 2,
+        "variant": 2,
+        "rotation": 3
+      },
+      {
+        "id": "tree:44:13",
+        "x": 44,
+        "y": 9,
+        "z": 13,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 1,
+        "rotation": 1
+      },
+      {
+        "id": "tree:44:19",
+        "x": 44,
+        "y": 6,
+        "z": 19,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 1,
+        "rotation": 3
+      },
+      {
+        "id": "tree:44:28",
+        "x": 44,
+        "y": 8,
+        "z": 28,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 2,
+        "rotation": 3
+      },
+      {
+        "id": "tree:44:9",
+        "x": 44,
+        "y": 11,
+        "z": 9,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 2,
+        "rotation": 2
+      },
+      {
+        "id": "tree:8:14",
+        "x": 8,
+        "y": 8,
+        "z": 14,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 0,
+        "rotation": 0
+      },
+      {
+        "id": "tree:8:28",
+        "x": 8,
+        "y": 8,
+        "z": 28,
+        "trunkHeight": 4,
+        "crownRadius": 2,
+        "variant": 2,
+        "rotation": 2
+      }
+    ],
+    "treeModel": {
+      "revision": 2,
+      "instances": 17,
+      "meshes": 6,
+      "materials": 2,
+      "selectedTreeId": null,
+      "triangles": 3706,
+      "uniqueTriangles": 1308,
+      "models": [
+        {
+          "key": "4:2:1",
+          "instances": 5,
+          "triangles": 218
+        },
+        {
+          "key": "4:2:2",
+          "instances": 4,
+          "triangles": 218
+        },
+        {
+          "key": "4:2:0",
+          "instances": 4,
+          "triangles": 218
+        },
+        {
+          "key": "3:2:0",
+          "instances": 1,
+          "triangles": 218
+        },
+        {
+          "key": "3:2:1",
+          "instances": 2,
+          "triangles": 218
+        },
+        {
+          "key": "3:2:2",
+          "instances": 1,
+          "triangles": 218
+        }
+      ]
+    },
+    "wildPlants": {
+      "daisy": 11,
+      "poppy": 4,
+      "lavender": 8,
+      "marigold": 9,
+      "hairgrass": 39,
+      "foxtail": 7,
+      "blueberry": 4
+    },
+    "wildAnimals": {
+      "chicken": 0,
+      "cow": 1,
+      "sheep": 1,
+      "pig": 1
+    },
+    "characters": {
+      "residents": [
+        {
+          "id": "colonist-21",
+          "outfit": 6,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-22",
+          "outfit": 7,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-23",
+          "outfit": 8,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "merchants": [
+        {
+          "id": "guide",
+          "position": [
+            27.5,
+            6,
+            27.5
+          ],
+          "outfit": 1,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "player": null
+    },
+    "placementPreview": null,
+    "camera": {
+      "target": [
+        27.5,
+        5,
+        27.5
+      ],
+      "eye": [
+        50.17295237129021,
+        39.3638539971641,
+        50.17295237129021
+      ],
+      "distance": 47,
+      "yaw": 0.7853981633974483,
+      "pitch": 0.82,
+      "overhead": false,
+      "sunShadows": "auto",
+      "shadowDistance": 100,
+      "mode": "god",
+      "followId": null
+    },
+    "player": null,
+    "chunks": 4,
+    "dimensions": [
+      48,
+      24,
+      48
+    ],
+    "worldSize": [
+      48,
+      24,
+      48
+    ],
+    "terrain": {
+      "target": 6,
+      "size": 3,
+      "shape": "brush",
+      "sample": false,
+      "preview": {
+        "cells": 0,
+        "cut": 0,
+        "fill": 0
+      },
+      "minHeight": 1,
+      "maxHeight": 22
+    },
+    "buildHeight": null,
+    "pcg": {
+      "resolution": 16,
+      "version": 2,
+      "revision": 2,
+      "tiles": 0,
+      "pendingTiles": 0,
+      "facades": 0,
+      "windowGroups": 0,
+      "layout": {
+        "version": 2,
+        "groups": []
+      },
+      "windows": 0,
+      "sills": 0,
+      "sidewalks": 0,
+      "stairs": 0,
+      "triangles": 0,
+      "rebuiltTiles": [
+        "3,3",
+        "4,3",
+        "2,2",
+        "3,2"
+      ],
+      "features": []
+    },
+    "finaleFade": 0
+  },
+  "execution": "healthy",
+  "errors": {
+    "console": [],
+    "page": [],
+    "inputWarnings": 0
+  },
+  "log": []
+}

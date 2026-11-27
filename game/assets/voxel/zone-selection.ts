@@ -1,3 +1,4 @@
+import { raycastTree } from './tree-interaction.ts';
 import type { ZoneCell } from '../colony/zone-cells.ts';
 import type { VoxelWorld } from './model.ts';
 
@@ -29,50 +30,43 @@ export function mapProjection(eye: Point, target: Point, aspect: number, tanHalf
   return { direction, project };
 }
 
-/** Coordinates are fractions of the game viewport. A drag includes visible tile centers. */
-export function selectZone(world: VoxelWorld, eye: Point, target: Point, aspect: number, tanHalfFov: number,
-  gesture: ZoneGesture, blocker: (x:number,z:number) => string | null): ZoneSelection {
-  const {direction, project} = mapProjection(eye, target, aspect, tanHalfFov);
+
+export function isMarqueeTool(tool:string) {
+  return tool==='zone:farm' || tool==='zone:stockpile' || tool==='zone:pasture' || tool==='chop';
+}
+
+/** The overhead camera shows +X to the right and +Z down. Height never shifts a tile. */
+export function zoneFace(x:number,z:number,target:Point,halfHeight:number,aspect:number,blocked:boolean):ZoneSelection['faces'][number] {
+  const project=(cx:number,cz:number):ScreenPoint=>[.5+(cx-target[0])/(2*halfHeight*aspect),.5+(cz-target[2])/(2*halfHeight)];
+  return {blocked,corners:[project(x+.04,z+.04),project(x+.96,z+.04),project(x+.96,z+.96),project(x+.04,z+.96)]};
+}
+
+export function selectZone(world:VoxelWorld, target:Point, halfHeight:number, aspect:number,
+  gesture:ZoneGesture, blocker:(x:number,z:number)=>string|null, treesOnly=false):ZoneSelection {
+  const width=2*halfHeight*aspect, depth=2*halfHeight;
+  const ground=([u,v]:ScreenPoint):ScreenPoint=>[target[0]+(u-.5)*width,target[2]+(v-.5)*depth];
   const result:ZoneSelection={cells:[],invalid:[],faces:[]};
-  const add=(x:number,y:number,z:number)=>{
-    const blocked=!!blocker(x,z);
+  const add=(x:number,z:number)=>{
+    const blocked=!treesOnly && !!blocker(x,z);
     result.cells.push([x,z]);
     if(blocked) result.invalid.push([x,z]);
-    result.faces.push({blocked,corners:[project(x+.04,y,z+.04),project(x+.96,y,z+.04),
-      project(x+.96,y,z+.96),project(x+.04,y,z+.96)]});
+    result.faces.push(zoneFace(x,z,target,halfHeight,aspect,blocked));
   };
-  const [ax,ay]=gesture.start, [bx,by]=gesture.end;
+  const [bx,bz]=ground(gesture.end);
   if(!gesture.dragged){
-    const hit=world.raycast(eye,direction(bx,by),1200);
-    if(hit) add(hit.cell[0],world.surfaceHeight(hit.cell[0],hit.cell[2])+1,hit.cell[2]);
+    const x=Math.floor(bx), z=Math.floor(bz);
+    if(!world.inBounds(x,0,z)) return result;
+    if(treesOnly){
+      const hit=raycastTree(world.treesInColumn(x,z),[bx,world.height+1,bz],[0,-1,0]);
+      if(hit) add(hit.tree.x,hit.tree.z);
+    }else add(x,z);
     return result;
   }
-  const left=Math.min(ax,bx), right=Math.max(ax,bx), top=Math.min(ay,by), bottom=Math.max(ay,by);
-  // Clip the selection frustum to the world's vertical extent before testing columns.
-  const boundsX:number[]=[], boundsZ:number[]=[];
-  for(const sx of [left,right]) for(const sy of [top,bottom]){
-    const d=direction(sx,sy);
-    for(const y of [0,world.height]){
-      const t=Math.abs(d[1])<1e-8 ? 1200 : Math.max(0,Math.min(1200,(y-eye[1])/d[1]));
-      boundsX.push(eye[0]+t*d[0]); boundsZ.push(eye[2]+t*d[2]);
-    }
-    if(d[1]>=0 && eye[1]<world.height){
-      boundsX.push(eye[0]+1200*d[0]); boundsZ.push(eye[2]+1200*d[2]);
-    }
-  }
-  // A rectangle crossing the horizon may reach the far map edge.
-  const horizon = direction(left,top)[1]>=0 && direction(left,bottom)[1]<0;
-  const minX=horizon?0:Math.max(0,Math.floor(Math.min(...boundsX)));
-  const maxX=horizon?world.width-1:Math.min(world.width-1,Math.ceil(Math.max(...boundsX)));
-  const minZ=horizon?0:Math.max(0,Math.floor(Math.min(...boundsZ)));
-  const maxZ=horizon?world.depth-1:Math.min(world.depth-1,Math.ceil(Math.max(...boundsZ)));
-  for(let z=minZ;z<=maxZ;z++) for(let x=minX;x<=maxX;x++){
-    const y=world.surfaceHeight(x,z)+1;
-    if(y<=0) continue;
-    const [sx,sy]=project(x+.5,y,z+.5);
-    if(sx<left || sx>right || sy<top || sy>bottom) continue;
-    const hit=world.raycast(eye,[x+.5-eye[0],y-eye[1],z+.5-eye[2]],1200);
-    if(hit?.cell[0]===x && hit.cell[2]===z) add(x,y,z);
+  const [ax,az]=ground(gesture.start);
+  const x0=Math.max(0,Math.ceil(Math.min(ax,bx)-.5)), x1=Math.min(world.width-1,Math.floor(Math.max(ax,bx)-.5));
+  const z0=Math.max(0,Math.ceil(Math.min(az,bz)-.5)), z1=Math.min(world.depth-1,Math.floor(Math.max(az,bz)-.5));
+  for(let z=z0;z<=z1;z++) for(let x=x0;x<=x1;x++){
+    if(!treesOnly || world.treeAtColumn(x,z)) add(x,z);
   }
   return result;
 }
