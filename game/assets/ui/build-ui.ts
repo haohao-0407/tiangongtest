@@ -1,11 +1,17 @@
+import { STOCK_NAMES, stockVolume } from '../colony/pasture.ts';
+import { mountZoneMarquee } from './zone-marquee.ts';
+import { renderMarketCalendar } from './market-calendar.ts';
+import { createGuideShop } from './guide-shop.ts';
+import type { MerchantId } from '../colony/contracts.ts';
+import { STORAGE_CLASSES } from '../colony/contracts.ts';
 import type { GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
   BUILDING_DEFS, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS, SHELF_BAYS, STORAGE_QUARTERS,
-  CROP_DEFS, CROP_KINDS, CROP_SEEDS, CROP_TYPES, DEFAULT_CROP, DISH_TYPES, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, cropPlantingItem, cropForPlantingItem, inventorySpace, isCropSeed, isResource, isSupplyType, itemName, workPercent,
+  coldEffect, premiumCount, coldSaleValue, RESOURCE_PRICES, CROP_DEFS, CROP_KINDS, CROP_SEEDS, CROP_TYPES, DEFAULT_CROP, DISH_TYPES, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, cropPlantingItem, cropForPlantingItem, inventorySpace, isCropSeed, isResource, isSupplyType, itemName, workPercent,
   type ColonyCommand, type ColonySnapshot, type CropSeed, type CropType, type DishType, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource, type SupplyType, type MapToolMenu,
 } from '../colony/contracts.ts';
-import { buildingDimensions } from '../colony/buildings.ts';
+import { buildingDimensions, buildingSealsRoom, isSwingDoor } from '../colony/buildings.ts';
 import { packageSize, warehouseSlotContents } from '../colony/warehouse.ts';
 import { PLAZA_RECIPE } from '../colony/plaza.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
@@ -46,7 +52,7 @@ const BUILD_ICONS: Record<string, string> = {
   chest: '▣', bedroll: '▭', doubleBed: '▬', chair: 'ᑎ', stool: '⊓', shelf: '▤', planter: '❦', painting: '▣', sculpture: '♜', vase: '⌂',
   campfire: '🔥', campfirePlaza: '🔥', torch: '🕯', floorLamp: '💡', chandelier: '✦',
   // 生产
-  campStove: '♨', stoneCutter: '◧', forgery: '⚒', fabricator: '⚙', tailorBench: '✂', pickleBarrel: '◍', brewBarrel: '◉', cheesePress: '◎',
+  campStove: '♨', stoneCutter: '◧', flourMill: '◉', forgery: '⚒', fabricator: '⚙', tailorBench: '✂', pickleBarrel: '◍', brewBarrel: '◉', cheesePress: '◎',
   advancedResearchDesk: '◈', artBench: '✎',
   // 农业
   hydroponics: '❋', sprinkler: '☂', greenhouseWall: '▢', scarecrow: 'ᛉ', compostBin: '♻',
@@ -73,6 +79,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const buildAtlas = ui.resourceUrl('ui/building-icons.png');
     if (!buildAtlas.ok) throw buildAtlas.error;
     buildAtlasUrl = buildAtlas.value;
+    const sugarPressIcon = ui.resourceUrl('ui/sugar-press.png');
+    if (!sugarPressIcon.ok) throw sugarPressIcon.error;
+    itemImages.set('building:sugarPress', sugarPressIcon.value);
     for (const [folder, items] of [['crop-icons', CROP_TYPES], ['dish-icons', DISH_TYPES], ['seed-icons', CROP_SEEDS], ['supply-icons', SUPPLY_TEXTURES]] as const) {
       for (const item of items) {
         const icon = ui.resourceUrl(`ui/${folder}/${item}.png`);
@@ -90,6 +99,14 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const el = doc.createElement(tag); el.className = className; if (text !== undefined) el.textContent = text; return el;
   };
   const buildingCardIcon = (id: keyof typeof BUILDING_DEFS) => {
+    if (id === 'sugarPress') {
+      const icon = make('img', 'building-thumbnail');
+      icon.src = itemImages.get('building:sugarPress')!;
+      icon.alt = '';
+      icon.width = icon.height = 48;
+      return icon;
+    }
+    if(id==='milker'||id==='henNest'||id==='pastureGate') return make('span','building-thumbnail',id==='milker'?'🥛':id==='henNest'?'🥚':'🚪');
     const [column, row] = buildingIcons.tiles[id]!;
     const { columns, rows } = buildingIcons;
     const icon = make('span', 'building-thumbnail');
@@ -115,7 +132,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   let lastSaveTime = -Infinity, lastSavedSim = 0, lastSavedStamp = '', latestStamp = '', savingStamp = '', savingSim = 0;
   let lastSelectedFromWorld: string | null = null, lastSelectedBuilding: string | null = null, pendingLoadAt = 0;
   const send = (action: string, data: Record<string, unknown> = {}) => port?.postMessage({ type: 'voxel:command', action, ...data });
+  const zoneMarquee=mountZoneMarquee(shadow.querySelector<HTMLElement>('.shell')!,send);
+  releases.push(()=>zoneMarquee.dispose());
   const colonyCommand = (command: ColonyCommand) => send('colony', { command });
+  const portrait = ui.resourceUrl('ui/guide-portrait.png');
+  if (!portrait.ok) { ui.dispose(); throw portrait.error; }
+  const guideShop = createGuideShop(doc, portrait.value, itemIcon, ()=>renderPanel(true), colonyCommand);
   const saySave = (text: string) => { get('save-status').textContent = text; get('quick-save').textContent = text; };
   const button = (text: string, testId: string, command?: ColonyCommand, className = '') => {
     const b = make('button', className, text); b.type = 'button'; b.dataset.testid = testId;
@@ -277,13 +299,13 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   });
 
   const showTool = (tool: string) => {
-    const hints: Record<string, string> = { inspect: '查看模式 · 左键选中村民，按 R 附身', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '拆除任务 · 点击设施任一部分，居民按建造优先级接单', 'zone:farm': '农田规划 · 左键划定 3 × 3 种植区', 'zone:stockpile': '仓储规划 · 左键划定 3 × 3 仓储区', chop: '伐木规划 · 点击树干或树冠，安排整棵砍伐', mine: '采矿规划 · 点击地表铁矿或石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
+    const hints: Record<string, string> = { inspect: '查看模式 · 左键选中村民，按 R 附身', interact: '门交互 · 点击门的任一部分开关 · 关门阻挡通行', demolish: '拆除任务 · 点击设施任一部分，居民按建造优先级接单', 'zone:pasture': '牧场规划 · 拖框选地，外圈留给围栏', 'pasture-gate':'点击牧场外围栏，指定新门位', 'zone:farm': '农田规划 · 拖框划定种植区 · 单击一格', 'zone:stockpile': '仓储规划 · 拖框划定地面仓储 · 单击一格', chop: '伐木规划 · 点击树干或树冠，安排整棵砍伐', mine: '采矿规划 · 点击地表铁矿或石块，居民会开采并搬运', harvest: '收获规划 · 点击成熟作物', cancel: '取消规划 · 点击已有蓝图或工作标记', 'place-chest': '木箱 · 左键点击空地放置', 'sandbox:build': '沙盒 · 材料无限 · 左键放置方块', 'sandbox:remove': '沙盒 · 左键拆除 · Ctrl Z / Y 撤销重做' };
     if (state?.selected === 10) hints['sandbox:build'] = '铺设道路 · 左键替换地表 · 路沿与台阶随连接自动更新';
     else if (state?.selected === 6) hints['sandbox:build'] = '砖墙 · 三格起宽、两格高自动排窗组 · 留空作入口 · 增删保留有效窗位';
     const placementHint = mapToolSession?.menu === 'build' ? ' · Ctrl + 左键连续摆放' : '';
     get('tool-hint').textContent = tool === 'level'
       ? `等高整地 · 标高 ${state?.terrain?.target ?? 6} · ${state?.terrain?.shape === 'rectangle' ? '左键拖框' : '左键拖涂'} · 松开提交 · Shift 取样`
-      : tool.startsWith('build:') ? `建造 ${BUILDING_DEFS[tool.slice(6) as keyof typeof BUILDING_DEFS]?.name ?? ''} · R 旋转 ${orientationText(state?.buildRotation)}${placementHint} · ${state?.buildHeight == null ? '取落点标高' : `地基标高 ${state.buildHeight}`}`
+      : tool.startsWith('herd:') ? '点击野外的牛、猪、羊或鸡，居民会将其领入选定的牧场' : tool.startsWith('build:') ? `建造 ${BUILDING_DEFS[tool.slice(6) as keyof typeof BUILDING_DEFS]?.name ?? ''} · R 旋转 ${orientationText(state?.buildRotation)}${placementHint} · ${state?.buildHeight == null ? '取落点标高' : `地基标高 ${state.buildHeight}`}`
         : tool === 'place-chest' ? `木箱 · 左键放置${placementHint}` : hints[tool] ?? '点击地图执行当前规划';
     syncTerrainControls();
   };
@@ -317,6 +339,10 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     mapToolSession = { menu, scrollTop };
     chooseTool(tool, menu);
   };
+  function openGuide(id:MerchantId) {
+    guideShop.open(id);
+    openPanel('guide',false);
+  }
 
   function renderBuild(c: ColonySnapshot, root: HTMLElement) {
     root.append(note('选择建筑后到地图上左键放置。Ctrl + 左键连续摆放，Esc 或右键返回建造面板，R 旋转。'));
@@ -341,6 +367,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     ];
     const grouped = new Map<string, typeof BUILDING_DEFS[keyof typeof BUILDING_DEFS][]>();
     for (const def of Object.values(BUILDING_DEFS)) {
+      if(def.id==='pastureGate')continue;
       const key = (def as { category?: string }).category ?? 'core';
       if (!grouped.has(key)) grouped.set(key, []);
       grouped.get(key)!.push(def);
@@ -383,11 +410,12 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     }
   }
   function renderPlan(c: ColonySnapshot, root: HTMLElement) {
-    root.append(note('选工具后在地图上操作。等高整地可拖涂或框选，松开左键提交。Esc 或右键返回规划面板，农田与仓储每次划定 3 × 3 格。'));
+    root.append(note('选工具后在地图上操作。等高整地可拖涂或框选，松开左键提交。农田与仓储按住左键向任意方向拖框，地格中心入框即选中，松手提交；单击选择一格。红叉表示禁止规划，Esc 或右键取消。'));
     root.append(terrainControls); syncTerrainControls();
     const grid = make('div', 'planning-tools');
     const entries = [
       ['level', '等高整地', '涂抹或框选，将选区填挖到同一标高。', 'tool-level'],
+      ['zone:pasture', '牧场', '框选连通空地，居民沿边缘建围栏并留门。', 'tool-zone-pasture'],
       ['zone:farm', '农田', '每格播种消耗 1 包对应种子。', 'tool-zone-farm'], ['zone:stockpile', '仓储', '搬运散落物资，集中保管。', 'tool-zone-stockpile'],
       ['chop', '伐木', '点击任一部分，整棵砍伐获取木材。', 'tool-chop'], ['mine', '采矿', '地表铁矿产出生铁，普通石块产出石材。', 'tool-mine'],
       ['harvest', '收获', '标记成熟作物。', 'tool-harvest'], ['cancel', '取消规划', '移除未完成的规划或工作。', 'tool-cancel'],
@@ -395,6 +423,22 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     ];
     for (const [tool, name, detail, id] of entries) { const b = toolButton('', tool!, id!); b.append(make('strong', '', name), make('span', '', detail)); grid.append(b); }
     root.append(grid);
+    for(const zone of c.zones){
+      const pen=zone.pasture;
+      if(!pen)continue;
+      const section=make('div','detail-section'),used=pen.animals.reduce((n,a)=>n+stockVolume(a),0);
+      section.append(make('h3','',`牧场（${zone.x}, ${zone.z}） · 容量 ${used} / ${pen.capacity??0}`));
+      section.append(note(`${pen.ready?'围栏完工':'围栏施工中'} · 入口（${pen.gate.join(', ')}）`));
+      const actions=make('div','building-tool-actions');
+      const select=toolButton('在地图选择动物','herd:'+zone.id,'herd-'+zone.id);
+      select.disabled=!pen.ready;
+      const gate=toolButton('更改门位','pasture-gate','gate-'+zone.id);gate.disabled=!pen.ready;
+      actions.append(select,gate);
+      if(!pen.animals.length)actions.append(button('取消牧场','cancel-'+zone.id,{action:'cancel',id:zone.id}));
+      section.append(actions);
+      if(pen.animals.length)section.append(note(pen.animals.map(a=>(a.young?'幼年':'成年')+(a.female?'母':'公')+STOCK_NAMES[a.kind]+(a.state==='home'?'':'（领入中）')).join('、')));
+      root.append(section);
+    }
     const plans = c.terrainPlans ?? [];
     if (plans.length) {
       const section = make('div', 'detail-section'); section.append(make('h3', '', '整地蓝图'));
@@ -429,6 +473,26 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       crops.append(b);
     }
     root.append(crops);
+    const storageZones = c.zones.filter(zone => zone.kind==='stockpile');
+    if (storageZones.length) {
+      const section = make('section','detail-section');
+      section.append(make('h3','','仓储用途'),note('居民优先把物资送入对应的专用仓，余货转送普通仓。改用途只影响后续入库。'));
+      for (const zone of storageZones) {
+        const row = make('label','schedule-row');
+        const name = (zone.shelfId ? '货架' : '地面仓')+'（'+zone.x+'，'+zone.z+'）';
+        const select = make('select','') as HTMLSelectElement;
+        select.dataset.testid = 'storage-class-'+zone.id;
+        select.setAttribute('aria-label',name+'用途');
+        for (const [value,label] of Object.entries(STORAGE_CLASSES)) {
+          const option = make('option','',label) as HTMLOptionElement;
+          option.value=value; select.append(option);
+        }
+        select.value = zone.storageClass ?? 'general';
+        select.addEventListener('change',()=>colonyCommand({action:'storageClass',id:zone.id,value:select.value}));
+        row.append(make('span','',name),select);section.append(row);
+      }
+      root.append(section);
+    }
     const groundZones = c.zones.filter(z => z.kind === 'stockpile' && !z.shelfId).length;
     const shelfZones = c.zones.filter(z => z.shelfId).length;
     const counts = make('p', 'panel-note', `农田 ${c.zones.filter(z => z.kind === 'farm').length} 片 · 地面仓储 ${groundZones} 片 · 储物架 ${shelfZones} 座 · 待执行 ${c.jobs.filter(j => j.state === 'queued').length} · 进行中 ${c.jobs.filter(j => j.state === 'working').length} · 受阻 ${c.jobs.filter(j => j.state === 'blocked').length}`); counts.style.marginTop = '12px'; root.append(counts);
@@ -729,6 +793,18 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const categoryOf = (resource: string) => buildingItemKind(resource) ? 'building'
     : isCropSeed(resource) ? 'seed' : isSupplyType(resource) ? 'supply' : CATEGORY_OF[resource] ?? 'item';
 
+  function showColdEffect(cell: HTMLElement, resource: InventoryItem, count: number) {
+    if (!count) return;
+    const effect = coldEffect(resource);
+    const price = isResource(resource) ? RESOURCE_PRICES[resource] : undefined;
+    const day = state?.colony?.day ?? 0;
+    cell.append(make('span', 'cold-mark', effect));
+    cell.title += ' · ' + count + ' 件' + effect + '，售价 +20%，次日零点失效';
+    if (price !== undefined) cell.title += ' · 加成单价 ' + coldSaleValue(price,1,{premium:{count:1,day}},day) + ' 银币';
+  }
+
+  let refreshWarehouseCards: ((snapshot: ColonySnapshot) => void) | undefined;
+
   function renderWarehouse(c: ColonySnapshot, root: HTMLElement) {
     const recipient=c.colonists.find(person=>person.id===c.selectedColonistId);
     root.append(note(recipient ? '收货村民 '+recipient.name : '先在上帝视角选中要收货的村民。'));
@@ -751,12 +827,34 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const emptyHint = note('没有匹配的物品。');
     root.append(grid, emptyHint);
 
+    const cards = new Map<Resource, { cell: HTMLElement; quantity: HTMLElement; count: number; premium: number }>();
+    const updateCards = (snapshot: ColonySnapshot) => {
+      const quality: Partial<Record<Resource, number>> = {};
+      for (const stack of snapshot.warehouseStacks) {
+        quality[stack.resource] = (quality[stack.resource] ?? 0) + premiumCount(stack, snapshot.day);
+      }
+      for (const [resource, card] of cards) {
+        const count = Math.floor(snapshot.resources[resource]), premium = quality[resource] ?? 0;
+        if (card.count === count && card.premium === premium) continue;
+        card.count = count;
+        card.premium = premium;
+        card.quantity.textContent = String(count);
+        card.quantity.hidden = count === 0;
+        card.cell.title = `${RESOURCE_NAMES[resource]} · ${count}`;
+        const basePrice = RESOURCE_PRICES[resource];
+        if (basePrice !== undefined && count > premium) card.cell.title += ` · 普通单价 ${basePrice} 银币`;
+        card.cell.querySelector('.cold-mark')?.remove();
+        showColdEffect(card.cell, resource, premium);
+      }
+    };
+    refreshWarehouseCards = updateCards;
+
     /** 只重画网格。搜索框不能跟着重建，否则每敲一个字就丢焦点。 */
     const drawGrid = () => {
       const items = RESOURCE_TYPES
         .filter((r) => whCategory === 'all' || categoryOf(r) === whCategory)
         .filter((r) => !whQuery || RESOURCE_NAMES[r].includes(whQuery))
-        .map((r) => ({ kind: r, name: RESOURCE_NAMES[r], count: Math.floor(c.resources[r]) }))
+        .map((r) => ({ kind: r, name: RESOURCE_NAMES[r], count: Math.floor((state?.colony ?? c).resources[r]) }))
         // 照 Unity 的 ChestWindow：按显示名的字典序排，不是按数量。
         // 同名（理论上不会）才拿数量兜底，保证顺序稳定、不会每帧跳。
         .sort((a, b) => {
@@ -765,6 +863,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
           return whDesc ? -result : result;
         });
 
+      cards.clear();
       clear(grid);
       // 固定 7 列，空位补格子，看起来才像一整个仓库面板
       const slots = Math.max(28, Math.ceil(items.length / 7) * 7);
@@ -772,10 +871,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         const item = items[i];
         const cell = make('div', `wh-cell${item ? '' : ' empty'}${item && item.kind === whSelected ? ' selected' : ''}`);
         if (item) {
-          cell.title = `${item.name} · ${item.count}`;
-          cell.append(itemIcon(item.kind, 'wh-icon'));
-          if (item.count > 0) cell.append(make('span', 'wh-count', String(item.count)));
-          cell.append(make('span', 'wh-label', item.name));
+          const quantity = make('span', 'wh-count');
+          cell.append(itemIcon(item.kind, 'wh-icon'), quantity, make('span', 'wh-label', item.name));
+          cards.set(item.kind, { cell, quantity, count: -1, premium: 0 });
           cell.dataset.item = item.kind;
           cell.addEventListener('contextmenu', (event) => {
             event.preventDefault();
@@ -786,6 +884,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         grid.append(cell);
       }
       emptyHint.hidden = items.length > 0;
+      updateCards(state?.colony ?? c);
     };
 
     search.addEventListener('input', () => { whQuery = search.value; drawGrid(); });
@@ -965,6 +1064,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (!stack) return;
     cell.dataset.item = stack.resource;
     cell.title = nameOf(stack.resource) + ' · ' + stack.count;
+    showColdEffect(cell,stack.resource,premiumCount(stack,state?.colony?.day ?? 0));
     cell.append(itemIcon(stack.resource, 'wh-icon'), make('span', 'wh-count', String(stack.count)));
     cell.addEventListener('contextmenu', (event) => {
       event.preventDefault();
@@ -1124,7 +1224,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const player = state?.player;
     const bag = player?.bag ?? [];
     const selected = player?.bagSelected ?? 0;
-    const signature = `${player?.id??''}|${selected}|${bag.map((b: { resource: string; count: number } | null) => (b ? `${b.resource}:${b.count}` : '-')).join(',')}`;
+    const signature = `${player?.id??''}|${selected}|${state?.colony?.day}|${JSON.stringify(bag)}`;
     if (bar.dataset.signature === signature) return;
     bar.dataset.signature = signature;
     clear(bar);
@@ -1149,6 +1249,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         slot.append(itemIcon(res));
         slot.append(make('span', 'hotbar-count', String(item.count)));
         slot.title = `${nameOf(res)} · ${item.count}`;
+        showColdEffect(slot,res,premiumCount(item,state?.colony?.day ?? 0));
         attachInventoryDrag(slot, item, location);
       }
       slot.addEventListener('click', () => { if (!ignoreInventoryClick) send('bagSelect', { index: i }); });
@@ -1167,23 +1268,37 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     if (!panel || !state) return;
     const content = get('panel-content'), focused = shadow.activeElement;
     // A simulation snapshot must not replace a field while the player is typing.
-    if (!force && focused && content.contains(focused) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(focused.tagName)) return;
+    if (!force && focused && content.contains(focused) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(focused.tagName)) {
+      if (panel === 'warehouse' && state.colony) refreshWarehouseCards?.(state.colony);
+      return;
+    }
     const c = state.colony;
     const follower = panel === 'followerBag' ? c?.colonists.find(p => p.id === followerPanelId) : undefined;
-    const stamp = JSON.stringify(panel === 'chest' ? [panel, c?.chests.find(chest => chest.id === chestPanelId)]
-      : panel === 'followerBag' ? [panel, follower && [follower.id, follower.name, follower.task, follower.jobId,
+    const stamp = JSON.stringify(panel === 'guide' ? [panel,c?.resources,c?.day,c?.guideHousing.status,c?.guideHousing.quality,c?.specialistMarket.availableRooms,c?.specialistMarket.events,c?.specialistMarket.merchants.map(m=>[m.id,m.housing?.status,m.housing?.quality]),c?.warehouseStacks.map(s=>s.premium),c?.jobs.filter(j=>j.guideSale),c?.events[0],c?.events.at(-1)]
+      : panel === 'calendar' ? [panel, c?.day, c?.guideHousing.status, c?.specialistMarket.events,
+        c?.specialistMarket.merchants.map(m => [m.id, m.sold, m.status, m.arrivalDay, m.housing?.status])]
+      : panel === 'chest' ? [panel, c?.day, c?.chests.find(chest => chest.id === chestPanelId)]
+      : panel === 'followerBag' ? [panel, c?.day, follower && [follower.id, follower.name, follower.task, follower.jobId,
         Math.round(follower.health), Math.round(follower.stamina), follower.bag, follower.carrying]]
-      : panel === 'warehouse' ? [panel, c?.resources, c?.items.length,c?.warehouseStacks,c?.selectedColonistId,
+      : panel === 'warehouse' ? [panel, c?.day, c?.resources, c?.items.length,c?.warehouseStacks,c?.selectedColonistId,
         c?.jobs.some(job => job.state === 'blocked' && job.label === '等待可达且有空位的仓储区'),c && warehouseDeliveries(c)]
-      : [panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, state.buildHeight, state.buildRotation, state.terrain && [state.terrain.target, state.terrain.size, state.terrain.shape, state.terrain.sample], c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete, b.phase, b.blockedReason, b.rotation, b.doorOpen, percent(b.progress * 100)]), terrainPlans: c.terrainPlans?.map(p => [p.id, p.state, p.remainingCut, p.remainingFill, p.blockedReason]), jobs: c.jobs.map(j => [j.id, j.state, j.label, j.recipe && workPercent(j.progress, j.work)]), zones: c.zones.length, time: Math.floor(c.time) }]);
+      : [panel, currentTool, state.crop, state.selected, state.edits, state.undo, state.redo, state.buildHeight, state.buildRotation, state.terrain && [state.terrain.target, state.terrain.size, state.terrain.shape, state.terrain.sample], c && { resources: c.resources, priorities: c.colonists.map(p => [p.id, p.priorities, p.schedule]), research: c.research, power: c.power, events: c.events.length, buildings: c.buildings.map(b => [b.id, b.complete, b.phase, b.blockedReason, b.rotation, b.doorOpen, percent(b.progress * 100)]), terrainPlans: c.terrainPlans?.map(p => [p.id, p.state, p.remainingCut, p.remainingFill, p.blockedReason]), jobs: c.jobs.map(j => [j.id, j.state, j.label, j.recipe && workPercent(j.progress, j.work)]), zones: panel==='plan'?c.zones.map(z=>[z.id,z.pasture]):c.zones.length, time: Math.floor(c.time) }]);
     if (!force && stamp === lastPanelStamp) return;
     lastPanelStamp = stamp;
     // 随从面板的标题是那个人的名字，不是栏目名
     const followerName = follower?.name;
-    get('panel-title').textContent = followerName ?? MENU_NAMES[panel] ?? '家园管理';
+    get('panel-title').textContent = panel === 'guide' ? guideShop.title(c) : followerName ?? MENU_NAMES[panel] ?? '家园管理';
     const root = get('panel-content'), scrollTop = root.scrollTop; clear(root);
+    refreshWarehouseCards = undefined;
     if (panel === 'sandbox') { renderSandbox(root); root.scrollTop = scrollTop; return; }
     if (!c) { root.append(empty('正在等待居民与世界数据…')); return; }
+    if (panel === 'calendar') {
+      get('panel-title').textContent = '集市日历';
+      renderMarketCalendar(c, root);
+      root.scrollTop = scrollTop;
+      return;
+    }
+    if (panel === 'guide') { guideShop.render(c,root); root.scrollTop=scrollTop; return; }
     ({ build: renderBuild, plan: renderPlan, work: renderWork, production: renderProduction, research: renderResearch, logs: renderLogs, warehouse: renderWarehouse, follower: renderFollower, chest: renderChest, followerBag: renderFollowerBag } as Record<string, (c: ColonySnapshot, root: HTMLElement) => void>)[panel]?.(c, root);
     root.scrollTop = scrollTop;
   }
@@ -1194,8 +1309,8 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const worker = demolition?.assignedTo && c.colonists.find(p => p.id === demolition.assignedTo);
     const progress = demolition ? workPercent(demolition.progress, demolition.work) : 0;
     const stacks = b.kind === 'shelf' && b.complete ? c.warehouseStacks.filter(stack => stack.shelfId === b.id) : null;
-    const cleanliness = c.rooms.find(room => room.id === b.roomId)?.cleanliness;
-    const stamp = JSON.stringify(['building', b, demolition?.id, demolition?.state, worker && worker.name, progress, stacks, cleanliness]);
+    const room = c.rooms.find(candidate => candidate.id === b.roomId);
+    const stamp = JSON.stringify(['building', b, demolition?.id, demolition?.state, worker && worker.name, progress, stacks, room?.cells.length, room?.comfort, room?.cleanliness]);
     if (!force && stamp === lastInspectorStamp) return;
     lastInspectorStamp = stamp;
     get('inspector-kicker').textContent = '整体设施';
@@ -1217,12 +1332,19 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       for (const stack of stacks) totals.set(stack.resource,(totals.get(stack.resource)??0)+stack.count);
       if (totals.size) details.append(note([...totals].map(([resource,count]) => `${nameOf(resource)} × ${count}`).join('、')));
     }
-    if (cleanliness !== undefined) details.append(note(`房间清洁度 ${cleanliness} / 100`));
+    if (room) {
+      details.append(note(`室内 · ${room.cells.length} 格 · 舒适度 ${Math.round(room.comfort)} / 100`));
+      details.append(note(`房间清洁度 ${room.cleanliness} / 100 · 地面散落物和地堆占用的格数会降低清洁度。`));
+    } else if (buildingSealsRoom(b)) {
+      details.append(note('房间边界 · 完工的墙和关闭的门可围成室内空间。'));
+    } else if (b.complete && !isSwingDoor(b.kind)) {
+      details.append(note('室外 · 检查四周的墙和门是否闭合。单个房间最多识别 120 个内侧地格。'));
+    }
     if (b.kind === 'bed' || b.kind === 'medicalBed') details.append(note('床头与床尾共用一座设施，整体建造、使用和拆除。'));
     if (b.kind==='campfirePlaza') details.append(note(plazaIngredients),note('测试阶段 · 以上材料消耗均为 0'));
     if (b.blockedReason) details.append(make('p', 'thought bad', b.blockedReason));
     const actions = make('div', 'building-inspector-actions');
-    if (b.kind === 'door') {
+    if (isSwingDoor(b.kind)) {
       const doorState = make('p', 'door-state', b.complete ? (b.doorOpen ? '门已打开 · 可以通行 · 房间向外开放' : '门已关闭 · 阻挡通行 · 可围合房间') : '施工完成后可以开关门');
       doorState.dataset.testid = 'building-door-state'; details.append(doorState);
       const toggle = button(b.doorOpen ? '关闭门' : '打开门', 'building-toggle-door', { action: 'toggleDoor', id: b.id }, 'primary');
@@ -1456,10 +1578,25 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   } catch { /* Use the default when browser storage is unavailable. */ }
   const message = (event: Event) => {
     const msg = (event as MessageEvent).data;
+    if (msg?.type === 'voxel:closeMerchant') {
+      if (panel==='guide') openPanel('guide');
+      return;
+    }
+    if (msg?.type === 'voxel:openGuide') { openGuide(msg.merchantId); return; }
+    if (msg?.type === 'voxel:guide-receipt') {
+      guideShop.finish(msg.merchantId,msg.ok,msg.message);
+      if (msg.ok) requestSave('auto');
+      return;
+    }
     if (msg?.type === 'voxel:loaded' && typeof msg.data === 'string') {
       pendingLoadAt = 0; lastSavedSim = 0; lastSavedStamp = ''; lastSaveTime = Date.now(); selectedResident = null; selectedBuilding = null; lastSelectedFromWorld = null; lastSelectedBuilding = null;
       get('import-panel').hidden = true; get<HTMLTextAreaElement>('import-json').value = '';
       try { win.localStorage.setItem(SAVE_KEY, msg.data); saySave('家园已载入，自动存档已同步'); } catch { saySave('家园已载入，但本机存储不可用'); }
+      return;
+    }
+    if (msg?.type === 'voxel:zone-preview') {
+      zoneMarquee.preview(msg.sequence,msg.faces,msg.pastureHint);
+      if (zoneMarquee.hint) get('status').textContent=zoneMarquee.hint;
       return;
     }
     if (msg?.type === 'voxel:inventory-status' && typeof msg.message === 'string') {
@@ -1518,6 +1655,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         panel='';get('workspace').hidden=true;hideSidePanels();syncHover();
       }
     }
+    zoneMarquee.setTool(viewMode==='god' && !state.colony?.finale ? state.tool ?? '' : '');
     if (state.tool) { currentTool = state.tool; showTool(currentTool); }
     if ((state.mapToolReturn ?? 0) !== mapToolReturn) {
       mapToolReturn = state.mapToolReturn ?? 0;
@@ -1529,13 +1667,14 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
         get('panel-content').scrollTop = session.scrollTop;
       }
     }
-    get('status').textContent = state.status ?? '选择一项规划，让居民开始工作';
+    get('status').textContent = zoneMarquee.hint || state.status || '选择一项规划，让居民开始工作';
     get('cell').textContent = Array.isArray(state.hoverCell) ? `[ ${state.hoverCell.join(', ')} ]` : '';
     if (state.seed !== lastWorldSeed) { lastWorldSeed = state.seed; get<HTMLInputElement>('seed').value = state.seed; }
     get('world-size').textContent = state.worldSize ? `当前地图 ${state.worldSize[0]} × ${state.worldSize[2]} 格 · 新地图默认 250 × 250` : '新地图默认 250 × 250 格';
     const c = state.colony;
     latestStamp = JSON.stringify([state.seed, state.revision, state.edits, state.manualCropEdits, c && [c.speed, c.buildings.map(b => [b.id, b.complete, b.phase, b.rotation, b.doorOpen]), c.terrainPlans?.map(p => [p.id, p.target, p.cells.length, p.state]), c.zones, c.research.active, c.playerBag, c.bagSelected, c.chests, c.colonists.map(p => [p.id, p.priorities, p.schedule, p.bag,p.bagSelected]),c.jobs.filter(j => j.type === 'demolish' || j.recipe).map(j => [j.id, j.craftPhase]),c.controlledColonistId,state.player&&[state.player.x,state.player.y,state.player.z].map(n=>Math.round(n*10)),warehouseDeliveries(c)]]);
     if (c?.finale) latestStamp+=`/晚会/${c.finale.phase}/${Math.floor(c.finale.elapsed/3)}`;
+    if (c) latestStamp+=JSON.stringify([c.resources,c.jobs.filter(j=>j.guideSale)]);
     updateItemAmount();
     if (c) renderColony(c); else renderPanel();
     if (c) renderHotbar();

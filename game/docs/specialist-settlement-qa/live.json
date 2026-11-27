@@ -1,0 +1,299 @@
+[
+  {
+    "name": "01-last-bread-in-transit",
+    "day": 1,
+    "time": 144.75,
+    "silver": 764,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "chef": {
+      "id": "chef",
+      "sold": 11,
+      "arrivalDay": null,
+      "status": "locked",
+      "housing": null
+    },
+    "order": {
+      "merchantId": "guide",
+      "side": "recycle",
+      "item": "bread",
+      "count": 1,
+      "premium": 0,
+      "total": 64,
+      "delivered": 0,
+      "paid": 0,
+      "inTransit": 1,
+      "lots": [],
+      "transitPremium": 0
+    },
+    "worker": {
+      "position": [
+        5.5,
+        5,
+        10.5
+      ],
+      "task": "到仓位领取面包"
+    },
+    "text": "集市日历\n×\n第 1 天\n今天\n第 2 天\n—\n第 3 天\n—\n第 4 天\n—\n第 5 天\n—\n第 6 天\n—\n第 7 天\n—\n收购公告\n\n这七天暂无收购公告。\n\n来镇消息\n\n向导 · 开局已来镇 · 已安家\n\n我的交货记录\n小麦、番茄、面包、意大利面、蓝莓千层酥\n11 / 12 件\n羊毛、布料\n0 / 6 件\n牛奶、奶酪\n0 / 8 件\n生铁、钢铁\n0 / 12 件"
+  },
+  {
+    "name": "02-chef-arrived",
+    "day": 1,
+    "time": 155,
+    "silver": 828,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "chef": {
+      "id": "chef",
+      "sold": 12,
+      "arrivalDay": 1,
+      "status": "arrived",
+      "housing": {
+        "npcId": "chef",
+        "status": "camp",
+        "position": [
+          21.825000000000003,
+          5,
+          19.5
+        ],
+        "roomId": null,
+        "bedId": null,
+        "comfort": 0,
+        "cleanliness": 0,
+        "quality": 0,
+        "buyFactor": 1,
+        "recycleFactor": 1
+      }
+    },
+    "worker": {
+      "position": [
+        15.5,
+        5,
+        9.875000000000046
+      ],
+      "task": "等待工作 · 散步"
+    },
+    "text": "集市日历\n×\n第 1 天\n今天 · 来镇\n第 2 天\n—\n第 3 天\n—\n第 4 天\n—\n第 5 天\n—\n第 6 天\n—\n第 7 天\n—\n收购公告\n\n这七天暂无收购公告。\n\n来镇消息\n\n向导 · 开局已来镇 · 已安家\n\n厨师 · 第 1 天搬来 · 待安排住所\n\n我的交货记录\n小麦、番茄、面包、意大利面、蓝莓千层酥\n12 / 12 件\n羊毛、布料\n0 / 6 件\n牛奶、奶酪\n0 / 8 件\n生铁、钢铁\n0 / 12 件"
+  },
+  {
+    "name": "03-arrival-reloaded",
+    "day": 1,
+    "time": 155,
+    "silver": 828,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "chef": {
+      "id": "chef",
+      "sold": 12,
+      "arrivalDay": 1,
+      "status": "arrived",
+      "housing": {
+        "npcId": "chef",
+        "status": "camp",
+        "position": [
+          21.825000000000003,
+          5,
+          19.5
+        ],
+        "roomId": null,
+        "bedId": null,
+        "comfort": 0,
+        "cleanliness": 0,
+        "quality": 0,
+        "buyFactor": 1,
+        "recycleFactor": 1
+      }
+    },
+    "worker": {
+      "position": [
+        15.5,
+        5,
+        9.875000000000046
+      ],
+      "task": "等待工作 · 散步"
+    },
+    "text": "集市日历\n×\n第 1 天\n今天 · 来镇\n第 2 天\n—\n第 3 天\n—\n第 4 天\n—\n第 5 天\n—\n第 6 天\n—\n第 7 天\n—\n收购公告\n\n这七天暂无收购公告。\n\n来镇消息\n\n向导 · 开局已来镇 · 已安家\n\n厨师 · 第 1 天搬来 · 待安排住所\n\n我的交货记录\n小麦、番茄、面包、意大利面、蓝莓千层酥\n12 / 12 件\n羊毛、布料\n0 / 6 件\n牛奶、奶酪\n0 / 8 件\n生铁、钢铁\n0 / 12 件"
+  },
+  {
+    "name": "04-expired-in-transit",
+    "day": 7,
+    "time": 2280,
+    "silver": 828,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "chef": {
+      "id": "chef",
+      "sold": 12,
+      "arrivalDay": 1,
+      "status": "arrived",
+      "housing": {
+        "npcId": "chef",
+        "status": "housed",
+        "position": [
+          23.5,
+          5,
+          9.5
+        ],
+        "roomId": null,
+        "bedId": "bed-22-9",
+        "comfort": 49,
+        "cleanliness": 100,
+        "quality": 74.5,
+        "buyFactor": 0.9255,
+        "recycleFactor": 1.0745
+      }
+    },
+    "event": {
+      "id": "chef-5",
+      "merchantId": "chef",
+      "item": "blueberryPie",
+      "announcedDay": 1,
+      "startDay": 5,
+      "endDay": 6,
+      "limit": 5,
+      "remaining": 2
+    },
+    "order": {
+      "merchantId": "chef",
+      "eventId": "chef-5",
+      "side": "recycle",
+      "item": "blueberryPie",
+      "count": 3,
+      "premium": 0,
+      "total": 725,
+      "delivered": 0,
+      "paid": 0,
+      "inTransit": 3,
+      "lots": [],
+      "transitPremium": 0
+    },
+    "worker": {
+      "position": [
+        7.5,
+        5,
+        10.5
+      ],
+      "task": "到仓位领取蓝莓千层酥"
+    },
+    "text": "集市日历\n×\n第 7 天\n今天\n第 8 天\n—\n第 9 天\n1 场收购\n第 10 天\n1 场收购\n第 11 天\n—\n第 12 天\n—\n第 13 天\n—\n收购公告\n村宴备货\n预告\n\n厨师收购蓝莓千层酥 · 基础回收价 ×1.5 · 剩余 5 / 5 份\n\n第 6 天公布 · 第 9 天至第 10 天\n村宴备货\n已截止\n\n厨师收购蓝莓千层酥 · 基础回收价 ×1.5 · 剩余 2 / 5 份\n\n第 1 天公布 · 第 5 天至第 6 天\n来镇消息\n\n向导 · 开局已来镇 · 已安家\n\n厨师 · 第 1 天搬来 · 已安家\n\n我的交货记录\n小麦、番茄、面包、意大利面、蓝莓千层酥\n12 / 12 件\n羊毛、布料\n0 / 6 件\n牛奶、奶酪\n0 / 8 件\n生铁、钢铁\n0 / 12 件"
+  },
+  {
+    "name": "05-expired-paid",
+    "day": 7,
+    "time": 2293.25,
+    "silver": 1553,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "chef": {
+      "id": "chef",
+      "sold": 15,
+      "arrivalDay": 1,
+      "status": "arrived",
+      "housing": {
+        "npcId": "chef",
+        "status": "housed",
+        "position": [
+          23.5,
+          5,
+          9.5
+        ],
+        "roomId": null,
+        "bedId": "bed-22-9",
+        "comfort": 49,
+        "cleanliness": 100,
+        "quality": 74.5,
+        "buyFactor": 0.9255,
+        "recycleFactor": 1.0745
+      }
+    },
+    "event": {
+      "id": "chef-5",
+      "merchantId": "chef",
+      "item": "blueberryPie",
+      "announcedDay": 1,
+      "startDay": 5,
+      "endDay": 6,
+      "limit": 5,
+      "remaining": 2
+    },
+    "worker": {
+      "position": [
+        23.787500000000065,
+        5,
+        11.5
+      ],
+      "task": "等待工作 · 散步"
+    },
+    "text": "集市日历\n×\n第 7 天\n今天\n第 8 天\n—\n第 9 天\n1 场收购\n第 10 天\n1 场收购\n第 11 天\n—\n第 12 天\n—\n第 13 天\n—\n收购公告\n村宴备货\n预告\n\n厨师收购蓝莓千层酥 · 基础回收价 ×1.5 · 剩余 5 / 5 份\n\n第 6 天公布 · 第 9 天至第 10 天\n村宴备货\n已截止\n\n厨师收购蓝莓千层酥 · 基础回收价 ×1.5 · 剩余 2 / 5 份\n\n第 1 天公布 · 第 5 天至第 6 天\n来镇消息\n\n向导 · 开局已来镇 · 已安家\n\n厨师 · 第 1 天搬来 · 已安家\n\n我的交货记录\n小麦、番茄、面包、意大利面、蓝莓千层酥\n15 / 12 件\n羊毛、布料\n0 / 6 件\n牛奶、奶酪\n0 / 8 件\n生铁、钢铁\n0 / 12 件"
+  }
+]

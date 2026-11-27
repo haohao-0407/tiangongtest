@@ -1,3 +1,5 @@
+import { sugarPressParts } from './sugar-press.ts';
+import { containsCell, footprintCells, type Footprint } from './zone-cells.ts';
 import type { World, EntityHandle } from '@forgeax/engine/ecs';
 import type { AssetRegistry } from '@forgeax/engine/assets-runtime';
 import { createBoxGeometry } from '@forgeax/engine/geometry';
@@ -11,9 +13,10 @@ import type { WallPanel } from '../voxel/pcg/facade.ts';
 import { WALL_HEIGHT } from '../voxel/pcg/rules.ts';
 import { BUILDING_DEFS, STORAGE_QUARTERS, buildingItemKind, isCropSeed, type BuildingKind, type CropKind, type PlayerInventorySlot, type StoredStack } from './contracts.ts';
 import { buildingDimensions } from './buildings.ts';
+import textileModels from './textile-models.json';
 import { cardLayers, isWarehouseCard, packageSize, warehouseSlotContents } from './warehouse.ts';
 import { PLAZA_LAYERS, plazaPoint, smooth } from './plaza.ts';
-import type { FinaleView } from './contracts.ts';
+import type { FinaleView, MerchantHousing, MerchantId } from './contracts.ts';
 import { PointLight } from '@forgeax/engine/render';
 
 type V3=[number,number,number];
@@ -25,8 +28,9 @@ type Part = { p: V3; s: V3; shadow?: boolean; rotation?: Rotation } &
 type RenderPawn={id:string;name:string;position:V3;health:number;facing?:number;task?:string;job?:string;bag?:readonly PlayerInventorySlot[];bagSelected?:number;carrying?:Partial<Record<string,number>>};
 type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;h?:number;rotation?:number;doorOpen?:boolean;complete:boolean;progress:number;powered?:boolean;phase?:string};
 export type ColonyRenderState={
+  merchants?: readonly MerchantHousing[];
   colonists:RenderPawn[]; buildings:RenderBuilding[]; finale?:FinaleView;
-  zones:{id:string;kind:string;x:number;z:number;w:number;d:number}[];
+  zones:({id:string;kind:string} & Footprint)[];
   crops:{id?:string;x:number;y:number;z:number;growth:number;kind?:CropKind;planted?:boolean}[];
   items:{id:string;resource:string;amount:number;x:number;y:number;z:number;age?:number;scatter?:boolean}[];
   warehouseStacks:StoredStack[];
@@ -40,7 +44,7 @@ const COLORS:Record<string,string>={
   wood:'#a97943',plank:'#c6995c',stoneBrick:'#8c928b',pigIron:'#684f4b',dirt:'#845a3a',stone:'#9ca9a5',steel:'#899fae',food:'#e4bc63',meal:'#d4834b',medicine:'#ecf4dd',cloth:'#c2b3d9',silver:'#e5d69b',components:'#d0ad45',
   dark:'#2e4247',cream:'#f0ddba',blanket:'#568b9b',white:'#fff3d5',green:'#63935e',gold:'#e5c66f',blue:'#4d7d96',black:'#233135',
   light:'#c5e4cd',soil:'#7e563b',
-  blueprint:'#75cece',zoneFarm:'#90bd65',zoneStock:'#75baca',selected:'#ecd78c',health:'#9fc174',bad:'#c56b55',
+  blueprint:'#75cece',zonePasture:'#d8ad69',zoneFarm:'#90bd65',zoneStock:'#75baca',selected:'#ecd78c',health:'#9fc174',bad:'#c56b55',
   playerMark:'#ffd76e', seedPack:'#ba955c', luggageStrap:'#473327', luggageTrim:'#987044',
 };
 const rgba=(hex:string):[number,number,number,number]=>{
@@ -57,6 +61,7 @@ export class ColonyView {
   private materials=new Map<string,AssetHandle<'material'>>();
   private groups=new Map<string,{signature:string;entities:EntityHandle[];transforms:number[][]}>();
   private residents = new Map<string, CharacterView>();
+  private merchants = new Map<MerchantId, CharacterView>();
   private plazaLights=new Map<string,EntityHandle[]>();
   constructor(private world:World, private assets:AssetRegistry, private terrain:()=>VoxelWorld,
     private characters:readonly CharacterAssets[], private readonly cropCards:Pick<CropCards,'update'|'hasModel'|'itemMesh'|'itemModel'>,
@@ -67,7 +72,7 @@ export class ColonyView {
   private material(key:string):AssetHandle<'material'>{
     const existing=this.materials.get(key);if(existing)return existing;
     const cloudKeys=['cloudHigh','cloudHigh2'];
-    const translucent=['blueprint','zoneFarm','zoneStock','selected'].includes(key);
+    const translucent=['blueprint','zonePasture','zoneFarm','zoneStock','selected'].includes(key);
     const c=cloudKeys.includes(key)?[0.93,0.95,0.97,1] as [number,number,number,number]:rgba(COLORS[key]??key);
     if (key.startsWith('glow:')) {
       const glow=this.assets.create(Materials.unlit(rgba(key.slice(5)))).unwrap();
@@ -166,7 +171,7 @@ export class ColonyView {
       return parts;
     }
     const model=this.buildingModels.get(b.kind==='door'&&b.doorOpen?'doorOpen':b.kind);
-    if(model && (b.complete || ghost)){
+    if(model && (b.complete || ghost) && !(b.kind==='stoneDoor' && b.doorOpen)){
       const angle=-rotation*Math.PI/4;
       const q:Rotation|undefined=rotation ? [0,Math.sin(angle),0,Math.cos(angle)] : undefined;
       const body={mesh:model.mesh,rotation:q,shadow:!ghost};
@@ -197,6 +202,38 @@ export class ColonyView {
       parts.push({p:[x,y+h+.02,z],s:[w*.8*Math.max(.02,Math.min(1,b.progress)),.06,.07],c:'light',shadow:false});
     }
     else switch(b.kind){
+      case 'sugarPress':
+        for (const box of sugarPressParts) part(...box);
+        break;
+      case 'stoneDoor':
+        if(b.doorOpen) part(-.42,h/2,0,.14,h,.85,'stone');
+        else part(0,h/2,0,.86,h,.16,'stone');
+        break;
+      case 'pastureGate':
+        for(const dx of [-.43,.43]) part(dx,.4,0,.12,.8,.14,'wood');
+        part(0,.85,0,.96,.1,.14,'wood'); break;
+      case 'milker':
+        part(0,.2,0,.7,.4,.65,'steel');part(-.18,.57,0,.2,.45,.25,'steel');part(.15,.53,0,.28,.25,.34,'white');break;
+      case 'henNest':
+        part(0,.12,0,.85,.24,.8,'gold');for(const dx of [-.38,.38])part(dx,.25,0,.1,.35,.8,'wood');
+        part(0,.29,-.34,.8,.42,.1,'wood'); break;
+      case 'shearingStand':
+      case 'loom':
+        for(const {center:[dx,dy,dz],size:[sx,sy,sz],color} of textileModels[b.kind]){
+          part(dx,dy,dz,sx,sy,sz,color);
+        }
+        break;
+      case 'flourMill':
+        // Timber bed, two stepped millstones and an offset wooden crank.
+        part(0,.19,0,1.66,.38,.76,'wood');
+        for (const [dy,width,color] of [[.47,.85,'#746e61'],[.65,.79,'#aca697']] as const) {
+          part(-.25,dy,0,width,.16,.55,color);
+          for (const dz of [-.33,.33]) part(-.25,dy,dz,width*.68,.16,.11,color);
+        }
+        part(-.25,.77,0,.12,.12,.12,'dark');
+        part(.02,.82,0,.66,.09,.10,'wood');
+        part(.30,.92,0,.10,.19,.10,'wood');
+        break;
       case 'floor':part(0,.025,0,.98,.05,.98,'wood');break;
       case 'solar':case 'solarPanel':part(0,.4,0,.18,.8,.18,'steel');part(0,.88,0,1.45,.11,1.25,'dark');part(0,.96,0,1.33,.04,1.13,'blue');part(0,.99,0,.035,.015,1.13,'steel');part(0,.99,0,1.33,.015,.035,'steel');break;
       case 'battery':part(0,.45,0,.7,.9,.7,'dark');part(0,.5,.36,.45,.55,.035,'green');part(-.18,.95,0,.12,.1,.15,'gold');part(.18,.95,0,.12,.1,.15,'steel');break;
@@ -331,6 +368,33 @@ export class ColonyView {
       this.plazaLights.delete(id);
     }
     const present = new Set(state.colonists.map(resident => resident.id));
+    for (const [id, actor] of this.merchants) if (!state.merchants?.some(m=>m.npcId===id)) {
+      actor.dispose();
+      this.merchants.delete(id);
+    }
+    for (const {npcId:id, position} of state.merchants ?? []) {
+      let actor = this.merchants.get(id);
+      if (!actor) {
+        const outfit = {guide:0, chef:1, tailor:2, cheesemaker:3, blacksmith:4}[id] % this.characters.length;
+        actor = new CharacterView(this.world, this.assets, this.characters[outfit]!, outfit+1);
+        this.merchants.set(id, actor);
+      }
+      actor.updateResident(position, time, Math.PI/4);
+      const [x,y,z]=position, a=actor.facing;
+      const prop=(dx:number,dy:number,dz:number,s:V3,c:string):Part=>({
+        p:[x+dx*Math.cos(a)+dz*Math.sin(a),y+dy,z-dx*Math.sin(a)+dz*Math.cos(a)],
+        s,c,rotation:[0,Math.sin(a/2),0,Math.cos(a/2)],
+      });
+      const pieces:Part[]=[];
+      if (id==='chef') pieces.push(prop(0,1.77,0,[.46,.23,.43],'white'),prop(0,1.94,0,[.61,.22,.51],'white'));
+      if (id==='tailor') pieces.push(prop(.34,.94,.09,[.28,.47,.28],'#a15e92'),
+        prop(.34,1.19,.09,[.36,.06,.36],'cream'),prop(.34,.69,.09,[.36,.06,.36],'cream'));
+      if (id==='cheesemaker') pieces.push(prop(0,1.76,0,[.68,.09,.60],'gold'),prop(0,1.86,0,[.40,.16,.37],'cream'),
+        prop(.36,.82,.1,[.32,.24,.32],'#f1b745'));
+      if (id==='blacksmith') pieces.push(prop(.38,1,.08,[.10,.65,.11],'luggageTrim'),prop(.38,1.34,.08,[.49,.26,.26],'steel'));
+      if (id==='guide') pieces.push(prop(0,1.04,-.22,[.49,.60,.30],'luggageTrim'),prop(0,1.29,-.24,[.52,.10,.33],'gold'));
+      this.put('商人/'+id,pieces,active);
+    }
     for (const [id, actor] of this.residents) if (!present.has(id)) {
       actor.dispose();
       this.residents.delete(id);
@@ -341,24 +405,34 @@ export class ColonyView {
         this.drawResident(resident, time, !state.finale && resident.id === state.selectedColonistId);
       }
     }
+    const penBorders=new Set(state.buildings.filter(b=>b.kind==='fence'||b.kind==='pastureGate').map(b=>b.x+','+b.z));
     for(const b of state.buildPreview?[...state.buildings,state.buildPreview]:state.buildings){
       const w=b.w??1,d=b.d??1,h=b.h??1,x=b.x+w/2,y=b.y,z=b.z+d/2,rotation=b.rotation??0;
-      const parts=this.buildingGeometry(b);
+      let parts=this.buildingGeometry(b);
+      let fenceNeighbors='';
+      if(b.kind==='fence'&&b.complete&&state.zones.some(z=>z.kind==='pasture'&&containsCell(z,b.x,b.z))){
+        parts=[{p:[x,y+.4,z],s:[.14,.8,.14],c:'wood'}];
+        for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){
+          if(!penBorders.has((b.x+dx!)+','+(b.z+dz!)))continue;
+          fenceNeighbors+=dx+','+dz+';';
+          for(const dy of [.28,.60])parts.push({p:[x+dx!*.25,y+dy,z+dz!*.25],s:[dx ? .50:.095,.095,dz ? .50:.095],c:'wood'});
+        }
+      }
       if (b.kind==='campfirePlaza' && b.complete && b.id!=='placement-preview') {
         this.plazaEffects(b,time,state.finale?.buildingId===b.id ? state.finale : undefined,active);
       }
       if(state.selectedBuildingId===b.id)parts.push({p:[x,y+.025,z],s:[w+.04,.045,d+.04],c:'selected',shadow:false});
-      this.put(`设施/${b.id}`,parts,active,`${b.kind}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
+      this.put(`设施/${b.id}`,parts,active,`${b.kind}:${fenceNeighbors}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
     }
     const plannedCells = new Set<string>();
     for(const zone of state.showPlanningGrid ? state.zones : []){
       const parts:Part[]=[];
-      for(let x=zone.x;x<zone.x+zone.w;x++)for(let z=zone.z;z<zone.z+zone.d;z++){
+      for(const [x,z] of footprintCells(zone)){
         const key=`${x},${z}`;
         if(plannedCells.has(key))continue;
         plannedCells.add(key);
         const y=this.terrain().terrainHeight(x,z);
-        parts.push({p:[x+.5,y+.026,z+.5],s:[.94,.045,.94],c:zone.kind==='farm'?'zoneFarm':'zoneStock',shadow:false});
+        parts.push({p:[x+.5,y+.026,z+.5],s:[.94,.045,.94],c:zone.kind==='pasture'?'zonePasture':zone.kind==='farm'?'zoneFarm':'zoneStock',shadow:false});
       }
       this.put(`区域/${zone.id}`,parts,active);
     }
@@ -423,6 +497,8 @@ export class ColonyView {
     for(const [key,g]of this.groups)if(!active.has(key)){for(const e of g.entities)this.world.despawn(e).unwrap();this.groups.delete(key);}
   }
   dispose(){
+    for (const actor of this.merchants.values()) actor.dispose();
+    this.merchants.clear();
     for (const lights of this.plazaLights.values()) for (const e of lights) this.world.despawn(e).unwrap();
     this.plazaLights.clear();
     for (const actor of this.residents.values()) actor.dispose();
@@ -467,7 +543,8 @@ export class ColonyView {
   }
   readCharacters(controlledId:string|null) {
     const residents = [...this.residents].map(([id, actor]) => ({id, ...actor.read()}));
-    return { residents, player: residents.find(resident => resident.id === controlledId) ?? null };
+    const merchants = [...this.merchants].map(([id, actor])=>({id,position:actor.position,...actor.read()}));
+    return { residents, merchants, player: residents.find(resident => resident.id === controlledId) ?? null };
   }
   readPlacementPreview() {
     const transform = this.groups.get('设施/placement-preview')?.transforms[0];

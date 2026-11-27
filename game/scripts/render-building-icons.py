@@ -32,7 +32,7 @@ def box(center, size, color):
     obj.scale = size
     channel = obj.data.color_attributes.new(name="Color", type="FLOAT_COLOR", domain="POINT")
     for entry in channel.data:
-        entry.color = linear_srgb(PALETTE[color])
+        entry.color = linear_srgb(color if color.startswith("#") else PALETTE[color])
     return obj
 
 
@@ -48,6 +48,16 @@ def import_meshes(source):
 # Simple voxel previews for catalog entries that do not yet have exported art.
 # Coordinates use Blender's Z-up convention: center, dimensions, palette swatch.
 PLACEHOLDERS = {
+    "flourMill": [
+        ((0, 0, .19), (1.66, .76, .38), "wood"),
+        ((-.25, 0, .47), (.85, .55, .16), "stone"),
+        ((-.25, 0, .47), (.58, .78, .16), "stone"),
+        ((-.25, 0, .65), (.79, .55, .16), "stone"),
+        ((-.25, 0, .65), (.54, .78, .16), "stone"),
+        ((-.25, 0, .77), (.12, .12, .12), "dark"),
+        ((.02, 0, .82), (.66, .10, .09), "wood"),
+        ((.30, 0, .92), (.10, .10, .19), "wood"),
+    ],
     "floor": [
         ((x, 0, .043), (.184, .98, .086), "plank" if i % 3 == 0 else "wood")
         for i, x in enumerate((-.392, -.196, 0, .196, .392))
@@ -138,6 +148,16 @@ def arrange(objects, column, row, row_count):
 contracts = (ASSETS / "colony/contracts.ts").read_text(encoding="utf-8")
 catalog = contracts.split("export const BUILDING_DEFS", 1)[1].split("\n};", 1)[0]
 kinds = re.findall(r"^\s*(\w+)\s*:\s*\{\s*id\s*:", catalog, re.M)
+# Use the same cuboids as the scene for the two textile equipment thumbnails.
+for name, parts in json.loads((ASSETS / "colony/textile-models.json").read_text()).items():
+    PLACEHOLDERS[name] = [
+        ((x, -z, y), (w, d, h), part["color"])
+        for part in parts for x, y, z in [part["center"]] for w, h, d in [part["size"]]
+    ]
+# These three use standalone menu symbols. Preserve the existing atlas slot order.
+previous = json.loads((ASSETS / "ui/building-icons.json").read_text())["tiles"]
+kinds = [kind for kind in kinds if kind not in ("pastureGate", "milker", "henNest")]
+kinds.sort(key=lambda k: previous[k][1] * COLUMNS + previous[k][0] if k in previous else len(kinds) + 1000)
 assert kinds and len(kinds) == len(set(kinds))
 rows = (len(kinds) + COLUMNS - 1) // COLUMNS
 bpy.ops.wm.read_factory_settings(use_empty=True)

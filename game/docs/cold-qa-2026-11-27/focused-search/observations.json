@@ -1,0 +1,268 @@
+[
+  {
+    "name": "qualify-bread-before",
+    "time": 479.75,
+    "day": 2,
+    "total": 10,
+    "valid": 0,
+    "title": "面包 · 10 · 普通单价 60 银币",
+    "ime": false,
+    "editing": {
+      "focused": true,
+      "sameCard": true,
+      "query": "面包",
+      "start": 1,
+      "end": 1,
+      "scroll": 16,
+      "ended": 0
+    },
+    "lots": [
+      {
+        "x": 18,
+        "z": 21,
+        "slot": 2,
+        "resource": "bread",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 120,
+            "count": 4
+          },
+          {
+            "since": 210,
+            "count": 6
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "qualify-bread-after",
+    "time": 480,
+    "day": 2,
+    "total": 10,
+    "valid": 4,
+    "title": "面包 · 10 · 普通单价 60 银币 · 4 件保鲜，售价 +20%，次日零点失效 · 加成单价 72 银币",
+    "ime": false,
+    "editing": {
+      "focused": true,
+      "sameCard": true,
+      "query": "面包",
+      "start": 1,
+      "end": 1,
+      "scroll": 16,
+      "ended": 0
+    },
+    "lots": [
+      {
+        "x": 18,
+        "z": 21,
+        "slot": 2,
+        "resource": "bread",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 210,
+            "count": 6
+          }
+        ],
+        "premium": {
+          "day": 2,
+          "count": 4
+        }
+      }
+    ]
+  },
+  {
+    "name": "qualify-milk-before",
+    "time": 479.75,
+    "day": 2,
+    "total": 3,
+    "valid": 0,
+    "title": "牛奶 · 3",
+    "ime": true,
+    "editing": {
+      "focused": true,
+      "sameCard": true,
+      "query": "牛奶",
+      "start": 1,
+      "end": 1,
+      "scroll": 16,
+      "ended": 0
+    },
+    "lots": [
+      {
+        "x": 23,
+        "z": 21,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "freezing": [
+          {
+            "since": 120,
+            "count": 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "qualify-milk-after",
+    "time": 480.25,
+    "day": 2,
+    "total": 3,
+    "valid": 3,
+    "title": "牛奶 · 3 · 3 件冰镇，售价 +20%，次日零点失效",
+    "ime": true,
+    "editing": {
+      "focused": true,
+      "sameCard": true,
+      "query": "牛奶",
+      "start": 1,
+      "end": 1,
+      "scroll": 16,
+      "ended": 0
+    },
+    "lots": [
+      {
+        "x": 23,
+        "z": 21,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 3
+        }
+      }
+    ]
+  },
+  {
+    "name": "midnight-bread-before",
+    "time": 719.75,
+    "day": 2,
+    "total": 5,
+    "valid": 5,
+    "title": "面包 · 5 · 5 件保鲜，售价 +20%，次日零点失效 · 加成单价 72 银币",
+    "ime": false,
+    "editing": {
+      "focused": true,
+      "sameCard": true,
+      "query": "面包",
+      "start": 1,
+      "end": 1,
+      "scroll": 16,
+      "ended": 0
+    },
+    "lots": [
+      {
+        "x": 18,
+        "z": 21,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "premium": {
+          "day": 2,
+          "count": 5
+        }
+      }
+    ]
+  },
+  {
+    "name": "midnight-bread-after",
+    "time": 720.25,
+    "day": 3,
+    "total": 5,
+    "valid": 0,
+    "title": "面包 · 5 · 普通单价 60 银币",
+    "ime": false,
+    "editing": {
+      "focused": true,
+      "sameCard": true,
+      "query": "面包",
+      "start": 1,
+      "end": 1,
+      "scroll": 16,
+      "ended": 0
+    },
+    "lots": [
+      {
+        "x": 18,
+        "z": 21,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "midnight-milk-before",
+    "time": 719.75,
+    "day": 2,
+    "total": 3,
+    "valid": 3,
+    "title": "牛奶 · 3 · 3 件冰镇，售价 +20%，次日零点失效",
+    "ime": true,
+    "editing": {
+      "focused": true,
+      "sameCard": true,
+      "query": "牛奶",
+      "start": 1,
+      "end": 1,
+      "scroll": 16,
+      "ended": 0
+    },
+    "lots": [
+      {
+        "x": 23,
+        "z": 21,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 3
+        }
+      }
+    ]
+  },
+  {
+    "name": "midnight-milk-after",
+    "time": 720.25,
+    "day": 3,
+    "total": 3,
+    "valid": 0,
+    "title": "牛奶 · 3",
+    "ime": true,
+    "editing": {
+      "focused": true,
+      "sameCard": true,
+      "query": "牛奶",
+      "start": 1,
+      "end": 1,
+      "scroll": 16,
+      "ended": 0
+    },
+    "lots": [
+      {
+        "x": 23,
+        "z": 21,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 3
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -36,10 +36,11 @@
   </div>
   <header class="topbar panel" data-interactive>
     <div class="brand"><span class="brand-icon">▧</span><div><h1>森屿</h1><p>和平家园 · COLONY HOMESTEAD</p></div></div>
-    <div class="clock"><strong id="date">正在铺开家园…</strong><span id="weather">等待世界数据</span></div>
+    <div class="clock"><span id="weather">等待世界数据</span></div>
     <div class="time-controls" aria-label="模拟速度"><button data-speed="0" id="pause" title="暂停">Ⅱ</button><button data-speed="1" class="active">1×</button><button data-speed="3">3×</button><button data-speed="6">6×</button></div>
     <div class="top-actions"><button id="home" title="复位视角">⌂</button><button id="help-toggle" title="操作帮助">?</button><button id="settings-toggle" title="世界与存档">⚙</button></div>
   </header>
+  <button id="date" class="market-date" data-menu="calendar" data-interactive title="查看集市日历" aria-controls="workspace">集市日历</button>
   <div id="resources" class="resource-strip" aria-label="殖民地库存"></div>
   <aside class="colony-sidebar"><div class="side-caption">一起生活的人 <span id="population"></span></div><div id="colonists" class="colonist-list" data-interactive></div><div id="objectives" class="objectives panel"><span class="eyebrow">在这里安家</span><div id="goal-list"></div></div></aside>
   <aside id="inspector" class="inspector panel" data-interactive hidden><div class="panel-heading"><div><span id="inspector-kicker" class="eyebrow">居民档案</span><h2 id="resident-name"></h2></div><button id="inspector-close" class="close" aria-label="关闭详情">×</button></div><div id="resident-content"></div></aside>

@@ -1,0 +1,1284 @@
+[
+  {
+    "name": "01-menu",
+    "time": 120,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 12,
+      "stone": 8,
+      "sugarcane": 2,
+      "sugar": 0,
+      "blueberry": 1,
+      "flour": 1,
+      "egg": 1,
+      "blueberryPie": 0
+    },
+    "stacks": [
+      {
+        "x": 9,
+        "z": 13,
+        "slot": 0,
+        "resource": "wood",
+        "count": 12
+      },
+      {
+        "x": 10,
+        "z": 13,
+        "slot": 0,
+        "resource": "stone",
+        "count": 8
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "sugarcane",
+        "count": 2
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "blueberry",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "flour",
+        "count": 1
+      },
+      {
+        "x": 12,
+        "z": 13,
+        "slot": 0,
+        "resource": "egg",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          19.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          20.5
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "02-blueprint",
+    "time": 120,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "sugarcane": 2,
+      "sugar": 0,
+      "blueberry": 1,
+      "flour": 1,
+      "egg": 1,
+      "blueberryPie": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "sugarcane",
+        "count": 2
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "blueberry",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "flour",
+        "count": 1
+      },
+      {
+        "x": 12,
+        "z": 13,
+        "slot": 0,
+        "resource": "egg",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [
+      {
+        "id": "job-40",
+        "type": "construct",
+        "targetId": "building-38",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 16,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "建造手摇制糖台"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          19.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          20.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "press": {
+      "id": "building-38",
+      "kind": "sugarPress",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "readyToBuild",
+      "complete": false,
+      "progress": 0,
+      "reserved": {
+        "wood": 12,
+        "stone": 8
+      },
+      "powered": false,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "03-built",
+    "time": 131,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "sugarcane": 2,
+      "sugar": 0,
+      "blueberry": 1,
+      "flour": 1,
+      "egg": 1,
+      "blueberryPie": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "sugarcane",
+        "count": 2
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "blueberry",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "flour",
+        "count": 1
+      },
+      {
+        "x": 12,
+        "z": 13,
+        "slot": 0,
+        "resource": "egg",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          19.1625,
+          5,
+          16.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          22.5,
+          5,
+          20.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          23.187499999999993,
+          5,
+          21.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "press": {
+      "id": "building-38",
+      "kind": "sugarPress",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "04-shortage",
+    "time": 131,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "sugarcane": 2,
+      "sugar": 0,
+      "blueberry": 1,
+      "flour": 1,
+      "egg": 1,
+      "blueberryPie": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "sugarcane",
+        "count": 2
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "blueberry",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "flour",
+        "count": 1
+      },
+      {
+        "x": 12,
+        "z": 13,
+        "slot": 0,
+        "resource": "egg",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [
+      {
+        "id": "job-43",
+        "type": "craft",
+        "targetId": "building-38",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 30,
+        "state": "blocked",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "缺少甘蔗 × 8",
+        "recipe": "sugar",
+        "craftAmount": 5,
+        "craftPhase": "pickup"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          19.1625,
+          5,
+          16.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          22.5,
+          5,
+          20.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          23.187499999999993,
+          5,
+          21.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "press": {
+      "id": "building-38",
+      "kind": "sugarPress",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "05-reserved",
+    "time": 134.75,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "sugarcane": 0,
+      "sugar": 0,
+      "blueberry": 1,
+      "flour": 1,
+      "egg": 1,
+      "blueberryPie": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "blueberry",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "flour",
+        "count": 1
+      },
+      {
+        "x": 12,
+        "z": 13,
+        "slot": 0,
+        "resource": "egg",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [
+      {
+        "id": "job-44",
+        "type": "craft",
+        "targetId": "building-38",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 6,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {
+          "sugarcane": 2
+        },
+        "label": "制作糖",
+        "recipe": "sugar",
+        "craftAmount": 1,
+        "craftPhase": "work"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          16.5,
+          5,
+          15.825000000000003
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "前往制作糖",
+        "position": [
+          17.5,
+          5,
+          19.975
+        ],
+        "carrying": {
+          "sugarcane": 2
+        }
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          23.5,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "press": {
+      "id": "building-38",
+      "kind": "sugarPress",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "06-refunded",
+    "time": 134.75,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "sugarcane": 2,
+      "sugar": 0,
+      "blueberry": 1,
+      "flour": 1,
+      "egg": 1,
+      "blueberryPie": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "blueberry",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "flour",
+        "count": 1
+      },
+      {
+        "x": 12,
+        "z": 13,
+        "slot": 0,
+        "resource": "egg",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "sugarcane",
+        "count": 2
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          16.5,
+          5,
+          15.825000000000003
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "前往制作糖",
+        "position": [
+          17.5,
+          5,
+          19.975
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          23.5,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "press": {
+      "id": "building-38",
+      "kind": "sugarPress",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "07-pressing",
+    "time": 136,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "sugarcane": 0,
+      "sugar": 0,
+      "blueberry": 1,
+      "flour": 1,
+      "egg": 1,
+      "blueberryPie": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "blueberry",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "flour",
+        "count": 1
+      },
+      {
+        "x": 12,
+        "z": 13,
+        "slot": 0,
+        "resource": "egg",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [
+      {
+        "id": "job-45",
+        "type": "craft",
+        "targetId": "building-38",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0.3712500000000001,
+        "work": 6,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {
+          "sugarcane": 2
+        },
+        "label": "制作糖",
+        "recipe": "sugar",
+        "craftAmount": 1,
+        "craftPhase": "work"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "前往制作糖",
+        "position": [
+          18.5,
+          5,
+          15.5
+        ],
+        "carrying": {
+          "sugarcane": 2
+        }
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          15.919579491274227,
+          5,
+          19.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          24.174999999999997,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "press": {
+      "id": "building-38",
+      "kind": "sugarPress",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "08-sugar-ground",
+    "time": 140.25,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "sugarcane": 0,
+      "sugar": 0,
+      "blueberry": 1,
+      "flour": 1,
+      "egg": 1,
+      "blueberryPie": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "blueberry",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "flour",
+        "count": 1
+      },
+      {
+        "x": 12,
+        "z": 13,
+        "slot": 0,
+        "resource": "egg",
+        "count": 1
+      }
+    ],
+    "ground": [
+      {
+        "id": "item-46",
+        "resource": "sugar",
+        "amount": 1,
+        "x": 18,
+        "y": 5,
+        "z": 15,
+        "age": 0.25,
+        "reservedBy": null
+      }
+    ],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          18.5,
+          5,
+          15.162500000000001
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          12.150000000000006,
+          5,
+          19.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          25.849999999999994,
+          5,
+          17.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "press": {
+      "id": "building-38",
+      "kind": "sugarPress",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "09-sugar-stock",
+    "time": 148.5,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "sugarcane": 0,
+      "sugar": 1,
+      "blueberry": 1,
+      "flour": 1,
+      "egg": 1,
+      "blueberryPie": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "blueberry",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "flour",
+        "count": 1
+      },
+      {
+        "x": 12,
+        "z": 13,
+        "slot": 0,
+        "resource": "egg",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "sugar",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          10.825000000000003,
+          5,
+          13.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          15.5,
+          5,
+          18.812500000000007
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          28.5,
+          5,
+          22.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "press": {
+      "id": "building-38",
+      "kind": "sugarPress",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "10-stove",
+    "time": 149.25,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "sugarcane": 0,
+      "sugar": 0,
+      "blueberry": 0,
+      "flour": 0,
+      "egg": 0,
+      "blueberryPie": 0
+    },
+    "stacks": [],
+    "ground": [],
+    "orders": [
+      {
+        "id": "job-48",
+        "type": "cook",
+        "targetId": "building-16",
+        "x": 22,
+        "y": 5,
+        "z": 18,
+        "progress": 0,
+        "work": 4,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {
+          "blueberry": 1,
+          "flour": 1,
+          "sugar": 1,
+          "egg": 1
+        },
+        "label": "制作蓝莓千层酥",
+        "recipe": "blueberryPie",
+        "craftAmount": 1,
+        "craftPhase": "work"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          9.812500000000007,
+          5,
+          13.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "前往制作蓝莓千层酥",
+        "position": [
+          16.024836014364265,
+          5,
+          18.48812090035911
+        ],
+        "carrying": {
+          "blueberry": 1,
+          "flour": 1,
+          "sugar": 1,
+          "egg": 1
+        }
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          28.5,
+          5,
+          22.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "press": {
+      "id": "building-38",
+      "kind": "sugarPress",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "11-blueberryPie-stock",
+    "time": 164.25,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "sugarcane": 0,
+      "sugar": 0,
+      "blueberry": 0,
+      "flour": 0,
+      "egg": 0,
+      "blueberryPie": 1
+    },
+    "stacks": [
+      {
+        "x": 17,
+        "z": 18,
+        "slot": 0,
+        "resource": "blueberryPie",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "工作完成",
+        "position": [
+          17.5,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          22.5,
+          5,
+          21.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          30.5,
+          5,
+          26.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "press": {
+      "id": "building-38",
+      "kind": "sugarPress",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "12-reloaded",
+    "time": 164.25,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "sugarcane": 0,
+      "sugar": 0,
+      "blueberry": 0,
+      "flour": 0,
+      "egg": 0,
+      "blueberryPie": 1
+    },
+    "stacks": [
+      {
+        "x": 17,
+        "z": 18,
+        "slot": 0,
+        "resource": "blueberryPie",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "工作完成",
+        "position": [
+          17.5,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          22.5,
+          5,
+          21.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          30.5,
+          5,
+          26.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "press": {
+      "id": "building-38",
+      "kind": "sugarPress",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  }
+]

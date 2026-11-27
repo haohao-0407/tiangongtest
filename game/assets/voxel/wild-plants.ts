@@ -36,18 +36,18 @@ export function planWildPlants(width: number, depth: number, random: (x: number,
   return plants;
 }
 
-type Footprint = { x: number; z: number; w: number; d: number };
+import { footprintCells, type Footprint } from '../colony/zone-cells.ts';
 export type PlantLandUse = { buildings: readonly Footprint[]; zones: readonly Footprint[]; crops: readonly { x: number; z: number }[] };
 
 export function landFootprintKey(width: number, land: PlantLandUse): string {
-  return [...land.buildings, ...land.zones].map(b => [b.x,b.z,b.w,b.d].join(',')).join(';') +
+  return [...land.buildings, ...land.zones].map(b => [b.x,b.z,b.w,b.d,b.cells?.join('/')].join(',')).join(';') +
     '|' + land.crops.map(c => c.x + c.z * width).join(',');
 }
 
 export function occupiedLandCells(width: number, land: PlantLandUse): Set<number> {
   const occupied = new Set<number>();
   for (const area of [...land.buildings, ...land.zones]) {
-    for (let z = area.z; z < area.z + area.d; z++) for (let x = area.x; x < area.x + area.w; x++)
+    for (const [x,z] of footprintCells(area))
       occupied.add(x + z * width);
   }
   for (const crop of land.crops) occupied.add(crop.x + crop.z * width);

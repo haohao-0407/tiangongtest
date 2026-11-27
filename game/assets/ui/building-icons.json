@@ -1,6 +1,6 @@
 {
   "columns": 8,
-  "rows": 6,
+  "rows": 7,
   "tiles": {
     "campfirePlaza": [
       0,
@@ -193,6 +193,18 @@
     "compostBin": [
       7,
       5
+    ],
+    "flourMill": [
+      0,
+      6
+    ],
+    "shearingStand": [
+      1,
+      6
+    ],
+    "loom": [
+      2,
+      6
     ]
   }
 }

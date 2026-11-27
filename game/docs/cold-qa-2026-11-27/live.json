@@ -1,0 +1,1512 @@
+[
+  {
+    "name": "01-second",
+    "title": "面包 · 10",
+    "date": "第 1 天 · 春季 · 14:11",
+    "time": 212.75,
+    "power": {
+      "generation": 201.8493631114542,
+      "demand": 45,
+      "stored": 24000,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 120,
+            "count": 4
+          }
+        ]
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "freezing": [
+          {
+            "since": 120,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      {
+        "resource": "milk",
+        "count": 7
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 92.75,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "02-before",
+    "title": "面包 · 10",
+    "date": "第 2 天 · 春季 · 07:58",
+    "time": 479.75,
+    "power": {
+      "generation": 83.36437261743494,
+      "demand": 45,
+      "stored": 15549.942824022506,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 120,
+            "count": 4
+          },
+          {
+            "since": 210,
+            "count": 6
+          }
+        ]
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "freezing": [
+          {
+            "since": 120,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      {
+        "resource": "milk",
+        "count": 7
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 359.75,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "03-bread",
+    "title": "面包 · 10",
+    "date": "第 2 天 · 春季 · 08:01",
+    "time": 480.5,
+    "power": {
+      "generation": 85.26644497739828,
+      "demand": 45,
+      "stored": 15575.209174560729,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 210,
+            "count": 6
+          }
+        ],
+        "premium": {
+          "day": 2,
+          "count": 4
+        }
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 3
+        }
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      {
+        "resource": "milk",
+        "count": 7
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 360.5,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "03-bread-reopened",
+    "title": "面包 · 10 · 4 件保鲜，售价 +20%，次日零点失效 · 加成单价 72 银币",
+    "date": "第 2 天 · 春季 · 08:01",
+    "time": 480.5,
+    "power": {
+      "generation": 85.26644497739828,
+      "demand": 45,
+      "stored": 15575.209174560729,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 210,
+            "count": 6
+          }
+        ],
+        "premium": {
+          "day": 2,
+          "count": 4
+        }
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 3
+        }
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      {
+        "resource": "milk",
+        "count": 7
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 360.5,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "04-milk",
+    "title": "牛奶 · 3 · 3 件冰镇，售价 +20%，次日零点失效",
+    "date": "第 2 天 · 春季 · 08:01",
+    "time": 480.5,
+    "power": {
+      "generation": 85.26644497739828,
+      "demand": 45,
+      "stored": 15575.209174560729,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 210,
+            "count": 6
+          }
+        ],
+        "premium": {
+          "day": 2,
+          "count": 4
+        }
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 3
+        }
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      {
+        "resource": "milk",
+        "count": 7
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 360.5,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "05-request",
+    "title": null,
+    "date": "第 2 天 · 春季 · 08:00",
+    "time": 480,
+    "power": {
+      "generation": 83.99999999999999,
+      "demand": 45,
+      "stored": 15558.230324022506,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "freezing": [
+          {
+            "since": 210,
+            "count": 5
+          }
+        ]
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 3
+        }
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      {
+        "resource": "milk",
+        "count": 7
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 360,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "06-bag",
+    "title": "面包 · 5 · 4 件保鲜，售价 +20%，次日零点失效 · 加成单价 72 银币",
+    "date": "第 2 天 · 春季 · 08:22",
+    "time": 485.75,
+    "power": {
+      "generation": 98.15394382708895,
+      "demand": 45,
+      "stored": 15785.308648594222,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "freezing": [
+          {
+            "since": 210,
+            "count": 5
+          }
+        ]
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 3
+        }
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      {
+        "resource": "bread",
+        "count": 5,
+        "premium": {
+          "day": 2,
+          "count": 4
+        }
+      },
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      {
+        "resource": "milk",
+        "count": 7
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 365.75,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "07-chest",
+    "title": "面包 · 5 · 4 件保鲜，售价 +20%，次日零点失效 · 加成单价 72 银币",
+    "date": "第 2 天 · 春季 · 08:22",
+    "time": 485.75,
+    "power": {
+      "generation": 98.15394382708895,
+      "demand": 45,
+      "stored": 15785.308648594222,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "freezing": [
+          {
+            "since": 210,
+            "count": 5
+          }
+        ]
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 3
+        }
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      {
+        "resource": "milk",
+        "count": 7
+      },
+      null,
+      {
+        "resource": "bread",
+        "count": 5,
+        "premium": {
+          "day": 2,
+          "count": 4
+        }
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 365.75,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "step": "save-midnight",
+    "error": "TimeoutError: locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#settings-close')\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"close\" aria-label=\"关闭设置\" id=\"settings-close\">×</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    38 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+  },
+  {
+    "name": "13-expired-independent",
+    "title": "面包 · 5",
+    "date": "第 3 天 · 春季 · 00:00",
+    "time": 720,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19596.94346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 5
+          }
+        ]
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      {
+        "resource": "bread",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 2
+        }
+      }
+    ],
+    "box": [
+      null,
+      {
+        "resource": "milk",
+        "count": 7
+      },
+      null,
+      {
+        "resource": "bread",
+        "count": 2,
+        "premium": {
+          "day": 2,
+          "count": 2
+        }
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 600,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "14-expired-box",
+    "title": "面包 · 2",
+    "date": "第 3 天 · 春季 · 00:00",
+    "time": 720,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19596.94346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 5
+          }
+        ]
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      {
+        "resource": "bread",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 2
+        }
+      }
+    ],
+    "box": [
+      null,
+      {
+        "resource": "milk",
+        "count": 7
+      },
+      null,
+      {
+        "resource": "bread",
+        "count": 2,
+        "premium": {
+          "day": 2,
+          "count": 2
+        }
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 600,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "15-expired-bag",
+    "title": "面包 · 3",
+    "date": "第 3 天 · 春季 · 00:00",
+    "time": 720,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19596.94346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 5
+          }
+        ]
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      {
+        "resource": "bread",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 2
+        }
+      }
+    ],
+    "box": [
+      null,
+      {
+        "resource": "milk",
+        "count": 7
+      },
+      null,
+      {
+        "resource": "bread",
+        "count": 2,
+        "premium": {
+          "day": 2,
+          "count": 2
+        }
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 600,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "power-0",
+    "title": null,
+    "date": "第 1 天 · 春季 · 14:00",
+    "time": 210,
+    "power": {
+      "generation": 207.84609690826528,
+      "demand": 45,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 120,
+            "count": 10
+          }
+        ]
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 120,
+            "count": 10
+          }
+        ]
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 90,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "power-1",
+    "title": null,
+    "date": "第 1 天 · 春季 · 17:16",
+    "time": 259.25,
+    "power": {
+      "generation": 44.76576864209642,
+      "demand": 45,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 44.76576864209642,
+      "coldStorage": false
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 10
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 10
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 139.25,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "power-2",
+    "title": null,
+    "date": "第 2 天 · 春季 · 07:03",
+    "time": 465.75,
+    "power": {
+      "generation": 45.6019955773325,
+      "demand": 45,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 465.5,
+            "count": 10
+          }
+        ]
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 465.5,
+            "count": 10
+          }
+        ]
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 345.75,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  },
+  {
+    "name": "power-3",
+    "title": null,
+    "date": "第 2 天 · 春季 · 08:00",
+    "time": 480,
+    "power": {
+      "generation": 83.99999999999999,
+      "demand": 45,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "lots": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 465.5,
+            "count": 10
+          }
+        ]
+      },
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 10,
+        "freezing": [
+          {
+            "since": 465.5,
+            "count": 10
+          }
+        ]
+      }
+    ],
+    "bag": [
+      {
+        "resource": "hammer",
+        "count": 1
+      },
+      {
+        "resource": "axe",
+        "count": 1
+      },
+      {
+        "resource": "pickaxe",
+        "count": 1
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "box": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 360,
+      "reservedBy": null,
+      "playerOnly": true
+    }
+  }
+]

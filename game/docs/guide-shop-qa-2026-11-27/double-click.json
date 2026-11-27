@@ -1,0 +1,7 @@
+{
+  "check": "shop DOM plus actual simulation",
+  "clicks": 2,
+  "orders": 1,
+  "silverBefore": 30,
+  "silverAfter": 28
+}

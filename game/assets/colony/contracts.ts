@@ -1,3 +1,6 @@
+import { sugarPress } from './sugar-press.ts';
+import { SPECIALIST_BASE_PRICES } from './specialist-catalog.ts';
+import type { Pasture } from './pasture.ts';
 export type Position = [number, number, number];
 export const CROP_TYPES = ['wheat','corn','blueberry','sugarcane','cabbage','leek','potato','tomato'] as const;
 export const DISH_TYPES = ['friedEgg','bread','salad','pasta','pancake','blueberryPie','pizza','perfectBreakfast','lambChopStew'] as const;
@@ -59,9 +62,11 @@ export const ITEM_PICKUP_DELAY = 0.5;
 export const ITEM_PICKUP_RANGE = 1.2;
 /** 随从砍一棵树扣多少体力（不管快慢，按棵算）。 */
 export const COLONIST_CHOP_STAMINA = 8;
+export type ColdMark = { premium?: { day: number; count: number } };
+export type FreezeLot = { since: number; count: number };
 export type ItemStack = { resource: Resource; count: number };
 export type InventorySlot = ItemStack | null;
-export type PlayerInventorySlot = { resource: InventoryItem; count: number } | null;
+export type PlayerInventorySlot = ({ resource: InventoryItem; count: number } & ColdMark) | null;
 export const inventorySpace = (slots: readonly PlayerInventorySlot[], resource: InventoryItem): number =>
   isToolKind(resource) ? Number(slots.includes(null) && !slots.some(slot => slot?.resource === resource))
     : slots.reduce((total, slot) => total + (slot === null ? STACK_LIMIT : slot.resource === resource ? STACK_LIMIT - slot.count : 0), 0);
@@ -85,14 +90,42 @@ export const RESOURCE_NAMES: Record<Resource,string> = {
 
 /** 售卖价（照飞书表）。农作物统一 10，料理按表。 */
 export const RESOURCE_PRICES: Partial<Record<Resource, number>> = {
+  ...Object.fromEntries(CROP_SEEDS.map(seed => [seed,1])), ...SPECIALIST_BASE_PRICES, cloth:8,
   wheat:10,corn:10,blueberry:10,sugarcane:10,cabbage:10,leek:10,potato:10,tomato:10,
   friedEgg:35,bread:60,salad:110,pasta:120,pancake:80,blueberryPie:150,pizza:300,perfectBreakfast:350,
 };
+const foodForCooling = new Set<InventoryItem>(['food','meal',...CROP_TYPES,...DISH_TYPES,...SUPPLY_TYPES.filter(r => r !== 'wool')]);
+export function coldEffect(resource: InventoryItem) {
+  if (resource === 'milk' || resource === 'blueberryWine') return '冰镇';
+  return foodForCooling.has(resource) ? '保鲜' : undefined;
+}
+export const STORAGE_CLASSES = {general:'普通仓', food:'食材仓', materials:'建材仓'} as const;
+export type StorageClass = keyof typeof STORAGE_CLASSES;
+export interface BuildingView { storageClass?: StorageClass }
+export interface ZoneView { storageClass?: StorageClass }
+export const isStorageClass = (value:unknown):value is StorageClass =>
+  typeof value === 'string' && Object.hasOwn(STORAGE_CLASSES,value);
+const constructionStock = new Set<Resource>(['wood','plank','stone','stoneBrick','steel','pigIron','cloth','components','dirt']);
+export function storageClassFor(resource:Resource):StorageClass {
+  if (foodForCooling.has(resource)) return 'food';
+  return constructionStock.has(resource) ? 'materials' : 'general';
+}
+export function premiumCount(stock: ColdMark | null | undefined, day: number) {
+  return stock?.premium?.day === day ? stock.premium.count : 0;
+}
+/** 同一叠可以混有普通品；只计算有效件数的加价，不在这里舍入银币。 */
+export function coldSaleValue(baseUnitPrice: number, count: number, stock: ColdMark, day: number) {
+  return coldSaleSubtotal(baseUnitPrice, count, premiumCount(stock, day));
+}
+export function coldSaleSubtotal(baseUnitPrice: number, count: number, effectiveCount: number) {
+  return baseUnitPrice * (count + Math.min(count, effectiveCount) / 5);
+}
 export const JOB_TYPES = ['terraform','construct','grow','harvest','haul','cook','chop','mine','research','doctor','craft'] as const;
 export type JobType = typeof JOB_TYPES[number];
-export type OrderType = JobType | 'demolish';
-export const JOB_NAMES: Record<OrderType,string> = {terraform:'整地',construct:'建造',demolish:'拆除',grow:'种植',harvest:'收获',haul:'搬运',cook:'烹饪',chop:'伐木',mine:'采矿',research:'研究',doctor:'医疗',craft:'制作'};
+export type OrderType = JobType | 'demolish'|'herd'|'husbandry';
+export const JOB_NAMES: Record<OrderType,string> = {herd:'领动物',husbandry:'采集畜产',terraform:'整地',construct:'建造',demolish:'拆除',grow:'种植',harvest:'收获',haul:'搬运',cook:'烹饪',chop:'伐木',mine:'采矿',research:'研究',doctor:'医疗',craft:'制作'};
 export type BuildingKind =
+  | 'sugarPress'
   // 原有 12 种
   | 'bed'|'table'|'stove'|'workbench'|'researchDesk'|'solar'|'battery'|'cooler'|'medicalBed'|'wall'|'door'|'floor'
   // 结构类（飞书「结构类」表）——木门/石墙沿用已有的 door/wall
@@ -102,13 +135,20 @@ export type BuildingKind =
   | 'campfire'|'campfirePlaza'|'torch'|'floorLamp'|'chandelier'
   // 生产类——炉灶沿用 stove、研究台沿用 researchDesk
   | 'campStove'|'carpenterBench'|'stoneCutter'|'forgery'|'fabricator'|'tailorBench'|'pickleBarrel'|'brewBarrel'|'cheesePress'
-  | 'advancedResearchDesk'|'artBench'
+  | 'advancedResearchDesk'|'artBench'|'flourMill'|'pastureGate'|'milker'|'henNest'
   // 农业类——种植区是区域标记，不走建筑
+  | 'shearingStand'|'loom'
   | 'hydroponics'|'sprinkler'|'greenhouseWall'|'scarecrow'|'compostBin';
 export type BuildingCategory = 'structure'|'furniture'|'production'|'agriculture'|'core';
 export type BuildingRotation = 0|1|2|3;
 export interface BuildingDefinition { id: BuildingKind; name: string; description: string; cost: Partial<Resources>; work: number; research?: string; power: number; blocking: boolean; color: [number,number,number]; footprint?:[number,number]; height?:number; category?: BuildingCategory; storageSlots?:number }
 export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
+  sugarPress,
+  pastureGate:{id:'pastureGate',name:'牧场门',description:'供居民领动物进出。',cost:{wood:3},work:4,power:0,blocking:false,color:[.6,.39,.2],category:'structure'},
+  milker:{id:'milker',name:'挤奶器',description:'在牧场内为成年母牛挤奶。',cost:{wood:6,steel:2},work:12,power:0,blocking:true,color:[.7,.75,.7],category:'agriculture'},
+  henNest:{id:'henNest',name:'鸡窝',description:'居民在巢内收取母鸡产下的蛋。',cost:{wood:4},work:6,power:0,blocking:true,color:[.73,.59,.27],category:'agriculture'},
+  shearingStand:{id:'shearingStand',name:'剪毛台',description:'建在牧场内。每只成年羊每天可剪出 2 份羊毛。',cost:{wood:6},work:8,power:0,blocking:true,color:[.68,.47,.29],category:'agriculture'},
+  loom:{id:'loom',name:'织布机',description:'居民手工将 2 份羊毛织成 1 份布料。',cost:{wood:12},work:14,power:0,blocking:true,color:[.59,.40,.24],footprint:[2,1],category:'production'},
   campfirePlaza:{id:'campfirePlaza',name:'篝火晚会广场',description:'居民整地、搭台设宴。完工当晚，全村围火相聚。',footprint:[26,22],height:4,cost:{},work:72,power:0,blocking:false,color:[.86,.52,.23],category:'core'},
   bed:{id:'bed',name:'木床',description:'为居民提供安稳睡眠。',cost:{plank:24,cloth:3},work:18,power:0,blocking:true,color:[0.60,0.42,0.23],footprint:[1,2]},
   table:{id:'table',name:'餐桌',description:'就餐与休闲，改善心情。',cost:{plank:30},work:16,power:0,blocking:true,color:[0.64,0.44,0.23]},
@@ -117,7 +157,7 @@ export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
   researchDesk:{id:'researchDesk',name:'研究桌',description:'分配研究项目，由居民逐步研究。',cost:{plank:40,steel:8},work:25,power:0,blocking:true,color:[0.40,0.49,0.55]},
   solar:{id:'solar',name:'太阳能板',description:'晴天白昼发电，阴雨天减产。',cost:{steel:22,components:2},work:36,research:'electricity',power:-120,blocking:true,color:[0.19,0.35,0.55]},
   battery:{id:'battery',name:'蓄电池',description:'保存白天余电，在夜间供电。',cost:{steel:16,components:2},work:30,research:'electricity',power:0,blocking:true,color:[0.40,0.47,0.29]},
-  cooler:{id:'cooler',name:'冷藏机',description:'消耗 45 W，减少仓储食品腐坏。',cost:{steel:18,components:3},work:35,research:'refrigeration',power:45,blocking:true,color:[0.59,0.72,0.73]},
+  cooler:{id:'cooler',name:'冷藏机',description:'消耗 45 W。仓储食物、饮品连续冷藏满一天后获得保鲜或冰镇，售价提高 20%，到次日零点失效。',cost:{steel:18,components:3},work:35,research:'refrigeration',power:45,blocking:true,color:[0.59,0.72,0.73]},
   medicalBed:{id:'medicalBed',name:'医护床',description:'病人休养并接受医护治疗。',cost:{plank:36,steel:6,cloth:8},work:30,research:'medicine',power:0,blocking:true,color:[0.80,0.85,0.79],footprint:[1,2]},
   wall:{id:'wall',name:'石墙',description:'阻挡通行，围合室内房间。',cost:{stone:5},work:9,power:0,blocking:true,color:[0.61,0.63,0.57],height:2},
   door:{id:'door',name:'木门',description:'上下两格组成一扇门。打开通行，关闭围合房间。',cost:{wood:8},work:12,power:0,blocking:true,color:[0.54,0.36,0.20],height:2},
@@ -148,6 +188,7 @@ export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
 
   // ---- 生产类 ----
   carpenterBench:{id:'carpenterBench',name:'木工台',description:'把木材加工成木板。',cost:{wood:10,stone:4},work:14,power:0,blocking:true,color:[0.62,0.45,0.27],footprint:[2,1],category:'production'},
+  flourMill:{id:'flourMill',name:'面粉机',description:'居民用手摇石磨把 2 份小麦磨成 1 份面粉。',cost:{wood:10,stone:8},work:14,power:0,blocking:true,color:[0.59,0.56,0.49],footprint:[2,1],category:'production'},
   campStove:{id:'campStove',name:'篝火灶台',description:'早期烹饪，效率低。',cost:{plank:20,stone:6},work:10,power:0,blocking:true,color:[0.80,0.50,0.24],category:'production'},
   stoneCutter:{id:'stoneCutter',name:'切石台',description:'石块加工成石砖。',cost:{plank:24,stone:8},work:16,power:0,blocking:true,color:[0.62,0.64,0.58],category:'production'},
   forgery:{id:'forgery',name:'锻造台',description:'将生铁加工成钢铁。',cost:{stoneBrick:10,pigIron:12},work:26,power:0,blocking:true,color:[0.48,0.50,0.52],category:'production'},
@@ -183,7 +224,7 @@ export interface ResearchDefinition {id:string;name:string;description:string;wo
 export const RESEARCH_DEFS: Record<string,ResearchDefinition> = {
   agriculture:{id:'agriculture',name:'精耕农业',description:'解锁玉米和更高产的种植方式。',work:90,unlocks:['corn']},
   electricity:{id:'electricity',name:'基础电力',description:'解锁太阳能板与蓄电池。',work:110,unlocks:['solar','battery']},
-  refrigeration:{id:'refrigeration',name:'食物冷藏',description:'解锁冷藏机，延长食物储存。',work:130,requires:'electricity',unlocks:['cooler']},
+  refrigeration:{id:'refrigeration',name:'食物冷藏',description:'解锁冷藏机，为食物保鲜、为饮品冰镇。',work:130,requires:'electricity',unlocks:['cooler']},
   medicine:{id:'medicine',name:'基础医学',description:'解锁医护床并改善治疗效果。',work:100,unlocks:['medicalBed']},
   fabrication:{id:'fabrication',name:'精密制作',description:'解锁工作台零件配方。',work:140,requires:'electricity',unlocks:['components']},
 };
@@ -207,23 +248,49 @@ export const CROP_DEFS: Record<CropKind, {
 };
 export interface ColonyCommand {action:string;value?:unknown;kind?:string;x?:number;y?:number;z?:number;rotation?:number;w?:number;d?:number;cells?:[number,number][];id?:string;colonistId?:string;job?:string;target?:number;crop?:string;recipe?:string;amount?:number}
 export interface CommandResult {ok:boolean;message:string;id?:string}
+export type MerchantId = 'guide' | import('./specialist-catalog.ts').SpecialistId;
+export interface ColonyCommand { merchantId?: MerchantId }
+export type MerchantHousing = Omit<import('./guide-housing.ts').GuideHousing,'npcId'> & {npcId:MerchantId};
+export interface SpecialistMerchantView {
+  id: import('./specialist-catalog.ts').SpecialistId;
+  sold:number;
+  arrivalDay:number|null;
+  status:'locked'|'scheduled'|'arrived';
+  housing:MerchantHousing|null;
+}
+export interface SpecialistMarketView {
+  availableRooms:{roomId:number;bedId:string;position:Position;comfort:number;cleanliness:number}[];
+  merchants:SpecialistMerchantView[];
+  events:import('./market-calendar.ts').MarketEvent[];
+}
 export type MapToolMenu = 'build' | 'plan';
 export interface ColonistView {id:string;name:string;traits:string[];skills:Record<JobType,number>;priorities:Record<JobType,number>;schedule:Schedule;position:Position;health:number;hunger:number;rest:number;recreation:number;mood:number;disease:number;task:string;jobId:string|null;color:Position;carrying:Partial<Resources>;bag:PlayerInventorySlot[];bagSelected:number;stamina:number;facing:number;comfort:number}
 export interface BuildingView {id:string;kind:BuildingKind;x:number;y:number;z:number;w:number;h:number;d:number;rotation:BuildingRotation;doorOpen?:boolean;phase:'preparingTerrain'|'readyToBuild'|'constructing'|'completed';terrainPlanId?:string;blockedReason?:string;complete:boolean;progress:number;reserved:Partial<Resources>;powered:boolean;comfort:number;roomId:number|null;storage?:PlayerInventorySlot[]}
 export interface TerrainPlanView {id:string;target:number;cells:[number,number][];remainingCut:number;remainingFill:number;progress:number;state:'queued'|'working'|'blocked'|'completed';blockedReason?:string;buildingId?:string}
-export interface ZoneView {id:string;kind:'farm'|'stockpile';x:number;y:number;z:number;w:number;d:number;crop:CropKind;shelfId?:string}
+export interface ZoneView {id:string;kind:'farm'|'stockpile'|'pasture';pasture?:Pasture;x:number;y:number;z:number;w:number;d:number;crop:CropKind;shelfId?:string;cells?:[number,number][]}
 export type WarehouseSlot = {x:number;z:number;slot:number;shelfId?:string};
-export type StoredStack = WarehouseSlot & {resource:Resource;count:number};
+export type StoredStack = WarehouseSlot & ColdMark & {resource:Resource;count:number; freezing?:FreezeLot[]};
 export interface CropView {id:string;kind:CropKind;x:number;y:number;z:number;growth:number;planted:boolean}
-export interface ItemView {id:string;resource:InventoryItem;amount:number;x:number;y:number;z:number;age:number;reservedBy:string|null;scatter?:boolean;playerOnly?:boolean}
+export interface ItemView extends ColdMark {id:string;resource:InventoryItem;amount:number;x:number;y:number;z:number;age:number;reservedBy:string|null;scatter?:boolean;playerOnly?:boolean}
 export interface JobView {id:string;type:OrderType;targetId:string;x:number;y:number;z:number;progress:number;work:number;state:'queued'|'working'|'blocked';assignedTo:string|null;reserved:Partial<Resources>;label:string;recipientId?:string;deliveryPhase?:'pickup'|'deliver';recipe?:string;craftAmount?:number;craftPhase?:'pickup'|'work'}
 export interface ColonyEvent {id:string;time:number;day:number;hour:number;type:'info'|'weather'|'health'|'research'|'arrival';text:string}
+export interface GuideSale {
+  merchantId?:MerchantId;
+  eventId?:string;
+  side:'buy'|'recycle'; pickupAt?:Position;
+  item:Resource; count:number; premium:number; total:number; delivered:number; paid:number; inTransit:number;
+  lots:{x:number; z:number; count:number; shelfId?:string; overflow?:boolean; premium?:number}[];
+  transitPremium?:number;
+}
+export interface JobView { guideSale?:GuideSale }
 export interface RoomView {id:number;cells:[number,number][];enclosed:boolean;comfort:number;temperature:number;cleanliness:number}
 export type FinalePhase = 'gathering' | 'show' | 'departing';
 export interface FinaleView {
   buildingId:string; phase:FinalePhase; elapsed:number; arrived:number; guests:number;
 }
 export interface ColonySnapshot {
+  specialistMarket: SpecialistMarketView;
+  guideHousing: import('./guide-housing.ts').GuideHousing;
   finale?:FinaleView;
   version:1;speed:number;day:number;hour:number;season:string;weather:string;temperature:number;time:number;
   resources:Resources;colonists:ColonistView[];buildings:BuildingView[];zones:ZoneView[];crops:CropView[];items:ItemView[];jobs:JobView[];rooms:RoomView[];terrainPlans:TerrainPlanView[];

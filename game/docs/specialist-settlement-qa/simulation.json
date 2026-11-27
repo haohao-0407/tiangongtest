@@ -1,0 +1,117 @@
+{
+  "walk": [
+    [
+      19.5,
+      5,
+      19.5
+    ],
+    [
+      20.5,
+      5,
+      19.5
+    ]
+  ],
+  "purchase": {
+    "merchant": "chef",
+    "paid": 89,
+    "soldAfterDeposit": 12
+  },
+  "threshold": {
+    "before": 11,
+    "carrying": 11,
+    "delivered": {
+      "id": "chef",
+      "sold": 12,
+      "arrivalDay": 1,
+      "status": "arrived",
+      "housing": {
+        "npcId": "chef",
+        "status": "camp",
+        "position": [
+          22.5,
+          5,
+          19.5
+        ],
+        "roomId": null,
+        "bedId": null,
+        "comfort": 0,
+        "cleanliness": 0,
+        "quality": 0,
+        "buyFactor": 1,
+        "recycleFactor": 1
+      }
+    },
+    "guideBed": "bed-14-9",
+    "chefBed": "bed-22-9"
+  },
+  "homes": {
+    "guide": "bed-14-9",
+    "specialists": [
+      "bed-22-9",
+      "bed-6-17",
+      "bed-14-21",
+      "bed-23-21"
+    ]
+  },
+  "partial": [
+    {
+      "id": "chef",
+      "item": "tomato",
+      "total": 180,
+      "paid": 154,
+      "delivered": 12,
+      "returned": 2,
+      "merchant": [
+        23.5,
+        5,
+        9.5
+      ]
+    },
+    {
+      "id": "tailor",
+      "item": "wool",
+      "total": 54,
+      "paid": 46,
+      "delivered": 12,
+      "returned": 2,
+      "merchant": [
+        7.5,
+        5,
+        17.5
+      ]
+    }
+  ],
+  "expiry": {
+    "event": {
+      "id": "chef-5",
+      "merchantId": "chef",
+      "item": "blueberryPie",
+      "announcedDay": 1,
+      "startDay": 5,
+      "endDay": 6,
+      "limit": 5,
+      "remaining": 5
+    },
+    "quote": {
+      "total": 725,
+      "normalCount": 3,
+      "premiumCount": 0,
+      "factor": 1.0745,
+      "marketFactor": 1.5,
+      "eventId": "chef-5"
+    },
+    "paid": 725,
+    "paidDay": 7,
+    "remaining": 2,
+    "waitingSilver": 1206
+  },
+  "cancelExpiredPartial": {
+    "delivered": 2,
+    "returned": 3,
+    "paid": 483
+  },
+  "legacy": {
+    "guideBed": "bed-14-9",
+    "chefAfterTwoLoads": 12
+  }
+}

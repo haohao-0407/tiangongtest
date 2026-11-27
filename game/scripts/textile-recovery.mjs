@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import {textileFixture} from './textiles-playthrough.mjs';
+
+const {sim}=await textileFixture();
+const state=()=>sim.snapshot();
+const animals=()=>state().zones.find(z=>z.x===13&&z.pasture).pasture.animals;
+const until=(predicate,limit=1200)=>{
+  for(let i=0;i<limit&&!predicate();i++) sim.tick(.25);
+  assert.ok(predicate(),JSON.stringify({time:sim.simulationTime,resident:state().colonists[0].task,jobs:state().jobs}));
+};
+sim.command({action:'speed',value:1});
+until(()=>sim.simulationTime>=129);
+assert.ok(!state().jobs.some(j=>j.type==='husbandry'));
+assert.ok(!sim.command({action:'build',kind:'shearingStand',x:19,z:15}).ok);
+const stand=sim.command({action:'build',kind:'shearingStand',x:16,z:15});
+assert.ok(stand.ok,stand.message);
+assert.ok(!state().jobs.some(j=>j.type==='husbandry'));
+until(()=>state().jobs.some(j=>j.type==='husbandry'&&j.progress>0));
+sim.load(sim.serialize());
+until(()=>state().resources.wool===6);
+const clock=animals().filter(a=>!a.young).map(a=>a.readyAt);
+assert.ok(clock.every(t=>t>sim.simulationTime));
+assert.equal(animals().find(a=>a.young).readyAt,0);
+const loom=sim.command({action:'build',kind:'loom',x:19,z:15});assert.ok(loom.ok,loom.message);
+until(()=>state().buildings.some(b=>b.id===loom.id&&b.complete));
+const order=sim.command({action:'craft',recipe:'cloth',amount:3});assert.ok(order.ok,order.message);
+until(()=>state().jobs.some(j=>j.recipe==='cloth'&&j.reserved.wool===6));
+sim.load(sim.serialize());
+until(()=>state().resources.cloth===3);
+assert.equal(state().resources.wool,0);
+const bed=sim.command({action:'build',kind:'bed',x:19,z:12});assert.ok(bed.ok,bed.message);
+until(()=>state().buildings.some(b=>b.id===bed.id&&b.complete));
+sim.load(sim.serialize());
+assert.deepEqual([state().resources.wood,state().resources.plank,state().resources.cloth,state().resources.wool],[0,0,0,0]);
+assert.deepEqual(animals().filter(a=>!a.young).map(a=>a.readyAt),clock);
+const next=sim.serialize();
+next.time=Math.min(...clock)-2;
+next.lastDay=Math.floor(next.time/360)+1;
+// Jump directly to the recovery boundary with a rested resident available for the second shift.
+Object.assign(next.colonists[0],{health:100,hunger:100,rest:100,recreation:100,disease:0,personal:null});
+sim.load(next);
+until(()=>sim.simulationTime>=Math.min(...clock)-.25);
+assert.ok(!state().jobs.some(j=>j.type==='husbandry'));
+until(()=>state().resources.wool===6);
+assert.equal(animals().find(a=>a.young).readyAt,0);
+assert.ok(animals().filter(a=>!a.young).every((a,i)=>a.readyAt>=clock[i]+360));
+console.log(JSON.stringify({firstHarvest:6,clothWoven:3,beds:1,stockAfterBed:{wood:0,plank:0,wool:0,cloth:0},nextHarvest:state().resources.wool,firstReadyAt:clock,nextReadyAt:animals().filter(a=>!a.young).map(a=>a.readyAt),lambReadyAt:animals().find(a=>a.young).readyAt}));

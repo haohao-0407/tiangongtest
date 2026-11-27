@@ -1,0 +1,3632 @@
+[
+  {
+    "name": "no-rooms",
+    "day": 1,
+    "time": 120,
+    "silver": 30,
+    "guide": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": []
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          19.5,
+          5,
+          19.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          10.5,
+          5,
+          14.5
+        ],
+        "task": "观察新营地"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          20.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          12.5,
+          5,
+          14.5
+        ],
+        "task": "观察新营地"
+      }
+    ],
+    "ui": "向导 · 安排住所\n×\n正在镇上寻找住所\n\n请为我安排一间有床、有桌子的合格空房。入住后就可以开店了。\n\n选择空房\n\n目前没有合格空房。请准备至少六格、带门、床和桌子的封闭房间。"
+  },
+  {
+    "name": "guide-choose-room",
+    "day": 1,
+    "time": 120,
+    "silver": 30,
+    "guide": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-14-9",
+          "position": [
+            15.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-22-9",
+          "position": [
+            23.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 4,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          19.5,
+          5,
+          19.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          10.5,
+          5,
+          14.5
+        ],
+        "task": "观察新营地"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          20.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          12.5,
+          5,
+          14.5
+        ],
+        "task": "观察新营地"
+      }
+    ],
+    "ui": "向导 · 安排住所\n×\n正在镇上寻找住所\n\n请为我安排一间有床、有桌子的合格空房。入住后就可以开店了。\n\n选择空房\n指定房间 0 · 床位 (15, 9) · 舒适 49 / 清洁 100\n指定房间 1 · 床位 (23, 9) · 舒适 49 / 清洁 100\n指定房间 2 · 床位 (7, 17) · 舒适 49 / 清洁 100\n指定房间 3 · 床位 (15, 21) · 舒适 49 / 清洁 100\n指定房间 4 · 床位 (24, 21) · 舒适 49 / 清洁 100"
+  },
+  {
+    "name": "guide-housed",
+    "day": 1,
+    "time": 120,
+    "silver": 30,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": 0,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 1,
+          "bedId": "bed-22-9",
+          "position": [
+            23.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 4,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          19.5,
+          5,
+          19.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          10.5,
+          5,
+          14.5
+        ],
+        "task": "观察新营地"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          20.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          12.5,
+          5,
+          14.5
+        ],
+        "task": "观察新营地"
+      }
+    ],
+    "ui": "向导商店\n×\n已入住 · 房间 0\n环境品质 75 · 买价 −7.5% / 回收 +7.5%\n商品货架\n‹\n1 / 4\n›\n可用 30 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▱\n钢铁 × 30\n▨\n布料 × 10\n番茄 × 26\n面包 × 14\n蓝莓千层酥 × 7\n牛奶 × 20\n羊毛 × 28\n已为向导安排住所"
+  },
+  {
+    "name": "guide-in-transit",
+    "day": 1,
+    "time": 123,
+    "silver": 30,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        18.5,
+        5,
+        16.5
+      ],
+      "roomId": 0,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 1,
+          "bedId": "bed-22-9",
+          "position": [
+            23.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 4,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "order": {
+      "merchantId": "guide",
+      "side": "recycle",
+      "item": "wool",
+      "count": 6,
+      "premium": 0,
+      "total": 19,
+      "delivered": 0,
+      "paid": 0,
+      "inTransit": 6,
+      "lots": [],
+      "transitPremium": 0
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          18.5,
+          5,
+          16.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": "Walk_Forward",
+        "time": 0.45500499999523175
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          8.549999999999999,
+          5,
+          12.5
+        ],
+        "task": "向向导运送羊毛 × 6"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          20.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          13.5,
+          5,
+          15.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": "向导商店\n×\n已入住 · 房间 0\n环境品质 75 · 买价 −7.5% / 回收 +7.5%\n商品货架\n‹\n1 / 4\n›\n可用 30 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▱\n钢铁 × 30\n▨\n布料 × 10\n番茄 × 26\n面包 × 14\n蓝莓千层酥 × 7\n牛奶 × 20\n羊毛 × 22\n已预约羊毛 × 6，交付后共收 19 银币\n羊毛 × 6 · 运送中\n林夏 · 在途 6 · 交付 0/6\n锁价 19 · 已收 0 银币"
+  },
+  {
+    "name": "tailor-walking",
+    "day": 1,
+    "time": 130.25,
+    "silver": 49,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.825
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 6,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "tailor",
+            "status": "camp",
+            "position": [
+              23.5,
+              5,
+              18.825000000000003
+            ],
+            "roomId": null,
+            "bedId": null,
+            "comfort": 0,
+            "cleanliness": 0,
+            "quality": 0,
+            "buyFactor": 1,
+            "recycleFactor": 1
+          }
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-22-9",
+          "position": [
+            23.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          9.825
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": "Walk_Forward",
+        "time": 0.3391950000524521
+      },
+      {
+        "id": "tailor",
+        "position": [
+          23.5,
+          5,
+          18.825000000000003
+        ],
+        "outfit": 3,
+        "meshes": 1,
+        "joints": 22,
+        "walk": "Walk_Forward",
+        "time": 0.3391950000524521
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          16.5,
+          5,
+          14.187499999999993
+        ],
+        "task": "等待工作 · 散步"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          20.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          11.812500000000007,
+          5,
+          18.5
+        ],
+        "task": "等待工作 · 散步"
+      }
+    ],
+    "ui": null
+  },
+  {
+    "name": "tailor-choose-room",
+    "day": 1,
+    "time": 130.25,
+    "silver": 49,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.825
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 6,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "tailor",
+            "status": "camp",
+            "position": [
+              23.5,
+              5,
+              18.825000000000003
+            ],
+            "roomId": null,
+            "bedId": null,
+            "comfort": 0,
+            "cleanliness": 0,
+            "quality": 0,
+            "buyFactor": 1,
+            "recycleFactor": 1
+          }
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-22-9",
+          "position": [
+            23.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          9.825
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "tailor",
+        "position": [
+          23.5,
+          5,
+          18.825000000000003
+        ],
+        "outfit": 3,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          16.5,
+          5,
+          14.187499999999993
+        ],
+        "task": "等待工作 · 散步"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          23.5,
+          5,
+          17.825000000000003
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          11.812500000000007,
+          5,
+          18.5
+        ],
+        "task": "等待工作 · 散步"
+      }
+    ],
+    "ui": "裁缝 · 安排住所\n×\n🧵\n裁缝\n正在镇上寻找住所\n\n请为我安排一间有床、有桌子的合格空房。入住后就可以开店了。\n\n选择空房\n指定房间 0 · 床位 (23, 9) · 舒适 49 / 清洁 100\n指定房间 1 · 床位 (7, 17) · 舒适 49 / 清洁 100\n指定房间 2 · 床位 (15, 21) · 舒适 49 / 清洁 100\n指定房间 3 · 床位 (24, 21) · 舒适 49 / 清洁 100"
+  },
+  {
+    "name": "tailor-housed",
+    "day": 1,
+    "time": 130.25,
+    "silver": 49,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.825
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [
+        {
+          "id": "tailor-4",
+          "merchantId": "tailor",
+          "item": "cloth",
+          "announcedDay": 1,
+          "startDay": 4,
+          "endDay": 5,
+          "limit": 10,
+          "remaining": 10
+        }
+      ],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 6,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "tailor",
+            "status": "housed",
+            "position": [
+              23.5,
+              5,
+              18.825000000000003
+            ],
+            "roomId": 0,
+            "bedId": "bed-22-9",
+            "comfort": 49,
+            "cleanliness": 100,
+            "quality": 74.5,
+            "buyFactor": 0.9255,
+            "recycleFactor": 1.0745
+          }
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          9.825
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "tailor",
+        "position": [
+          23.5,
+          5,
+          18.825000000000003
+        ],
+        "outfit": 3,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          16.5,
+          5,
+          14.187499999999993
+        ],
+        "task": "等待工作 · 散步"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          23.5,
+          5,
+          17.825000000000003
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          11.812500000000007,
+          5,
+          18.5
+        ],
+        "task": "等待工作 · 散步"
+      }
+    ],
+    "ui": "裁缝商店\n×\n🧵\n裁缝\n已入住 · 房间 0\n环境品质 75 · 买价 −7.5% / 回收 +7.5%\n商品货架\n可用 49 银币\n布料\n▨\n19 银币\n回收栏\n平日收购 ×1.2 · 羊毛\n羊毛 × 22\n已为裁缝安排住所"
+  },
+  {
+    "name": "calendar-announcement",
+    "day": 1,
+    "time": 130.25,
+    "silver": 49,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.825
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [
+        {
+          "id": "tailor-4",
+          "merchantId": "tailor",
+          "item": "cloth",
+          "announcedDay": 1,
+          "startDay": 4,
+          "endDay": 5,
+          "limit": 10,
+          "remaining": 10
+        }
+      ],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 6,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "tailor",
+            "status": "housed",
+            "position": [
+              23.5,
+              5,
+              18.825000000000003
+            ],
+            "roomId": 0,
+            "bedId": "bed-22-9",
+            "comfort": 49,
+            "cleanliness": 100,
+            "quality": 74.5,
+            "buyFactor": 0.9255,
+            "recycleFactor": 1.0745
+          }
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          9.825
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "tailor",
+        "position": [
+          23.5,
+          5,
+          18.825000000000003
+        ],
+        "outfit": 3,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          16.5,
+          5,
+          14.187499999999993
+        ],
+        "task": "等待工作 · 散步"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          23.5,
+          5,
+          17.825000000000003
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          11.812500000000007,
+          5,
+          18.5
+        ],
+        "task": "等待工作 · 散步"
+      }
+    ],
+    "ui": "集市日历\n×\n第 1 天\n今天 · 来镇\n第 2 天\n—\n第 3 天\n—\n第 4 天\n1 场收购\n第 5 天\n1 场收购\n第 6 天\n—\n第 7 天\n—\n收购公告\n冬衣赶工\n预告\n\n裁缝收购布料 · 基础回收价 ×1.5 · 剩余 10 / 10 份\n\n第 1 天公布 · 第 4 天至第 5 天\n来镇消息\n\n向导 · 开局已来镇 · 已安家\n\n裁缝 · 第 1 天搬来 · 已安家\n\n我的交货记录\n小麦、番茄、面包、意大利面、蓝莓千层酥\n0 / 12 件\n羊毛、布料\n6 / 6 件\n牛奶、奶酪\n0 / 8 件\n生铁、钢铁\n0 / 12 件"
+  },
+  {
+    "name": "event-cap",
+    "day": 4,
+    "time": 1200,
+    "silver": 49,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.825
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [
+        {
+          "id": "tailor-4",
+          "merchantId": "tailor",
+          "item": "cloth",
+          "announcedDay": 1,
+          "startDay": 4,
+          "endDay": 5,
+          "limit": 10,
+          "remaining": 10
+        },
+        {
+          "id": "tailor-8",
+          "merchantId": "tailor",
+          "item": "cloth",
+          "announcedDay": 4,
+          "startDay": 8,
+          "endDay": 9,
+          "limit": 10,
+          "remaining": 10
+        }
+      ],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 6,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "tailor",
+            "status": "housed",
+            "position": [
+              23.5,
+              5,
+              18.825000000000003
+            ],
+            "roomId": 0,
+            "bedId": "bed-22-9",
+            "comfort": 49,
+            "cleanliness": 100,
+            "quality": 74.5,
+            "buyFactor": 0.9255,
+            "recycleFactor": 1.0745
+          }
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          9.825
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "tailor",
+        "position": [
+          23.5,
+          5,
+          18.825000000000003
+        ],
+        "outfit": 3,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          16.5,
+          5,
+          14.187499999999993
+        ],
+        "task": "等待工作 · 散步"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          23.5,
+          5,
+          17.825000000000003
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          11.812500000000007,
+          5,
+          18.5
+        ],
+        "task": "等待工作 · 散步"
+      }
+    ],
+    "ui": "裁缝商店\n×\n🧵\n裁缝\n已入住 · 房间 0\n环境品质 75 · 买价 −7.5% / 回收 +7.5%\n商品货架\n可用 49 银币\n布料\n▨\n19 银币\n回收栏\n平日收购 ×1.2 · 羊毛\n羊毛 × 22\n▨\n布料 × 10\n冬衣赶工 · 布料 ×1.5 · 剩余 10/10 件\n交售布料\n库存 10 件\n−\n11 件\n+\n+10\n本次活动还可提交 10 件\n取消\n本次可提交 10 件"
+  },
+  {
+    "name": "event-first-payment",
+    "day": 4,
+    "time": 1222,
+    "silver": 100,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [
+        {
+          "id": "tailor-4",
+          "merchantId": "tailor",
+          "item": "cloth",
+          "announcedDay": 1,
+          "startDay": 4,
+          "endDay": 5,
+          "limit": 10,
+          "remaining": 0
+        },
+        {
+          "id": "tailor-8",
+          "merchantId": "tailor",
+          "item": "cloth",
+          "announcedDay": 4,
+          "startDay": 8,
+          "endDay": 9,
+          "limit": 10,
+          "remaining": 10
+        }
+      ],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 10,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "tailor",
+            "status": "housed",
+            "position": [
+              23.5,
+              5,
+              9.5
+            ],
+            "roomId": null,
+            "bedId": "bed-22-9",
+            "comfort": 49,
+            "cleanliness": 100,
+            "quality": 74.5,
+            "buyFactor": 0.9255,
+            "recycleFactor": 1.0745
+          }
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "order": {
+      "merchantId": "tailor",
+      "eventId": "tailor-4",
+      "side": "recycle",
+      "item": "cloth",
+      "count": 10,
+      "premium": 0,
+      "total": 128,
+      "delivered": 4,
+      "paid": 51,
+      "inTransit": 0,
+      "lots": [
+        {
+          "x": 7,
+          "z": 11,
+          "count": 6,
+          "premium": 0
+        }
+      ],
+      "transitPremium": 0
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          9.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "tailor",
+        "position": [
+          23.5,
+          5,
+          9.5
+        ],
+        "outfit": 3,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          23.5,
+          5,
+          12.5
+        ],
+        "task": "到仓位领取布料"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          23.5,
+          5,
+          17.825000000000003
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          4.5,
+          5,
+          19.5
+        ],
+        "task": "等待工作 · 自由活动"
+      },
+      {
+        "id": "colonist-43",
+        "position": [
+          26.5,
+          5,
+          14.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": null
+  },
+  {
+    "name": "event-reloaded",
+    "day": 4,
+    "time": 1222,
+    "silver": 100,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [
+        {
+          "id": "tailor-4",
+          "merchantId": "tailor",
+          "item": "cloth",
+          "announcedDay": 1,
+          "startDay": 4,
+          "endDay": 5,
+          "limit": 10,
+          "remaining": 0
+        },
+        {
+          "id": "tailor-8",
+          "merchantId": "tailor",
+          "item": "cloth",
+          "announcedDay": 4,
+          "startDay": 8,
+          "endDay": 9,
+          "limit": 10,
+          "remaining": 10
+        }
+      ],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 10,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "tailor",
+            "status": "housed",
+            "position": [
+              23.5,
+              5,
+              9.5
+            ],
+            "roomId": null,
+            "bedId": "bed-22-9",
+            "comfort": 49,
+            "cleanliness": 100,
+            "quality": 74.5,
+            "buyFactor": 0.9255,
+            "recycleFactor": 1.0745
+          }
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "order": {
+      "merchantId": "tailor",
+      "eventId": "tailor-4",
+      "side": "recycle",
+      "item": "cloth",
+      "count": 10,
+      "premium": 0,
+      "total": 128,
+      "delivered": 4,
+      "paid": 51,
+      "inTransit": 0,
+      "lots": [
+        {
+          "x": 7,
+          "z": 11,
+          "count": 6,
+          "premium": 0
+        }
+      ],
+      "transitPremium": 0
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          9.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "tailor",
+        "position": [
+          23.5,
+          5,
+          9.5
+        ],
+        "outfit": 3,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          23.5,
+          5,
+          12.5
+        ],
+        "task": "到仓位领取布料"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          23.5,
+          5,
+          17.825000000000003
+        ],
+        "task": "等待工作"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          4.5,
+          5,
+          19.5
+        ],
+        "task": "等待工作 · 自由活动"
+      },
+      {
+        "id": "colonist-43",
+        "position": [
+          26.5,
+          5,
+          14.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": null
+  },
+  {
+    "name": "event-paid",
+    "day": 4,
+    "time": 1245.25,
+    "silver": 177,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [
+        {
+          "id": "tailor-4",
+          "merchantId": "tailor",
+          "item": "cloth",
+          "announcedDay": 1,
+          "startDay": 4,
+          "endDay": 5,
+          "limit": 10,
+          "remaining": 0
+        },
+        {
+          "id": "tailor-8",
+          "merchantId": "tailor",
+          "item": "cloth",
+          "announcedDay": 4,
+          "startDay": 8,
+          "endDay": 9,
+          "limit": 10,
+          "remaining": 10
+        }
+      ],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 16,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "tailor",
+            "status": "housed",
+            "position": [
+              23.5,
+              5,
+              9.5
+            ],
+            "roomId": null,
+            "bedId": "bed-22-9",
+            "comfort": 49,
+            "cleanliness": 100,
+            "quality": 74.5,
+            "buyFactor": 0.9255,
+            "recycleFactor": 1.0745
+          }
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          9.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "tailor",
+        "position": [
+          23.5,
+          5,
+          9.5
+        ],
+        "outfit": 3,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          23.5,
+          5,
+          11.162500000000065
+        ],
+        "task": "等待工作 · 散步"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          25.5,
+          5,
+          16.13750000000001
+        ],
+        "task": "等待工作 · 散步"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          5.5,
+          5,
+          29.212499999999995
+        ],
+        "task": "等待工作 · 散步"
+      },
+      {
+        "id": "colonist-43",
+        "position": [
+          24.5,
+          5,
+          17.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": null
+  },
+  {
+    "name": "chef-actor",
+    "day": 1,
+    "time": 135.25,
+    "silver": 829,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 12,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "chef",
+            "status": "camp",
+            "position": [
+              22.5,
+              5,
+              19.5
+            ],
+            "roomId": null,
+            "bedId": null,
+            "comfort": 0,
+            "cleanliness": 0,
+            "quality": 0,
+            "buyFactor": 1,
+            "recycleFactor": 1
+          }
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-22-9",
+          "position": [
+            23.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          9.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "chef",
+        "position": [
+          22.5,
+          5,
+          19.5
+        ],
+        "outfit": 2,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          15.5,
+          5,
+          10.925000000000004
+        ],
+        "task": "已交货给向导"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          22.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          17.5,
+          5,
+          12.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": null
+  },
+  {
+    "name": "chef-choose-room",
+    "day": 1,
+    "time": 135.25,
+    "silver": 829,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 12,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "chef",
+            "status": "camp",
+            "position": [
+              22.5,
+              5,
+              19.5
+            ],
+            "roomId": null,
+            "bedId": null,
+            "comfort": 0,
+            "cleanliness": 0,
+            "quality": 0,
+            "buyFactor": 1,
+            "recycleFactor": 1
+          }
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-22-9",
+          "position": [
+            23.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          9.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "chef",
+        "position": [
+          22.5,
+          5,
+          19.5
+        ],
+        "outfit": 2,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          15.5,
+          5,
+          10.925000000000004
+        ],
+        "task": "已交货给向导"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          22.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          17.5,
+          5,
+          12.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": "厨师 · 安排住所\n×\n🍞\n厨师\n正在镇上寻找住所\n\n请为我安排一间有床、有桌子的合格空房。入住后就可以开店了。\n\n选择空房\n指定房间 0 · 床位 (23, 9) · 舒适 49 / 清洁 100\n指定房间 1 · 床位 (7, 17) · 舒适 49 / 清洁 100\n指定房间 2 · 床位 (15, 21) · 舒适 49 / 清洁 100\n指定房间 3 · 床位 (24, 21) · 舒适 49 / 清洁 100"
+  },
+  {
+    "name": "chef-shelf",
+    "day": 1,
+    "time": 135.25,
+    "silver": 829,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        9.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [
+        {
+          "id": "chef-5",
+          "merchantId": "chef",
+          "item": "blueberryPie",
+          "announcedDay": 1,
+          "startDay": 5,
+          "endDay": 6,
+          "limit": 5,
+          "remaining": 5
+        }
+      ],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 12,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "chef",
+            "status": "housed",
+            "position": [
+              22.5,
+              5,
+              19.5
+            ],
+            "roomId": 0,
+            "bedId": "bed-22-9",
+            "comfort": 49,
+            "cleanliness": 100,
+            "quality": 74.5,
+            "buyFactor": 0.9255,
+            "recycleFactor": 1.0745
+          }
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          9.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "chef",
+        "position": [
+          22.5,
+          5,
+          19.5
+        ],
+        "outfit": 2,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          15.5,
+          5,
+          10.925000000000004
+        ],
+        "task": "已交货给向导"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          22.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          17.5,
+          5,
+          12.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": "厨师商店\n×\n🍞\n厨师\n已入住 · 房间 0\n环境品质 75 · 买价 −7.5% / 回收 +7.5%\n商品货架\n可用 829 银币\n面包\n89 银币\n意大利面\n232 银币\n回收栏\n平日收购 ×1.2 · 番茄、面粉、鸡蛋、糖\n番茄 × 26\n已为厨师安排住所"
+  },
+  {
+    "name": "cheesemaker-actor",
+    "day": 1,
+    "time": 129,
+    "silver": 98,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        11.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 8,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "cheesemaker",
+            "status": "camp",
+            "position": [
+              22.5,
+              5,
+              19.5
+            ],
+            "roomId": null,
+            "bedId": null,
+            "comfort": 0,
+            "cleanliness": 0,
+            "quality": 0,
+            "buyFactor": 1,
+            "recycleFactor": 1
+          }
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-22-9",
+          "position": [
+            23.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          11.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "cheesemaker",
+        "position": [
+          22.5,
+          5,
+          19.5
+        ],
+        "outfit": 4,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          16.5,
+          5,
+          12.5
+        ],
+        "task": "已交货给向导"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          22.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          15.5,
+          5,
+          15.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": null
+  },
+  {
+    "name": "cheesemaker-choose-room",
+    "day": 1,
+    "time": 129,
+    "silver": 98,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        11.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 8,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "cheesemaker",
+            "status": "camp",
+            "position": [
+              22.5,
+              5,
+              19.5
+            ],
+            "roomId": null,
+            "bedId": null,
+            "comfort": 0,
+            "cleanliness": 0,
+            "quality": 0,
+            "buyFactor": 1,
+            "recycleFactor": 1
+          }
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-22-9",
+          "position": [
+            23.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          11.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "cheesemaker",
+        "position": [
+          22.5,
+          5,
+          19.5
+        ],
+        "outfit": 4,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          16.5,
+          5,
+          12.5
+        ],
+        "task": "已交货给向导"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          22.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          15.5,
+          5,
+          15.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": "乳酪师 · 安排住所\n×\n🧀\n乳酪师\n正在镇上寻找住所\n\n请为我安排一间有床、有桌子的合格空房。入住后就可以开店了。\n\n选择空房\n指定房间 0 · 床位 (23, 9) · 舒适 49 / 清洁 100\n指定房间 1 · 床位 (7, 17) · 舒适 49 / 清洁 100\n指定房间 2 · 床位 (15, 21) · 舒适 49 / 清洁 100\n指定房间 3 · 床位 (24, 21) · 舒适 49 / 清洁 100"
+  },
+  {
+    "name": "cheesemaker-shelf",
+    "day": 1,
+    "time": 129,
+    "silver": 98,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        11.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [
+        {
+          "id": "cheesemaker-4",
+          "merchantId": "cheesemaker",
+          "item": "milk",
+          "announcedDay": 1,
+          "startDay": 4,
+          "endDay": 5,
+          "limit": 12,
+          "remaining": 12
+        }
+      ],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 8,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "cheesemaker",
+            "status": "housed",
+            "position": [
+              22.5,
+              5,
+              19.5
+            ],
+            "roomId": 0,
+            "bedId": "bed-22-9",
+            "comfort": 49,
+            "cleanliness": 100,
+            "quality": 74.5,
+            "buyFactor": 0.9255,
+            "recycleFactor": 1.0745
+          }
+        },
+        {
+          "id": "blacksmith",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          11.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "cheesemaker",
+        "position": [
+          22.5,
+          5,
+          19.5
+        ],
+        "outfit": 4,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          16.5,
+          5,
+          12.5
+        ],
+        "task": "已交货给向导"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          22.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          15.5,
+          5,
+          15.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": "乳酪师商店\n×\n🧀\n乳酪师\n已入住 · 房间 0\n环境品质 75 · 买价 −7.5% / 回收 +7.5%\n商品货架\n可用 98 银币\n牛奶\n19 银币\n奶酪\n45 银币\n回收栏\n平日收购 ×1.2 · 牛奶\n牛奶 × 12\n已为乳酪师安排住所"
+  },
+  {
+    "name": "blacksmith-actor",
+    "day": 1,
+    "time": 129,
+    "silver": 210,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        11.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 12,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "blacksmith",
+            "status": "camp",
+            "position": [
+              22.5,
+              5,
+              19.5
+            ],
+            "roomId": null,
+            "bedId": null,
+            "comfort": 0,
+            "cleanliness": 0,
+            "quality": 0,
+            "buyFactor": 1,
+            "recycleFactor": 1
+          }
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-22-9",
+          "position": [
+            23.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          11.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "blacksmith",
+        "position": [
+          22.5,
+          5,
+          19.5
+        ],
+        "outfit": 5,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          16.5,
+          5,
+          12.5
+        ],
+        "task": "已交货给向导"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          22.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          15.5,
+          5,
+          15.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": null
+  },
+  {
+    "name": "blacksmith-choose-room",
+    "day": 1,
+    "time": 129,
+    "silver": 210,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        11.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 12,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "blacksmith",
+            "status": "camp",
+            "position": [
+              22.5,
+              5,
+              19.5
+            ],
+            "roomId": null,
+            "bedId": null,
+            "comfort": 0,
+            "cleanliness": 0,
+            "quality": 0,
+            "buyFactor": 1,
+            "recycleFactor": 1
+          }
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 0,
+          "bedId": "bed-22-9",
+          "position": [
+            23.5,
+            5,
+            9.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          11.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "blacksmith",
+        "position": [
+          22.5,
+          5,
+          19.5
+        ],
+        "outfit": 5,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          16.5,
+          5,
+          12.5
+        ],
+        "task": "已交货给向导"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          22.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          15.5,
+          5,
+          15.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": "铁匠 · 安排住所\n×\n⚒\n铁匠\n正在镇上寻找住所\n\n请为我安排一间有床、有桌子的合格空房。入住后就可以开店了。\n\n选择空房\n指定房间 0 · 床位 (23, 9) · 舒适 49 / 清洁 100\n指定房间 1 · 床位 (7, 17) · 舒适 49 / 清洁 100\n指定房间 2 · 床位 (15, 21) · 舒适 49 / 清洁 100\n指定房间 3 · 床位 (24, 21) · 舒适 49 / 清洁 100"
+  },
+  {
+    "name": "blacksmith-shelf",
+    "day": 1,
+    "time": 129,
+    "silver": 210,
+    "guide": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        11.5
+      ],
+      "roomId": null,
+      "bedId": "bed-14-9",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "market": {
+      "events": [
+        {
+          "id": "blacksmith-3",
+          "merchantId": "blacksmith",
+          "item": "steel",
+          "announcedDay": 1,
+          "startDay": 3,
+          "endDay": 4,
+          "limit": 8,
+          "remaining": 8
+        }
+      ],
+      "merchants": [
+        {
+          "id": "chef",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "tailor",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "cheesemaker",
+          "sold": 0,
+          "arrivalDay": null,
+          "status": "locked",
+          "housing": null
+        },
+        {
+          "id": "blacksmith",
+          "sold": 12,
+          "arrivalDay": 1,
+          "status": "arrived",
+          "housing": {
+            "npcId": "blacksmith",
+            "status": "housed",
+            "position": [
+              22.5,
+              5,
+              19.5
+            ],
+            "roomId": 0,
+            "bedId": "bed-22-9",
+            "comfort": 49,
+            "cleanliness": 100,
+            "quality": 74.5,
+            "buyFactor": 0.9255,
+            "recycleFactor": 1.0745
+          }
+        }
+      ],
+      "availableRooms": [
+        {
+          "roomId": 1,
+          "bedId": "bed-6-17",
+          "position": [
+            7.5,
+            5,
+            17.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 2,
+          "bedId": "bed-14-21",
+          "position": [
+            15.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        },
+        {
+          "roomId": 3,
+          "bedId": "bed-23-21",
+          "position": [
+            24.5,
+            5,
+            21.5
+          ],
+          "comfort": 49,
+          "cleanliness": 100
+        }
+      ]
+    },
+    "actors": [
+      {
+        "id": "guide",
+        "position": [
+          15.5,
+          5,
+          11.5
+        ],
+        "outfit": 1,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      },
+      {
+        "id": "blacksmith",
+        "position": [
+          22.5,
+          5,
+          19.5
+        ],
+        "outfit": 5,
+        "meshes": 1,
+        "joints": 22,
+        "walk": null,
+        "time": 0
+      }
+    ],
+    "workers": [
+      {
+        "id": "colonist-21",
+        "position": [
+          16.5,
+          5,
+          12.5
+        ],
+        "task": "已交货给向导"
+      },
+      {
+        "id": "colonist-22",
+        "position": [
+          22.5,
+          5,
+          18.5
+        ],
+        "task": "由玩家控制"
+      },
+      {
+        "id": "colonist-23",
+        "position": [
+          15.5,
+          5,
+          15.5
+        ],
+        "task": "等待工作 · 自由活动"
+      }
+    ],
+    "ui": "铁匠商店\n×\n⚒\n铁匠\n已入住 · 房间 0\n环境品质 75 · 买价 −7.5% / 回收 +7.5%\n商品货架\n可用 210 银币\n生铁\n◈\n13 银币\n钢铁\n▱\n30 银币\n回收栏\n平日收购 ×1.2 · 生铁、钢铁\n▱\n钢铁 × 18\n已为铁匠安排住所"
+  }
+]

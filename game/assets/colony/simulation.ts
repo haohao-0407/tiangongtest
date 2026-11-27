@@ -1,8 +1,18 @@
+import { containsCell, footprintCells, type ZoneCell } from './zone-cells.ts';
+import { merchantOrder, type TradeSide } from './guide-shop.ts';
+import type { GuideSale, MerchantId, MerchantHousing, SpecialistMarketView } from './contracts.ts';
+import { SPECIALISTS, SPECIALIST_MARKET_RULES, type SpecialistId } from './specialist-catalog.ts';
+import { planMarketEvents, reserveMarketQuota, releaseMarketQuota, type MarketEvent } from './market-calendar.ts';
+import { GUIDE_HOUSING_RULES, housingTerms, type GuideHousing } from './guide-housing.ts';
+import { pastureLayout, pastureHarvest, choosePastureGate, stockVolume, STOCK_VOLUME, STOCK_NAMES, type StockKind, type HerdAnimal } from './pasture.ts';
+import { visibleWildAnimals, stockAnimalId, wildAnimalPose } from '../voxel/wild-animals.ts';
 import { BLOCK, BLOCKS, VoxelWorld } from '../voxel/model.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
 import { treeProtectingVoxel } from '../voxel/tree-interaction.ts';
-import {buildingDimensions,buildingParts,buildingBlocksMovement} from './buildings.ts';
+import {buildingDimensions,buildingParts,buildingBlocksMovement,buildingSealsRoom,isSwingDoor} from './buildings.ts';
 import { DUSK_SECONDS, PAN_SECONDS, FINALE_SECONDS, gatheringSpot, plazaObstacle, smooth } from './plaza.ts';
+import { coldEffect, premiumCount, type ColdMark } from './contracts.ts';
+import { isStorageClass, storageClassFor, STORAGE_CLASSES, type StorageClass } from './contracts.ts';
 import type { FinalePhase, FinaleView } from './contracts.ts';
 import {buildingProtectingVoxel} from './interaction.ts';
 import { recipeCost, recipeFor, type Recipe } from './recipes.ts';
@@ -21,6 +31,7 @@ import {
 export * from './contracts.ts';
 
 const STEP = 0.25;
+const CARDINAL_STEPS = [[1,0],[-1,0],[0,1],[0,-1]] as const;
 export const DAY_SECONDS = 360;
 export const IRON_ORE_YIELD = 12;
 const SPEEDS = [0, 1, 3, 6];
@@ -28,8 +39,6 @@ const STARTER_SEED_PACKS = 9;
 const STARTER_SUPPLIES = 10;
 const SHELF_ZONE_PREFIX = 'shelf-zone/';
 const WAREHOUSE_LAYOUT = 3;
-const containsCell = (area: {x:number;z:number;w:number;d:number}, x:number, z:number) =>
-  x >= area.x && x < area.x + area.w && z >= area.z && z < area.z + area.d;
 const EMPTY_RESOURCES = (): Resources => Object.fromEntries(RESOURCE_TYPES.map((r) => [r, 0])) as Resources;
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
@@ -37,7 +46,7 @@ const horizontalDistance = (a: Position, b: Position) => Math.hypot(a[0] - b[0],
 const residentsTouchHorizontally = (a: Position, b: Position) => horizontalDistance(a,b) < RESIDENT_RADIUS * 2 - 1e-6;
 const residentsOverlap = (a: Position, b: Position) =>
   Math.abs(a[1] - b[1]) < RESIDENT_HEIGHT - 1e-6 && residentsTouchHorizontally(a,b);
-const workSkill = (type: OrderType): JobType => type === 'demolish' ? 'construct' : type;
+const workSkill = (type: OrderType): JobType => type === 'herd' ? 'haul' : type === 'husbandry' ? 'harvest' : type === 'demolish' ? 'construct' : type;
 const emptySlots = (size: number): PlayerInventorySlot[] => Array.from({ length: size }, () => null);
 const validSlot = (index: unknown, slots: readonly PlayerInventorySlot[]): index is number =>
   typeof index === 'number' && Number.isInteger(index) && index >= 0 && index < slots.length;
@@ -54,14 +63,28 @@ export const withinPlayerWorkReach = ([x, , z]: Position, cellX: number, cellZ: 
   Math.hypot(x - (cellX + .5), z - (cellZ + .5)) <= PLAYER_WORK_REACH;
 export const withinTerrainReach = (position: Position, [x, y, z]: Position): boolean =>
   withinPlayerWorkReach(position, x, z) && Math.abs(position[1] + .6 - (y + .5)) <= 1.5;
-type Personal = { kind: 'eat'|'sleep'|'relax'|'wander'|'patient'; elapsed: number; duration: number; reserved: Partial<Resources>; buildingId?:string };
-type Colonist = ColonistView & { path: Position[]; personal: Personal | null; destination: Position | null; retryAt: number };
+type QualityMap = Partial<Record<Resource, ColdMark>>;
+function addPremium(stock: ColdMark, count: number, day: number) {
+  if (count > 0) stock.premium = { day, count: premiumCount(stock, day) + count };
+}
+function takePremium(stock: ColdMark | undefined, count: number, day: number): number {
+  if (!stock) return 0;
+  const active = premiumCount(stock, day);
+  const taken = Math.min(active, count);
+  if (active > taken) stock.premium = { day, count: active - taken };
+  else delete stock.premium;
+  return taken;
+}
+type Personal = { quality?: QualityMap; kind: 'eat'|'sleep'|'relax'|'wander'|'patient'; elapsed: number; duration: number; reserved: Partial<Resources>; buildingId?:string };
+type Colonist = ColonistView & { cargoQuality?: QualityMap; path: Position[]; personal: Personal | null; destination: Position | null; retryAt: number };
 type TerrainPlan = TerrainPlanView & {initialWork:number};
 type Earthwork = {x:number;z:number;target:number;height:number;plans:string[];blockedReason?:string};
-type Job = JobView & { phase: 'work'|'pickup'|'deliver'; resource?: Resource; amount: number; destination: Position | null };
+type Job = JobView & { quality?: QualityMap; phase: 'work'|'pickup'|'deliver'; resource?: Resource; amount: number; destination: Position | null };
 type FinaleGuest = {id:string; home:Position; seat:Position; task:string; facing:number; arrived:boolean};
 type Finale = {buildingId:string; phase:FinalePhase; elapsed:number; startTime:number; nightTime:number; guests:FinaleGuest[]};
 type SavedState = {
+  specialistMarket: MarketSave;
+  guideBedId?: string | null;
   finale?:Finale;
   version: 3; type: 'peaceful-colony'; worldSeed: string; time: number; accumulator: number; rng: number;
   nextId: number; speed: number; decision: number; lastDay: number; spoilage: number;
@@ -71,6 +94,30 @@ type SavedState = {
   metrics: ColonySnapshot['metrics']; selectedColonistId: string|null;
   weather: string; temperature: number;
 };
+
+const specialistIds=Object.keys(SPECIALISTS) as SpecialistId[];
+const merchantName=(id:MerchantId='guide')=>id==='guide'?'向导':SPECIALISTS[id].name;
+type MerchantWalk={position:Position;path:Position[];retryAt:number};
+type MarketSave={
+  progress:Record<SpecialistId,{sold:number;arrivalDay:number|null;bedId:string|null}>;
+  walks:Partial<Record<MerchantId,MerchantWalk>>;
+  events:MarketEvent[];
+};
+type MerchantHome={bed:BuildingView;room:RoomView;position:Position};
+function emptyMarket():MarketSave {
+  const progress=Object.fromEntries(specialistIds.map(id=>[id,{sold:0,arrivalDay:null,bedId:null}])) as MarketSave['progress'];
+  return {progress,walks:{},events:[]};
+}
+function recordGoods(market:MarketSave,item:Resource,count:number,day:number) {
+  const arrivals:SpecialistId[]=[];
+  for(const id of specialistIds) {
+    if(!SPECIALISTS[id].unlockItems.includes(item))continue;
+    const row=market.progress[id];
+    row.sold+=count;
+    if(row.arrivalDay===null && row.sold>=SPECIALISTS[id].unlockQuantity){row.arrivalDay=day;arrivals.push(id);}
+  }
+  return arrivals;
+}
 
 /** All quantities and work reservations have one owner; no runtime/browser API is needed. */
 export class ColonySimulation {
@@ -178,6 +225,9 @@ export class ColonySimulation {
   private worldRevision = -1;
   private navigationDirty = true;
   private rooms: RoomView[] = [];
+  private camp!:Position;
+  private merchantHomes=new Map<MerchantId,MerchantHome>();
+  private roomChoices:MerchantHome[]=[];
   private roomAt:Int16Array;
 
   constructor(readonly world: VoxelWorld) {
@@ -187,6 +237,7 @@ export class ColonySimulation {
     let seed = 2166136261;
     for (const ch of world.seed) seed = Math.imul(seed ^ ch.charCodeAt(0), 16777619);
     this.s = {
+      specialistMarket:emptyMarket(),
       version: 3, type: 'peaceful-colony', worldSeed: world.seed, time: DAY_SECONDS / 3, accumulator: 0,
       rng: seed >>> 0 || 1, nextId: 1, speed: 1, decision: 0, lastDay: 1, spoilage: 0,
       resources: {
@@ -297,6 +348,7 @@ export class ColonySimulation {
       || this.s.crops.some(crop => crop.x === x && crop.z === zz)) {
       return { ok: false, message: '请选择一块空地放置木箱' };
     }
+    if(this.s.zones.some(zone=>zone.pasture&&containsCell(zone,x,zz)))return {ok:false,message:'牧场内请使用畜产采集设施。'};
     if (this.s.resources.wood < CHEST_WOOD_COST) return { ok: false, message: '仓库里的木材不足' };
     const id = this.id('chest');
     this.s.buildings.push(this.chestBuilding({ id, x, z: zz, slots: emptySlots(CHEST_SLOTS) }, {x,y,z:zz}));
@@ -358,7 +410,7 @@ export class ColonySimulation {
     if (location.kind === 'follower') return this.s.colonists.find(resident=>resident.id===location.id)?.bag;
   }
 
-  private addToBag(resident: Colonist, resource: InventoryItem, amount: number, select = false): number {
+  private addToBag(resident: Colonist, resource: InventoryItem, amount: number, select = false, source?:ColdMark): number {
     const bag=resident.bag;
     if (isToolKind(resource)) {
       const index = bag.indexOf(null);
@@ -374,7 +426,8 @@ export class ColonySimulation {
       if (left <= 0) break;
       const count = bag[index]?.count ?? 0;
       const added = Math.min(STACK_LIMIT - count, left);
-      bag[index] = { resource, count: count + added };
+      bag[index] = { ...bag[index], resource, count: count + added };
+      addPremium(bag[index]!,takePremium(source,added,this.day()),this.day());
       if (select && left === amount && !this.playerBuild) resident.bagSelected=index;
       left -= added;
     }
@@ -403,11 +456,16 @@ export class ColonySimulation {
     const targetSlots = this.inventorySlots(to);
     const targetIndex = to.kind === 'player' || to.kind === 'chest' ? to.slot : to.kind==='follower' ? to.slot??0 : 0;
     let moved = Math.min(available, amount);
+    const carrier = from.kind === 'cargo' ? this.s.colonists.find(c => c.id === from.id) : undefined;
+    const sourceMark = sourceStack ?? (isResource(resource) ? carrier?.cargoQuality?.[resource] : undefined);
+    const pull = (count: number) => from.kind === 'warehouse' && isResource(resource)
+      ? this.withdrawStock(resource,count) : takePremium(sourceMark,count,this.day());
     if (to.kind === 'player' && targetIndex === undefined && sourceSlots !== targetSlots) {
       const receiver=this.inventoryColonist;
       if(!receiver || targetSlots!==receiver.bag)return full;
-      moved=this.addToBag(receiver,resource,moved,true);
+      moved = Math.min(moved,inventorySpace(receiver.bag,resource));
       if (!moved) return full;
+      this.addToBag(receiver,resource,moved,true,{premium:{day:this.day(),count:pull(moved)}});
     } else if (to.kind !== 'warehouse') {
       if (!targetSlots) return full;
       if (!validSlot(targetIndex, targetSlots)) return full;
@@ -417,11 +475,12 @@ export class ColonySimulation {
       if (isTool && sourceSlots !== targetSlots && targetSlots.some(slot => slot?.resource === resource)) return full;
       moved = Math.min(moved, (isTool ? 1 : STACK_LIMIT) - (current?.count ?? 0));
       if (moved <= 0) return full;
-      targetSlots[targetIndex] = { resource, count: (current?.count ?? 0) + moved };
+      targetSlots[targetIndex] = { ...current, resource, count: (current?.count ?? 0) + moved };
+      addPremium(targetSlots[targetIndex]!,pull(moved),this.day());
       if (to.kind === 'player') this.selectBagSlot(targetIndex);
     } else {
       if (isResource(resource)) {
-        moved = this.putInAvailableStorage(resource,moved);
+        moved = this.putInAvailableStorage(resource,moved,sourceMark);
         if (!moved) return full;
       }
       stock[resource] = (stock[resource] ?? 0) + moved;
@@ -429,14 +488,13 @@ export class ColonySimulation {
 
     const left = available - moved;
     if (from.kind === 'warehouse') {
-      if (isResource(resource)) this.withdrawStock(resource,moved);
-      else stock[resource] = left;
+      if (!isResource(resource)) stock[resource] = left;
     }
     else if (cargo && isResource(resource)) {
       if (left) cargo[resource] = left;
       else delete cargo[resource];
     } else if (sourceSlots && validSlot(sourceIndex, sourceSlots)) {
-      sourceSlots[sourceIndex] = left ? { resource, count: left } : null;
+      sourceSlots[sourceIndex] = left ? { ...sourceStack, resource, count: left } : null;
     }
     return { ok: true, message: moved < amount ? `已转移 ${moved} 个，剩余物品留在原处` : `已转移 ${moved} 个` };
   }
@@ -453,7 +511,7 @@ export class ColonySimulation {
     job.resource = resource;
     job.recipientId=recipient.id;
     job.reserved[resource] = amount;
-    this.withdrawStock(resource,amount);
+    job.quality = this.take({[resource]:amount});
     return { ok: true, id: job.id, message: `已安排随从配送 ${amount} 个${RESOURCE_NAMES[resource]}` };
   }
 
@@ -521,6 +579,8 @@ export class ColonySimulation {
     this.s.time += dt;
     this.syncWorld();
     if (this.day() !== this.s.lastDay) this.newDay();
+    if(this.navigationDirty)this.updateRooms();
+    this.walkMerchants(dt);
     this.updateClimate();
     this.updatePower(dt);
     for (const crop of this.s.crops) if (crop.planted && crop.growth < 1) {
@@ -528,20 +588,8 @@ export class ColonySimulation {
       const light = this.hour() >= 5 && this.hour() < 21 ? 1 : 0.25;
       crop.growth = Math.min(1, crop.growth + dt / CROP_DEFS[crop.kind].growthSeconds * (ideal ? 1 : 0.2) * light * (this.s.weather === '细雨' ? 1.15 : 1));
     }
-    this.s.spoilage += dt * (this.s.power.coldStorage ? 0.12 : this.s.temperature > 30 ? 2 : 1);
-    if (this.s.spoilage >= 95) {
-      this.s.spoilage -= 95;
-      for (const r of ['food', 'meal'] as Resource[]) {
-        const amount = Math.min(this.s.resources[r], Math.max(0, Math.floor(this.s.resources[r] * 0.035)));
-        this.withdrawStock(r,amount); this.s.metrics.spoiled += amount;
-      }
-    }
-    for (const item of [...this.s.items]) {
-      item.age += dt;
-      if ((item.resource === 'food' || item.resource === 'meal') && item.age > 260 && !item.reservedBy) {
-        this.s.metrics.spoiled += item.amount; this.s.items.splice(this.s.items.indexOf(item), 1);
-      }
-    }
+    this.updateColdStorage(dt);
+    for (const item of this.s.items) item.age += dt;
     // 玩家踩过掉落物就顺手捡走。
     // 刚掉下来的半秒内捡不了——不然视觉上还没落地就没了，像凭空消失。
     if (this.controlled) {
@@ -552,7 +600,7 @@ export class ColonySimulation {
         if (Math.abs(item.x + 0.5 - player[0]) > ITEM_PICKUP_RANGE) continue;
         if (Math.abs(item.z + 0.5 - player[2]) > ITEM_PICKUP_RANGE) continue;
         if (Math.abs(item.y - player[1]) > 2) continue;
-        const received = this.addToBag(this.controlled,item.resource,item.amount,!item.playerOnly);
+        const received = this.addToBag(this.controlled,item.resource,item.amount,!item.playerOnly,item);
         if (!received) continue;                             // 背包装不下就留在地上
         item.amount -= received;
         if (item.amount <= 0) this.s.items.splice(this.s.items.indexOf(item), 1);
@@ -581,6 +629,13 @@ export class ColonySimulation {
         this.s.speed = c.value; return { ok:true, message:c.value === 0 ? '营地已暂停' : `${c.value} 倍速` };
       }
       if (this.s.finale) return {ok:false,message:'篝火晚会进行中'};
+      if (c.action === 'guide-trade' || c.action==='assign-merchant-room') {
+        if(this.navigationDirty)this.updateRooms();
+        if(c.merchantId!==undefined && c.merchantId!=='guide' && !specialistIds.includes(c.merchantId))throw new Error('商人无效');
+        if(c.action==='assign-merchant-room')return this.assignMerchantRoom(c.merchantId??'guide',c.id);
+        if (c.value !== 'buy' && c.value !== 'recycle' || !isResource(c.kind)) throw new Error('无效的交易');
+        return this.tradeWithGuide(c.value, c.kind, c.amount, c.target,c.merchantId);
+      }
       if (c.action === 'select') {
         const id = c.colonistId ?? null;
         if (id && !this.s.colonists.some((p) => p.id === id)) throw new Error('未找到这位居民。');
@@ -601,11 +656,20 @@ export class ColonySimulation {
         return {ok:true,message:'居民安排已更新'};
       }
       if (c.action === 'build') return this.orderBuild(c.kind, c.x, c.z,c.target,c.rotation);
+      if (c.action === 'herdAnimal') return this.orderHerd(c);
+      if (c.action === 'pastureGate') return this.changeGate(c);
       if (c.action === 'toggleDoor') return this.toggleDoor(c);
       if (c.action === 'demolish') return this.orderDemolition(c);
       if (c.action === 'place-chest') return this.placeChest(c.x, c.z);
       if (c.action === 'level') return this.orderLevel(c);
       if (c.action === 'designate') return this.designate(c);
+      if (c.action === 'storageClass') {
+        const zone = this.s.zones.find(z => z.id === c.id && z.kind === 'stockpile')
+          ?? this.shelves().find(shelf => SHELF_ZONE_PREFIX + shelf.id === c.id);
+        if (!zone || !isStorageClass(c.value)) throw new Error('请选择有效仓储区与类别。');
+        zone.storageClass = c.value;
+        return {ok:true,message:'已设为'+STORAGE_CLASSES[c.value]};
+      }
       if (c.action === 'cancel') return this.cancel(c.id);
       if (c.action === 'research') {
         const def = RESEARCH_DEFS[c.id ?? ''];
@@ -700,11 +764,13 @@ export class ColonySimulation {
     const index=resident.bagSelected, stack=resident.bag[index];
     const kind=buildingItemKind(stack?.resource);
     if(!stack||!kind)return {ok:false,message:'请先选中要放置的设施'};
+    const pastureReason=this.pastureBuildingBlocker(kind,x,z,rotation);
+    if(pastureReason)return {ok:false,message:pastureReason};
     const y=this.world.terrainHeight(x,z);
     if(!this.completedBuildingFits(kind,x,y,z,rotation,this.s.buildings,this.s.crops))return {ok:false,message:'请选择一块足够大的平整空地'};
     const def=BUILDING_DEFS[kind];
     const building:BuildingView={id:'',kind,x,y,z,...buildingDimensions(kind,rotation),rotation,phase:'completed',complete:true,progress:1,
-      reserved:{},powered:false,comfort:0,roomId:null,...(kind==='door'?{doorOpen:false}:{}),...(def.storageSlots?{storage:emptySlots(def.storageSlots)}:{})};
+      reserved:{},powered:false,comfort:0,roomId:null,...(isSwingDoor(kind)?{doorOpen:false}:{}),...(def.storageSlots?{storage:emptySlots(def.storageSlots)}:{})};
     if(!this.withinBuildReach(position,building))return {ok:false,message:'请靠近空地后放置'};
     if(def.blocking&&this.occupiedByActor(building))return {ok:false,message:'放置位置有人，请换一格'};
     if(this.footprint(building).some(([cx,cz])=>this.earthwork.has(this.cellKey(cx,cz))))return {ok:false,message:'请先完成或取消此处的整地规划'};
@@ -741,6 +807,9 @@ export class ColonySimulation {
     if (!kind || !(kind in BUILDING_DEFS)) throw new Error('未知建筑。');
     if(!Number.isInteger(rotation)||rotation<0||rotation>3)throw new Error('建筑朝向必须为 0、1、2、3。');
     const def = BUILDING_DEFS[kind as BuildingKind];
+    if(def.id==='pastureGate') throw new Error('从牧场面板选择更改门位。');
+    const pastureReason=this.pastureBuildingBlocker(def.id,x,zz,rotation);
+    if(pastureReason)throw new Error(pastureReason);
     if (def.id === 'chest') return this.placeChest(x,z);
     if (def.research && !this.s.research.completed.includes(def.research)) throw new Error(`需要研究：${RESEARCH_DEFS[def.research]!.name}`);
     const {w,h,d}=buildingDimensions(def.id,rotation),y=target??this.world.terrainHeight(x,zz);this.validTarget(y);
@@ -756,7 +825,7 @@ export class ColonySimulation {
       if(block===BLOCK.SteelOre)throw new Error('物体体积内有铁矿，请先开采铁矿。');
       if(![BLOCK.Air,BLOCK.Water,BLOCK.Leaves,BLOCK.Grass,BLOCK.Dirt,BLOCK.Stone,BLOCK.Sand].includes(block as never))throw new Error('物体体积内有方块障碍，请先清理。');
     }
-    const building: BuildingView = {id:this.id('building'),kind:def.id,x,y,z:zz,w,h,d,rotation:rotationValue,...(def.id==='door'?{doorOpen:false}:{}),phase:'preparingTerrain',complete:false,progress:0,reserved:{},powered:false,comfort:0,roomId:null};
+    const building: BuildingView = {id:this.id('building'),kind:def.id,x,y,z:zz,w,h,d,rotation:rotationValue,...(isSwingDoor(def.id)?{doorOpen:false}:{}),phase:'preparingTerrain',complete:false,progress:0,reserved:{},powered:false,comfort:0,roomId:null};
     this.s.buildings.push(building);this.rebuildBuildings();
     const plan=this.createLevelPlan(cells,y,building.id);building.terrainPlanId=plan.id;this.refreshJobs();
     this.event('info', `已规划${def.name}，地基整平后再施工。`);
@@ -778,13 +847,14 @@ export class ColonySimulation {
   }
   private toggleDoor(c:ColonyCommand):CommandResult {
     const b=this.commandBuilding(c);
-    if(b.kind!=='door'||!b.complete)throw new Error('只能操作已建成的门。');
+    if(!isSwingDoor(b.kind)||!b.complete)throw new Error('只能操作已建成的门。');
     if(b.doorOpen&&this.occupiedByActor(b))throw new Error('门口有人，请等离开后再关门。');
     b.doorOpen=!b.doorOpen;this.invalidateBuildingNavigation();this.refreshJobs();
     return{ok:true,id:b.id,message:b.doorOpen?'门已打开，可以通行':'门已关闭，阻挡通行并围合房间'};
   }
   private orderDemolition(command: ColonyCommand): CommandResult {
     const b = this.commandBuilding(command);
+    if(this.isPastureBoundary(b))return {ok:false,message:'请使用牧场的更改门位，或取消空牧场后拆除围栏。'};
     if (!b.complete) return this.cancel(b.id);
     if (this.s.jobs.some(job => job.type === 'demolish' && job.targetId === b.id)) {
       return { ok: false, message: '这座设施已有拆除任务' };
@@ -803,7 +873,7 @@ export class ColonySimulation {
     let spilled = b.kind==='shelf' ? this.spillStorage(stack => stack.shelfId !== b.id) : 0;
     for (const slot of b.storage ?? []) {
       if (!slot) continue;
-      this.drop(slot.resource, slot.count, b.x, b.z, {scatter:true});
+      this.drop(slot.resource, slot.count, b.x, b.z, {scatter:true,source:slot});
       spilled += slot.count;
     }
     this.drop(`building:${b.kind}`,1,b.x,b.z,{playerOnly:true});
@@ -997,20 +1067,44 @@ export class ColonySimulation {
     this.removeJob(job,false);this.refreshTerraformJobs();
     return true;
   }
+  zoneCellBlocker(x:number,z:number):string | null {
+    if (this.s.zones.some(zone => containsCell(zone,x,z))) return '区域不能相互重叠。';
+    if (this.earthwork.has(this.cellKey(x,z))) return '选区包含整地施工格。';
+    if (!this.walkable(x,z) || this.buildingAt.has(this.cellKey(x,z)) || this.world.treeAtColumn(x,z))
+      return '区域包含水面、障碍或建筑，请选择空地。';
+    return null;
+  }
   private designate(c: ColonyCommand): CommandResult {
     if(c.kind==='chop')return this.designateChop(c);
-    this.validCell(c.x,c.z); const x=c.x!, z=c.z!, w=c.w??1, d=c.d??1;
+    let x=c.x!, z=c.z!, w=c.w??1, d=c.d??1;
+    if ((c.kind === 'farm' || c.kind === 'stockpile' || c.kind === 'pasture') && c.cells !== undefined) {
+      if (!Array.isArray(c.cells) || !c.cells.length || c.cells.length>this.world.width*this.world.depth) throw new Error('请框选至少一格土地。');
+      const seen=new Set<number>();
+      let maxX=-1, maxZ=-1;
+      x=this.world.width; z=this.world.depth;
+      for (const cell of c.cells) {
+        if (!Array.isArray(cell) || cell.length!==2) throw new Error('地格无效。');
+        const [cx,cz]=cell;
+        this.validCell(cx,cz);
+        const key=this.cellKey(cx,cz);
+        if (seen.has(key)) throw new Error('选区包含重复地格。');
+        seen.add(key);
+        x=Math.min(x,cx); z=Math.min(z,cz); maxX=Math.max(maxX,cx); maxZ=Math.max(maxZ,cz);
+      }
+      w=maxX-x+1; d=maxZ-z+1;
+    } else this.validCell(x,z);
     if (!Number.isInteger(w)||!Number.isInteger(d)||w<1||d<1||w>this.world.width||d>this.world.depth||x+w>this.world.width||z+d>this.world.depth) throw new Error('区域必须位于地图内。');
-    if (c.kind === 'farm' || c.kind === 'stockpile') {
+    if (c.kind === 'farm' || c.kind === 'stockpile' || c.kind === 'pasture') {
       const crop = c.kind === 'farm' ? c.crop ?? DEFAULT_CROP : DEFAULT_CROP;
       if (!isCropKind(crop)) throw new Error('未知作物。');
       const { name, requires } = CROP_DEFS[crop];
       if (requires && !this.s.research.completed.includes(requires)) throw new Error(`${name}需要先完成${RESEARCH_DEFS[requires]!.name}研究。`);
-      if (this.s.zones.some((zone) => x < zone.x+zone.w && x+w > zone.x && z < zone.z+zone.d && z+d > zone.z)) throw new Error('区域不能相互重叠。');
-      const cells: [number,number][]=[];
-      for(let zz=z;zz<z+d;zz++)for(let xx=x;xx<x+w;xx++)cells.push([xx,zz]);
-      if(cells.some(([xx,zz])=>!this.walkable(xx,zz)||this.buildingAt.has(this.cellKey(xx,zz))))throw new Error('区域包含水面、障碍或建筑，请选择空地。');
-      const zone=this.addZone(c.kind,x,z,w,d,crop); this.refreshJobs();
+      for (const [cx,cz] of c.cells ?? footprintCells({x,z,w,d})) {
+        const reason=this.zoneCellBlocker(cx,cz);
+        if (reason) throw new Error(reason);
+      }
+      if(c.kind==='pasture') return this.orderPasture({x,z,w,d,cells:c.cells});
+      const zone=this.addZone(c.kind,x,z,w,d,crop,c.cells); this.refreshJobs();
       return {ok:true,message:c.kind==='farm'?'种植区已规划，居民会播种和收获':'仓储区已规划，居民会搬运落地物资',id:zone.id};
     }
     let added=0,treesBlockingMining=false;
@@ -1060,10 +1154,202 @@ export class ColonySimulation {
     const job = this.treeChopJob(treeId);
     return job ? job.progress / job.work : null;
   }
-  private addZone(kind:'farm'|'stockpile',x:number,z:number,w:number,d:number,crop:CropKind):ZoneView {
-    const zone:ZoneView={id:this.id('zone'),kind,x,y:Math.max(1,this.groundY(x,z)),z,w,d,crop};this.s.zones.push(zone);
+  private pastureBuildingBlocker(kind:BuildingKind,x:number,z:number,rotation:number):string|null {
+    const pen=this.s.zones.find(zone=>zone.kind==='pasture'&&containsCell(zone,x,z));
+    if(kind==='milker'||kind==='henNest'||kind==='shearingStand'){
+      if(!pen?.pasture)return '采集设施需要建在牧场内。';
+      const free=this.pastureSpace(pen),animals=pen.pasture.animals;
+      if(animals.some(a=>a.homeX===x&&a.homeZ===z)||!free.some(([cx,cz])=>cx===x&&cz===z)||
+        free.length-1<animals.reduce((n,a)=>n+stockVolume(a),0))return '此处不能建造或会挤占动物所需容量。';
+    }else{
+      const dims=buildingDimensions(kind,rotation);
+      if(this.footprint({x,z,...dims}).some(([cx,cz])=>this.s.zones.some(zone=>zone.pasture&&containsCell(zone,cx,cz))))return '牧场内请使用畜产采集设施。';
+    }
+    return null;
+  }
+
+  private isPastureBoundary(b:BuildingView):boolean {
+    return (b.kind==='fence'||b.kind==='pastureGate')&&this.s.zones.some(z=>z.pasture&&containsCell(z,b.x,b.z));
+  }
+
+  private pastureSpace(zone:ZoneView):ZoneCell[] {
+    return pastureLayout(zone).interior.filter(([x,z])=>this.walkable(x,z)&&!this.buildingAt.has(this.cellKey(x,z)));
+  }
+
+  private pastureReady(zone:ZoneView):boolean {
+    return !!zone.pasture && pastureLayout(zone).border.every(([x,z])=>{
+      const b=this.buildingAt.get(this.cellKey(x,z));
+      return b?.complete && (b.kind==='fence'||b.kind==='pastureGate');
+    });
+  }
+
+  private pastureGateFrom(area:ZoneView | {x:number;z:number;w:number;d:number;cells?:ZoneCell[]}, gates:ReturnType<typeof pastureLayout>['gates'], origin:Position) {
+    // Reach the perimeter from outside, even before the first fence has been built.
+    const sx=Math.floor(origin[0]),sz=Math.floor(origin[2]);
+    const start=this.cellKey(sx,sz);
+    if(!gates.length||containsCell(area,sx,sz))return undefined;
+    const distances=new Map([[start,0]]),queue:ZoneCell[]=[[sx,sz]];
+    const viable=gates.filter(g=>this.walkable(...g.outside)&&this.walkable(...g.inside)
+      &&Math.abs(this.groundY(...g.cell)-this.groundY(...g.outside))<=1
+      &&Math.abs(this.groundY(...g.cell)-this.groundY(...g.inside))<=1);
+    if(!viable.length)return undefined;
+    const targets=new Set(viable.map(g=>this.cellKey(...g.outside)));
+    let shortest=Infinity;
+    for(let i=0;i<queue.length;i++){
+      const [x,z]=queue[i]!,distance=distances.get(this.cellKey(x,z))!;
+      if(distance>shortest)break;
+      if(targets.has(this.cellKey(x,z)))shortest=distance;
+      if(distance>=shortest)continue;
+      for(const [dx,dz] of [[0,1],[1,0],[0,-1],[-1,0]]){
+        const xx=x+dx!,zz=z+dz!,key=this.cellKey(xx,zz);
+        if(!this.walkable(xx,zz)||Math.abs(this.groundY(xx,zz)-this.groundY(x,z))>1||containsCell(area,xx,zz)||distances.has(key))continue;
+        distances.set(key,distance+1);queue.push([xx,zz]);
+      }
+    }
+    return choosePastureGate(area,viable,([x,z])=>distances.get(this.cellKey(x,z))??Infinity);
+  }
+
+  private plannedPastureGate(area:{x:number;z:number;w:number;d:number;cells?:ZoneCell[]},layout:ReturnType<typeof pastureLayout>){
+    const storage=this.storageTarget(),candidates=[...(storage?[storage]:[]),...this.s.colonists.map(c=>c.position)];
+    for(const from of candidates){const gate=this.pastureGateFrom(area,layout.gates,from);if(gate)return gate;}
+    return undefined;
+  }
+
+  pasturePreview(cells:ZoneCell[]) {
+    if(!cells.length)return undefined;
+    const xs=cells.map(p=>p[0]),zs=cells.map(p=>p[1]),x=Math.min(...xs),z=Math.min(...zs);
+    const area={x,z,w:Math.max(...xs)-x+1,d:Math.max(...zs)-z+1,cells},layout=pastureLayout(area);
+    const gate=layout.connected?this.plannedPastureGate(area,layout)?.cell:undefined;
+    return {capacity:layout.interior.length, border:layout.border,gate};
+  }
+
+  private orderPasture(area:{x:number;z:number;w:number;d:number;cells?:ZoneCell[]}):CommandResult {
+    const layout=pastureLayout(area);
+    if(!layout.connected||!layout.interior.length) throw new Error('牧场需要连通的内部和完整一圈围栏，请扩大或调整框选。');
+    const gate=this.plannedPastureGate(area,layout);
+    if(!gate) throw new Error('找不到通向营地的牧场入口。');
+    const zone=this.addZone('pasture',area.x,area.z,area.w,area.d,DEFAULT_CROP,area.cells);
+    zone.pasture={gate:gate.cell,animals:[]};
+    for(const [x,z] of layout.border){
+      const kind=x===gate.cell[0]&&z===gate.cell[1]?'pastureGate':'fence';
+      this.s.buildings.push({id:this.id('building'),kind,x,z,y:this.world.terrainHeight(x,z),w:1,d:1,h:1,
+        rotation:kind==='pastureGate'&&gate.outside[0]!==x?1:0,phase:'readyToBuild',complete:false,progress:0,reserved:{},powered:false,comfort:0,roomId:null});
+    }
+    this.invalidateBuildingNavigation();this.refreshJobs();
+    return {ok:true,id:zone.id,message:'已规划牧场，居民将建造外围栏和牧场门'};
+  }
+
+  private changeGate(c:ColonyCommand):CommandResult {
+    const zone=this.s.zones.find(p=>p.pasture&&containsCell(p,c.x!,c.z!)), pen=zone?.pasture;
+    if(!zone||!pen||!this.pastureReady(zone)||pen.pendingGate)throw new Error('请选择围栏已完工的牧场。');
+    const candidates=pastureLayout(zone).gates.filter(g=>g.cell[0]===c.x&&g.cell[1]===c.z&&this.walkable(...g.inside));
+    const from=this.storageTarget()??this.s.colonists[0]!.position;
+    const gate=this.pastureGateFrom(zone,candidates,from);
+    if(!gate||this.buildingAt.get(this.cellKey(c.x!,c.z!))?.kind!=='fence')throw new Error('请选择内外均可通行的外围栏，不可用角格。');
+    pen.pendingGate=gate.cell;
+    const target=this.buildingAt.get(this.cellKey(...gate.cell))!;
+    target.kind='pastureGate';target.rotation=gate.outside[0]!==target.x?1:0;target.complete=false;target.progress=0;target.phase='readyToBuild';
+    this.invalidateBuildingNavigation();this.refreshJobs();
+    return {ok:true,message:'已安排改门，新门建成后居民将补上旧门。'};
+  }
+
+  private orderHerd(c:ColonyCommand):CommandResult {
+    const zone=this.s.zones.find(z=>z.id===c.id);
+    if(!zone?.pasture||!this.pastureReady(zone)) throw new Error('请先完成牧场围栏和入口。');
+    if(c.kind!==undefined&&!Object.hasOwn(STOCK_VOLUME,c.kind)) throw new Error('请选择牲畜。');
+    const all=new Set(this.s.zones.flatMap(z=>z.pasture?.animals.map(a=>a.id)??[]));
+    const [gx,gz]=zone.pasture.gate;
+    const animals=visibleWildAnimals(this.world,this.s).filter(a=>{
+      if(all.has(stockAnimalId(a))||(c.kind&&a.kind!==c.kind))return false;
+      if(c.x===undefined||c.z===undefined)return !!c.kind;
+      const pose=wildAnimalPose(a,this.s.time);
+      return Math.hypot(pose.x-(c.x+.5),pose.z-(c.z+.5))<1.45;
+    })
+      .sort((a,b)=>Math.hypot(a.x-gx,a.z-gz)-Math.hypot(b.x-gx,b.z-gz));
+    const wild=animals.find(a=>this.path([gx+.5,this.groundY(gx,gz),gz+.5],[a.x+.5,a.y,a.z+.5])!==null);
+    if(!wild)throw new Error('找不到可到达的该种野生动物。');
+    const space=this.pastureSpace(zone);
+    const animal:HerdAnimal={id:stockAnimalId(wild),kind:wild.kind,young:wild.phase<.16,female:wild.phase<.82,
+      state:'ordered',x:wild.x,z:wild.z,homeX:0,homeZ:0,readyAt:this.s.time};
+    if(space.length<stockVolume(animal)+zone.pasture.animals.reduce((n,a)=>n+stockVolume(a),0))throw new Error('剩余容量不足。');
+    const home=space.find(([x,z])=>!zone.pasture!.animals.some(a=>a.homeX===x&&a.homeZ===z))??space[0]!;
+    [animal.homeX,animal.homeZ]=home;zone.pasture.animals.push(animal);
+    this.addJob('herd',animal.id,wild.x,wild.y,wild.z,1,'领'+STOCK_NAMES[wild.kind]+'进牧场');
+    return {ok:true,message:'已预留牧场容量，等待居民领入。'};
+  }
+
+  private refreshPastureJobs():void {
+    for(const zone of this.s.zones){
+      if(!zone.pasture||!this.pastureReady(zone))continue;
+      for(const a of zone.pasture.animals){
+        const harvest=pastureHarvest(a,this.s.time);
+        if(!harvest||this.s.jobs.some(j=>j.targetId===a.id))continue;
+        const station=this.s.buildings.find(b=>b.kind===harvest.station&&b.complete&&containsCell(zone,b.x,b.z)&&!this.s.jobs.some(j=>j.type==='husbandry'&&j.x===b.x&&j.z===b.z));
+        if(!station)continue;
+        if(harvest.station==='henNest'&&this.random()>=.5){a.readyAt=this.s.time+DAY_SECONDS*harvest.recoveryDays;continue;}
+        this.addJob('husbandry',a.id,station.x,station.y,station.z,harvest.work,harvest.label);
+      }
+    }
+  }
+
+  private penFor(id:string) {
+    const zone=this.s.zones.find(z=>z.pasture?.animals.some(a=>a.id===id));
+    const animal=zone?.pasture?.animals.find(a=>a.id===id);
+    return zone&&animal?{zone,animal}:null;
+  }
+
+  private assignPasture(c:Colonist,j:Job):boolean {
+    const entry=this.penFor(j.targetId);
+    if(!entry||!this.pastureReady(entry.zone))return false;
+    const a=entry.animal;
+    let path:Position[]|null=null;
+    if(j.type==='herd'){
+      const [x,z]=a.state==='leading'?[a.homeX,a.homeZ]:[a.x,a.z];
+      path=this.path(c.position,[x+.5,this.groundY(x,z),z+.5]);
+    }else{
+      const b=this.buildingAt.get(this.cellKey(j.x,j.z));
+      if(b?.complete&&containsCell(entry.zone,b.x,b.z)&&b.kind===pastureHarvest(a,this.s.time)?.station) path=this.buildingStand(b,c.position);
+      else {this.removeJob(j,false);return false;}
+    }
+    if(!path){j.state='blocked';return false;}
+    c.path=path;c.destination=path.at(-1)??c.position;c.jobId=j.id;j.assignedTo=c.id;j.state='working';return true;
+  }
+
+  private workPasture(c:Colonist,j:Job,dt:number):void {
+    const entry=this.penFor(j.targetId);
+    if(!entry){this.removeJob(j,false);return;}
+    const {zone,animal:a}=entry;
+    if(!this.pastureReady(zone)){this.releasePerson(c);return;}
+    c.task=j.label;
+    const arrived=this.move(c,dt);
+    if(c.jobId!==j.id)return;
+    if(j.type==='herd'&&a.state==='leading'){a.x=Math.floor(c.position[0]);a.z=Math.floor(c.position[2]);}
+    if(!arrived)return;
+    if(j.type==='herd'){
+      if(a.state==='ordered'){
+        a.state='leading';
+        if(!this.route(c,[a.homeX+.5,this.groundY(a.homeX,a.homeZ),a.homeZ+.5])){a.state='ordered';this.releasePerson(c);}
+        return;
+      }
+      a.state='home';a.x=a.homeX;a.z=a.homeZ;
+      a.readyAt=this.s.time+(a.kind==='chicken'?180:0);
+    }else{
+      const b=this.buildingAt.get(this.cellKey(j.x,j.z));
+      const harvest=pastureHarvest(a,this.s.time);
+      if(!harvest||!b?.complete||!containsCell(zone,b.x,b.z)||b.kind!==harvest.station){this.removeJob(j,false);return;}
+      if(!this.canWorkBeside(b,Math.floor(c.position[0]),Math.floor(c.position[2]))){this.releasePerson(c);return;}
+      j.progress+=dt;
+      if(j.progress<j.work)return;
+      this.drop(harvest.output,harvest.yield,Math.floor(c.position[0]),Math.floor(c.position[2]));
+      a.readyAt=this.s.time+DAY_SECONDS*harvest.recoveryDays;
+    }
+    this.s.metrics.jobsCompleted++;this.removeJob(j,false);
+  }
+
+  private addZone(kind:'farm'|'stockpile'|'pasture',x:number,z:number,w:number,d:number,crop:CropKind,cells?:ZoneCell[]):ZoneView {
+    const zone:ZoneView={id:this.id('zone'),kind,x,y:Math.max(1,this.groundY(x,z)),z,w,d,crop,...(cells ? {cells:cells.map(([cx,cz]):ZoneCell=>[cx,cz])} : {})};this.s.zones.push(zone);
     if(kind==='farm')this.terrainIndexDirty=true;
-    if(kind==='farm')for(let zz=z;zz<z+d;zz++)for(let xx=x;xx<x+w;xx++) {
+    if(kind==='farm')for(const [xx,zz] of footprintCells(zone)) {
       const y=this.groundY(xx,zz); if(y<0||this.buildingAt.has(this.cellKey(xx,zz)))continue;
       this.s.crops.push({id:this.id('crop'),kind:crop,x:xx,y,z:zz,growth:0,planted:false});
     }
@@ -1075,6 +1361,7 @@ export class ColonySimulation {
     }
     const building=this.s.buildings.find(b=>b.id===id);
     if(building) {
+      if(this.isPastureBoundary(building))throw new Error('请在规划面板取消整个空牧场。');
       if(building.complete)throw new Error('已完工建筑不可作为蓝图取消。');
       this.give(building.reserved); building.reserved={};
       for(const job of [...this.s.jobs])if(job.targetId===building.id)this.removeJob(job,true);
@@ -1091,13 +1378,17 @@ export class ColonySimulation {
     }
     const terraform=this.s.jobs.find(j=>j.id===id&&j.type==='terraform');
     if(terraform){const work=this.earthwork.get(this.cellKey(terraform.x,terraform.z));if(work?.plans[0])return this.cancel(work.plans[0]);}
-    const job=this.s.jobs.find(j=>j.id===id);if(job){this.removeJob(job,true);return{ok:true,message:'工作订单已取消'};}
+    const job=this.s.jobs.find(j=>j.id===id);if(job){if(job.type==='herd'){const p=this.penFor(job.targetId)?.zone.pasture;if(p)p.animals=p.animals.filter(a=>a.id!==job.targetId);}this.removeJob(job,true);return{ok:true,message:'工作订单已取消'};}
     const zone=this.s.zones.find(z=>z.id===id);
     if(zone){
+      if(zone.pasture?.animals.length) throw new Error('请先安置已收纳的动物。');
       if(zone.kind==='stockpile'&&!this.shelves().length&&this.s.zones.filter(z=>z.kind==='stockpile').length===1)throw new Error('请保留至少一处仓储区。');
-      const crops=this.s.crops.filter(p=>p.x>=zone.x&&p.x<zone.x+zone.w&&p.z>=zone.z&&p.z<zone.z+zone.d);
+      const crops=this.s.crops.filter(p=>containsCell(zone,p.x,p.z));
       for(const job of [...this.s.jobs])if(crops.some(p=>p.id===job.targetId))this.removeJob(job,true);
       this.s.crops=this.s.crops.filter(p=>!crops.includes(p));this.s.zones.splice(this.s.zones.indexOf(zone),1);
+      if(zone.pasture){
+        for(const b of [...this.s.buildings])if(!b.complete&&(b.kind==='pastureGate'||b.kind==='fence')&&containsCell(zone,b.x,b.z))this.cancel(b.id);
+      }
       if(zone.kind==='stockpile')this.spillStorage(stack => !!stack.shelfId || !containsCell(zone,stack.x,stack.z));
       this.terrainIndexDirty=true;this.refreshJobs();
       return{ok:true,message:'区域已取消'};
@@ -1144,7 +1435,7 @@ export class ColonySimulation {
     }return null;
   }
   /** Reusable A* buffers keep local work affordable on a 250×250 map. */
-  private path(from:Position,to:Position,adjacent=false,avoid?:ReadonlySet<number>,maxSteps=Infinity):Position[]|null {
+  private path(from:Position,to:Position,adjacent=false,avoid?:ReadonlySet<number>,maxSteps=Infinity,operableDoors=false):Position[]|null {
     const sx=Math.floor(from[0]),sz=Math.floor(from[2]),tx=Math.floor(to[0]),tz=Math.floor(to[2]);
     const start=sx+sz*this.world.width;
     if(sx<0||sz<0||sx>=this.world.width||sz>=this.world.depth)return null;
@@ -1155,7 +1446,7 @@ export class ColonySimulation {
     if(goals.has(start))return[];
     if(!goals.size)return null;
     const stamp=++this.pathStamp,parents=this.pathParents,seen=this.pathSeen,cost=this.pathCost;
-    if(stamp>=0xfffffffe){this.pathStamp=1;seen.fill(0);return this.path(from,to,adjacent,avoid,maxSteps);}
+    if(stamp>=0xfffffffe){this.pathStamp=1;seen.fill(0);return this.path(from,to,adjacent,avoid,maxSteps,operableDoors);}
     const heap:{cell:number;score:number;cost:number}[]=[];
     const push=(cell:number,g:number)=>{let i=heap.length;const row={cell,cost:g,score:g+Math.abs(cell%this.world.width-tx)+Math.abs(Math.floor(cell/this.world.width)-tz)};heap.push(row);while(i>0){const p=(i-1)>>1;if(heap[p]!.score<=row.score)break;heap[i]=heap[p]!;i=p;}heap[i]=row;};
     const pop=()=>{const row=heap[0]!,last=heap.pop()!;if(heap.length){let i=0;while(i*2+1<heap.length){let next=i*2+1;if(next+1<heap.length&&heap[next+1]!.score<heap[next]!.score)next++;if(heap[next]!.score>=last.score)break;heap[i]=heap[next]!;i=next;}heap[i]=last;}return row;};
@@ -1165,7 +1456,9 @@ export class ColonySimulation {
       if(goals.has(cur)){found=cur;break;}
       const x=cur%this.world.width,z=Math.floor(cur/this.world.width),h=this.groundY(x,z);
       for(const[dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){
-        const nx=x+dx!,nz=z+dz!;if(!this.walkable(nx,nz)||Math.abs(this.groundY(nx,nz)-h)>1.01)continue;
+        const nx=x+dx!,nz=z+dz!;
+        if(!this.walkable(nx,nz) && !(operableDoors && this.groundY(nx,nz)>=1 && isSwingDoor(this.buildingAt.get(this.cellKey(nx,nz))?.kind??'')))continue;
+        if(Math.abs(this.groundY(nx,nz)-h)>1.01)continue;
         const next=nx+nz*this.world.width,g=row.cost+1;
         if(g>maxSteps||avoid?.has(next)||seen[next]===stamp&&cost[next]!<=g)continue;
         parents[next]=cur;seen[next]=stamp;cost[next]=g;push(next,g);
@@ -1268,8 +1561,8 @@ export class ColonySimulation {
   }
 
   private zones():ZoneView[] {
-    return [...this.s.zones, ...this.shelves().map(({id,x,y,z,w,d}):ZoneView =>
-      ({id:SHELF_ZONE_PREFIX + id, shelfId:id, kind:'stockpile',x,y,z,w,d,crop:DEFAULT_CROP}))];
+    return [...this.s.zones, ...this.shelves().map(({id,x,y,z,w,d,storageClass}):ZoneView =>
+      ({id:SHELF_ZONE_PREFIX + id, shelfId:id, kind:'stockpile',x,y,z,w,d,crop:DEFAULT_CROP,...(storageClass ? {storageClass} : {})}))];
   }
 
   private groundStockpileAt(x:number,z:number):boolean {
@@ -1286,17 +1579,17 @@ export class ColonySimulation {
       || this.shelves().some(shelf => this.canWorkBeside(shelf,x,z));
   }
 
-  private *groundStorageCells():Iterable<Position> {
+  private *groundStorageCells():Iterable<{stand:Position; storageClass?:StorageClass}> {
     for (const zone of this.s.zones) {
       if (zone.kind !== 'stockpile') continue;
-      for(let z=zone.z;z<zone.z+zone.d;z++)for(let x=zone.x;x<zone.x+zone.w;x++){
-        if(this.canStoreOnGround(x,z))yield [x+.5,this.groundY(x,z),z+.5];
+      for(const [x,z] of footprintCells(zone)){
+        if(this.canStoreOnGround(x,z))yield {stand:[x+.5,this.groundY(x,z),z+.5],storageClass:zone.storageClass};
       }
     }
   }
 
   private storageTarget(from?:Position):Position|null {
-    const cells=[...this.groundStorageCells()];
+    const cells=[...this.groundStorageCells()].map(cell=>cell.stand);
     for (const shelf of this.shelves()) cells.push(...this.buildingStands(shelf));
     if(from)cells.sort((a,b)=>horizontalDistance(from,a)-horizontalDistance(from,b));
     for(const p of cells)if(!from||this.path(from,p)!==null)return p;
@@ -1310,8 +1603,9 @@ export class ColonySimulation {
     const bays = warehouseBayContents(this.s.warehouseStacks);
     const cards = isWarehouseCard(resource);
     const options:{slot:WarehouseSlot;capacity:number;rank:number;stands:Position[]}[] = [];
-    const addBay = (bay:WarehouseSlot, stands:Position[]) => {
-      if (!stands.length) return;
+    const preferred = storageClassFor(resource);
+    const addBay = (bay:WarehouseSlot, stands:Position[], storageClass:StorageClass='general') => {
+      if (!stands.length || storageClass !== 'general' && storageClass !== preferred) return;
       const occupied=bays.get(warehouseBayKey(bay));
       if (occupied && occupied.cards !== cards) return;
       for (let quarter=0;quarter<STORAGE_QUARTERS;quarter++) {
@@ -1323,14 +1617,15 @@ export class ColonySimulation {
         if (contents ? !cards&&!same : (mask & (occupied?.mask??0))!==0) continue;
         const capacity=WAREHOUSE_STACK_LIMIT-(contents?.reduce((sum,stack) => sum+stack.count,0)??0);
         if (!capacity) continue;
-        options.push({slot,capacity,rank:(slot.shelfId ? 0 : 4)+(same ? 0 : contents ? 1 : occupied ? 2 : 3),stands});
+        const classRank = storageClass==='general' ? 8 : 0;
+        options.push({slot,capacity,rank:classRank+(slot.shelfId ? 0 : 4)+(same ? 0 : contents ? 1 : occupied ? 2 : 3),stands});
       }
     };
     for (const shelf of this.shelves()) {
       const stands = this.buildingStands(shelf);
-      for (let bay=0;bay<SHELF_BAYS;bay++) addBay({x:shelf.x,z:shelf.z,shelfId:shelf.id,slot:bay*STORAGE_QUARTERS},stands);
+      for (let bay=0;bay<SHELF_BAYS;bay++) addBay({x:shelf.x,z:shelf.z,shelfId:shelf.id,slot:bay*STORAGE_QUARTERS},stands,shelf.storageClass);
     }
-    for (const p of this.groundStorageCells()) addBay({x:Math.floor(p[0]),z:Math.floor(p[2]),slot:0},[p]);
+    for (const {stand,storageClass} of this.groundStorageCells()) addBay({x:Math.floor(stand[0]),z:Math.floor(stand[2]),slot:0},[stand],storageClass);
     const distance = (positions:Position[]) => from ? Math.min(...positions.map(p => horizontalDistance(p,from))) : 0;
     options.sort((a,b) => a.rank-b.rank || distance(a.stands)-distance(b.stands));
     return options;
@@ -1351,20 +1646,43 @@ export class ColonySimulation {
     return null;
   }
 
-  private putInStorage(slot:WarehouseSlot, resource:Resource, count:number):void {
-    if (!count) return;
-    const key=warehouseSlotKey(slot);
-    const stack = this.s.warehouseStacks.find(existing => existing.resource===resource&&warehouseSlotKey(existing)===key);
-    if (stack) stack.count += count;
-    else this.s.warehouseStacks.push({...slot,resource,count});
+  private updateColdStorage(dt: number): void {
+    const day = this.day();
+    for (const stack of this.s.warehouseStacks) {
+      if (!coldEffect(stack.resource)) continue;
+      const expired = stack.premium && stack.premium.day !== day;
+      if (expired) delete stack.premium;
+      if (!this.s.power.coldStorage) {
+        delete stack.freezing;
+        continue;
+      }
+      const lots = stack.freezing ?? [];
+      let tracked = premiumCount(stack, day);
+      for (const lot of lots) tracked += lot.count;
+      if (tracked < stack.count) lots.push({ since: expired ? this.s.time : this.s.time - dt, count: stack.count - tracked });
+      while (lots.length && this.s.time - lots[0]!.since >= DAY_SECONDS) {
+        addPremium(stack, lots.shift()!.count, day);
+      }
+      if (lots.length) stack.freezing = lots;
+      else delete stack.freezing;
+    }
   }
 
-  private putInAvailableStorage(resource:Resource, amount:number):number {
+  private putInStorage(slot:WarehouseSlot, resource:Resource, count:number, premium = 0):void {
+    if (!count) return;
+    const key=warehouseSlotKey(slot);
+    let stack = this.s.warehouseStacks.find(existing => existing.resource===resource&&warehouseSlotKey(existing)===key);
+    if (!stack) { stack = {...slot,resource,count:0}; this.s.warehouseStacks.push(stack); }
+    stack.count += count;
+    addPremium(stack, premium, this.day());
+  }
+
+  private putInAvailableStorage(resource:Resource, amount:number, source?:ColdMark):number {
     if (!amount) return 0;
     let left = amount;
     for (const option of this.storageOptions(resource)) {
       const count = Math.min(left,option.capacity);
-      this.putInStorage(option.slot,resource,count);
+      this.putInStorage(option.slot,resource,count,takePremium(source,count,this.day()));
       left -= count;
       if (!left) break;
     }
@@ -1378,19 +1696,83 @@ export class ColonySimulation {
     for (const resource of resources) this.putInAvailableStorage(resource,this.s.resources[resource]);
   }
 
-  private withdrawStock(resource:Resource, amount:number):void {
-    if (!amount) return;
+  private withdrawStock(resource:Resource, amount:number, record?:(count:number,stack?:StoredStack)=>void):number {
+    if (!amount) return 0;
+    let premium = 0;
     const stacks = this.s.warehouseStacks.filter(stack => stack.resource === resource);
     const stored = stacks.reduce((sum,stack) => sum+stack.count,0);
     let left = Math.max(0,amount-(this.s.resources[resource]-stored));
+    if (left < amount) record?.(amount-left);
     this.s.resources[resource] -= amount;
     for (const stack of stacks.sort((a,b) => Number(!!a.shelfId)-Number(!!b.shelfId))) {
       const count = Math.min(left,stack.count);
+      if (count) record?.(count,stack);
+      const qualified = takePremium(stack,count,this.day());
+      premium += qualified;
+      let ordinary = count-qualified;
+      // Consume the oldest cooling batches first; newly added units keep their own clock.
+      while (ordinary && stack.freezing?.length) {
+        const lot = stack.freezing[0]!;
+        const take = Math.min(ordinary,lot.count);
+        ordinary -= take;
+        lot.count -= take;
+        if (!lot.count) stack.freezing.shift();
+      }
       stack.count -= count;
       left -= count;
       if (stack.count === 0) this.s.warehouseStacks.splice(this.s.warehouseStacks.indexOf(stack),1);
       if (!left) break;
     }
+    return premium;
+  }
+
+  private tradeWithGuide(side:TradeSide, item:Resource, count:number|undefined, expectedTotal:number|undefined,merchantId:MerchantId='guide'):CommandResult {
+    if (!count || !Number.isSafeInteger(count) || count < 1) throw new Error('请输入有效的交易件数');
+    const day = this.day();
+    const quote = merchantOrder({day, warehouseStacks:this.s.warehouseStacks, guideHousing:this.guideHousing,specialistMarket:this.projectMarket(this.clutterCells())}, side, item, count,merchantId);
+    if (expectedTotal !== quote.total || !Number.isSafeInteger(quote.total)) throw new Error('报价已变，请重新确认');
+    const buying = side === 'buy';
+    const payment = buying ? 'silver' : item, received = buying ? item : 'silver';
+    const debit = buying ? quote.total : count, credit = buying ? count : quote.total;
+    if (this.s.resources[payment] < debit) throw new Error(buying ? '银币不足' : '仓库货物不足');
+    if (!Number.isSafeInteger(this.s.resources[received] + credit)) throw new Error('余额超出可结算范围');
+    if(quote.eventId){
+      const market=this.s.specialistMarket;
+      const next=reserveMarketQuota(market.events,day,quote.eventId,count);
+      if(!next)throw new Error('活动剩余额度不足');
+      market.events=next;
+    }
+    const sale:GuideSale = {merchantId,...(quote.eventId?{eventId:quote.eventId}:{}),side,item,count,premium:quote.premiumCount,total:quote.total,delivered:0,paid:0,inTransit:0,lots:[]};
+    if (buying) {
+      this.withdrawStock('silver',quote.total);
+      const [x,y,z]=this.merchantPosition(merchantId);
+      const job=this.addJob('haul','guide-delivery',Math.floor(x),y,Math.floor(z),1,'采购待取 · 等待居民');
+      job.guideSale=sale;job.reserved={silver:quote.total};
+      return {ok:true,message:`已预留 ${quote.total} 银币，居民将领取${RESOURCE_NAMES[item]} × ${count}`};
+    }
+    const reserve = (amount:number,stack?:StoredStack,qualified=0) => {
+      const x=stack?.x??0, z=stack?.z??0, shelfId=stack?.shelfId;
+      const lot=sale.lots.find(l=>l.x===x && l.z===z && l.shelfId===shelfId && !!l.overflow===!stack);
+      if(lot) {lot.count+=amount;lot.premium=(lot.premium??0)+qualified;}
+      else sale.lots.push({x,z,count:amount,premium:qualified,shelfId,...(!stack?{overflow:true}:{})});
+    };
+    let remainingPremium = quote.premiumCount;
+    for (const stack of [...this.s.warehouseStacks]) {
+      if (!remainingPremium) break;
+      if (stack.resource !== item) continue;
+      const removed = takePremium(stack, remainingPremium, day);
+      if (removed) reserve(removed,stack,removed);
+      remainingPremium -= removed;
+      stack.count -= removed;
+      this.s.resources[item] -= removed;
+      if (!stack.count) this.s.warehouseStacks.splice(this.s.warehouseStacks.indexOf(stack), 1);
+    }
+    this.withdrawStock(item,count-quote.premiumCount,reserve);
+    const [gx,gy,gz]=this.merchantPosition(merchantId);
+    const job=this.addJob('haul','guide-delivery',Math.floor(gx),gy,Math.floor(gz),1,merchantName(merchantId)+'回收 · 待取货');
+    job.guideSale=sale; job.reserved={[item]:count};
+    if (sale.premium) job.quality={[item]:{premium:{day,count:sale.premium}}};
+    return {ok:true,message:`已预约${RESOURCE_NAMES[item]} × ${count}，交付后共收 ${quote.total} 银币`};
   }
 
   private spillStorage(keep:(stack:StoredStack)=>boolean):number {
@@ -1399,7 +1781,7 @@ export class ColonySimulation {
       if (keep(stack)) return true;
       this.s.resources[stack.resource] -= stack.count;
       const stand=this.closestOpen(stack.x,stack.z);
-      this.drop(stack.resource,stack.count,Math.floor(stand?.[0]??stack.x),Math.floor(stand?.[2]??stack.z));
+      this.drop(stack.resource,stack.count,Math.floor(stand?.[0]??stack.x),Math.floor(stand?.[2]??stack.z),{source:stack});
       spilled+=stack.count;
       return false;
     });
@@ -1413,11 +1795,11 @@ export class ColonySimulation {
     });
     for (const stack of obstructed) {
       this.s.warehouseStacks.splice(this.s.warehouseStacks.indexOf(stack),1);
-      const remaining = stack.count-this.putInAvailableStorage(stack.resource,stack.count);
+      const remaining = stack.count-this.putInAvailableStorage(stack.resource,stack.count,stack);
       if (!remaining) continue;
       this.s.resources[stack.resource] -= remaining;
       const stand=this.closestOpen(stack.x,stack.z);
-      this.drop(stack.resource,remaining,Math.floor(stand?.[0]??stack.x),Math.floor(stand?.[2]??stack.z));
+      this.drop(stack.resource,remaining,Math.floor(stand?.[0]??stack.x),Math.floor(stand?.[2]??stack.z),{source:stack});
     }
   }
   private treeBase(x:number,z:number):number{return this.world.treeAtColumn(x,z)?.y??-1;}
@@ -1474,7 +1856,7 @@ export class ColonySimulation {
     if ((ground !== BLOCK.Grass && ground !== BLOCK.Dirt) || this.getGroundHeight(x, z) !== y + 1) {
       return { ok: false, message: '请对准裸露的草地或泥土表面' };
     }
-    const zone = this.s.zones.find(area => x >= area.x && x < area.x + area.w && z >= area.z && z < area.z + area.d);
+    const zone = this.s.zones.find(area => containsCell(area,x,z));
     if (zone?.kind === 'stockpile' || this.buildingAt.has(this.cellKey(x, z)) || treeProtectingVoxel(this.world, x, y, z)
       || this.s.terrainPlans.some(plan => plan.state !== 'completed' && plan.cells.some(([xx, zz]) => xx === x && zz === z))) {
       return { ok: false, message: '此处有仓储、设施、树根或整地规划' };
@@ -1556,12 +1938,13 @@ export class ColonySimulation {
     return {ok:true,message:`${BLOCKS[block]?.name}已挖开，掉落 ${rule.amount} 个${itemName(rule.resource)}`};
   }
 
-  private drop(resource:InventoryItem,amount:number,x:number,z:number,{scatter=false,playerOnly=false}={}):void {
+  private drop(resource:InventoryItem,amount:number,x:number,z:number,{scatter=false,playerOnly=false,source}:{scatter?:boolean;playerOnly?:boolean;source?:ColdMark}={}):void {
     if(amount<=0)return;const pos=this.closestOpen(x,z)??[x+.5,Math.max(1,this.world.surfaceHeight(x,z)+1),z+.5];
     const xx=Math.floor(pos[0]),zz=Math.floor(pos[2]);
     const existing=scatter||playerOnly?undefined:this.s.items.find(i=>i.resource===resource&&i.x===xx&&i.z===zz&&!i.reservedBy&&!i.playerOnly);
-    if(existing){existing.amount+=amount;existing.age=Math.min(existing.age,30);}
-    else this.s.items.push({id:this.id('item'),resource,amount,x:xx,y:pos[1],z:zz,age:0,reservedBy:null,...(scatter?{scatter:true}:{}),...(playerOnly?{playerOnly:true}:{})});
+    const premium = takePremium(source,amount,this.day());
+    if(existing){addPremium(existing,premium,this.day());existing.amount+=amount;existing.age=Math.min(existing.age,30);}
+    else this.s.items.push({id:this.id('item'),resource,amount,...(premium ? {premium:{day:this.day(),count:premium}} : {}),x:xx,y:pos[1],z:zz,age:0,reservedBy:null,...(scatter?{scatter:true}:{}),...(playerOnly?{playerOnly:true}:{})});
   }
   private rawFoodCost(amount: number): Partial<Resources> {
     const food = Math.min(amount, this.s.resources.food);
@@ -1570,14 +1953,19 @@ export class ColonySimulation {
   }
 
   private afford(cost:Partial<Resources>):boolean{return RESOURCE_TYPES.every(r=>this.s.resources[r]>=(cost[r]??0));}
-  private take(cost:Partial<Resources>):void {
-    for (const r of RESOURCE_TYPES) this.withdrawStock(r,cost[r]??0);
+  private take(cost:Partial<Resources>):QualityMap | undefined {
+    let result:QualityMap | undefined;
+    for (const r of RESOURCE_TYPES) {
+      const count = this.withdrawStock(r,cost[r]??0);
+      if (count) (result ??= {})[r] = {premium:{day:this.day(),count}};
+    }
+    return result;
   }
-  private give(cost:Partial<Resources>):void {
+  private give(cost:Partial<Resources>,quality?:QualityMap):void {
     for (const r of RESOURCE_TYPES) {
       const amount=cost[r]??0;
       if (!amount) continue;
-      this.putInAvailableStorage(r,amount);
+      this.putInAvailableStorage(r,amount,quality?.[r]);
       this.s.resources[r]+=amount;
     }
   }
@@ -1587,6 +1975,7 @@ export class ColonySimulation {
     this.s.jobs.push(job);return job;
   }
   private refreshJobs():void {
+    this.refreshPastureJobs();
     this.refreshTreeJobs();
     this.refreshTerraformJobs();
     const has=(type:JobType,target:string)=>this.s.jobs.some(j=>j.type===type&&j.targetId===target);
@@ -1601,7 +1990,7 @@ export class ColonySimulation {
     if(desk&&active&&!has('research',active))this.addJob('research',active,desk.x,desk.y,desk.z,RESEARCH_DEFS[active]!.work,'研究'+RESEARCH_DEFS[active]!.name).progress=this.s.research.progress[active]??0;
     for(const c of this.s.colonists)if(c.disease>15&&!has('doctor',c.id))this.addJob('doctor',c.id,Math.floor(c.position[0]),c.position[1],Math.floor(c.position[2]),9,`治疗${c.name}`);
     for(const j of [...this.s.jobs]){
-      if(j.type==='haul'&&j.targetId!==PLAYER_DELIVERY_TARGET&&j.phase==='pickup'&&!this.s.items.some(i=>i.id===j.targetId))this.removeJob(j,true);
+      if(j.type==='haul'&&!j.guideSale&&j.targetId!==PLAYER_DELIVERY_TARGET&&j.phase==='pickup'&&!this.s.items.some(i=>i.id===j.targetId))this.removeJob(j,true);
       if(j.type==='doctor'){const p=this.s.colonists.find(c=>c.id===j.targetId);if(!p||p.disease<=0)this.removeJob(j,true);else if(!j.assignedTo){j.x=Math.floor(p.position[0]);j.y=p.position[1];j.z=Math.floor(p.position[2]);}}
     }
   }
@@ -1609,30 +1998,49 @@ export class ColonySimulation {
     const job=this.s.jobs.find(j=>j.id===c.jobId);
     if(job){
       job.assignedTo=null;job.state='queued';
+      if(job.type==='herd'){
+        const a=this.penFor(job.targetId)?.animal;
+        if(a?.state==='leading')a.state='ordered';
+      }
       if (job.recipe) {
-        this.give(job.reserved);
-        job.reserved = {};
+        this.give(job.reserved,job.quality);
+        job.reserved = {}; delete job.quality;
         job.phase = 'pickup';
         job.destination = null;
+      } else if (job.guideSale) {
+        const sale=job.guideSale;
+        if(sale.inTransit && !sale.pickupAt) sale.pickupAt=[...c.position];
+        job.phase='pickup'; job.label='待取货 · 等待居民';
       } else if (job.targetId === PLAYER_DELIVERY_TARGET) {
         job.phase = 'pickup';
       } else if(job.type==='haul'){
-        for(const r of RESOURCE_TYPES)if(c.carrying[r])this.drop(r,c.carrying[r]!,Math.floor(c.position[0]),Math.floor(c.position[2]));
-        c.carrying={};const item=this.s.items.find(i=>i.id===job.targetId);if(item)item.reservedBy=null;
+        for(const r of RESOURCE_TYPES)if(c.carrying[r])this.drop(r,c.carrying[r]!,Math.floor(c.position[0]),Math.floor(c.position[2]),{source:c.cargoQuality?.[r]});
+        c.carrying={};c.cargoQuality=undefined;const item=this.s.items.find(i=>i.id===job.targetId);if(item)item.reservedBy=null;
         this.s.jobs.splice(this.s.jobs.indexOf(job),1);
       }
     }
-    if(c.personal?.reserved)this.give(c.personal.reserved);
+    if(c.personal?.reserved)this.give(c.personal.reserved,c.personal.quality);
     c.personal=null;c.jobId=null;c.path=[];c.destination=null;
   }
   private removeJob(job:Job,refund:boolean):void {
     const c=this.s.colonists.find(c=>c.id===job.assignedTo);
+    const sale=job.guideSale;
+    if(refund && sale?.eventId){
+      const market=this.s.specialistMarket;
+      const next=releaseMarketQuota(market.events,sale.eventId,sale.count-sale.delivered);
+      if(!next)throw new Error('该订单的活动额度记录无效');
+      market.events=next;
+    }
+    if (refund && sale?.side==='buy' && sale.inTransit) {
+      const place=sale.pickupAt??c?.position??this.merchantPosition(sale.merchantId);
+      this.drop(sale.item,sale.inTransit,Math.floor(place[0]),Math.floor(place[2]));
+    }
     if(c){
-      for(const r of RESOURCE_TYPES)if(c.carrying[r])this.drop(r,c.carrying[r]!,Math.floor(c.position[0]),Math.floor(c.position[2]));
-      c.carrying={};c.jobId=null;c.path=[];c.destination=null;
+      for(const r of RESOURCE_TYPES)if(c.carrying[r])this.drop(r,c.carrying[r]!,Math.floor(c.position[0]),Math.floor(c.position[2]),{source:c.cargoQuality?.[r]});
+      c.carrying={};c.cargoQuality=undefined;c.jobId=null;c.path=[];c.destination=null;
     }
     const item=this.s.items.find(i=>i.id===job.targetId);if(item?.reservedBy===job.id)item.reservedBy=null;
-    if(refund)this.give(job.reserved);
+    if(refund)this.give(job.reserved,job.quality);
     const index=this.s.jobs.indexOf(job);if(index>=0)this.s.jobs.splice(index,1);
   }
   private schedule(c:Colonist):'work'|'sleep'|'relax'|'anything' {
@@ -1646,6 +2054,7 @@ export class ColonySimulation {
     let target:Position|null=null,path:Position[]|null=null,bed=false,reserved:Partial<Resources>={},buildingId:string|undefined;
     const useBuildings=(kinds:BuildingKind[],excludeOccupied=false):boolean=>{
       const candidates=this.s.buildings.filter(b=>b.complete&&kinds.includes(b.kind)
+        && !Array.from(this.merchantHomes.values()).some(home=>home.bed.id===b.id)
         &&(!excludeOccupied||!this.s.colonists.some(p=>p!==c&&p.personal&&(p.personal.kind==='sleep'||p.personal.kind==='patient')&&(p.personal.buildingId===b.id||p.destination?.[0]===b.x+.5&&p.destination?.[2]===b.z+.5))))
         .sort((a,b)=>Math.hypot(a.x-c.position[0],a.z-c.position[2])-Math.hypot(b.x-c.position[0],b.z-c.position[2]));
       for(const b of candidates){const pos:Position=[b.x+.5,b.y,b.z+.5],route=this.buildingStand(b,c.position);if(route!==null){target=pos;path=route;buildingId=b.id;return true;}}
@@ -1662,7 +2071,7 @@ export class ColonySimulation {
       if(!useBuildings(['table'])){target=this.closestOpen(Math.floor(c.position[0])+2,Math.floor(c.position[2]));if(target)path=this.path(c.position,target);}
     }
     if(!target||path===null)return false;
-    this.releasePerson(c);this.take(reserved);c.path=path;c.destination=target;c.personal={kind,elapsed:0,duration:kind==='eat'?4:kind==='sleep'||kind==='patient'?bed?20:40:20,reserved,...(buildingId?{buildingId}:{})};
+    this.releasePerson(c);const quality=this.take(reserved);c.path=path;c.destination=target;c.personal={kind,quality,elapsed:0,duration:kind==='eat'?4:kind==='sleep'||kind==='patient'?bed?20:40:20,reserved,...(buildingId?{buildingId}:{})};
     c.task={eat:'前往用餐',sleep:'前往休息',relax:'休闲娱乐',patient:'卧床休养'}[kind];return true;
   }
 
@@ -1739,7 +2148,20 @@ export class ColonySimulation {
     }
     const job=this.s.jobs.find(j=>j.id===c.jobId);if(!job){c.jobId=null;return;}
     if(job.type==='chop'&&!this.world.getTree(job.targetId)){this.removeJob(job,false);return;}
+    if(job.type==='herd'||job.type==='husbandry'){this.workPasture(c,job,dt);return;}
     if (job.targetId === PLAYER_DELIVERY_TARGET) { this.deliverToPlayer(c, job, dt); return; }
+    if (job.guideSale) {
+      const sale=job.guideSale;
+      if(!this.merchantHomes.has(sale.merchantId??'guide')){
+        this.releasePerson(c);job.state='blocked';job.label='暂停 · 等待商人重新安家';return;
+      }
+      if (sale.pickupAt) {
+        c.task='接取在途货物';
+        if(this.move(c,dt) && c.jobId===job.id) { delete sale.pickupAt;job.phase='deliver';c.destination=null;c.retryAt=0; }
+      } else if (sale.side==='buy') this.collectFromGuide(c,job,sale,dt);
+      else this.deliverToGuide(c,job,sale,dt);
+      return;
+    }
     const recipe = recipeFor(job.recipe);
     if (recipe) { this.runRecipe(c, job, recipe, dt); return; }
     c.task=c.path.length?`前往${job.label}`:job.label;
@@ -1794,13 +2216,14 @@ export class ColonySimulation {
       building.blockedReason = '等待角色离开建筑占地';
       job.progress = Math.max(0, job.work - .25);
       for (const person of this.s.colonists) {
-        if (person === worker || person.position[0]+.23 <= building.x || person.position[0]-.23 >= building.x+building.w
+        if (person.position[0]+.23 <= building.x || person.position[0]-.23 >= building.x+building.w
           || person.position[2]+.23 <= building.z || person.position[2]-.23 >= building.z+building.d) continue;
-        this.releasePerson(person);
-        const path = this.buildingStand(building, person.position);
+        if (person !== worker) this.releasePerson(person);
+        const stands=this.buildingStands(building).filter(p=>!this.s.colonists.some(other=>other!==person&&horizontalDistance(p,other.position)<.65));
+        const path=stands.sort((a,b)=>horizontalDistance(a,person.position)-horizontalDistance(b,person.position)).map(p=>{const route=this.path(person.position,p);return route?.length===0?[p]:route;}).find(route=>route!==null);
         if (path) {
           person.path = path; person.destination = path.at(-1) ?? person.position;
-          person.personal = { kind: 'wander', elapsed: 0, duration: 1, reserved: {} };
+          if (person !== worker) person.personal = { kind: 'wander', elapsed: 0, duration: 1, reserved: {} };
         }
       }
     }
@@ -1822,6 +2245,15 @@ export class ColonySimulation {
       worker.skills.construct = Math.min(20, worker.skills.construct + .12);
       worker.task = '工作完成';
     }
+    if(building.kind==='pastureGate'){
+      const pen=this.s.zones.find(z=>z.pasture?.pendingGate?.[0]===building.x&&z.pasture.pendingGate[1]===building.z)?.pasture;
+      if(pen?.pendingGate){
+        const old=this.buildingAt.get(this.cellKey(...pen.gate));
+        pen.gate=pen.pendingGate; delete pen.pendingGate;
+        if(old?.kind==='pastureGate'){old.kind='fence';old.complete=false;old.progress=0;old.phase='readyToBuild';}
+        this.invalidateBuildingNavigation();this.refreshJobs();
+      }
+    }
     if (building.kind==='campfirePlaza') this.beginFinale(building);
   }
   private assign(c:Colonist):boolean {
@@ -1830,6 +2262,21 @@ export class ColonySimulation {
       .sort((a,b)=>Number(b.targetId===PLAYER_DELIVERY_TARGET)-Number(a.targetId===PLAYER_DELIVERY_TARGET)
         ||c.priorities[workSkill(a.type)]-c.priorities[workSkill(b.type)]||Math.hypot(a.x-c.position[0],a.z-c.position[2])-Math.hypot(b.x-c.position[0],b.z-c.position[2]));
     for(const job of options){
+      if (job.guideSale) {
+        const sale=job.guideSale, lot=sale.lots[0];
+        if(!this.merchantHomes.has(sale.merchantId??'guide')){job.state='blocked';job.label='暂停 · 等待商人重新安家';continue;}
+        const shelf=!sale.pickupAt && lot?.shelfId && this.s.buildings.find(b=>b.id===lot.shelfId);
+        const source:Position|null=sale.pickupAt ?? (sale.side==='buy' ? this.merchantPosition(sale.merchantId) : lot!.overflow ? this.storageTarget(c.position) : [lot!.x+.5,this.groundY(lot!.x,lot!.z),lot!.z+.5]);
+        const path=shelf ? this.buildingStand(shelf,c.position) : source && this.path(c.position,source,sale.side==='buy' && !sale.pickupAt);
+        if (!path || !source) { job.state='blocked';job.label='待取货 · 仓位道路受阻';continue; }
+        c.path=path;c.destination=path.at(-1)??[...c.position];
+        job.x=Math.floor(source[0]);job.y=source[1];job.z=Math.floor(source[2]);
+        job.assignedTo=c.id;job.state='working';job.label=sale.side==='buy'?'采购待取 · 前往'+merchantName(sale.merchantId):'待取货 · 前往仓位';c.jobId=job.id;return true;
+      }
+      if(job.type==='herd'||job.type==='husbandry'){
+        if(this.assignPasture(c,job))return true;
+        continue;
+      }
       const recipe = recipeFor(job.recipe);
       if (recipe) {
         if (this.assignRecipe(c, job, recipe)) return true;
@@ -1883,7 +2330,7 @@ export class ColonySimulation {
         const path=this.miningTargetValid(job)?this.mineStand(job,c.position):null;
         if(path===null){job.state='blocked';continue;}c.path=path;c.destination=target;
       }else if(!this.route(c,target,adjacent)){job.state='blocked';continue;}
-      this.take(cost);for(const r of RESOURCE_TYPES)if(cost[r])job.reserved[r]=(job.reserved[r]??0)+cost[r]!;
+      const quality = this.take(cost); if (quality) job.quality={...job.quality,...quality};for(const r of RESOURCE_TYPES)if(cost[r])job.reserved[r]=(job.reserved[r]??0)+cost[r]!;
       job.assignedTo=c.id;job.state='working';c.jobId=job.id;
       if(job.type==='haul'){const item=this.s.items.find(i=>i.id===job.targetId)!;item.reservedBy=job.id;}
       return true;
@@ -1926,7 +2373,7 @@ export class ColonySimulation {
         job.label = missing ?? '等待可达的仓储区和工作站';
         return;
       }
-      this.take(cost);
+      job.quality=this.take(cost);
       job.reserved = cost;
       job.phase = 'work';
       job.destination = null;
@@ -1942,6 +2389,75 @@ export class ColonySimulation {
     this.drop(recipe.output, output, x, z);
     if (recipe.job === 'cook') this.s.metrics.cooked += output;
     this.finish(worker, job);
+  }
+
+  private collectFromGuide(c:Colonist, job:Job, sale:GuideSale, dt:number) {
+    if (job.phase==='pickup') {
+      const merchant=this.merchantPosition(sale.merchantId);
+      c.task='前往'+merchantName(sale.merchantId)+'处领取'+RESOURCE_NAMES[sale.item];
+      if (!this.move(c,dt) || c.jobId!==job.id) return;
+      if(horizontalDistance(c.position,merchant)>1.5 || Math.abs(c.position[1]-merchant[1])>1.05) { this.releasePerson(c);return; }
+      sale.inTransit=Math.min(HAUL_LIMIT,sale.count-sale.delivered);
+      sale.paid=Math.floor(sale.total*(sale.delivered+sale.inTransit)/sale.count);
+      job.reserved={silver:sale.total-sale.paid};job.phase='deliver';job.label='采购运送中';c.destination=null;c.retryAt=0;
+      return;
+    }
+    c.task=`送${RESOURCE_NAMES[sale.item]} × ${sale.inTransit} 入库`;
+    if (c.path.length && !this.move(c,dt) || c.jobId!==job.id || this.s.time<c.retryAt) return;
+    const target=this.haulDestination(sale.item,c.position);
+    if (!target) { job.state='blocked';job.label='采购在途 · 等待可达空仓位';c.retryAt=this.s.time+1;return; }
+    job.state='working';job.label='采购运送中';
+    if (target.path.length) { c.path=target.path;c.destination=target.stand;return; }
+    const amount=Math.min(target.capacity,sale.inTransit);
+    this.putInStorage(target.slot,sale.item,amount);
+    this.s.resources[sale.item]+=amount;this.s.metrics.hauled+=amount;
+    sale.delivered+=amount;sale.inTransit-=amount;
+    if (sale.delivered===sale.count) {
+      this.event('info',`${merchantName(sale.merchantId)}采购已入库 · ${RESOURCE_NAMES[sale.item]} × ${sale.count} · 已付 ${sale.paid} 银币`);
+      this.removeJob(job,false);c.task='采购已入库';
+    } else if (!sale.inTransit) this.releasePerson(c);
+  }
+
+  private deliverToGuide(c:Colonist, job:Job, sale:GuideSale, dt:number) {
+    if (job.phase==='pickup') {
+      c.task='到仓位领取'+RESOURCE_NAMES[sale.item];
+      if (!this.move(c,dt) || c.jobId!==job.id) return;
+      const lot=sale.lots[0]!;
+      sale.inTransit=Math.min(HAUL_LIMIT,lot.count);
+      sale.transitPremium=Math.min(sale.inTransit,lot.premium??0);
+      lot.premium=(lot.premium??0)-sale.transitPremium;
+      lot.count-=sale.inTransit;
+      if (!lot.count) sale.lots.shift();
+      job.phase='deliver';job.label='运送中';c.destination=null;c.retryAt=0;
+      return;
+    }
+    const guide=this.merchantPosition(sale.merchantId);
+    c.task=`向${merchantName(sale.merchantId)}运送${RESOURCE_NAMES[sale.item]} × ${sale.inTransit}`;
+    if (horizontalDistance(c.position,guide)<=1.45 && Math.abs(c.position[1]-guide[1])<=1.05) {
+      takePremium(job.quality?.[sale.item],sale.transitPremium??0,this.day());
+      sale.transitPremium=0;
+      const arrivals=recordGoods(this.s.specialistMarket,sale.item,sale.inTransit,this.day());
+      for(const id of arrivals){
+        this.startMerchantWalk(id);
+        this.event('arrival',merchantName(id)+'来到了小镇，正在等待安排住所');
+      }
+      sale.delivered+=sale.inTransit;
+      const paid=Math.floor(sale.total*sale.delivered/sale.count);
+      this.give({silver:paid-sale.paid});
+      sale.paid=paid;sale.inTransit=0;job.reserved[sale.item]=sale.count-sale.delivered;
+      if (sale.delivered===sale.count) {
+        this.event('info',`${merchantName(sale.merchantId)}回收已交付 · ${RESOURCE_NAMES[sale.item]} × ${sale.count} · 收到 ${paid} 银币`);
+        this.removeJob(job,false);c.task='已交货给'+merchantName(sale.merchantId);
+      } else this.releasePerson(c);
+      return;
+    }
+    if ((!c.path.length || !c.destination || horizontalDistance(c.destination,guide)>1.5) && this.s.time>=c.retryAt) {
+      c.retryAt=this.s.time+1;
+      if (!this.route(c,guide,true) && !this.route(c,guide)) {
+        job.state='blocked';job.label='运送中 · 等待道路畅通';c.path=[];c.destination=null;
+      }
+    }
+    if(c.path.length) { job.state='working';job.label='运送中';this.move(c,dt); }
   }
 
   private deliverToPlayer(c: Colonist, job: Job, dt: number): void {
@@ -1966,7 +2482,7 @@ export class ColonySimulation {
     if (horizontalDistance(c.position, player) <= 1.5 && Math.abs(c.position[1] - player[1]) <= 1.5) {
       c.path = []; c.destination = null;
       const remaining = job.reserved[resource]!;
-      const received = this.addToBag(recipient,resource,remaining,recipient===this.controlled);
+      const received = this.addToBag(recipient,resource,remaining,recipient===this.controlled,job.quality?.[resource]);
       if (!received) { c.task = '村民背包已满，等待收货'; job.state = 'blocked'; return; }
       this.deliveryMessage = `${c.name}送来了 ${received} 个${RESOURCE_NAMES[resource]}`;
       this.event('info', this.deliveryMessage);
@@ -2002,6 +2518,8 @@ export class ColonySimulation {
       const amount=Math.min(item.amount,HAUL_LIMIT,destination.capacity);
       item.amount-=amount;
       c.carrying[item.resource]=amount;
+      const premium=takePremium(item,amount,this.day());
+      c.cargoQuality = premium ? {[item.resource]:{premium:{day:this.day(),count:premium}}} : undefined;
       job.resource=item.resource;job.amount=amount;job.phase='deliver';
       if (item.amount===0) this.s.items.splice(this.s.items.indexOf(item),1);
       else item.reservedBy=null;
@@ -2016,10 +2534,11 @@ export class ColonySimulation {
       return;
     }
     const carried=c.carrying[resource]??0, stored=Math.min(carried,destination.capacity);
-    this.putInStorage(destination.slot,resource,stored);
+    const quality = c.cargoQuality?.[resource];
+    this.putInStorage(destination.slot,resource,stored,takePremium(quality,stored,this.day()));
     this.s.resources[resource]+=stored;this.s.metrics.hauled+=stored;
-    c.carrying={};
-    if (carried > stored) this.drop(resource,carried-stored,Math.floor(c.position[0]),Math.floor(c.position[2]));
+    c.carrying={};c.cargoQuality=undefined;
+    if (carried > stored) this.drop(resource,carried-stored,Math.floor(c.position[0]),Math.floor(c.position[2]),{source:quality});
     this.finish(c,job);
   }
   private finish(c:Colonist,job:Job):void {
@@ -2079,10 +2598,22 @@ export class ColonySimulation {
     this.removeJob(job,false);c.task='工作完成';
   }
 
+  private describeRoom(id:number,cells:[number,number][]):RoomView {
+    const furniture = new Set(cells.map(([x,z])=>this.buildingAt.get(this.cellKey(x,z))));
+    let floors=0, furnishing=0;
+    for (const b of furniture) {
+      if (!b?.complete) continue;
+      if (b.kind==='floor') floors++;
+      if (GUIDE_HOUSING_RULES.beds.has(b.kind) || b.kind==='table' || b.kind==='medicalBed') furnishing++;
+    }
+    const comfort=Math.min(100,35+floors/cells.length*40+furnishing*7);
+    return {id,cells,enclosed:true,comfort,temperature:this.s.temperature*.4+21*.6,cleanliness:100};
+  }
+
   private updateRooms():void {
     this.navigationDirty=false;this.rooms=[];this.roomAt.fill(-1);
-    const barriers=new Set(this.s.buildings.filter(b=>b.complete&&(b.kind==='wall'||b.kind==='door'&&!b.doorOpen)).flatMap(b=>this.footprint(b).map(([x,z])=>this.cellKey(x,z))));
-    if(barriers.size<4){for(const b of this.s.buildings){b.roomId=null;b.comfort=0;}return;}
+    const barriers=new Set(this.s.buildings.filter(buildingSealsRoom).flatMap(b=>this.footprint(b).map(([x,z])=>this.cellKey(x,z))));
+    if(barriers.size<4){for(const b of this.s.buildings){b.roomId=null;b.comfort=0;}this.refreshMerchantHomes();return;}
     const visited=new Uint8Array(this.world.width*this.world.depth);
     for(let start=0;start<this.world.width*this.world.depth;start++){
       if(visited[start]||barriers.has(start))continue;
@@ -2093,26 +2624,170 @@ export class ColonySimulation {
         for(const[dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx!,nz=z+dz!,next=nx+nz*this.world.width;if(nx<0||nz<0||nx>=this.world.width||nz>=this.world.depth||visited[next]||barriers.has(next))continue;visited[next]=1;queue.push(next);}
       }
       if(touchesEdge||cells.length>120)continue;
-      const id=this.rooms.length,set=new Set(cells.map(([x,z])=>x+z*this.world.width));
-      const floors=this.s.buildings.filter(b=>b.complete&&b.kind==='floor'&&set.has(b.x+b.z*this.world.width)).length;
-      const furnishing=this.s.buildings.filter(b=>b.complete&&['bed','table','medicalBed'].includes(b.kind)&&set.has(b.x+b.z*this.world.width)).length;
-      const comfort=Math.min(100,35+floors/cells.length*40+furnishing*7);
-      const room:RoomView={id,cells,enclosed:true,comfort,temperature:this.s.temperature*.4+21*.6,cleanliness:100};this.rooms.push(room);
+      const id=this.rooms.length;
+      this.rooms.push(this.describeRoom(id,cells));
       for(const[x,z]of cells)this.roomAt[x+z*this.world.width]=id;
     }
     for(const b of this.s.buildings){const room=this.roomAt[b.x+b.z*this.world.width]??-1;b.roomId=room>=0?room:null;b.comfort=room>=0?this.rooms[room]!.comfort:0;}
+    this.refreshMerchantHomes();
   }
 
-  private roomsWithCleanliness():RoomView[] {
-    if (!this.rooms.length) return this.rooms;
+  // For a current tenant, test the structure with operable doors shut. A removed
+  // wall, bed or table still invalidates the lease even while the door is open.
+  private retainedGuideRoom(bed:BuildingView):RoomView|null {
+    const cells:[number,number][]=[[bed.x,bed.z]];
+    const seen=new Set([this.cellKey(bed.x,bed.z)]);
+    for(let i=0;i<cells.length;i++){
+      const [x,z]=cells[i]!;
+      if(cells.length>120 || x===0 || z===0 || x===this.world.width-1 || z===this.world.depth-1)return null;
+      for(const [dx,dz] of CARDINAL_STEPS){
+        const nx=x+dx,nz=z+dz,key=this.cellKey(nx,nz);
+        if(seen.has(key))continue;
+        seen.add(key);
+        const wall=this.buildingAt.get(key);
+        if(wall && buildingSealsRoom({...wall,doorOpen:false}))continue;
+        cells.push([nx,nz]);
+      }
+    }
+    const live=bed.roomId===null?null:this.rooms[bed.roomId];
+    return live?.cells.length===cells.length ? live : this.describeRoom(-1,cells);
+  }
+
+  private arrivedMerchants():MerchantId[] {
+    return ['guide',...specialistIds.filter(id=>this.s.specialistMarket.progress[id].arrivalDay!==null)];
+  }
+
+  private merchantPosition(id:MerchantId='guide'):Position {
+    return this.s.specialistMarket.walks[id]?.position??this.camp;
+  }
+
+  private startMerchantWalk(id:MerchantId) {
+    const index=this.arrivedMerchants().indexOf(id);
+    const offsets=[[0,0],[3,0],[-3,0],[0,3],[0,-3]];
+    const [dx,dz]=offsets[index]??[0,0];
+    const start=this.closestOpen(this.camp[0]+dx!,this.camp[2]+dz!,true,p=>
+      this.roomAt[this.cellKey(Math.floor(p[0]),Math.floor(p[2]))]!<0 && this.path(this.camp,p)!==null)??this.camp;
+    this.s.specialistMarket.walks[id]={position:[...(this.merchantHomes.get(id)?.position??start)],path:[],retryAt:this.s.time};
+  }
+
+  private walkMerchants(dt:number){
+    for(const id of this.arrivedMerchants()){
+      const walk=this.s.specialistMarket.walks[id]!,home=this.merchantHomes.get(id);
+      if(!walk.path.length){
+        if(this.s.time<walk.retryAt || home && horizontalDistance(walk.position,home.position)<.02)continue;
+        walk.retryAt=this.s.time+3;
+        const stride=Math.floor(this.s.time/3)+this.arrivedMerchants().indexOf(id)*5;
+        const target=home?.position??this.closestOpen(this.camp[0]+(stride*7%13)-6,
+          this.camp[2]+(stride*3%13)-6,true,p=>this.roomAt[this.cellKey(Math.floor(p[0]),Math.floor(p[2]))]!<0);
+        if(target)walk.path=this.path(walk.position,target,false,undefined,Infinity,!!home || this.roomAt[this.cellKey(Math.floor(walk.position[0]),Math.floor(walk.position[2]))]!>=0)??[];
+      }
+      const next=walk.path[0];
+      if(!next)continue;
+      const x=Math.floor(next[0]),z=Math.floor(next[2]);
+      if(!this.walkable(x,z)){
+        const door=this.buildingAt.get(this.cellKey(x,z));
+        if(!door?.complete || !isSwingDoor(door.kind) || !home && this.roomAt[this.cellKey(Math.floor(walk.position[0]),Math.floor(walk.position[2]))]!<0){walk.path=[];continue;}
+        this.toggleDoor({action:'toggleDoor',id:door.id});
+      }
+      const distance=Math.hypot(next[0]-walk.position[0],next[1]-walk.position[1],next[2]-walk.position[2]);
+      if(distance<=dt*1.35){walk.position=walk.path.shift()??next;continue;}
+      for(const axis of [0,1,2] as const)walk.position[axis]+=(next[axis]-walk.position[axis])*dt*1.35/distance;
+    }
+  }
+
+  private refreshMerchantHomes():void {
+    const midX=Math.floor(this.world.width/2)+3,midZ=Math.floor(this.world.depth/2)+3;
+    this.camp=this.closestOpen(midX,midZ,true,([x,,z])=>this.roomAt[this.cellKey(Math.floor(x),Math.floor(z))]!<0)
+      ?? this.closestOpen(midX,midZ) ?? this.s.colonists[0]?.position ?? [midX+.5,6,midZ+.5];
+    this.merchantHomes.clear();this.roomChoices=[];
+    const choices:MerchantHome[]=[];
+    const retained=new Set([this.s.guideBedId,...specialistIds.map(id=>this.s.specialistMarket.progress[id].bedId)]);
+    const openDoor=this.s.buildings.some(b=>b.complete && isSwingDoor(b.kind) && b.doorOpen);
+    for(const bed of this.s.buildings){
+      if(!bed.complete || !GUIDE_HOUSING_RULES.beds.has(bed.kind))continue;
+      const room=retained.has(bed.id) && openDoor ? this.retainedGuideRoom(bed) : this.rooms[bed.roomId??-1];
+      if(!room || room.cells.length<GUIDE_HOUSING_RULES.minimumCells || !room.cells.some(([x,z])=>{
+        const table=this.buildingAt.get(this.cellKey(x,z));
+        return table?.complete && table.kind===GUIDE_HOUSING_RULES.table;
+      }))continue;
+      for(const [x,z] of room.cells){
+        const dx=Math.max(bed.x-x,0,x-(bed.x+bed.w-1)),dz=Math.max(bed.z-z,0,z-(bed.z+bed.d-1));
+        if(dx+dz!==1 || !this.walkable(x,z) || Math.abs(this.groundY(x,z)-bed.y)>1)continue;
+        const position:Position=[x+.5,this.groundY(x,z),z+.5];
+        if(this.path(this.camp,position,false,undefined,Infinity,true)===null)continue;
+        choices.push({bed,position,room});break;
+      }
+    }
+    const occupied=new Set<number>();
+    for(const id of this.arrivedMerchants()){
+      const bedId=id==='guide'?this.s.guideBedId:this.s.specialistMarket.progress[id].bedId;
+      const home=choices.find(h=>h.bed.id===bedId && !occupied.has(this.cellKey(h.bed.x,h.bed.z)));
+      if(home){
+        this.merchantHomes.set(id,home);
+        for(const [x,z] of home.room.cells)occupied.add(this.cellKey(x,z));
+      }else if(id==='guide')this.s.guideBedId=null;
+      else this.s.specialistMarket.progress[id].bedId=null;
+      if(!this.s.specialistMarket.walks[id])this.startMerchantWalk(id);
+    }
+    this.roomChoices=choices.filter(h=>h.room.id>=0 && !occupied.has(this.cellKey(h.bed.x,h.bed.z)));
+    this.planCalendar();
+  }
+
+  private availableHomes(){
+    const rooms=new Set<number>();
+    return this.roomChoices.filter(h=>{
+      if(rooms.has(h.room.id) || this.s.colonists.some(c=>c.personal?.kind==='sleep' &&
+        c.personal.buildingId && h.room.cells.some(([x,z])=>this.buildingAt.get(this.cellKey(x,z))?.id===c.personal?.buildingId)))return false;
+      rooms.add(h.room.id);return true;
+    });
+  }
+
+  private assignMerchantRoom(id:MerchantId,bedId?:string):CommandResult{
+    if(!this.arrivedMerchants().includes(id))throw new Error('商人尚未到镇');
+    const home=this.availableHomes().find(h=>h.bed.id===bedId);
+    if(!home || !this.path(this.merchantPosition(id),home.position,false,undefined,Infinity,true))throw new Error('请选择可达的合格空房');
+    if(id==='guide')this.s.guideBedId=home.bed.id;
+    else this.s.specialistMarket.progress[id].bedId=home.bed.id;
+    const walk=this.s.specialistMarket.walks[id]!;
+    walk.path=[];walk.retryAt=this.s.time;
+    this.refreshMerchantHomes();
+    return {ok:true,message:'已为'+merchantName(id)+'安排住所'};
+  }
+
+  private planCalendar(){
+    const market=this.s.specialistMarket;
+    market.events=planMarketEvents(market.events,this.day(),specialistIds.filter(id=>this.merchantHomes.has(id)),this.s.worldSeed);
+  }
+
+  private clutterCells():Set<number> {
     const clutter = new Set(this.s.warehouseStacks.filter(stack => !stack.shelfId).map(stack => this.cellKey(stack.x,stack.z)));
     for (const item of this.s.items) if (item.age >= 10) clutter.add(this.cellKey(item.x,item.z));
-    const counts = new Map<number,number>();
-    for (const cell of clutter) {
-      const room = this.roomAt[cell] ?? -1;
-      if (room >= 0) counts.set(room,(counts.get(room)??0)+1);
-    }
-    return this.rooms.map(room => ({...room,cleanliness:Math.round(100-60*(counts.get(room.id)??0)/room.cells.length)}));
+    return clutter;
+  }
+
+  private roomCleanliness(room:RoomView,clutter:Set<number>):number {
+    const count=room.cells.reduce((n,[x,z])=>n+Number(clutter.has(this.cellKey(x,z))),0);
+    return Math.round(100-60*count/room.cells.length);
+  }
+
+  private merchantHousing(id:MerchantId,clutter:Set<number>):MerchantHousing {
+    const home=this.merchantHomes.get(id),room=home?.room;
+    return {npcId:id,status:home?'housed':'camp',position:[...this.merchantPosition(id)],
+      roomId:room && room.id>=0 ? room.id:null,bedId:home?.bed.id??null,
+      ...housingTerms(room?.comfort??0,room?this.roomCleanliness(room,clutter):0)};
+  }
+
+  private projectMarket(clutter:Set<number>):SpecialistMarketView {
+    const market=this.s.specialistMarket;
+    return {events:market.events,merchants:specialistIds.map(id=>{
+      const {sold,arrivalDay}=market.progress[id];
+      return {id,sold,arrivalDay,status:arrivalDay===null?'locked':'arrived',housing:arrivalDay===null?null:this.merchantHousing(id,clutter)};
+    }),availableRooms:this.availableHomes().map(h=>({roomId:h.room.id,bedId:h.bed.id,position:h.position,
+      comfort:h.room.comfort,cleanliness:this.roomCleanliness(h.room,clutter)}))};
+  }
+
+  get guideHousing():GuideHousing {
+    return {...this.merchantHousing('guide',this.merchantHomes.has('guide')?this.clutterCells():new Set()),npcId:'guide'};
   }
   private updatePower(dt:number):void {
     const solar=this.s.buildings.filter(b=>b.complete&&b.kind==='solar').length;
@@ -2137,7 +2812,7 @@ export class ColonySimulation {
     for(const room of this.rooms)room.temperature=this.s.temperature*.4+21*.6;
   }
   private newDay():void {
-    this.s.lastDay=this.day();const roll=this.random();
+    this.s.lastDay=this.day();this.planCalendar();const roll=this.random();
     this.s.weather=roll<.1?'热浪':roll<.2?'寒潮':roll<.42?'细雨':roll<.64?'多云':'晴朗';
     this.event('weather',`第 ${this.day()} 天：${this.season()}，预计${this.s.weather}。留意居民需求与食品供应。`);
     if(this.day()%3===2&&this.s.colonists.length){
@@ -2152,26 +2827,27 @@ export class ColonySimulation {
   /** Internal renderer projection; consumers must never mutate simulation data. */
   renderState(){
     const carriers = this.s.jobs.filter(job => job.assignedTo &&
-      (job.targetId === PLAYER_DELIVERY_TARGET && job.phase === 'deliver' || job.recipe && job.phase === 'work'));
+      ((job.guideSale || job.targetId === PLAYER_DELIVERY_TARGET) && job.phase === 'deliver' || job.recipe && job.phase === 'work'));
     const colonists = carriers.length ? this.s.colonists.map(colonist => {
       const carrying = carriers.find(job => job.assignedTo === colonist.id);
-      return carrying ? { ...colonist, carrying: carrying.reserved } : colonist;
+      return carrying ? { ...colonist, carrying: carrying.guideSale ? {[carrying.guideSale.item]:carrying.guideSale.inTransit} : carrying.reserved } : colonist;
     }) : this.s.colonists;
     return {colonists,buildings:this.s.buildings,zones:this.zones(),crops:this.s.crops,items:this.s.items,
       warehouseStacks:this.s.warehouseStacks,selectedColonistId:this.s.selectedColonistId};
   }
   snapshot():ColonySnapshot {
+    const clutter=this.rooms.length || this.merchantHomes.size ? this.clutterCells() : new Set<number>();
     const chests = this.s.buildings.flatMap(({id,x,z,storage}) => storage ? [{id,x,z,slots:storage}] : []);
     const rendered=this.renderState();
     const snapshot=copy({version:1 as const,speed:this.s.speed,time:this.s.time,day:this.day(),hour:this.hour(),season:this.season(),weather:this.s.weather,temperature:this.s.temperature,
       resources:this.s.resources,playerBag:this.inventoryColonist?.bag??emptySlots(PLAYER_SLOTS),bagSelected:this.inventoryColonist?.bagSelected??0,controlledColonistId:this.controlled?.id??null,chests,
       colonists:rendered.colonists.map(({path,personal,destination,retryAt,...view})=>view),buildings:this.s.buildings,
-      zones:rendered.zones,crops:this.s.crops,warehouseStacks:this.s.warehouseStacks,
+      zones:rendered.zones.map(z=>z.pasture?{...z,pasture:{...z.pasture,capacity:this.pastureSpace(z).length,ready:this.pastureReady(z)}}:z),crops:this.s.crops,warehouseStacks:this.s.warehouseStacks,
       items:this.s.items,jobs:this.s.jobs.map(({phase,resource,amount,destination,...view}) => {
         if (view.recipe) return { ...view, craftAmount: amount, craftPhase: phase === 'pickup' ? 'pickup' as const : 'work' as const };
         if (view.targetId === PLAYER_DELIVERY_TARGET) return { ...view, deliveryPhase: phase === 'deliver' ? 'deliver' as const : 'pickup' as const };
         return view;
-      }),rooms:this.roomsWithCleanliness(),research:this.s.research,power:this.s.power,
+      }),rooms:this.rooms.map(r=>({...r,cleanliness:this.roomCleanliness(r,clutter)})),guideHousing:{...this.merchantHousing('guide',clutter),npcId:'guide' as const},specialistMarket:this.projectMarket(clutter),research:this.s.research,power:this.s.power,
       events:this.s.events,metrics:this.s.metrics,selectedColonistId:this.s.selectedColonistId});
     const terrainPlans=this.s.terrainPlans.map(({initialWork,cells,...view})=>{
       let stable=this.terrainCellViews.get(view.id);if(!stable){stable=cells.map(([x,z])=>Object.freeze([x,z]) as unknown as [number,number]);Object.freeze(stable);this.terrainCellViews.set(view.id,stable);}
@@ -2274,17 +2950,25 @@ export class ColonySimulation {
     const legacyBuildings=new Set<string>();
     if(Array.isArray(s.buildings))for(const b of s.buildings)if(b&&typeof b==='object'){
       if(b.rotation===undefined&&b.h===undefined){legacyBuildings.add(b.id);b.rotation=0;b.h=BUILDING_DEFS[b.kind]?.height??1;if(b.kind==='door')b.doorOpen??=false;}
+      if(b.kind==='stoneDoor' && b.doorOpen===undefined) b.doorOpen=false;
       b.w??=1;b.d??=1;b.phase??=b.complete?'completed':'readyToBuild';
     }
     if(Array.isArray(s.colonists))for(const c of s.colonists)if(c&&typeof c==='object'){if(legacy){c.bag??=emptySlots(1);if(Array.isArray(c.bag)&&c.bag.length===1)c.bag.push(...emptySlots(PLAYER_SLOTS-1));c.bagSelected??=0;c.stamina??=100;c.facing??=0;}if(c.skills)c.skills.terraform??=c.skills.construct??2;if(c.priorities)c.priorities.terraform??=c.priorities.construct??3;}
     const finite=(n:unknown,min=0,max=1e9)=>typeof n==='number'&&Number.isFinite(n)&&n>=min&&n<=max;
     const integer=(n:unknown,min=0,max=1e9)=>finite(n,min,max)&&Number.isInteger(n);
     const text=(x:unknown,max=200)=>typeof x==='string'&&x.length<=max;
+    if(s.guideBedId!=null && !text(s.guideBedId,80))fail();
     const list=(x:unknown,max:number)=>Array.isArray(x)&&x.length<=max;
     const isBuildingItem = (resource: unknown) => typeof resource==='string'&&!!buildingItemKind(resource);
+    const saveDay = Math.floor(s.time / DAY_SECONDS) + 1;
+    const validMark = (mark:ColdMark, resource:InventoryItem, count:number) => mark.premium === undefined ||
+      !!coldEffect(resource) && !!mark.premium && integer(mark.premium.day,1,saveDay) && integer(mark.premium.count,1,count);
+    const validMap = (map:QualityMap | undefined, amounts:Partial<Resources>) => map === undefined ||
+      !!map && typeof map==='object' && !Array.isArray(map) && Object.entries(map).every(([r,mark]) =>
+        isResource(r) && !!mark && validMark(mark,r,amounts[r] ?? 0));
     const inventory = (slots: unknown, size: number) => Array.isArray(slots) && slots.length === size
       && TOOL_KINDS.every(tool => slots.filter(slot => slot?.resource === tool).length <= 1)
-      && slots.every(slot => slot === null || slot && (isToolKind(slot.resource)
+      && slots.every(slot => slot === null || slot && validMark(slot,slot.resource,slot.count) && (isToolKind(slot.resource)
         ? slot.count === 1 : (isResource(slot.resource)||isBuildingItem(slot.resource)) && integer(slot.count, 1, STACK_LIMIT)));
     const area=this.world.width*this.world.depth;
     const position=(p:unknown)=>Array.isArray(p)&&p.length===3&&finite(p[0],0,this.world.width)&&finite(p[1],0,this.world.height)&&finite(p[2],0,this.world.depth);
@@ -2323,14 +3007,14 @@ export class ColonySimulation {
     const location=(r:{x:number;y:number;z:number})=>integer(r.x,0,this.world.width-1)&&integer(r.z,0,this.world.depth-1)&&finite(r.y,0,this.world.height);
     for(const c of s.colonists){
       if(!text(c.name,40)||!list(c.traits,10)||!c.traits.every(t=>text(t,40))||!position(c.position)||!position(c.color)||!['balanced','day','night','rest'].includes(c.schedule)
-        ||!['health','hunger','rest','recreation','mood','disease','comfort'].every(k=>finite(c[k as keyof Colonist],0,100))||!text(c.task)||!resources(c.carrying,true)||!inventory(c.bag,PLAYER_SLOTS)||!validSlot(c.bagSelected,c.bag)||!finite(c.stamina,0,100)||typeof c.facing!=='number'||!Number.isFinite(c.facing)
+        ||!['health','hunger','rest','recreation','mood','disease','comfort'].every(k=>finite(c[k as keyof Colonist],0,100))||!text(c.task)||!resources(c.carrying,true)||!validMap(c.cargoQuality,c.carrying)||c.personal&&!validMap(c.personal.quality,c.personal.reserved)||!inventory(c.bag,PLAYER_SLOTS)||!validSlot(c.bagSelected,c.bag)||!finite(c.stamina,0,100)||typeof c.facing!=='number'||!Number.isFinite(c.facing)
         ||!list(c.path,area)||!c.path.every(position)||c.destination!==null&&!position(c.destination)||!finite(c.retryAt)||!c.skills||!c.priorities
         ||!JOB_TYPES.every(j=>finite(c.skills[j],0,20)&&integer(c.priorities[j],0,4))||c.jobId!==null&&!jobIds.has(c.jobId))fail();
       if(c.personal&&(!['eat','sleep','relax','wander','patient'].includes(c.personal.kind)||!finite(c.personal.elapsed)||!finite(c.personal.duration,0,1000)||!resources(c.personal.reserved,true)||c.personal.buildingId!==undefined&&!buildingIds.has(c.personal.buildingId)))fail();
       for(let i=1;i<c.path.length;i++)if(horizontalDistance(c.path[i-1]!,c.path[i]!)>1.01||Math.abs(c.path[i-1]![1]-c.path[i]![1])>1.01)fail();
     }
     for(const b of s.buildings){
-      if(!location(b)||!integer(b.y,1,this.world.height-1)||!(b.kind in BUILDING_DEFS)||typeof b.complete!=='boolean'||!finite(b.progress,0,1)||!resources(b.reserved,true)||typeof b.powered!=='boolean'||!finite(b.comfort,0,100)||b.roomId!==null&&!integer(b.roomId,0,area)||!integer(b.w,1,this.world.width)||!integer(b.d,1,this.world.depth)||!integer(b.h,1,this.world.height)||!integer(b.rotation,0,3)||b.x+b.w>this.world.width||b.z+b.d>this.world.depth||b.y+b.h>this.world.height||!['preparingTerrain','readyToBuild','constructing','completed'].includes(b.phase)||b.terrainPlanId!==undefined&&!planIds.has(b.terrainPlanId)||b.blockedReason!==undefined&&!text(b.blockedReason)||b.kind==='door'&&typeof b.doorOpen!=='boolean'||b.kind!=='door'&&b.doorOpen!==undefined)fail();
+      if(!location(b)||!integer(b.y,1,this.world.height-1)||!(b.kind in BUILDING_DEFS)||typeof b.complete!=='boolean'||!finite(b.progress,0,1)||!resources(b.reserved,true)||typeof b.powered!=='boolean'||!finite(b.comfort,0,100)||b.roomId!==null&&!integer(b.roomId,0,area)||!integer(b.w,1,this.world.width)||!integer(b.d,1,this.world.depth)||!integer(b.h,1,this.world.height)||!integer(b.rotation,0,3)||b.x+b.w>this.world.width||b.z+b.d>this.world.depth||b.y+b.h>this.world.height||!['preparingTerrain','readyToBuild','constructing','completed'].includes(b.phase)||b.terrainPlanId!==undefined&&!planIds.has(b.terrainPlanId)||b.blockedReason!==undefined&&!text(b.blockedReason)||isSwingDoor(b.kind)&&typeof b.doorOpen!=='boolean'||!isSwingDoor(b.kind)&&b.doorOpen!==undefined)fail();
       if(b.complete&&(b.phase!=='completed'||b.progress!==1||Object.keys(b.reserved).length)||!b.complete&&b.phase==='completed')fail();
       const slots=BUILDING_DEFS[b.kind].storageSlots;
       if(slots ? !b.complete||!inventory(b.storage,slots) : b.storage!==undefined)fail();
@@ -2359,6 +3043,8 @@ export class ColonySimulation {
       }
     }
     const occupied=new Set<string>();
+    for (const b of s.buildings) if (b.storageClass !== undefined && (b.kind !== 'shelf' || !isStorageClass(b.storageClass))) fail();
+    for (const z of s.zones) if (z.storageClass !== undefined && (z.kind !== 'stockpile' || !isStorageClass(z.storageClass))) fail();
     for(const b of s.buildings){
       const dimensions=buildingDimensions(b.kind,b.rotation);
       const oldShelf=b.kind==='shelf'&&b.w===1&&b.d===1&&b.h===1;
@@ -2366,7 +3052,27 @@ export class ColonySimulation {
       if(b.complete&&buildingParts(b).some(p=>this.world.get(p.x,p.y,p.z)!==BLOCK.Air))fail();
       for(const p of buildingParts(b)){const key=`${p.x},${p.y},${p.z}`;if(occupied.has(key))fail();occupied.add(key);}
     }
-    for(const z of s.zones)if(!location(z)||!['farm','stockpile'].includes(z.kind)||!integer(z.w,1,this.world.width)||!integer(z.d,1,this.world.depth)||z.x+z.w>this.world.width||z.z+z.d>this.world.depth||!isCropKind(z.crop)||z.shelfId!==undefined)fail();
+    for(const z of s.zones)if(!location(z)||!['farm','stockpile','pasture'].includes(z.kind)||!integer(z.w,1,this.world.width)||!integer(z.d,1,this.world.depth)||z.x+z.w>this.world.width||z.z+z.d>this.world.depth||!isCropKind(z.crop)||z.shelfId!==undefined)fail();
+    for (const zone of s.zones) if (zone.cells !== undefined) {
+      if (!list(zone.cells,zone.w*zone.d) || !zone.cells.length) fail();
+      const seen=new Set<number>();
+      for (const cell of zone.cells) {
+        if (!Array.isArray(cell) || cell.length!==2 || !integer(cell[0],zone.x,zone.x+zone.w-1) || !integer(cell[1],zone.z,zone.z+zone.d-1)) fail();
+        seen.add(this.cellKey(cell[0],cell[1]));
+      }
+      if (seen.size!==zone.cells.length) fail();
+    }
+    const animalIds=new Set<string>();
+    for(const zone of s.zones){
+      if(zone.kind!=='pasture'){if(zone.pasture) fail();continue;}
+      const pen=zone.pasture, layout=pastureLayout(zone);
+      const validGate=(p:unknown)=>Array.isArray(p)&&p.length===2&&layout.gates.some(g=>g.cell[0]===p[0]&&g.cell[1]===p[1]);
+      if(!pen||!layout.connected||!validGate(pen.gate)||pen.pendingGate&&!validGate(pen.pendingGate)||!list(pen.animals,area*2))fail();
+      for(const a of pen!.animals){
+        if(!a||!Object.hasOwn(STOCK_VOLUME,a.kind)||!text(a.id,80)||animalIds.has(a.id)||typeof a.young!=='boolean'||typeof a.female!=='boolean'||!['home','leading','ordered'].includes(a.state)||!finite(a.readyAt)||!integer(a.x,0,this.world.width-1)||!integer(a.z,0,this.world.depth-1)||!containsCell(zone,a.homeX,a.homeZ))fail();
+        animalIds.add(a.id);
+      }
+    }
     if (s.warehouseLayout !== undefined && s.warehouseLayout !== 2 && s.warehouseLayout !== WAREHOUSE_LAYOUT) fail();
     // Older slot records are a projection of the same inventory totals. Repack once on load.
     if (s.warehouseLayout !== WAREHOUSE_LAYOUT) s.warehouseStacks=[];
@@ -2380,6 +3086,10 @@ export class ColonySimulation {
         || !isResource(stack.resource) || !integer(stack.count,1,WAREHOUSE_STACK_LIMIT)
         || (stack.shelfId !== undefined && (!stack.shelfId || !text(stack.shelfId,80)))
         || !integer(stack.slot,0,(stack.shelfId ? SHELF_BAYS : 1)*STORAGE_QUARTERS-1)) fail();
+      if (!validMark(stack,stack.resource,stack.count)) fail();
+      if (stack.freezing !== undefined && (!coldEffect(stack.resource) || !list(stack.freezing,stack.count) ||
+        !stack.freezing.every((lot,i,lots) => lot && finite(lot.since,0,s.time) && integer(lot.count,1,stack.count) && (!i || lot.since>=lots[i-1]!.since)) ||
+        stack.freezing.reduce((n,lot)=>n+lot.count,0)+premiumCount(stack,saveDay)>stack.count)) fail();
       const key=warehouseBayKey(stack), mask=packageMask(stack.resource,stack.slot%STORAGE_QUARTERS);
       const previous=occupiedBays.get(key), cards=isWarehouseCard(stack.resource);
       if (!mask || previous && (previous.cards!==cards || !cards&&(previous.mask&mask)!==0)) fail();
@@ -2425,7 +3135,7 @@ export class ColonySimulation {
       }
     }
     for(const item of s.items){
-      if(!location(item)||!finite(item.age)||item.scatter!==undefined&&typeof item.scatter!=='boolean'||item.playerOnly!==undefined&&typeof item.playerOnly!=='boolean')fail();
+      if(!validMark(item,item.resource,item.amount)||!location(item)||!finite(item.age)||item.scatter!==undefined&&typeof item.scatter!=='boolean'||item.playerOnly!==undefined&&typeof item.playerOnly!=='boolean')fail();
       if(item.playerOnly||!isResource(item.resource)){
         if(item.reservedBy!==null || (isToolKind(item.resource)?item.amount!==1:!(isResource(item.resource)||isBuildingItem(item.resource))||!integer(item.amount,1,1e7)))fail();
       }else if(!integer(item.amount,1,1e7)||item.reservedBy!==null&&!jobIds.has(item.reservedBy))fail();
@@ -2433,7 +3143,7 @@ export class ColonySimulation {
     const demolitionTargets = new Set<string>();
     const staffedStations = new Set<string>();
     for(const j of s.jobs){
-      if(!location(j)||!(j.type==='demolish'||JOB_TYPES.includes(j.type))||!text(j.targetId,j.type==='chop'?120:80)||!finite(j.progress)||!finite(j.work,.01,10000)||!['queued','working','blocked'].includes(j.state)||j.assignedTo!==null&&!colonistIds.has(j.assignedTo)||!resources(j.reserved,true)||!text(j.label)||!['work','pickup','deliver'].includes(j.phase)||!integer(j.amount,0,10000)||j.destination!==null&&!position(j.destination)||j.resource!==undefined&&!RESOURCE_TYPES.includes(j.resource))fail();
+      if(!validMap(j.quality,j.reserved)||!location(j)||!(['demolish','herd','husbandry'].includes(j.type)||JOB_TYPES.includes(j.type as JobType))||!text(j.targetId,j.type==='chop'?120:80)||!finite(j.progress)||!finite(j.work,.01,10000)||!['queued','working','blocked'].includes(j.state)||j.assignedTo!==null&&!colonistIds.has(j.assignedTo)||!resources(j.reserved,true)||!text(j.label)||!['work','pickup','deliver'].includes(j.phase)||!integer(j.amount,0,10000)||j.destination!==null&&!position(j.destination)||j.resource!==undefined&&!RESOURCE_TYPES.includes(j.resource))fail();
       if (j.type === 'cook' || j.type === 'craft' || j.recipe !== undefined) {
         const recipe = recipeFor(j.recipe);
         const station = s.buildings.find(b => b.id === j.targetId);
@@ -2452,7 +3162,22 @@ export class ColonySimulation {
           || j.phase !== 'work' || j.progress >= j.work || Object.keys(j.reserved).length) fail();
         demolitionTargets.add(j.targetId);
       }
-      if (j.targetId === PLAYER_DELIVERY_TARGET) {
+      if (j.targetId==='guide-delivery' || j.guideSale) {
+        const g=j.guideSale;
+        if (!g || j.targetId!=='guide-delivery' || j.type!=='haul' || j.phase==='work' || !isResource(g.item)
+          || !['buy','recycle'].includes(g.side) || !integer(g.count,1,1e7) || !integer(g.premium,0,g.count)
+          || !integer(g.total,0,1e9) || !integer(g.delivered,0,g.count-1) || !integer(g.inTransit,0,Math.min(HAUL_LIMIT,g.count-g.delivered))
+          || !integer(g.paid,0,g.total) || !list(g.lots,area*STORAGE_QUARTERS+1)
+          || g.lots.some(l=>!l || !integer(l.x,0,this.world.width-1)||!integer(l.z,0,this.world.depth-1)||!integer(l.count,1,g.count))
+          || g.pickupAt!==undefined && (!position(g.pickupAt)||!g.inTransit||j.phase!=='pickup')
+          || (j.phase==='deliver')!==Boolean(g.inTransit&&!g.pickupAt) || j.phase==='deliver'&&!j.assignedTo) fail();
+        if(g) {
+          const buy=g.side==='buy', claimed=g.delivered+(buy?g.inTransit:0);
+          if(g.paid!==Math.floor(g.total*claimed/g.count) || Object.keys(j.reserved).length!==1 ||
+            (buy ? j.reserved.silver!==g.total-g.paid || g.premium!==0 || g.lots.length!==0 :
+              j.reserved[g.item]!==g.count-g.delivered || g.lots.reduce((n,l)=>n+l.count,0)+g.inTransit+g.delivered!==g.count)) fail();
+        }
+      } else if (j.targetId === PLAYER_DELIVERY_TARGET) {
         if(legacy && !j.recipientId){
           j.recipientId=s.selectedColonistId&&colonistIds.has(s.selectedColonistId)?s.selectedColonistId:s.colonists[0]!.id;
           if(j.assignedTo===j.recipientId){
@@ -2489,6 +3214,57 @@ export class ColonySimulation {
       if(moved&&job.assignedTo){const c=s.colonists.find(c=>c.id===job.assignedTo);if(c){c.jobId=null;c.path=[];c.destination=null;c.retryAt=0;}job.assignedTo=null;job.state='queued';}
       return true;
     });
+    // Before the town market, completed sales survived in the bounded guide log.
+    // Active orders also retain their delivered quantity. Removed or cancelled orders
+    // without a receipt cannot be reconstructed from the warehouse balance.
+    if(s.specialistMarket===undefined){
+      s.specialistMarket=emptyMarket();
+      for(const e of s.events){
+        const match=e.type==='info' && /^向导回收已交付 · (.+) × ([1-9]\d*) · 收到 \d+ 银币$/.exec(e.text);
+        if(!match)continue;
+        const item=RESOURCE_TYPES.find(r=>RESOURCE_NAMES[r]===match[1]),count=Number(match[2]);
+        if(item && integer(count,1,1e7))recordGoods(s.specialistMarket,item,count,e.day);
+      }
+      for(const job of s.jobs){
+        const sale=job.guideSale;
+        if(sale?.side==='recycle' && sale.delivered)recordGoods(s.specialistMarket,sale.item,sale.delivered,saveDay);
+      }
+    }
+    const market=s.specialistMarket;
+    if(!market?.progress || !market.walks || !Array.isArray(market.events))fail();
+    for(const id of specialistIds){
+      const row=market.progress[id];
+      if(!row || !Number.isSafeInteger(row.sold) || row.sold<0 ||
+        (row.sold>=SPECIALISTS[id].unlockQuantity)!==(row.arrivalDay!==null) ||
+        row.arrivalDay!==null && !integer(row.arrivalDay,1,saveDay) ||
+        row.bedId!==null && (!text(row.bedId,80) || row.arrivalDay===null))fail();
+    }
+    for(const [id,walk] of Object.entries(market.walks)){
+      if((id!=='guide' && !specialistIds.includes(id as SpecialistId)) || !walk || !position(walk.position)
+        || !list(walk.path,area) || !walk.path.every(position) || !finite(walk.retryAt))fail();
+    }
+    const byEvent=new Map<string,MarketEvent>();
+    for(const e of market.events){
+      if(!e || !specialistIds.includes(e.merchantId) || !text(e.id,100) || byEvent.has(e.id)
+        || !integer(e.announcedDay,1,saveDay) || !integer(e.startDay,e.announcedDay+SPECIALIST_MARKET_RULES.minimumNoticeDays)
+        || e.endDay!==e.startDay+SPECIALIST_MARKET_RULES.requestDurationDays-1 || SPECIALISTS[e.merchantId].request.item!==e.item
+        || !integer(e.limit,1) || !integer(e.remaining,0,e.limit))fail();
+      byEvent.set(e.id,e);
+    }
+    const reserved=new Map<string,number>();
+    for(const j of s.jobs){
+      const g=j.guideSale;
+      if(!g)continue;
+      const id=g.merchantId??'guide';
+      if(id!=='guide' && (!specialistIds.includes(id) || market.progress[id].arrivalDay===null))fail();
+      if(g.eventId!==undefined){
+        const e=byEvent.get(g.eventId);
+        if(!e || e.merchantId!==id || e.item!==g.item || g.side!=='recycle')return fail();
+        const count=(reserved.get(e.id)??0)+g.count;
+        if(count>e.limit-e.remaining)fail();
+        reserved.set(e.id,count);
+      }
+    }
     delete s.trade;
     delete s.bills;
     delete s.chests;

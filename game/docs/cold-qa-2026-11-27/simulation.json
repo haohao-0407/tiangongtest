@@ -1,0 +1,646 @@
+[
+  {
+    "label": "first",
+    "time": 120.25,
+    "day": 1,
+    "hour": 8.016666666666666,
+    "power": {
+      "generation": 120.90575449092626,
+      "demand": 45,
+      "stored": 24000,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 4,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 120,
+            "count": 4
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 3,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 120,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "bag": null,
+    "chest": null,
+    "ground": [
+      [
+        2,
+        0.25,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "second",
+    "time": 210.25,
+    "day": 1,
+    "hour": 14.016666666666667,
+    "power": {
+      "generation": 207.32052124905496,
+      "demand": 45,
+      "stored": 24000,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 10,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 120,
+            "count": 4
+          },
+          {
+            "since": 210,
+            "count": 6
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 3,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 120,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "bag": null,
+    "chest": null,
+    "ground": [
+      [
+        2,
+        90.25,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "before",
+    "time": 479.75,
+    "day": 2,
+    "hour": 7.9833333333333325,
+    "power": {
+      "generation": 83.36437261743494,
+      "demand": 45,
+      "stored": 15549.942824022506,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 10,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 120,
+            "count": 4
+          },
+          {
+            "since": 210,
+            "count": 6
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 3,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 120,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "bag": null,
+    "chest": null,
+    "ground": [
+      [
+        2,
+        359.75,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "qualified",
+    "time": 480,
+    "day": 2,
+    "hour": 8,
+    "power": {
+      "generation": 83.99999999999999,
+      "demand": 45,
+      "stored": 15558.230324022506,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 10,
+        "valid": 4,
+        "lots": [
+          {
+            "since": 210,
+            "count": 6
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 3,
+        "valid": 3
+      }
+    ],
+    "bag": null,
+    "chest": null,
+    "ground": [
+      [
+        2,
+        360,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "transferred",
+    "time": 480,
+    "day": 2,
+    "hour": 8,
+    "power": {
+      "generation": 83.99999999999999,
+      "demand": 45,
+      "stored": 15558.230324022506,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 5,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 210,
+            "count": 5
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 3,
+        "valid": 3
+      }
+    ],
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "valid": 2
+    },
+    "chest": {
+      "resource": "bread",
+      "count": 2,
+      "valid": 2
+    },
+    "ground": [
+      [
+        2,
+        360,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "restored",
+    "time": 480,
+    "day": 2,
+    "hour": 8,
+    "power": {
+      "generation": 83.99999999999999,
+      "demand": 45,
+      "stored": 15558.230324022506,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 5,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 210,
+            "count": 5
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 3,
+        "valid": 3
+      }
+    ],
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "valid": 2
+    },
+    "chest": {
+      "resource": "bread",
+      "count": 2,
+      "valid": 2
+    },
+    "ground": [
+      [
+        2,
+        360,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "second-qualified",
+    "time": 570,
+    "day": 2,
+    "hour": 14,
+    "power": {
+      "generation": 145.4922678357857,
+      "demand": 45,
+      "stored": 23298.843766448932,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 5,
+        "valid": 5
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 3,
+        "valid": 3
+      }
+    ],
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "valid": 2
+    },
+    "chest": {
+      "resource": "bread",
+      "count": 2,
+      "valid": 2
+    },
+    "ground": [
+      [
+        2,
+        450,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "midnight-before",
+    "time": 719.75,
+    "day": 2,
+    "hour": 23.983333333333334,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19608.19346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 5,
+        "valid": 5
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 3,
+        "valid": 3
+      }
+    ],
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "valid": 2
+    },
+    "chest": {
+      "resource": "bread",
+      "count": 2,
+      "valid": 2
+    },
+    "ground": [
+      [
+        2,
+        599.75,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "expired",
+    "time": 720,
+    "day": 3,
+    "hour": 0,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19596.94346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 5,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 720,
+            "count": 5
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 3,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 720,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "valid": 0
+    },
+    "chest": {
+      "resource": "bread",
+      "count": 2,
+      "valid": 0
+    },
+    "ground": [
+      [
+        2,
+        600,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "outage-before",
+    "time": 210,
+    "day": 1,
+    "hour": 14,
+    "power": {
+      "generation": 207.84609690826528,
+      "demand": 45,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 10,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 120,
+            "count": 10
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 10,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 120,
+            "count": 10
+          }
+        ]
+      }
+    ],
+    "bag": null,
+    "chest": null,
+    "ground": [
+      [
+        2,
+        90,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "outage",
+    "time": 259.25,
+    "day": 1,
+    "hour": 17.28333333333333,
+    "power": {
+      "generation": 44.76576864209642,
+      "demand": 45,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 44.76576864209642,
+      "coldStorage": false
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 10,
+        "valid": 0
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 10,
+        "valid": 0
+      }
+    ],
+    "bag": null,
+    "chest": null,
+    "ground": [
+      [
+        2,
+        139.25,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "restarted",
+    "time": 465.75,
+    "day": 2,
+    "hour": 7.050000000000001,
+    "power": {
+      "generation": 45.6019955773325,
+      "demand": 45,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 10,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 465.5,
+            "count": 10
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 10,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 465.5,
+            "count": 10
+          }
+        ]
+      }
+    ],
+    "bag": null,
+    "chest": null,
+    "ground": [
+      [
+        2,
+        345.75,
+        128,
+        130
+      ]
+    ]
+  },
+  {
+    "label": "missed-original-deadline",
+    "time": 480,
+    "day": 2,
+    "hour": 8,
+    "power": {
+      "generation": 83.99999999999999,
+      "demand": 45,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "resource": "bread",
+        "count": 10,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 465.5,
+            "count": 10
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "resource": "milk",
+        "count": 10,
+        "valid": 0,
+        "lots": [
+          {
+            "since": 465.5,
+            "count": 10
+          }
+        ]
+      }
+    ],
+    "bag": null,
+    "chest": null,
+    "ground": [
+      [
+        2,
+        360,
+        128,
+        130
+      ]
+    ]
+  }
+]

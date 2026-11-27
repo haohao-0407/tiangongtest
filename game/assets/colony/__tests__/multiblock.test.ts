@@ -29,6 +29,49 @@ function finishDemolition(sim: ColonySimulation, id: string) {
 }
 
 describe('automatically designated storage shelves',()=>{
+  it('hauls the three remaining dedicated milk spaces before five ordinary shelf spaces',()=>{
+    const {sim}=setup();
+    const save:any=sim.serialize();
+    save.buildings=[fixture('shelf',16,15)];
+    save.zones=[
+      {id:'dairy',kind:'stockpile',x:20,y:6,z:18,w:1,d:1,crop:'cabbage'},
+      {id:'ordinary',kind:'stockpile',x:15,y:6,z:16,w:1,d:1,crop:'cabbage'},
+    ];
+    save.resources.milk=125;
+    save.warehouseStacks=[32,32,32,29].map((count,slot)=>({x:20,z:18,slot,resource:'milk',count}));
+    save.items=[{id:'eight-milk',resource:'milk',amount:8,x:13,y:6,z:17,age:5,reservedBy:null}];
+    sim.load(save);
+    expect(sim.command({action:'storageClass',id:'dairy',value:'food'}).ok).toBe(true);
+    const shelf=sim.snapshot().zones.find(z=>z.shelfId)!;
+    sim.command({action:'storageClass',id:shelf.id,value:'materials'});
+    sim.load(sim.serialize());
+    expect(sim.snapshot().zones.find(z=>z.id===shelf.id)?.storageClass).toBe('materials');
+    sim.command({action:'storageClass',id:shelf.id,value:'general'});
+    expect(sim.command({action:'priority',colonistId:save.colonists[1].id,job:'haul',value:1}).ok).toBe(true);
+    const checkpoints:number[][]=[];
+    for(let i=0;i<360;i++){
+      sim.tick(.25);
+      const c=sim.snapshot(), total=c.resources.milk;
+      const held=c.colonists.reduce((n,p)=>n+(p.carrying.milk??0),0);
+      const onGround=c.items.find(t=>t.id==='eight-milk')?.amount??0;
+      expect(total+held+onGround).toBe(133);
+      const point=[total,held,onGround];
+      if (checkpoints.at(-1)?.join()!==point.join()) checkpoints.push(point);
+      if(total===133) break;
+    }
+    expect(checkpoints).toEqual([[125,0,8],[125,3,5],[128,0,5],[128,5,0],[133,0,0]]);
+    expect(sim.snapshot().warehouseStacks.find(s=>s.shelfId)?.count).toBe(5);
+    expect(sim.snapshot().warehouseStacks.filter(s=>s.x===20).reduce((n,s)=>n+s.count,0)).toBe(128);
+    const full:any=sim.serialize();
+    full.items=[{...save.items[0],id:'one-more',amount:1,reservedBy:null}];
+    full.buildings=[];full.zones=full.zones.filter((z:any)=>z.id==='dairy');
+    full.warehouseStacks=full.warehouseStacks.filter((s:any)=>!s.shelfId);
+    full.resources.milk=128;
+    sim.load(full);
+    for(let i=0;i<32;i++)sim.tick(.25);
+    expect(sim.snapshot().items.find(i=>i.id==='one-more')?.amount).toBe(1);
+    expect(sim.snapshot().resources.milk).toBe(128);
+  });
   it('combines different cards under the shared cap and separates them from suitcases',()=>{
     const {sim}=setup();
     const save:any=sim.serialize();
@@ -280,6 +323,37 @@ describe('door state owns collision, routing and shelter',()=>{
     sim.command({action:'toggleDoor',id:door.id});expect(sim.snapshot().rooms).toHaveLength(1);
     sim.command({action:'demolish',x:door.x,y:door.y+1,z:door.z});expect(sim.snapshot().rooms).toHaveLength(1);
     finishDemolition(sim,door.id);expect(sim.snapshot().rooms).toHaveLength(0);
+  });
+  it('encloses mixed walls, opens a migrated stone door, and restores the room after rebuilding a breach',()=>{
+    const {sim}=setup(), enclosure:BuildingView[]=[];
+    for (let z=20;z<=24;z++) for(let x=20;x<=24;x++) {
+      if (x!==20 && x!==24 && z!==20 && z!==24) continue;
+      const kind=x===22 && z===20 ? 'stoneDoor' : x===20 ? 'woodWall' : x===24 ? 'greenhouseWall' : 'brickWall';
+      enclosure.push(fixture(kind,x,z));
+    }
+    const door=enclosure.find(b=>b.kind==='stoneDoor')!, wall=enclosure.find(b=>b.kind==='woodWall')!;
+    const table=fixture('table',22,22);
+    install(sim,...enclosure,table);
+    const room=()=>sim.snapshot().rooms[0];
+    expect(room()?.cells.length).toBe(9);
+    expect(sim.snapshot().buildings.find(b=>b.id===table.id)?.roomId).toBe(room()?.id);
+    expect(sim.command({action:'toggleDoor',id:door.id}).ok).toBe(true);
+    expect(room()).toBeUndefined();
+    sim.load(sim.serialize());
+    expect(sim.blocksVoxel(door.x,door.y+1,door.z)).toBe(false);
+    expect(sim.command({action:'toggleDoor',id:door.id}).ok).toBe(true);
+    expect(room()?.cells.length).toBe(9);
+    const breach=enclosure.find(b=>b.kind==='woodWall' && b.z===22)!;
+    expect(sim.command({action:'demolish',id:breach.id}).ok).toBe(true);
+    finishDemolition(sim,breach.id);
+    expect(room()).toBeUndefined();
+    const rebuilt=sim.command({action:'build',kind:wall.kind,x:breach.x,z:breach.z});
+    expect(rebuilt.ok).toBe(true);
+    for(let i=0;i<480 && !room();i++) sim.tick(.25);
+    expect(room()?.cells.length).toBe(9);
+    sim.load(sim.serialize());
+    expect(room()?.cells.length).toBe(9);
+    expect(sim.snapshot().buildings.find(b=>b.id===table.id)?.comfort).toBeGreaterThan(35);
   });
   it('releases a sleeping resident when their entire bed is demolished',()=>{
     const{sim}=setup(),bed=fixture('bed',20,20);install(sim,bed);

@@ -1,0 +1,130 @@
+[
+  {
+    "name": "01-camp",
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        18.5,
+        5,
+        18.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "roomCount": 0,
+    "breadBuy": {
+      "total": 288,
+      "normalCount": 3,
+      "premiumCount": 0,
+      "factor": 1
+    },
+    "breadRecycle": {
+      "total": 192,
+      "normalCount": 2,
+      "premiumCount": 1,
+      "factor": 1
+    }
+  },
+  {
+    "name": "02-housed",
+    "housing": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        16.5
+      ],
+      "roomId": 0,
+      "bedId": "guide-bed",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "roomCount": 1,
+    "breadBuy": {
+      "total": 267,
+      "normalCount": 3,
+      "premiumCount": 0,
+      "factor": 0.9255
+    },
+    "breadRecycle": {
+      "total": 206,
+      "normalCount": 2,
+      "premiumCount": 1,
+      "factor": 1.0745
+    }
+  },
+  {
+    "name": "03-open",
+    "housing": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        16.5
+      ],
+      "roomId": null,
+      "bedId": "guide-bed",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "roomCount": 0,
+    "breadBuy": {
+      "total": 267,
+      "normalCount": 3,
+      "premiumCount": 0,
+      "factor": 0.9255
+    },
+    "breadRecycle": {
+      "total": 206,
+      "normalCount": 2,
+      "premiumCount": 1,
+      "factor": 1.0745
+    }
+  },
+  {
+    "name": "04-reloaded",
+    "housing": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        16.5
+      ],
+      "roomId": null,
+      "bedId": "guide-bed",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "roomCount": 0,
+    "breadBuy": {
+      "total": 267,
+      "normalCount": 3,
+      "premiumCount": 0,
+      "factor": 0.9255
+    },
+    "breadRecycle": {
+      "total": 206,
+      "normalCount": 2,
+      "premiumCount": 1,
+      "factor": 1.0745
+    }
+  }
+]

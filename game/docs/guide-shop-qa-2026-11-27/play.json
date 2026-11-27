@@ -1,0 +1,2247 @@
+{
+  "schemaVersion": "1.0.0",
+  "passed": true,
+  "root": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\guide08",
+  "script": "scripts\\guide-shop-playthrough.mjs",
+  "outputDir": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\guide08\\artifacts\\play\\scripts\\guide-shop-playthrough",
+  "report": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\guide08\\artifacts\\play\\scripts\\guide-shop-playthrough\\play.json",
+  "captureReport": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\guide08\\artifacts\\play\\scripts\\guide-shop-playthrough\\capture.json",
+  "url": "http://localhost:61792/",
+  "backend": "hardware",
+  "timings": {
+    "openMs": 298975,
+    "readyMs": 71998,
+    "scriptMs": 265478,
+    "verifyMs": 3084,
+    "totalMs": 643880
+  },
+  "steps": [
+    {
+      "name": "advance 0.15 s",
+      "ok": true,
+      "ms": 152
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 67
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 71
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 69
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 82
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 72
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 66
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 78
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 68
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 63
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 73
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 86
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 93
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 74
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 67
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 71
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 77
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 74
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 94
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 72
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 68
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 72
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 71
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 63
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 91
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 96
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 77
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 63
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 63
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 66
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 90
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 66
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 67
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 78
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 67
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 137
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 91
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 72
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 118
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 69
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 80
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 77
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 101
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 70
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 80
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 87
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 66
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 71
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 75
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 104
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 76
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 81
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 81
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 80
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 66
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 81
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 88
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 74
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 63
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 79
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 85
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 72
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 69
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 81
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 63
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 67
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 76
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 102
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 74
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 77
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 94
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 76
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 81
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 93
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 98
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 63
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 97
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 70
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 85
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 63
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 66
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 85
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 103
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 76
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 37
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 68
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 70
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 72
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.4 s",
+      "ok": true,
+      "ms": 68
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "final",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\guide08\\artifacts\\play\\scripts\\guide-shop-playthrough\\01-final.png",
+      "rendered": true,
+      "digest": "sha256:084896778e706655be7777483a646c8193bed926e1626d2c1e26d9139f26e4b0"
+    }
+  ],
+  "viewports": [
+    "1280x720"
+  ],
+  "layout": [],
+  "state": {
+    "seed": "森屿-跨格立面验收-16",
+    "generatorVersion": 2,
+    "selected": 5,
+    "mode": "build",
+    "tool": "inspect",
+    "crop": "cabbage",
+    "colony": {
+      "version": 1,
+      "speed": 0,
+      "time": 120,
+      "day": 1,
+      "hour": 8,
+      "season": "春季",
+      "weather": "晴朗",
+      "temperature": 22,
+      "resources": {
+        "wood": 0,
+        "stone": 0,
+        "steel": 0,
+        "food": 0,
+        "meal": 0,
+        "medicine": 0,
+        "cloth": 1,
+        "silver": 30,
+        "components": 0,
+        "wheat": 0,
+        "corn": 0,
+        "blueberry": 0,
+        "sugarcane": 0,
+        "cabbage": 0,
+        "leek": 0,
+        "potato": 0,
+        "tomato": 0,
+        "cabbageSeed": 0,
+        "tomatoSeed": 0,
+        "sugarcaneSeed": 0,
+        "wheatSeed": 0,
+        "potatoSeed": 0,
+        "leekSeed": 0,
+        "cornSeed": 0,
+        "friedEgg": 0,
+        "bread": 14,
+        "salad": 0,
+        "pasta": 0,
+        "pancake": 0,
+        "blueberryPie": 0,
+        "pizza": 0,
+        "perfectBreakfast": 0,
+        "lambChopStew": 0,
+        "sugar": 0,
+        "flour": 0,
+        "oil": 0,
+        "blueberryWine": 0,
+        "cheese": 0,
+        "milk": 0,
+        "egg": 0,
+        "wool": 0,
+        "chickenMeat": 0,
+        "mutton": 0,
+        "beef": 0,
+        "pork": 0,
+        "dirt": 0,
+        "pigIron": 0,
+        "plank": 0,
+        "stoneBrick": 0
+      },
+      "playerBag": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "controlledColonistId": null,
+      "chests": [],
+      "colonists": [
+        {
+          "id": "colonist-21",
+          "name": "林夏",
+          "traits": [
+            "勤劳",
+            "巧手"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 9,
+            "grow": 6,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 4,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 0,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 1,
+            "cook": 0,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "day",
+          "position": [
+            10.5,
+            5,
+            14.5
+          ],
+          "health": 100,
+          "hunger": 100,
+          "rest": 100,
+          "recreation": 100,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.78,
+            0.44,
+            0.25
+          ],
+          "carrying": {},
+          "bag": [
+            {
+              "resource": "hammer",
+              "count": 1
+            },
+            {
+              "resource": "axe",
+              "count": 1
+            },
+            {
+              "resource": "pickaxe",
+              "count": 1
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-22",
+          "name": "阿澈",
+          "traits": [
+            "体贴",
+            "乐观"
+          ],
+          "skills": {
+            "terraform": 2,
+            "construct": 2,
+            "grow": 3,
+            "harvest": 6,
+            "haul": 3,
+            "cook": 8,
+            "chop": 3,
+            "mine": 3,
+            "research": 7,
+            "doctor": 7,
+            "craft": 4
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 0,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 0,
+            "cook": 0,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "day",
+          "position": [
+            11.5,
+            5,
+            14.5
+          ],
+          "health": 100,
+          "hunger": 100,
+          "rest": 100,
+          "recreation": 100,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.29,
+            0.54,
+            0.69
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-23",
+          "name": "青禾",
+          "traits": [
+            "园艺爱好者",
+            "好学"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 5,
+            "grow": 9,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 8,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 0,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 0,
+            "cook": 0,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "day",
+          "position": [
+            12.5,
+            5,
+            14.5
+          ],
+          "health": 100,
+          "hunger": 100,
+          "rest": 100,
+          "recreation": 100,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.55,
+            0.66,
+            0.32
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        }
+      ],
+      "buildings": [
+        {
+          "kind": "woodWall",
+          "id": "woodWall-14-16",
+          "x": 14,
+          "y": 5,
+          "z": 16,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-15-16",
+          "x": 15,
+          "y": 5,
+          "z": 16,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-16-16",
+          "x": 16,
+          "y": 5,
+          "z": 16,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "door",
+          "id": "door-17-16",
+          "x": 17,
+          "y": 5,
+          "z": 16,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null,
+          "doorOpen": false
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-18-16",
+          "x": 18,
+          "y": 5,
+          "z": 16,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-19-16",
+          "x": 19,
+          "y": 5,
+          "z": 16,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-20-16",
+          "x": 20,
+          "y": 5,
+          "z": 16,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-14-17",
+          "x": 14,
+          "y": 5,
+          "z": 17,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-20-17",
+          "x": 20,
+          "y": 5,
+          "z": 17,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-14-18",
+          "x": 14,
+          "y": 5,
+          "z": 18,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-20-18",
+          "x": 20,
+          "y": 5,
+          "z": 18,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-14-19",
+          "x": 14,
+          "y": 5,
+          "z": 19,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-20-19",
+          "x": 20,
+          "y": 5,
+          "z": 19,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-14-20",
+          "x": 14,
+          "y": 5,
+          "z": 20,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-20-20",
+          "x": 20,
+          "y": 5,
+          "z": 20,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-14-21",
+          "x": 14,
+          "y": 5,
+          "z": 21,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-20-21",
+          "x": 20,
+          "y": 5,
+          "z": 21,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-14-22",
+          "x": 14,
+          "y": 5,
+          "z": 22,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-15-22",
+          "x": 15,
+          "y": 5,
+          "z": 22,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-16-22",
+          "x": 16,
+          "y": 5,
+          "z": 22,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-17-22",
+          "x": 17,
+          "y": 5,
+          "z": 22,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-18-22",
+          "x": 18,
+          "y": 5,
+          "z": 22,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-19-22",
+          "x": 19,
+          "y": 5,
+          "z": 22,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "woodWall",
+          "id": "woodWall-20-22",
+          "x": 20,
+          "y": 5,
+          "z": 22,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "kind": "bed",
+          "id": "bed-15-18",
+          "x": 15,
+          "y": 5,
+          "z": 18,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 2,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 49,
+          "roomId": 0
+        },
+        {
+          "kind": "table",
+          "id": "table-18-19",
+          "x": 18,
+          "y": 5,
+          "z": 19,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": false,
+          "comfort": 49,
+          "roomId": 0
+        }
+      ],
+      "zones": [
+        {
+          "id": "store",
+          "kind": "stockpile",
+          "x": 5,
+          "y": 5,
+          "z": 10,
+          "w": 3,
+          "d": 3,
+          "crop": "cabbage"
+        }
+      ],
+      "crops": [],
+      "warehouseStacks": [
+        {
+          "x": 5,
+          "z": 10,
+          "slot": 0,
+          "resource": "bread",
+          "count": 14,
+          "premium": {
+            "day": 1,
+            "count": 2
+          }
+        }
+      ],
+      "items": [],
+      "jobs": [],
+      "rooms": [
+        {
+          "id": 0,
+          "cells": [
+            [
+              15,
+              17
+            ],
+            [
+              16,
+              17
+            ],
+            [
+              15,
+              18
+            ],
+            [
+              17,
+              17
+            ],
+            [
+              16,
+              18
+            ],
+            [
+              15,
+              19
+            ],
+            [
+              18,
+              17
+            ],
+            [
+              17,
+              18
+            ],
+            [
+              16,
+              19
+            ],
+            [
+              15,
+              20
+            ],
+            [
+              19,
+              17
+            ],
+            [
+              18,
+              18
+            ],
+            [
+              17,
+              19
+            ],
+            [
+              16,
+              20
+            ],
+            [
+              15,
+              21
+            ],
+            [
+              19,
+              18
+            ],
+            [
+              18,
+              19
+            ],
+            [
+              17,
+              20
+            ],
+            [
+              16,
+              21
+            ],
+            [
+              19,
+              19
+            ],
+            [
+              18,
+              20
+            ],
+            [
+              17,
+              21
+            ],
+            [
+              19,
+              20
+            ],
+            [
+              18,
+              21
+            ],
+            [
+              19,
+              21
+            ]
+          ],
+          "enclosed": true,
+          "comfort": 49,
+          "temperature": 21.4,
+          "cleanliness": 100
+        }
+      ],
+      "guideHousing": {
+        "npcId": "guide",
+        "status": "housed",
+        "position": [
+          15.5,
+          5,
+          17.5
+        ],
+        "roomId": 0,
+        "bedId": "bed-15-18",
+        "comfort": 49,
+        "cleanliness": 100,
+        "quality": 74.5,
+        "buyFactor": 0.9255,
+        "recycleFactor": 1.0745
+      },
+      "research": {
+        "active": null,
+        "progress": {},
+        "completed": []
+      },
+      "power": {
+        "generation": 0,
+        "demand": 0,
+        "stored": 0,
+        "capacity": 0,
+        "supplied": 0,
+        "coldStorage": false
+      },
+      "events": [
+        {
+          "id": "event-26",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "三位旅人抵达河谷。和平营地已建立：先种田、搬运物资，再安排研究与建设。"
+        }
+      ],
+      "metrics": {
+        "jobsCompleted": 0,
+        "built": 0,
+        "harvested": 0,
+        "hauled": 0,
+        "cooked": 0,
+        "researched": 0,
+        "treated": 0,
+        "spoiled": 0,
+        "distanceWalked": 0
+      },
+      "selectedColonistId": null,
+      "terrainPlans": []
+    },
+    "blocks": 5120,
+    "nonAirCount": 5120,
+    "minerals": {
+      "steelOre": {
+        "cells": 0
+      }
+    },
+    "edits": 3586,
+    "editCount": 3586,
+    "revision": 2,
+    "manualCropEdits": 0,
+    "mapToolReturn": 0,
+    "planningGridVisible": false,
+    "zonePreview": null,
+    "undo": false,
+    "redo": false,
+    "hoverCell": null,
+    "status": "已恢复地图、居民、任务和生产进度",
+    "lastEdit": null,
+    "buildRotation": 0,
+    "selectedBuildingId": null,
+    "hoverBuildingId": null,
+    "hoverBuildingPart": null,
+    "selectedTreeId": null,
+    "hoverTreeId": null,
+    "hoverTreePart": null,
+    "trees": [],
+    "treeModel": {
+      "revision": 2,
+      "instances": 0,
+      "meshes": 0,
+      "materials": 2,
+      "selectedTreeId": null,
+      "triangles": 0,
+      "uniqueTriangles": 0,
+      "models": []
+    },
+    "wildPlants": {
+      "daisy": 0,
+      "poppy": 0,
+      "lavender": 0,
+      "marigold": 0,
+      "hairgrass": 0,
+      "foxtail": 0,
+      "blueberry": 0
+    },
+    "wildAnimals": {
+      "chicken": 0,
+      "cow": 0,
+      "sheep": 0,
+      "pig": 0
+    },
+    "characters": {
+      "residents": [
+        {
+          "id": "colonist-21",
+          "outfit": 6,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-22",
+          "outfit": 7,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-23",
+          "outfit": 8,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "player": null
+    },
+    "placementPreview": null,
+    "camera": {
+      "target": [
+        11.5,
+        4,
+        15.5
+      ],
+      "eye": [
+        34.17295237129021,
+        38.3638539971641,
+        38.17295237129021
+      ],
+      "distance": 47,
+      "yaw": 0.7853981633974483,
+      "pitch": 0.82,
+      "sunShadows": "auto",
+      "shadowDistance": 100,
+      "mode": "god",
+      "followId": null
+    },
+    "player": null,
+    "chunks": 4,
+    "dimensions": [
+      32,
+      24,
+      32
+    ],
+    "worldSize": [
+      32,
+      24,
+      32
+    ],
+    "terrain": {
+      "target": 6,
+      "size": 3,
+      "shape": "brush",
+      "sample": false,
+      "preview": {
+        "cells": 0,
+        "cut": 0,
+        "fill": 0
+      },
+      "minHeight": 1,
+      "maxHeight": 22
+    },
+    "buildHeight": null,
+    "pcg": {
+      "resolution": 16,
+      "version": 2,
+      "revision": 2,
+      "tiles": 0,
+      "pendingTiles": 0,
+      "facades": 0,
+      "windowGroups": 0,
+      "layout": {
+        "version": 2,
+        "groups": []
+      },
+      "windows": 0,
+      "sills": 0,
+      "sidewalks": 0,
+      "stairs": 0,
+      "triangles": 0,
+      "rebuiltTiles": [
+        "1,1",
+        "2,1",
+        "1,2",
+        "2,2",
+        "1,3",
+        "2,3"
+      ],
+      "features": []
+    },
+    "finaleFade": 0
+  },
+  "execution": "healthy",
+  "errors": {
+    "console": [],
+    "page": [],
+    "inputWarnings": 0
+  },
+  "log": []
+}

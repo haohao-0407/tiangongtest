@@ -223,8 +223,8 @@ export default async function cropVarieties(play) {
     await play.mouse.click(aim);
     const planted = await wait(s => s.colony.zones.some(zone => zone.kind === 'farm' && zone.x === 129 && zone.z === 134));
     const zone = planted.colony.zones.find(zone => zone.x === 129 && zone.z === 134);
-    assert.deepEqual([zone.crop, zone.w, zone.d], ['tomato', 3, 3]);
-    assert.equal(planted.colony.crops.filter(c => c.kind === 'tomato' && c.x >= 129 && c.z >= 134).length, 9);
+    assert.deepEqual([zone.crop, zone.cells], ['tomato', [[129,134]]]);
+    assert.ok(planted.colony.crops.some(c => c.kind === 'tomato' && c.x === 129 && c.z === 134));
     await play.keyboard.press('Escape');
     if (await close.isVisible()) await close.click();
     await capture('tomato-farm-planned');

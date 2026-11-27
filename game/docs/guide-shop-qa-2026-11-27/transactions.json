@@ -1,0 +1,2436 @@
+[
+  {
+    "name": "01-map",
+    "time": 120,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 30,
+      "seed": 0,
+      "bread": 14,
+      "cloth": 1
+    },
+    "jobs": [],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        10.5,
+        5,
+        14.5
+      ],
+      "health": 100,
+      "hunger": 100,
+      "rest": 100,
+      "recreation": 100,
+      "mood": 78,
+      "disease": 0,
+      "task": "观察新营地",
+      "jobId": null,
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": 0,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "bread",
+        "count": 14,
+        "premium": {
+          "day": 1,
+          "count": 2
+        }
+      }
+    ],
+    "text": null
+  },
+  {
+    "name": "02-shop",
+    "time": 120,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 30,
+      "seed": 0,
+      "bread": 14,
+      "cloth": 1
+    },
+    "jobs": [],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        10.5,
+        5,
+        14.5
+      ],
+      "health": 100,
+      "hunger": 100,
+      "rest": 100,
+      "recreation": 100,
+      "mood": 78,
+      "disease": 0,
+      "task": "观察新营地",
+      "jobId": null,
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": 0,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "bread",
+        "count": 14,
+        "premium": {
+          "day": 1,
+          "count": 2
+        }
+      }
+    ],
+    "text": "向导商店\n×\n暂住营地\n按基础价格交易\n商品货架\n‹\n1 / 4\n›\n可用 30 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n面包 × 14\n选择货架商品买入，或从回收栏交售。"
+  },
+  {
+    "name": "03-buy-reserved",
+    "time": 120,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 4,
+      "seed": 0,
+      "bread": 14,
+      "cloth": 1
+    },
+    "jobs": [
+      {
+        "id": "job-38",
+        "type": "haul",
+        "targetId": "guide-delivery",
+        "x": 19,
+        "y": 5,
+        "z": 19,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {
+          "silver": 26
+        },
+        "label": "采购待取 · 等待居民",
+        "guideSale": {
+          "side": "buy",
+          "item": "cabbageSeed",
+          "count": 13,
+          "premium": 0,
+          "total": 26,
+          "delivered": 0,
+          "paid": 0,
+          "inTransit": 0,
+          "lots": []
+        }
+      }
+    ],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        10.5,
+        5,
+        14.5
+      ],
+      "health": 100,
+      "hunger": 100,
+      "rest": 100,
+      "recreation": 100,
+      "mood": 78,
+      "disease": 0,
+      "task": "观察新营地",
+      "jobId": null,
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": 0,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "bread",
+        "count": 14,
+        "premium": {
+          "day": 1,
+          "count": 2
+        }
+      }
+    ],
+    "text": "向导商店\n×\n暂住营地\n按基础价格交易\n商品货架\n‹\n1 / 4\n›\n可用 4 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n面包 × 14\n已预留 26 银币，居民将领取白菜种子包 × 13\n白菜种子包 × 13 · 采购待取 · 等待居民\n等待居民 · 在途 0 · 入库 0/13\n预留余 26 · 已付 0 银币"
+  },
+  {
+    "name": "04-buy-transit-reloaded",
+    "time": 128,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 4,
+      "seed": 0,
+      "bread": 14,
+      "cloth": 1
+    },
+    "jobs": [
+      {
+        "id": "job-38",
+        "type": "haul",
+        "targetId": "guide-delivery",
+        "x": 19,
+        "y": 5,
+        "z": 19,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {
+          "silver": 2
+        },
+        "label": "采购运送中",
+        "guideSale": {
+          "side": "buy",
+          "item": "cabbageSeed",
+          "count": 13,
+          "premium": 0,
+          "total": 26,
+          "delivered": 0,
+          "paid": 24,
+          "inTransit": 12,
+          "lots": []
+        }
+      }
+    ],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        19.5,
+        5,
+        18.5
+      ],
+      "health": 100,
+      "hunger": 99.03999999999996,
+      "rest": 99.44000000000005,
+      "recreation": 99.55999999999995,
+      "mood": 78.68540622024489,
+      "disease": 0,
+      "task": "送白菜种子包 × 12 入库",
+      "jobId": "job-38",
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {
+        "cabbageSeed": 12
+      },
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": 1.5707963267948966,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "bread",
+        "count": 14,
+        "premium": {
+          "day": 1,
+          "count": 2
+        }
+      }
+    ],
+    "text": "向导商店\n×\n暂住营地\n按基础价格交易\n商品货架\n‹\n1 / 4\n›\n可用 4 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n面包 × 14\n选择货架商品买入，或从回收栏交售。\n白菜种子包 × 13 · 采购运送中\n林夏 · 在途 12 · 入库 0/13\n预留余 2 · 已付 24 银币"
+  },
+  {
+    "name": "05-buy-first-deposit",
+    "time": 137.25,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 4,
+      "seed": 12,
+      "bread": 14,
+      "cloth": 1
+    },
+    "jobs": [
+      {
+        "id": "job-38",
+        "type": "haul",
+        "targetId": "guide-delivery",
+        "x": 19,
+        "y": 5,
+        "z": 19,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {
+          "silver": 2
+        },
+        "label": "采购待取 · 前往向导",
+        "guideSale": {
+          "side": "buy",
+          "item": "cabbageSeed",
+          "count": 13,
+          "premium": 0,
+          "total": 26,
+          "delivered": 12,
+          "paid": 24,
+          "inTransit": 0,
+          "lots": []
+        }
+      }
+    ],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        8.025,
+        5,
+        12.5
+      ],
+      "health": 100,
+      "hunger": 97.92999999999992,
+      "rest": 98.79250000000012,
+      "recreation": 99.05124999999988,
+      "mood": 79.22737027027249,
+      "disease": 0,
+      "task": "前往向导处领取白菜种子包",
+      "jobId": "job-38",
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": 1.5707963267948966,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "bread",
+        "count": 14,
+        "premium": {
+          "day": 1,
+          "count": 2
+        }
+      },
+      {
+        "x": 7,
+        "z": 12,
+        "slot": 0,
+        "resource": "cabbageSeed",
+        "count": 12
+      }
+    ],
+    "text": "向导商店\n×\n暂住营地\n按基础价格交易\n商品货架\n‹\n1 / 4\n›\n可用 4 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n白菜种子包 × 12\n面包 × 14\n选择货架商品买入，或从回收栏交售。\n白菜种子包 × 13 · 采购待取 · 前往向导\n林夏 · 在途 0 · 入库 12/13\n预留余 2 · 已付 24 银币"
+  },
+  {
+    "name": "06-buy-complete",
+    "time": 155,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 4,
+      "seed": 13,
+      "bread": 14,
+      "cloth": 1
+    },
+    "jobs": [],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        7.1625,
+        5,
+        12.5
+      ],
+      "health": 100,
+      "hunger": 95.79999999999984,
+      "rest": 97.55000000000024,
+      "recreation": 98.07499999999976,
+      "mood": 79.70246089000261,
+      "disease": 0,
+      "task": "等待工作 · 散步",
+      "jobId": null,
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": -1.5707963267948966,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "bread",
+        "count": 14,
+        "premium": {
+          "day": 1,
+          "count": 2
+        }
+      },
+      {
+        "x": 7,
+        "z": 12,
+        "slot": 0,
+        "resource": "cabbageSeed",
+        "count": 13
+      }
+    ],
+    "text": "向导商店\n×\n暂住营地\n按基础价格交易\n商品货架\n‹\n1 / 4\n›\n可用 4 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n白菜种子包 × 13\n面包 × 14\n选择货架商品买入，或从回收栏交售。\n向导采购已入库 · 白菜种子包 × 13 · 已付 26 银币"
+  },
+  {
+    "name": "07-sale-quote",
+    "time": 155,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 4,
+      "seed": 13,
+      "bread": 14,
+      "cloth": 1
+    },
+    "jobs": [],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        7.1625,
+        5,
+        12.5
+      ],
+      "health": 100,
+      "hunger": 95.79999999999984,
+      "rest": 97.55000000000024,
+      "recreation": 98.07499999999976,
+      "mood": 79.70246089000261,
+      "disease": 0,
+      "task": "等待工作 · 散步",
+      "jobId": null,
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": -1.5707963267948966,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "bread",
+        "count": 14,
+        "premium": {
+          "day": 1,
+          "count": 2
+        }
+      },
+      {
+        "x": 7,
+        "z": 12,
+        "slot": 0,
+        "resource": "cabbageSeed",
+        "count": 13
+      }
+    ],
+    "text": "向导商店\n×\n暂住营地\n按基础价格交易\n商品货架\n‹\n1 / 4\n›\n可用 4 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n白菜种子包 × 13\n面包 × 14\n交售面包\n库存 14 件\n−\n14 件\n+\n+10\n交付收取 864 银币\n取消\n保鲜 2 件 · 普通 12 件\n向导采购已入库 · 白菜种子包 × 13 · 已付 26 银币"
+  },
+  {
+    "name": "08-sale-reserved",
+    "time": 155,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 4,
+      "seed": 13,
+      "bread": 0,
+      "cloth": 1
+    },
+    "jobs": [
+      {
+        "id": "job-40",
+        "type": "haul",
+        "targetId": "guide-delivery",
+        "x": 19,
+        "y": 5,
+        "z": 19,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {
+          "bread": 14
+        },
+        "label": "向导回收 · 待取货",
+        "guideSale": {
+          "side": "recycle",
+          "item": "bread",
+          "count": 14,
+          "premium": 2,
+          "total": 864,
+          "delivered": 0,
+          "paid": 0,
+          "inTransit": 0,
+          "lots": [
+            {
+              "x": 5,
+              "z": 10,
+              "count": 14,
+              "premium": 2
+            }
+          ]
+        },
+        "quality": {
+          "bread": {
+            "premium": {
+              "day": 1,
+              "count": 2
+            }
+          }
+        }
+      }
+    ],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        7.1625,
+        5,
+        12.5
+      ],
+      "health": 100,
+      "hunger": 95.79999999999984,
+      "rest": 97.55000000000024,
+      "recreation": 98.07499999999976,
+      "mood": 79.70246089000261,
+      "disease": 0,
+      "task": "等待工作 · 散步",
+      "jobId": null,
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": -1.5707963267948966,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 7,
+        "z": 12,
+        "slot": 0,
+        "resource": "cabbageSeed",
+        "count": 13
+      }
+    ],
+    "text": "向导商店\n×\n暂住营地\n按基础价格交易\n商品货架\n‹\n1 / 4\n›\n可用 4 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n白菜种子包 × 13\n已预约面包 × 14，交付后共收 864 银币\n面包 × 14 · 向导回收 · 待取货\n等待居民 · 在途 0 · 交付 0/14\n锁价 864 · 已收 0 银币\n向导采购已入库 · 白菜种子包 × 13 · 已付 26 银币"
+  },
+  {
+    "name": "09-sale-transit-reloaded",
+    "time": 158,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 4,
+      "seed": 13,
+      "bread": 0,
+      "cloth": 1
+    },
+    "jobs": [
+      {
+        "id": "job-40",
+        "type": "haul",
+        "targetId": "guide-delivery",
+        "x": 5,
+        "y": 5,
+        "z": 10,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {
+          "bread": 14
+        },
+        "label": "运送中",
+        "guideSale": {
+          "side": "recycle",
+          "item": "bread",
+          "count": 14,
+          "premium": 2,
+          "total": 864,
+          "delivered": 0,
+          "paid": 0,
+          "inTransit": 12,
+          "lots": [
+            {
+              "x": 5,
+              "z": 10,
+              "count": 2,
+              "premium": 0
+            }
+          ],
+          "transitPremium": 2
+        },
+        "quality": {
+          "bread": {
+            "premium": {
+              "day": 1,
+              "count": 2
+            }
+          }
+        }
+      }
+    ],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        6.025,
+        5,
+        10.5
+      ],
+      "health": 100,
+      "hunger": 95.43999999999983,
+      "rest": 97.34000000000026,
+      "recreation": 97.90999999999974,
+      "mood": 79.72583003551843,
+      "disease": 0,
+      "task": "向向导运送面包 × 12",
+      "jobId": "job-40",
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {
+        "bread": 12
+      },
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": 1.5707963267948966,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 7,
+        "z": 12,
+        "slot": 0,
+        "resource": "cabbageSeed",
+        "count": 13
+      }
+    ],
+    "text": "向导商店\n×\n暂住营地\n按基础价格交易\n商品货架\n‹\n1 / 4\n›\n可用 4 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n白菜种子包 × 13\n选择货架商品买入，或从回收栏交售。\n面包 × 14 · 运送中\n林夏 · 在途 12 · 交付 0/14\n锁价 864 · 已收 0 银币\n向导采购已入库 · 白菜种子包 × 13 · 已付 26 银币"
+  },
+  {
+    "name": "10-sale-first-payment",
+    "time": 168.25,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 744,
+      "seed": 13,
+      "bread": 0,
+      "cloth": 1
+    },
+    "jobs": [
+      {
+        "id": "job-40",
+        "type": "haul",
+        "targetId": "guide-delivery",
+        "x": 5,
+        "y": 5,
+        "z": 10,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {
+          "bread": 2
+        },
+        "label": "待取货 · 前往仓位",
+        "guideSale": {
+          "side": "recycle",
+          "item": "bread",
+          "count": 14,
+          "premium": 2,
+          "total": 864,
+          "delivered": 12,
+          "paid": 740,
+          "inTransit": 0,
+          "lots": [
+            {
+              "x": 5,
+              "z": 10,
+              "count": 2,
+              "premium": 0
+            }
+          ],
+          "transitPremium": 0
+        },
+        "quality": {
+          "bread": {}
+        }
+      }
+    ],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        17.975,
+        5,
+        18.49999999999998
+      ],
+      "health": 100,
+      "hunger": 94.20999999999978,
+      "rest": 96.62250000000033,
+      "recreation": 97.34624999999967,
+      "mood": 79.71023043477311,
+      "disease": 0,
+      "task": "到仓位领取面包",
+      "jobId": "job-40",
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": -1.5707963267948493,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 7,
+        "z": 12,
+        "slot": 0,
+        "resource": "cabbageSeed",
+        "count": 13
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 3,
+        "resource": "silver",
+        "count": 4
+      }
+    ],
+    "text": "向导商店\n×\n暂住营地\n按基础价格交易\n商品货架\n‹\n1 / 4\n›\n可用 744 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n白菜种子包 × 13\n选择货架商品买入，或从回收栏交售。\n面包 × 14 · 待取货 · 前往仓位\n林夏 · 在途 0 · 交付 12/14\n锁价 864 · 已收 740 银币\n向导采购已入库 · 白菜种子包 × 13 · 已付 26 银币"
+  },
+  {
+    "name": "11-sale-complete",
+    "time": 189,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 868,
+      "seed": 13,
+      "bread": 0,
+      "cloth": 1
+    },
+    "jobs": [],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        19.174999999999997,
+        5,
+        18.499999999999986
+      ],
+      "health": 100,
+      "hunger": 91.71999999999969,
+      "rest": 95.17000000000047,
+      "recreation": 96.20499999999953,
+      "mood": 79.33490094174611,
+      "disease": 0,
+      "task": "等待工作 · 散步",
+      "jobId": null,
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": 1.5707963267948506,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 7,
+        "z": 12,
+        "slot": 0,
+        "resource": "cabbageSeed",
+        "count": 13
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 12,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 12,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 12,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      }
+    ],
+    "text": "向导商店\n×\n暂住营地\n按基础价格交易\n商品货架\n‹\n1 / 4\n›\n可用 868 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n白菜种子包 × 13\n选择货架商品买入，或从回收栏交售。\n向导采购已入库 · 白菜种子包 × 13 · 已付 26 银币\n向导回收已交付 · 面包 × 14 · 收到 864 银币"
+  },
+  {
+    "name": "12-cloth-sale",
+    "time": 208.25,
+    "housing": {
+      "npcId": "guide",
+      "status": "camp",
+      "position": [
+        19.5,
+        5,
+        19.5
+      ],
+      "roomId": null,
+      "bedId": null,
+      "comfort": 0,
+      "cleanliness": 0,
+      "quality": 0,
+      "buyFactor": 1,
+      "recycleFactor": 1
+    },
+    "inventory": {
+      "silver": 876,
+      "seed": 13,
+      "bread": 0,
+      "cloth": 0
+    },
+    "jobs": [],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        18.687499999999954,
+        5,
+        19.5
+      ],
+      "health": 100,
+      "hunger": 89.4099999999996,
+      "rest": 93.8225000000006,
+      "recreation": 95.1462499999994,
+      "mood": 78.71414599106807,
+      "disease": 0,
+      "task": "等待工作 · 散步",
+      "jobId": null,
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": 1.5707963267948966,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 7,
+        "z": 12,
+        "slot": 0,
+        "resource": "cabbageSeed",
+        "count": 13
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 10,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 10,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 11,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 6,
+        "z": 11,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 7,
+        "z": 11,
+        "slot": 3,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 12,
+        "slot": 0,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 12,
+        "slot": 1,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 12,
+        "slot": 2,
+        "resource": "silver",
+        "count": 32
+      },
+      {
+        "x": 5,
+        "z": 12,
+        "slot": 3,
+        "resource": "silver",
+        "count": 8
+      }
+    ],
+    "text": "向导商店\n×\n暂住营地\n按基础价格交易\n商品货架\n‹\n1 / 4\n›\n可用 876 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n白菜种子包 × 13\n已预约布料 × 1，交付后共收 8 银币\n向导回收已交付 · 面包 × 14 · 收到 864 银币\n向导回收已交付 · 布料 × 1 · 收到 8 银币"
+  },
+  {
+    "name": "13-housed-sale-quote",
+    "time": 120,
+    "housing": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        17.5
+      ],
+      "roomId": 0,
+      "bedId": "bed-15-18",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "inventory": {
+      "silver": 30,
+      "seed": 0,
+      "bread": 14,
+      "cloth": 1
+    },
+    "jobs": [],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        10.5,
+        5,
+        14.5
+      ],
+      "health": 100,
+      "hunger": 100,
+      "rest": 100,
+      "recreation": 100,
+      "mood": 78,
+      "disease": 0,
+      "task": "观察新营地",
+      "jobId": null,
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": 0,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "bread",
+        "count": 14,
+        "premium": {
+          "day": 1,
+          "count": 2
+        }
+      }
+    ],
+    "text": "向导商店\n×\n已入住房间\n环境品质 75 · 买价 −7.5% / 回收 +7.5%\n商品货架\n‹\n1 / 4\n›\n可用 30 银币\n白菜种子包\n2 银币\n番茄种子包\n2 银币\n甘蔗种子包\n2 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n面包 × 14\n交售面包\n库存 14 件\n−\n14 件\n+\n+10\n交付收取 928 银币\n取消\n保鲜 2 件 · 普通 12 件"
+  },
+  {
+    "name": "14-housed-buy-quote",
+    "time": 120,
+    "housing": {
+      "npcId": "guide",
+      "status": "housed",
+      "position": [
+        15.5,
+        5,
+        17.5
+      ],
+      "roomId": 0,
+      "bedId": "bed-15-18",
+      "comfort": 49,
+      "cleanliness": 100,
+      "quality": 74.5,
+      "buyFactor": 0.9255,
+      "recycleFactor": 1.0745
+    },
+    "inventory": {
+      "silver": 30,
+      "seed": 0,
+      "bread": 14,
+      "cloth": 1
+    },
+    "jobs": [],
+    "worker": {
+      "id": "colonist-21",
+      "name": "林夏",
+      "traits": [
+        "勤劳",
+        "巧手"
+      ],
+      "skills": {
+        "terraform": 5,
+        "construct": 9,
+        "grow": 6,
+        "harvest": 3,
+        "haul": 6,
+        "cook": 6,
+        "chop": 6,
+        "mine": 6,
+        "research": 4,
+        "doctor": 2,
+        "craft": 7
+      },
+      "priorities": {
+        "terraform": 0,
+        "construct": 0,
+        "grow": 0,
+        "harvest": 0,
+        "haul": 1,
+        "cook": 0,
+        "chop": 0,
+        "mine": 0,
+        "research": 0,
+        "doctor": 0,
+        "craft": 0
+      },
+      "schedule": "day",
+      "position": [
+        10.5,
+        5,
+        14.5
+      ],
+      "health": 100,
+      "hunger": 100,
+      "rest": 100,
+      "recreation": 100,
+      "mood": 78,
+      "disease": 0,
+      "task": "观察新营地",
+      "jobId": null,
+      "color": [
+        0.78,
+        0.44,
+        0.25
+      ],
+      "carrying": {},
+      "bag": [
+        {
+          "resource": "hammer",
+          "count": 1
+        },
+        {
+          "resource": "axe",
+          "count": 1
+        },
+        {
+          "resource": "pickaxe",
+          "count": 1
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "stamina": 100,
+      "facing": 0,
+      "comfort": 0
+    },
+    "stacks": [
+      {
+        "x": 5,
+        "z": 10,
+        "slot": 0,
+        "resource": "bread",
+        "count": 14,
+        "premium": {
+          "day": 1,
+          "count": 2
+        }
+      }
+    ],
+    "text": "向导商店\n×\n已入住房间\n环境品质 75 · 买价 −7.5% / 回收 +7.5%\n商品货架\n‹\n4 / 4\n›\n可用 30 银币\n面包\n89 银币\n回收栏\n选择仓库物品交给商人\n▨\n布料 × 1\n面包 × 14\n买入面包\n库存 14 件\n−\n1 件\n+\n+10\n银币不足 · 89 银币\n取消"
+  }
+]

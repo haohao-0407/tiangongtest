@@ -1,0 +1,4897 @@
+[
+  {
+    "name": "01-blueprints",
+    "time": 120,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          26,
+          22
+        ],
+        "animals": [],
+        "capacity": 24,
+        "ready": false
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": false,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": false,
+        "comfort": 0,
+        "roomId": null
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "观察新营地",
+        "position": [
+          29.5,
+          7,
+          25.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "观察新营地",
+        "position": [
+          30.5,
+          7,
+          25.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "观察新营地",
+        "position": [
+          31.5,
+          7,
+          25.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [],
+    "built": 0
+  },
+  {
+    "name": "02-fence-built",
+    "time": 168,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          26,
+          22
+        ],
+        "animals": [],
+        "capacity": 24,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          21.5,
+          7,
+          16.80000000000001
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          20.47500000000001,
+          7,
+          19.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "休息 · 散步",
+        "position": [
+          34.79999999999999,
+          7,
+          30.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [],
+    "built": 24
+  },
+  {
+    "name": "03-herd-orders",
+    "time": 168,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          26,
+          22
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 37,
+            "z": 34,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 38,
+            "z": 37,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 29,
+            "z": 2,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "ordered",
+            "x": 26,
+            "z": 7,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 22,
+            "z": 44,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 168
+          }
+        ],
+        "capacity": 24,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          21.5,
+          7,
+          16.80000000000001
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          20.47500000000001,
+          7,
+          19.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "休息 · 散步",
+        "position": [
+          34.79999999999999,
+          7,
+          30.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-111",
+        "type": "herd",
+        "targetId": "cow-37-34",
+        "x": 37,
+        "y": 7,
+        "z": 34,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "领牛进牧场"
+      },
+      {
+        "id": "job-112",
+        "type": "herd",
+        "targetId": "cow-38-37",
+        "x": 38,
+        "y": 7,
+        "z": 37,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "领牛进牧场"
+      },
+      {
+        "id": "job-113",
+        "type": "herd",
+        "targetId": "pig-29-2",
+        "x": 29,
+        "y": 7,
+        "z": 2,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "领猪进牧场"
+      },
+      {
+        "id": "job-114",
+        "type": "herd",
+        "targetId": "sheep-26-7",
+        "x": 26,
+        "y": 7,
+        "z": 7,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "领羊进牧场"
+      },
+      {
+        "id": "job-115",
+        "type": "herd",
+        "targetId": "chicken-22-44",
+        "x": 22,
+        "y": 7,
+        "z": 44,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "领鸡进牧场"
+      }
+    ],
+    "built": 24
+  },
+  {
+    "name": "04-gate-sheep-26-7",
+    "time": 183,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          26,
+          22
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 37,
+            "z": 34,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 38,
+            "z": 37,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "leading",
+            "x": 29,
+            "z": 6,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "leading",
+            "x": 26,
+            "z": 22,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 22,
+            "z": 44,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 168
+          }
+        ],
+        "capacity": 24,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "领羊进牧场",
+        "position": [
+          26.175000000000043,
+          7,
+          22.5
+        ],
+        "carrying": {},
+        "jobId": "job-114"
+      },
+      {
+        "name": "阿澈",
+        "task": "领猪进牧场",
+        "position": [
+          29.5,
+          7,
+          6.1750000000000025
+        ],
+        "carrying": {},
+        "jobId": "job-113"
+      },
+      {
+        "name": "青禾",
+        "task": "休息 · 自由活动",
+        "position": [
+          39.5,
+          7,
+          28.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-111",
+        "type": "herd",
+        "targetId": "cow-37-34",
+        "x": 37,
+        "y": 7,
+        "z": 34,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "领牛进牧场"
+      },
+      {
+        "id": "job-112",
+        "type": "herd",
+        "targetId": "cow-38-37",
+        "x": 38,
+        "y": 7,
+        "z": 37,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "领牛进牧场"
+      },
+      {
+        "id": "job-113",
+        "type": "herd",
+        "targetId": "pig-29-2",
+        "x": 29,
+        "y": 7,
+        "z": 2,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {},
+        "label": "领猪进牧场"
+      },
+      {
+        "id": "job-114",
+        "type": "herd",
+        "targetId": "sheep-26-7",
+        "x": 26,
+        "y": 7,
+        "z": 7,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {},
+        "label": "领羊进牧场"
+      },
+      {
+        "id": "job-115",
+        "type": "herd",
+        "targetId": "chicken-22-44",
+        "x": 22,
+        "y": 7,
+        "z": 44,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "领鸡进牧场"
+      }
+    ],
+    "built": 24
+  },
+  {
+    "name": "04-gate-pig-29-2",
+    "time": 192.25,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          26,
+          22
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 37,
+            "z": 34,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 38,
+            "z": 37,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "leading",
+            "x": 26,
+            "z": 22,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 22,
+            "z": 44,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 168
+          }
+        ],
+        "capacity": 24,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "领牛进牧场",
+        "position": [
+          31.5,
+          7,
+          28.72499999999996
+        ],
+        "carrying": {},
+        "jobId": "job-111"
+      },
+      {
+        "name": "阿澈",
+        "task": "领猪进牧场",
+        "position": [
+          26.400000000000045,
+          7,
+          22.5
+        ],
+        "carrying": {},
+        "jobId": "job-113"
+      },
+      {
+        "name": "青禾",
+        "task": "休息 · 自由活动",
+        "position": [
+          47.5,
+          7,
+          28.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-111",
+        "type": "herd",
+        "targetId": "cow-37-34",
+        "x": 37,
+        "y": 7,
+        "z": 34,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {},
+        "label": "领牛进牧场"
+      },
+      {
+        "id": "job-112",
+        "type": "herd",
+        "targetId": "cow-38-37",
+        "x": 38,
+        "y": 7,
+        "z": 37,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "领牛进牧场"
+      },
+      {
+        "id": "job-113",
+        "type": "herd",
+        "targetId": "pig-29-2",
+        "x": 29,
+        "y": 7,
+        "z": 2,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {},
+        "label": "领猪进牧场"
+      },
+      {
+        "id": "job-115",
+        "type": "herd",
+        "targetId": "chicken-22-44",
+        "x": 22,
+        "y": 7,
+        "z": 44,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "领鸡进牧场"
+      }
+    ],
+    "built": 24
+  },
+  {
+    "name": "04-gate-cow-37-34",
+    "time": 208.75,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          26,
+          22
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "leading",
+            "x": 26,
+            "z": 22,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 38,
+            "z": 37,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 22,
+            "z": 44,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 168
+          }
+        ],
+        "capacity": 24,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "领牛进牧场",
+        "position": [
+          26.925000000000033,
+          7,
+          22.5
+        ],
+        "carrying": {},
+        "jobId": "job-111"
+      },
+      {
+        "name": "阿澈",
+        "task": "领牛进牧场",
+        "position": [
+          38.5,
+          7,
+          34.900000000000006
+        ],
+        "carrying": {},
+        "jobId": "job-112"
+      },
+      {
+        "name": "青禾",
+        "task": "睡眠中",
+        "position": [
+          45.5,
+          7,
+          21.125000000000014
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-111",
+        "type": "herd",
+        "targetId": "cow-37-34",
+        "x": 37,
+        "y": 7,
+        "z": 34,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {},
+        "label": "领牛进牧场"
+      },
+      {
+        "id": "job-112",
+        "type": "herd",
+        "targetId": "cow-38-37",
+        "x": 38,
+        "y": 7,
+        "z": 37,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {},
+        "label": "领牛进牧场"
+      },
+      {
+        "id": "job-115",
+        "type": "herd",
+        "targetId": "chicken-22-44",
+        "x": 22,
+        "y": 7,
+        "z": 44,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "领鸡进牧场"
+      }
+    ],
+    "built": 24
+  },
+  {
+    "name": "04-gate-cow-38-37",
+    "time": 222.75,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          26,
+          22
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 212.5
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "leading",
+            "x": 26,
+            "z": 22,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 168
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "ordered",
+            "x": 22,
+            "z": 44,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 168
+          }
+        ],
+        "capacity": 24,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "领鸡进牧场",
+        "position": [
+          23.5,
+          7,
+          32.02499999999994
+        ],
+        "carrying": {},
+        "jobId": "job-115"
+      },
+      {
+        "name": "阿澈",
+        "task": "领牛进牧场",
+        "position": [
+          26.725000000000016,
+          7,
+          22.5
+        ],
+        "carrying": {},
+        "jobId": "job-112"
+      },
+      {
+        "name": "青禾",
+        "task": "休息 · 散步",
+        "position": [
+          39.46249999999997,
+          7,
+          21.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-112",
+        "type": "herd",
+        "targetId": "cow-38-37",
+        "x": 38,
+        "y": 7,
+        "z": 37,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {},
+        "label": "领牛进牧场"
+      },
+      {
+        "id": "job-115",
+        "type": "herd",
+        "targetId": "chicken-22-44",
+        "x": 22,
+        "y": 7,
+        "z": 44,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {},
+        "label": "领鸡进牧场"
+      }
+    ],
+    "built": 24
+  },
+  {
+    "name": "04-gate-chicken-22-44",
+    "time": 242.5,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          26,
+          22
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 212.5
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 225.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "leading",
+            "x": 26,
+            "z": 22,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 168
+          }
+        ],
+        "capacity": 24,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "领鸡进牧场",
+        "position": [
+          26.67500000000002,
+          7,
+          22.5
+        ],
+        "carrying": {},
+        "jobId": "job-115"
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          21.5,
+          7,
+          22.187499999999993
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "休息 · 散步",
+        "position": [
+          44.5,
+          7,
+          24.224999999999998
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-115",
+        "type": "herd",
+        "targetId": "chicken-22-44",
+        "x": 22,
+        "y": 7,
+        "z": 44,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {},
+        "label": "领鸡进牧场"
+      }
+    ],
+    "built": 24
+  },
+  {
+    "name": "05-mixed-herd",
+    "time": 244.5,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          26,
+          22
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 212.5
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 225.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 424.25
+          }
+        ],
+        "capacity": 24,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          24.1625,
+          7,
+          21.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          23.88749999999998,
+          7,
+          22.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "休息 · 自由活动",
+        "position": [
+          44.5,
+          7,
+          24.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [],
+    "built": 24
+  },
+  {
+    "name": "06-gate-reloaded",
+    "time": 258.75,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          22,
+          20
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 212.5
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 225.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 424.25
+          }
+        ],
+        "capacity": 24,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          21.5,
+          7,
+          23.812500000000007
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          25.5,
+          7,
+          22.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "休息 · 自由活动",
+        "position": [
+          37.5,
+          7,
+          21.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [],
+    "built": 26
+  },
+  {
+    "name": "07-collection-stations",
+    "time": 272.75,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          22,
+          20
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 212.5
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 225.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 424.25
+          }
+        ],
+        "capacity": 22,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-120",
+        "kind": "milker",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-121"
+      },
+      {
+        "id": "building-124",
+        "kind": "henNest",
+        "x": 22,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-125"
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          22.52499999999999,
+          7,
+          21.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "在挤奶器挤奶",
+        "position": [
+          24.825000000000003,
+          7,
+          22.5
+        ],
+        "carrying": {},
+        "jobId": "job-130"
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          39.5,
+          7,
+          15.86250000000003
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-130",
+        "type": "husbandry",
+        "targetId": "cow-37-34",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "progress": 1,
+        "work": 5,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {},
+        "label": "在挤奶器挤奶"
+      }
+    ],
+    "built": 28
+  },
+  {
+    "name": "08-collect-milk",
+    "time": 277.75,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          22,
+          20
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 636.75
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 225.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 424.25
+          }
+        ],
+        "capacity": 22,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-120",
+        "kind": "milker",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-121"
+      },
+      {
+        "id": "building-124",
+        "kind": "henNest",
+        "x": 22,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-125"
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [
+      {
+        "id": "item-131",
+        "resource": "milk",
+        "amount": 1,
+        "x": 24,
+        "y": 7,
+        "z": 22,
+        "age": 1,
+        "reservedBy": null
+      }
+    ],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          23.150000000000006,
+          7,
+          21.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "在挤奶器挤奶",
+        "position": [
+          24.825000000000003,
+          7,
+          22.5
+        ],
+        "carrying": {},
+        "jobId": "job-132"
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          39.5,
+          7,
+          17.512500000000014
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-132",
+        "type": "husbandry",
+        "targetId": "cow-38-37",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "progress": 1,
+        "work": 5,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {},
+        "label": "在挤奶器挤奶"
+      },
+      {
+        "id": "job-133",
+        "type": "haul",
+        "targetId": "item-131",
+        "x": 24,
+        "y": 7,
+        "z": 22,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "搬运物资"
+      }
+    ],
+    "built": 28
+  },
+  {
+    "name": "08-collect-egg",
+    "time": 428.25,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          22,
+          20
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 636.75
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 641.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 424.25
+          }
+        ],
+        "capacity": 22,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-120",
+        "kind": "milker",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-121"
+      },
+      {
+        "id": "building-124",
+        "kind": "henNest",
+        "x": 22,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-125"
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [
+      {
+        "id": "item-131",
+        "resource": "milk",
+        "amount": 2,
+        "x": 24,
+        "y": 7,
+        "z": 22,
+        "age": 151.5,
+        "reservedBy": null
+      }
+    ],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "卧床休养",
+        "position": [
+          16.5,
+          7,
+          5.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "休息 · 自由活动",
+        "position": [
+          16.5,
+          7,
+          24.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "到鸡窝捡蛋",
+        "position": [
+          39.92499999999998,
+          7,
+          19.5
+        ],
+        "carrying": {},
+        "jobId": "job-137"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-133",
+        "type": "haul",
+        "targetId": "item-131",
+        "x": 24,
+        "y": 7,
+        "z": 22,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "搬运物资"
+      },
+      {
+        "id": "job-136",
+        "type": "doctor",
+        "targetId": "colonist-21",
+        "x": 16,
+        "y": 7,
+        "z": 5,
+        "progress": 0,
+        "work": 9,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "治疗林夏"
+      },
+      {
+        "id": "job-137",
+        "type": "husbandry",
+        "targetId": "chicken-22-44",
+        "x": 22,
+        "y": 7,
+        "z": 23,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-23",
+        "reserved": {},
+        "label": "到鸡窝捡蛋"
+      }
+    ],
+    "built": 28
+  },
+  {
+    "name": "09-ground-before-haul",
+    "time": 444,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          22,
+          20
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 636.75
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 641.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 619.75
+          }
+        ],
+        "capacity": 22,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-120",
+        "kind": "milker",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-121"
+      },
+      {
+        "id": "building-124",
+        "kind": "henNest",
+        "x": 22,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-125"
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [
+      {
+        "id": "item-131",
+        "resource": "milk",
+        "amount": 2,
+        "x": 24,
+        "y": 7,
+        "z": 22,
+        "age": 167.25,
+        "reservedBy": null
+      },
+      {
+        "id": "item-138",
+        "resource": "egg",
+        "amount": 1,
+        "x": 23,
+        "y": 7,
+        "z": 23,
+        "age": 4.25,
+        "reservedBy": null
+      }
+    ],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "卧床休养",
+        "position": [
+          16.5,
+          7,
+          5.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "休息 · 自由活动",
+        "position": [
+          15.5,
+          7,
+          27.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          23.237499999999976,
+          7,
+          19.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-133",
+        "type": "haul",
+        "targetId": "item-131",
+        "x": 24,
+        "y": 7,
+        "z": 22,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "搬运物资"
+      },
+      {
+        "id": "job-136",
+        "type": "doctor",
+        "targetId": "colonist-21",
+        "x": 16,
+        "y": 7,
+        "z": 5,
+        "progress": 0,
+        "work": 9,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "治疗林夏"
+      },
+      {
+        "id": "job-139",
+        "type": "haul",
+        "targetId": "item-138",
+        "x": 23,
+        "y": 7,
+        "z": 23,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "搬运物资"
+      }
+    ],
+    "built": 28
+  },
+  {
+    "name": "10-carry-milk",
+    "time": 448.75,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          22,
+          20
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 636.75
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 641.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 619.75
+          }
+        ],
+        "capacity": 22,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-120",
+        "kind": "milker",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-121"
+      },
+      {
+        "id": "building-124",
+        "kind": "henNest",
+        "x": 22,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-125"
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      }
+    ],
+    "ground": [
+      {
+        "id": "item-138",
+        "resource": "egg",
+        "amount": 1,
+        "x": 23,
+        "y": 7,
+        "z": 23,
+        "age": 9,
+        "reservedBy": null
+      }
+    ],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "卧床休养",
+        "position": [
+          16.5,
+          7,
+          5.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "休息 · 散步",
+        "position": [
+          15.5,
+          7,
+          28.812500000000007
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "前往搬运物资",
+        "position": [
+          24.5,
+          7,
+          22.5
+        ],
+        "carrying": {
+          "milk": 2
+        },
+        "jobId": "job-133"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-133",
+        "type": "haul",
+        "targetId": "item-131",
+        "x": 24,
+        "y": 7,
+        "z": 22,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-23",
+        "reserved": {},
+        "label": "搬运物资"
+      },
+      {
+        "id": "job-136",
+        "type": "doctor",
+        "targetId": "colonist-21",
+        "x": 16,
+        "y": 7,
+        "z": 5,
+        "progress": 0,
+        "work": 9,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "治疗林夏"
+      },
+      {
+        "id": "job-139",
+        "type": "haul",
+        "targetId": "item-138",
+        "x": 23,
+        "y": 7,
+        "z": 23,
+        "progress": 0,
+        "work": 1,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "搬运物资"
+      }
+    ],
+    "built": 28
+  },
+  {
+    "name": "10-carry-egg",
+    "time": 460,
+    "inventory": {
+      "milk": 2,
+      "egg": 0,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          22,
+          20
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 636.75
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 641.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 619.75
+          }
+        ],
+        "capacity": 22,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-120",
+        "kind": "milker",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-121"
+      },
+      {
+        "id": "building-124",
+        "kind": "henNest",
+        "x": 22,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-125"
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 30,
+        "z": 22,
+        "slot": 0,
+        "resource": "milk",
+        "count": 2
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "卧床休养",
+        "position": [
+          16.5,
+          7,
+          5.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "前往搬运物资",
+        "position": [
+          23.5,
+          7,
+          22.450000000000003
+        ],
+        "carrying": {
+          "egg": 1
+        },
+        "jobId": "job-139"
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          29.5,
+          7,
+          25.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-136",
+        "type": "doctor",
+        "targetId": "colonist-21",
+        "x": 16,
+        "y": 7,
+        "z": 5,
+        "progress": 0,
+        "work": 9,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "治疗林夏"
+      },
+      {
+        "id": "job-139",
+        "type": "haul",
+        "targetId": "item-138",
+        "x": 23,
+        "y": 7,
+        "z": 23,
+        "progress": 0,
+        "work": 1,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {},
+        "label": "搬运物资"
+      }
+    ],
+    "built": 28
+  },
+  {
+    "name": "11-general-storage",
+    "time": 467.75,
+    "inventory": {
+      "milk": 2,
+      "egg": 1,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          22,
+          20
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 636.75
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 641.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 619.75
+          }
+        ],
+        "capacity": 22,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-120",
+        "kind": "milker",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-121"
+      },
+      {
+        "id": "building-124",
+        "kind": "henNest",
+        "x": 22,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-125"
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 30,
+        "z": 22,
+        "slot": 0,
+        "resource": "milk",
+        "count": 2
+      },
+      {
+        "x": 30,
+        "z": 22,
+        "slot": 1,
+        "resource": "egg",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "卧床休养",
+        "position": [
+          16.5,
+          7,
+          5.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          31.174999999999997,
+          7,
+          22.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          27.5,
+          7,
+          21.812500000000007
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-136",
+        "type": "doctor",
+        "targetId": "colonist-21",
+        "x": 16,
+        "y": 7,
+        "z": 5,
+        "progress": 0,
+        "work": 9,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "治疗林夏"
+      }
+    ],
+    "built": 28
+  },
+  {
+    "name": "12-order-cheese",
+    "time": 469.5,
+    "inventory": {
+      "milk": 0,
+      "egg": 1,
+      "cheese": 0,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          22,
+          20
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 636.75
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 641.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 619.75
+          }
+        ],
+        "capacity": 22,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-120",
+        "kind": "milker",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-121"
+      },
+      {
+        "id": "building-124",
+        "kind": "henNest",
+        "x": 22,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-125"
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 30,
+        "z": 22,
+        "slot": 1,
+        "resource": "egg",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "卧床休养",
+        "position": [
+          16.5,
+          7,
+          5.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          32.5375,
+          7,
+          23.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "前往领取奶酪的原料",
+        "position": [
+          28.5,
+          7,
+          22.5
+        ],
+        "carrying": {
+          "milk": 2
+        },
+        "jobId": "job-140"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-136",
+        "type": "doctor",
+        "targetId": "colonist-21",
+        "x": 16,
+        "y": 7,
+        "z": 5,
+        "progress": 0,
+        "work": 9,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "治疗林夏"
+      },
+      {
+        "id": "job-140",
+        "type": "craft",
+        "targetId": "cheesePress",
+        "x": 30,
+        "y": 7,
+        "z": 28,
+        "progress": 0,
+        "work": 6,
+        "state": "working",
+        "assignedTo": "colonist-23",
+        "reserved": {
+          "milk": 2
+        },
+        "label": "制作奶酪",
+        "recipe": "cheese",
+        "craftAmount": 1,
+        "craftPhase": "work"
+      }
+    ],
+    "built": 28
+  },
+  {
+    "name": "12-order-friedEgg",
+    "time": 485.5,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 1,
+      "friedEgg": 0,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          22,
+          20
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 636.75
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 641.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 619.75
+          }
+        ],
+        "capacity": 22,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-120",
+        "kind": "milker",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-121"
+      },
+      {
+        "id": "building-124",
+        "kind": "henNest",
+        "x": 22,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-125"
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 30,
+        "z": 23,
+        "slot": 0,
+        "resource": "cheese",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "卧床休养",
+        "position": [
+          16.5,
+          7,
+          5.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "前往制作煎鸡蛋",
+        "position": [
+          31.549999999999997,
+          7,
+          23.5
+        ],
+        "carrying": {
+          "egg": 1
+        },
+        "jobId": "job-143"
+      },
+      {
+        "name": "青禾",
+        "task": "睡眠中",
+        "position": [
+          29.5,
+          7,
+          25.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-136",
+        "type": "doctor",
+        "targetId": "colonist-21",
+        "x": 16,
+        "y": 7,
+        "z": 5,
+        "progress": 0,
+        "work": 9,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "治疗林夏"
+      },
+      {
+        "id": "job-143",
+        "type": "cook",
+        "targetId": "stove",
+        "x": 33,
+        "y": 7,
+        "z": 28,
+        "progress": 0,
+        "work": 4,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {
+          "egg": 1
+        },
+        "label": "制作煎鸡蛋",
+        "recipe": "friedEgg",
+        "craftAmount": 1,
+        "craftPhase": "work"
+      }
+    ],
+    "built": 28
+  },
+  {
+    "name": "13-products-in-stock",
+    "time": 497.5,
+    "inventory": {
+      "milk": 0,
+      "egg": 0,
+      "cheese": 1,
+      "friedEgg": 1,
+      "silver": 10
+    },
+    "pen": {
+      "id": "zone-38",
+      "kind": "pasture",
+      "x": 19,
+      "y": 7,
+      "z": 20,
+      "w": 8,
+      "d": 6,
+      "crop": "cabbage",
+      "pasture": {
+        "gate": [
+          22,
+          20
+        ],
+        "animals": [
+          {
+            "id": "cow-37-34",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 20,
+            "z": 21,
+            "homeX": 20,
+            "homeZ": 21,
+            "readyAt": 636.75
+          },
+          {
+            "id": "cow-38-37",
+            "kind": "cow",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 21,
+            "z": 21,
+            "homeX": 21,
+            "homeZ": 21,
+            "readyAt": 641.75
+          },
+          {
+            "id": "pig-29-2",
+            "kind": "pig",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 22,
+            "z": 21,
+            "homeX": 22,
+            "homeZ": 21,
+            "readyAt": 194.75
+          },
+          {
+            "id": "sheep-26-7",
+            "kind": "sheep",
+            "young": false,
+            "female": false,
+            "state": "home",
+            "x": 23,
+            "z": 21,
+            "homeX": 23,
+            "homeZ": 21,
+            "readyAt": 185
+          },
+          {
+            "id": "chicken-22-44",
+            "kind": "chicken",
+            "young": false,
+            "female": true,
+            "state": "home",
+            "x": 24,
+            "z": 21,
+            "homeX": 24,
+            "homeZ": 21,
+            "readyAt": 619.75
+          }
+        ],
+        "capacity": 22,
+        "ready": true
+      }
+    },
+    "stations": [
+      {
+        "id": "stove",
+        "kind": "stove",
+        "x": 33,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "cheesePress",
+        "kind": "cheesePress",
+        "x": 30,
+        "z": 28,
+        "y": 7,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-120",
+        "kind": "milker",
+        "x": 24,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-121"
+      },
+      {
+        "id": "building-124",
+        "kind": "henNest",
+        "x": 22,
+        "y": 7,
+        "z": 23,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-125"
+      }
+    ],
+    "stacks": [
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 0,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 1,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 2,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 28,
+        "z": 22,
+        "slot": 3,
+        "resource": "oil",
+        "count": 32
+      },
+      {
+        "x": 30,
+        "z": 23,
+        "slot": 0,
+        "resource": "cheese",
+        "count": 1
+      },
+      {
+        "x": 33,
+        "z": 23,
+        "slot": 0,
+        "resource": "friedEgg",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "workers": [
+      {
+        "name": "林夏",
+        "task": "卧床休养",
+        "position": [
+          16.5,
+          7,
+          5.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          32.48749999999998,
+          7,
+          23.5
+        ],
+        "carrying": {},
+        "jobId": null
+      },
+      {
+        "name": "青禾",
+        "task": "睡眠中",
+        "position": [
+          29.5,
+          7,
+          25.5
+        ],
+        "carrying": {},
+        "jobId": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-136",
+        "type": "doctor",
+        "targetId": "colonist-21",
+        "x": 16,
+        "y": 7,
+        "z": 5,
+        "progress": 0,
+        "work": 9,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "治疗林夏"
+      }
+    ],
+    "built": 28
+  }
+]

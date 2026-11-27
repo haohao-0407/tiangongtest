@@ -1,0 +1,79 @@
+{
+  "cancelPaidPurchase": {
+    "unpaidRefund": 2,
+    "totalSilver": 6,
+    "paidSeedsOnGround": 12,
+    "recoveredSeeds": 12
+  },
+  "cancelFreshSale": {
+    "bread": 14,
+    "fresh": 2,
+    "validDay": 1,
+    "silver": 30
+  },
+  "overnightOrder": {
+    "orderedDay": 1,
+    "deliveredDay": 2,
+    "quote": 864,
+    "received": 864
+  },
+  "blockedPurchase": {
+    "paid": 20,
+    "inTransit": 1,
+    "beforeAvailable": 1,
+    "afterAvailable": 2,
+    "destination": "materials"
+  },
+  "catalog": {
+    "seeds": 7,
+    "items": 10,
+    "recyclable": 24
+  },
+  "housing": [
+    {
+      "housing": {
+        "npcId": "guide",
+        "status": "camp",
+        "position": [
+          19.5,
+          5,
+          19.5
+        ],
+        "roomId": null,
+        "bedId": null,
+        "comfort": 0,
+        "cleanliness": 0,
+        "quality": 0,
+        "buyFactor": 1,
+        "recycleFactor": 1
+      },
+      "breadBuy": 96,
+      "breadSale": 864
+    },
+    {
+      "housing": {
+        "npcId": "guide",
+        "status": "housed",
+        "position": [
+          15.5,
+          5,
+          17.5
+        ],
+        "roomId": 0,
+        "bedId": "bed-15-18",
+        "comfort": 49,
+        "cleanliness": 100,
+        "quality": 74.5,
+        "buyFactor": 0.9255,
+        "recycleFactor": 1.0745
+      },
+      "breadBuy": 89,
+      "breadSale": 928
+    }
+  ],
+  "blockedRoad": {
+    "beforeOpeningDoor": 30,
+    "afterDelivery": 958,
+    "received": 928
+  }
+}

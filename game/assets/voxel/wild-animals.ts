@@ -1,7 +1,7 @@
 import type { VoxelWorld } from './model.ts';
 import { occupiedLandCells, type PlantLandUse } from './wild-plants.ts';
 
-export const WILD_ANIMAL_KINDS = ['chicken', 'cow', 'sheep'] as const;
+export const WILD_ANIMAL_KINDS = ['chicken', 'cow', 'sheep', 'pig'] as const;
 export type WildAnimalKind = typeof WILD_ANIMAL_KINDS[number];
 export interface WildAnimal {
   kind: WildAnimalKind;
@@ -9,6 +9,8 @@ export interface WildAnimal {
   dx: number; dz: number;
   phase: number; scale: number;
 }
+
+export const stockAnimalId=(a:Pick<WildAnimal,'kind'|'x'|'z'>)=>a.kind+'-'+a.x+'-'+a.z;
 
 // Include both endpoints, the space swept while walking and the turn at either end.
 function habitat(animal: WildAnimal) {
@@ -56,6 +58,14 @@ export function planWildAnimals(width: number, depth: number,
       animals.push(animal);
       placed++;
     }
+  }
+  // Large livestock share the same grazing footprint. Populate a missing breed from a
+  // surplus large-animal group when a seed only placed a few viable regions.
+  const large = ['cow','sheep','pig'] as const;
+  for(const kind of large) {
+    if(animals.some(a=>a.kind===kind))continue;
+    const donor=large.map(k=>animals.filter(a=>a.kind===k)).sort((a,b)=>b.length-a.length)[0];
+    if(donor&&donor.length>1)donor.at(-1)!.kind=kind;
   }
   return animals;
 }

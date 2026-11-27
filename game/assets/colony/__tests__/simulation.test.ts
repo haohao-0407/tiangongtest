@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BLOCK, VoxelWorld } from '../../voxel/model.ts';
-import { BUILDING_DEFS, ColonySimulation, CROP_KINDS, CROP_SEEDS, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES, SUPPLY_TYPES, TOOL_KINDS } from '../simulation.ts';
+import { BUILDING_DEFS, coldEffect, coldSaleValue, premiumCount, ColonySimulation, CROP_KINDS, CROP_SEEDS, DAY_SECONDS, HAMMER, JOB_TYPES, PLAYER_DELIVERY_TARGET, RESOURCE_TYPES, SUPPLY_TYPES, TOOL_KINDS } from '../simulation.ts';
 
 function setup(seed='colony-test') {
   const world = VoxelWorld.deserialize(JSON.stringify({ version: 1, generatorVersion: 1, seed, size: [48,24,48], edits: [] }));
@@ -769,14 +769,53 @@ describe('research, shelter, electricity and colony events',()=>{
     data.jobs=data.jobs.filter((j:any)=>!['cook','craft'].includes(j.type));data.colonists.forEach((c:any)=>{c.jobId=null;c.path=[];});
     sim.load(data);const room=sim.snapshot().rooms[0]!;expect(room.enclosed).toBe(true);expect(room.cells).toHaveLength(9);expect(room.comfort).toBeGreaterThan(0);
   });
-  it('solar generation charges batteries, powers cold storage and slows spoilage',()=>{
+  it('solar generation charges batteries, powers cold storage without food spoilage',()=>{
     const{sim}=setup(),data=raw(sim);data.time=DAY_SECONDS/2;data.resources.food=500;data.resources.meal=500;
     for(const[kind,x]of[['solar',33],['battery',34],['cooler',35]]as const)data.buildings.push({id:`power-${kind}`,kind,x,y:6,z:30,complete:true,progress:1,reserved:{},powered:false,comfort:0,roomId:null});
     data.research.completed=['electricity','refrigeration'];data.research.progress={electricity:110,refrigeration:130};data.colonists.forEach((c:any)=>JOB_TYPES.forEach(j=>c.priorities[j]=0));data.jobs=[];sim.load(data);
     const normal=setup().sim,unpowered=raw(sim);unpowered.buildings=unpowered.buildings.filter((b:any)=>!['solar','battery','cooler'].includes(b.kind));normal.load(unpowered);
     run(sim,100);run(normal,100);const p=sim.snapshot().power;
     expect(p.capacity).toBe(12000);expect(p.stored).toBeGreaterThan(0);expect(p.coldStorage).toBe(true);
-    expect(sim.snapshot().metrics.spoiled).toBeLessThan(normal.snapshot().metrics.spoiled);
+    expect(sim.snapshot().metrics.spoiled).toBe(0);
+    expect(normal.snapshot().metrics.spoiled).toBe(0);
+    expect(sim.snapshot().warehouseStacks.some(s=>s.freezing?.length)).toBe(true);
+    expect(normal.snapshot().warehouseStacks.some(s=>s.freezing?.length)).toBe(false);
+  });
+  it('qualifies only a full day of cold stock, preserves it on transfer and expires at midnight',()=>{
+    const {sim}=setup();
+    const save=raw(sim);
+    save.time=DAY_SECONDS*1.5;
+    save.lastDay=2;
+    for(const [kind,x] of [['solar',33],['battery',34],['cooler',35]] as const)
+      save.buildings.push({id:'cold-'+kind,kind,x,y:6,z:30,complete:true,progress:1,reserved:{},powered:false,comfort:0,roomId:null});
+    const milk=save.warehouseStacks.find((s:any)=>s.resource==='milk');
+    const bread=save.warehouseStacks.find((s:any)=>s.resource==='cabbage');
+    milk.freezing=[{since:save.time-DAY_SECONDS+.5,count:3}];
+    bread.freezing=[{since:save.time-DAY_SECONDS+.5,count:1}];
+    sim.load(save);
+    sim.tick(.25);
+    expect(sim.snapshot().warehouseStacks.every(s=>!s.premium)).toBe(true);
+    sim.load(sim.serialize());
+    sim.tick(.25);
+    const marked=sim.snapshot().warehouseStacks.filter(s=>s.premium);
+    expect(marked.map(s=>[coldEffect(s.resource),s.premium!.count])).toEqual(expect.arrayContaining([['冰镇',3],['保鲜',1]]));
+    expect(coldEffect('wood')).toBeUndefined();
+    const recipient=chooseFirst(sim);
+    const dest={kind:'follower' as const,id:recipient,slot:8};
+    expect(sim.transferInventory({kind:'warehouse'},dest,'milk',5).ok).toBe(true);
+    const bag=()=>sim.snapshot().colonists.find(c=>c.id===recipient)!.bag[8]!;
+    expect(coldSaleValue(10,bag().count,bag(),2)).toBe(56);
+    const next=raw(sim);
+    next.time=DAY_SECONDS*2-.25;
+    sim.load(next);sim.tick(.25);
+    expect(premiumCount(bag(),3)).toBe(0);
+    expect(coldSaleValue(10,bag().count,bag(),3)).toBe(50);
+  });
+  it('keeps loose food past its old spoilage timer',()=>{
+    const {sim}=setup(), save=raw(sim);
+    save.items.push({...save.items[0],id:'old-food',resource:'meal',amount:6,age:270,playerOnly:true,reservedBy:null});
+    sim.load(save);sim.tick(.25);
+    expect(sim.snapshot().items.find(i=>i.id==='old-food')?.amount).toBe(6);
   });
   it('discards legacy caravans while keeping the colony resources, cargo and other events', () => {
     const { sim } = setup();

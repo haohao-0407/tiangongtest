@@ -1,0 +1,1880 @@
+[
+  {
+    "name": "01-separate-pastures",
+    "time": 128.25,
+    "stock": {
+      "wood": 18,
+      "wool": 0,
+      "cloth": 0,
+      "plank": 24
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 0
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 0
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 0
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [
+      {
+        "x": 18,
+        "z": 18,
+        "slot": 0,
+        "resource": "plank",
+        "count": 24
+      },
+      {
+        "x": 19,
+        "z": 18,
+        "slot": 0,
+        "resource": "wood",
+        "count": 18
+      }
+    ],
+    "ground": [],
+    "jobs": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          20.5,
+          5,
+          19.5
+        ],
+        "task": "等待工作 · 自由活动",
+        "carrying": {}
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      }
+    ]
+  },
+  {
+    "name": "02-stand-blueprint",
+    "time": 128.25,
+    "stock": {
+      "wood": 12,
+      "wool": 0,
+      "cloth": 0,
+      "plank": 24
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 0
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 0
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 0
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [
+      {
+        "x": 18,
+        "z": 18,
+        "slot": 0,
+        "resource": "plank",
+        "count": 24
+      },
+      {
+        "x": 19,
+        "z": 18,
+        "slot": 0,
+        "resource": "wood",
+        "count": 12
+      }
+    ],
+    "ground": [],
+    "jobs": [
+      {
+        "id": "job-84",
+        "type": "construct",
+        "targetId": "building-82",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 8,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "建造剪毛台"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          20.5,
+          5,
+          19.5
+        ],
+        "task": "等待工作 · 自由活动",
+        "carrying": {}
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-82",
+        "kind": "shearingStand",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "readyToBuild",
+        "complete": false,
+        "progress": 0,
+        "reserved": {
+          "wood": 6
+        },
+        "powered": false,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-83"
+      }
+    ]
+  },
+  {
+    "name": "03-shearing",
+    "time": 142,
+    "stock": {
+      "wood": 12,
+      "wool": 0,
+      "cloth": 0,
+      "plank": 24
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 0
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 0
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 0
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [
+      {
+        "x": 18,
+        "z": 18,
+        "slot": 0,
+        "resource": "plank",
+        "count": 24
+      },
+      {
+        "x": 19,
+        "z": 18,
+        "slot": 0,
+        "resource": "wood",
+        "count": 12
+      }
+    ],
+    "ground": [],
+    "jobs": [
+      {
+        "id": "job-87",
+        "type": "husbandry",
+        "targetId": "sheep-14-12",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "progress": 0.75,
+        "work": 5,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {},
+        "label": "在剪毛台剪羊毛"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          17.5,
+          5,
+          15.5
+        ],
+        "task": "在剪毛台剪羊毛",
+        "carrying": {}
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-82",
+        "kind": "shearingStand",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-83"
+      }
+    ]
+  },
+  {
+    "name": "04-wool-ground",
+    "time": 146.75,
+    "stock": {
+      "wood": 12,
+      "wool": 0,
+      "cloth": 0,
+      "plank": 24
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 506.25
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 0
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 0
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [
+      {
+        "x": 18,
+        "z": 18,
+        "slot": 0,
+        "resource": "plank",
+        "count": 24
+      },
+      {
+        "x": 19,
+        "z": 18,
+        "slot": 0,
+        "resource": "wood",
+        "count": 12
+      }
+    ],
+    "ground": [
+      {
+        "id": "item-88",
+        "resource": "wool",
+        "amount": 2,
+        "x": 17,
+        "y": 5,
+        "z": 15,
+        "age": 0.5,
+        "reservedBy": null
+      }
+    ],
+    "jobs": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          17.5,
+          5,
+          16.174999999999997
+        ],
+        "task": "等待工作 · 散步",
+        "carrying": {}
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-82",
+        "kind": "shearingStand",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-83"
+      }
+    ]
+  },
+  {
+    "name": "05-wool-stock",
+    "time": 176.25,
+    "stock": {
+      "wood": 12,
+      "wool": 6,
+      "cloth": 0,
+      "plank": 24
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 506.25
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 519.5
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 532.75
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [
+      {
+        "x": 18,
+        "z": 18,
+        "slot": 0,
+        "resource": "plank",
+        "count": 24
+      },
+      {
+        "x": 19,
+        "z": 18,
+        "slot": 0,
+        "resource": "wood",
+        "count": 12
+      },
+      {
+        "x": 18,
+        "z": 19,
+        "slot": 0,
+        "resource": "wool",
+        "count": 6
+      }
+    ],
+    "ground": [],
+    "jobs": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          19.512499999999996,
+          5,
+          19.5
+        ],
+        "task": "等待工作 · 散步",
+        "carrying": {}
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-82",
+        "kind": "shearingStand",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-83"
+      }
+    ]
+  },
+  {
+    "name": "06-loom",
+    "time": 187.25,
+    "stock": {
+      "wood": 0,
+      "wool": 6,
+      "cloth": 0,
+      "plank": 24
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 506.25
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 519.5
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 532.75
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [
+      {
+        "x": 18,
+        "z": 18,
+        "slot": 0,
+        "resource": "plank",
+        "count": 24
+      },
+      {
+        "x": 18,
+        "z": 19,
+        "slot": 0,
+        "resource": "wool",
+        "count": 6
+      }
+    ],
+    "ground": [],
+    "jobs": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          19.825000000000003,
+          5,
+          16.5
+        ],
+        "task": "等待工作 · 散步",
+        "carrying": {}
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-82",
+        "kind": "shearingStand",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-83"
+      },
+      {
+        "id": "building-96",
+        "kind": "loom",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "w": 2,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-97"
+      }
+    ]
+  },
+  {
+    "name": "07-weaving",
+    "time": 190.25,
+    "stock": {
+      "wood": 0,
+      "wool": 4,
+      "cloth": 0,
+      "plank": 24
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 506.25
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 519.5
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 532.75
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [
+      {
+        "x": 18,
+        "z": 18,
+        "slot": 0,
+        "resource": "plank",
+        "count": 24
+      },
+      {
+        "x": 18,
+        "z": 19,
+        "slot": 0,
+        "resource": "wool",
+        "count": 4
+      }
+    ],
+    "ground": [],
+    "jobs": [
+      {
+        "id": "job-101",
+        "type": "craft",
+        "targetId": "building-96",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0.7425000000000002,
+        "work": 6,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {
+          "wool": 2
+        },
+        "label": "制作布料",
+        "recipe": "cloth",
+        "craftAmount": 1,
+        "craftPhase": "work"
+      },
+      {
+        "id": "job-102",
+        "type": "craft",
+        "targetId": "building-96",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 6,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "制作布料",
+        "recipe": "cloth",
+        "craftAmount": 1,
+        "craftPhase": "pickup"
+      },
+      {
+        "id": "job-103",
+        "type": "craft",
+        "targetId": "building-96",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 6,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "制作布料",
+        "recipe": "cloth",
+        "craftAmount": 1,
+        "craftPhase": "pickup"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          19.5,
+          5,
+          16.5
+        ],
+        "task": "制作布料",
+        "carrying": {
+          "wool": 2
+        }
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-82",
+        "kind": "shearingStand",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-83"
+      },
+      {
+        "id": "building-96",
+        "kind": "loom",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "w": 2,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-97"
+      }
+    ]
+  },
+  {
+    "name": "08-reloaded-order",
+    "time": 190.25,
+    "stock": {
+      "wood": 0,
+      "wool": 4,
+      "cloth": 0,
+      "plank": 24
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 506.25
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 519.5
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 532.75
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [
+      {
+        "x": 18,
+        "z": 18,
+        "slot": 0,
+        "resource": "plank",
+        "count": 24
+      },
+      {
+        "x": 18,
+        "z": 19,
+        "slot": 0,
+        "resource": "wool",
+        "count": 4
+      }
+    ],
+    "ground": [],
+    "jobs": [
+      {
+        "id": "job-101",
+        "type": "craft",
+        "targetId": "building-96",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0.7425000000000002,
+        "work": 6,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {
+          "wool": 2
+        },
+        "label": "制作布料",
+        "recipe": "cloth",
+        "craftAmount": 1,
+        "craftPhase": "work"
+      },
+      {
+        "id": "job-102",
+        "type": "craft",
+        "targetId": "building-96",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 6,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "制作布料",
+        "recipe": "cloth",
+        "craftAmount": 1,
+        "craftPhase": "pickup"
+      },
+      {
+        "id": "job-103",
+        "type": "craft",
+        "targetId": "building-96",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 6,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "制作布料",
+        "recipe": "cloth",
+        "craftAmount": 1,
+        "craftPhase": "pickup"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          19.5,
+          5,
+          16.5
+        ],
+        "task": "制作布料",
+        "carrying": {
+          "wool": 2
+        }
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-82",
+        "kind": "shearingStand",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-83"
+      },
+      {
+        "id": "building-96",
+        "kind": "loom",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "w": 2,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-97"
+      }
+    ]
+  },
+  {
+    "name": "09-cloth-ground",
+    "time": 194.25,
+    "stock": {
+      "wood": 0,
+      "wool": 4,
+      "cloth": 0,
+      "plank": 24
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 506.25
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 519.5
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 532.75
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [
+      {
+        "x": 18,
+        "z": 18,
+        "slot": 0,
+        "resource": "plank",
+        "count": 24
+      },
+      {
+        "x": 18,
+        "z": 19,
+        "slot": 0,
+        "resource": "wool",
+        "count": 4
+      }
+    ],
+    "ground": [
+      {
+        "id": "item-104",
+        "resource": "cloth",
+        "amount": 1,
+        "x": 19,
+        "y": 5,
+        "z": 16,
+        "age": 0.25,
+        "reservedBy": null
+      }
+    ],
+    "jobs": [
+      {
+        "id": "job-102",
+        "type": "craft",
+        "targetId": "building-96",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 6,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {},
+        "label": "领取布料的原料",
+        "recipe": "cloth",
+        "craftAmount": 1,
+        "craftPhase": "pickup"
+      },
+      {
+        "id": "job-103",
+        "type": "craft",
+        "targetId": "building-96",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 6,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "制作布料",
+        "recipe": "cloth",
+        "craftAmount": 1,
+        "craftPhase": "pickup"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          19.5,
+          5,
+          17.025
+        ],
+        "task": "前往领取布料的原料",
+        "carrying": {}
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-82",
+        "kind": "shearingStand",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-83"
+      },
+      {
+        "id": "building-96",
+        "kind": "loom",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "w": 2,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-97"
+      }
+    ]
+  },
+  {
+    "name": "10-cloth-stock",
+    "time": 212.5,
+    "stock": {
+      "wood": 0,
+      "wool": 0,
+      "cloth": 3,
+      "plank": 24
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 506.25
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 519.5
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 532.75
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [
+      {
+        "x": 18,
+        "z": 18,
+        "slot": 0,
+        "resource": "plank",
+        "count": 24
+      },
+      {
+        "x": 18,
+        "z": 18,
+        "slot": 2,
+        "resource": "cloth",
+        "count": 3
+      }
+    ],
+    "ground": [],
+    "jobs": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          18.1625,
+          5,
+          18.5
+        ],
+        "task": "等待工作 · 散步",
+        "carrying": {}
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-82",
+        "kind": "shearingStand",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-83"
+      },
+      {
+        "id": "building-96",
+        "kind": "loom",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "w": 2,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-97"
+      }
+    ]
+  },
+  {
+    "name": "11-bed",
+    "time": 230.75,
+    "stock": {
+      "wood": 0,
+      "wool": 0,
+      "cloth": 0,
+      "plank": 0
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 506.25
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 519.5
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 532.75
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [],
+    "ground": [],
+    "jobs": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          20.174999999999997,
+          5,
+          14.5
+        ],
+        "task": "等待工作 · 散步",
+        "carrying": {}
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-82",
+        "kind": "shearingStand",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-83"
+      },
+      {
+        "id": "building-96",
+        "kind": "loom",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "w": 2,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-97"
+      },
+      {
+        "id": "building-108",
+        "kind": "bed",
+        "x": 19,
+        "y": 5,
+        "z": 12,
+        "w": 1,
+        "h": 1,
+        "d": 2,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-109"
+      }
+    ]
+  },
+  {
+    "name": "12-reloaded-bed",
+    "time": 230.75,
+    "stock": {
+      "wood": 0,
+      "wool": 0,
+      "cloth": 0,
+      "plank": 0
+    },
+    "sheep": [
+      {
+        "id": "sheep-14-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 14,
+        "z": 12,
+        "homeX": 14,
+        "homeZ": 12,
+        "readyAt": 506.25
+      },
+      {
+        "id": "sheep-15-12",
+        "kind": "sheep",
+        "young": false,
+        "female": false,
+        "state": "home",
+        "x": 15,
+        "z": 12,
+        "homeX": 15,
+        "homeZ": 12,
+        "readyAt": 519.5
+      },
+      {
+        "id": "sheep-16-12",
+        "kind": "sheep",
+        "young": false,
+        "female": true,
+        "state": "home",
+        "x": 16,
+        "z": 12,
+        "homeX": 16,
+        "homeZ": 12,
+        "readyAt": 532.75
+      },
+      {
+        "id": "sheep-17-12",
+        "kind": "sheep",
+        "young": true,
+        "female": false,
+        "state": "home",
+        "x": 17,
+        "z": 12,
+        "homeX": 17,
+        "homeZ": 12,
+        "readyAt": 0
+      }
+    ],
+    "stacks": [],
+    "ground": [],
+    "jobs": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "position": [
+          20.174999999999997,
+          5,
+          14.5
+        ],
+        "task": "等待工作 · 散步",
+        "carrying": {}
+      }
+    ],
+    "buildings": [
+      {
+        "id": "empty-pen-stand",
+        "kind": "shearingStand",
+        "x": 9,
+        "y": 5,
+        "z": 13,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "complete": true,
+        "phase": "completed",
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null
+      },
+      {
+        "id": "building-82",
+        "kind": "shearingStand",
+        "x": 16,
+        "y": 5,
+        "z": 15,
+        "w": 1,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-83"
+      },
+      {
+        "id": "building-96",
+        "kind": "loom",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "w": 2,
+        "h": 1,
+        "d": 1,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-97"
+      },
+      {
+        "id": "building-108",
+        "kind": "bed",
+        "x": 19,
+        "y": 5,
+        "z": 12,
+        "w": 1,
+        "h": 1,
+        "d": 2,
+        "rotation": 0,
+        "phase": "completed",
+        "complete": true,
+        "progress": 1,
+        "reserved": {},
+        "powered": true,
+        "comfort": 0,
+        "roomId": null,
+        "terrainPlanId": "terrain-109"
+      }
+    ]
+  }
+]

@@ -1,0 +1,1130 @@
+[
+  {
+    "name": "01-menu",
+    "time": 120,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 10,
+      "stone": 8,
+      "wheat": 2,
+      "flour": 0,
+      "tomato": 1,
+      "pasta": 0
+    },
+    "stacks": [
+      {
+        "x": 9,
+        "z": 13,
+        "slot": 0,
+        "resource": "wood",
+        "count": 10
+      },
+      {
+        "x": 10,
+        "z": 13,
+        "slot": 0,
+        "resource": "stone",
+        "count": 8
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "wheat",
+        "count": 2
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "tomato",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          19.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          20.5
+        ],
+        "carrying": {}
+      }
+    ]
+  },
+  {
+    "name": "02-blueprint",
+    "time": 120,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "wheat": 2,
+      "flour": 0,
+      "tomato": 1,
+      "pasta": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "wheat",
+        "count": 2
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "tomato",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [
+      {
+        "id": "job-40",
+        "type": "construct",
+        "targetId": "building-38",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 14,
+        "state": "queued",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "建造面粉机"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          19.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "观察新营地",
+        "position": [
+          18.5,
+          5,
+          20.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "mill": {
+      "id": "building-38",
+      "kind": "flourMill",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "readyToBuild",
+      "complete": false,
+      "progress": 0,
+      "reserved": {
+        "wood": 10,
+        "stone": 8
+      },
+      "powered": false,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "03-built",
+    "time": 130,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "wheat": 2,
+      "flour": 0,
+      "tomato": 1,
+      "pasta": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "wheat",
+        "count": 2
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "tomato",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          20.174999999999997,
+          5,
+          16.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          20.5,
+          5,
+          19.825000000000003
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          21.1625,
+          5,
+          21.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "mill": {
+      "id": "building-38",
+      "kind": "flourMill",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "04-shortage",
+    "time": 130,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "wheat": 2,
+      "flour": 0,
+      "tomato": 1,
+      "pasta": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "wheat",
+        "count": 2
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "tomato",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [
+      {
+        "id": "job-43",
+        "type": "craft",
+        "targetId": "building-38",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 25,
+        "state": "blocked",
+        "assignedTo": null,
+        "reserved": {},
+        "label": "缺少小麦 × 8",
+        "recipe": "flour",
+        "craftAmount": 5,
+        "craftPhase": "pickup"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          20.174999999999997,
+          5,
+          16.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          20.5,
+          5,
+          19.825000000000003
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          21.1625,
+          5,
+          21.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "mill": {
+      "id": "building-38",
+      "kind": "flourMill",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "05-reserved",
+    "time": 131.75,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "wheat": 0,
+      "flour": 0,
+      "tomato": 1,
+      "pasta": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "tomato",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [
+      {
+        "id": "job-44",
+        "type": "craft",
+        "targetId": "building-38",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0,
+        "work": 5,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {
+          "wheat": 2
+        },
+        "label": "制作面粉",
+        "recipe": "flour",
+        "craftAmount": 1,
+        "craftPhase": "work"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          21.5,
+          5,
+          16.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "前往制作面粉",
+        "position": [
+          17.5,
+          5,
+          18.975
+        ],
+        "carrying": {
+          "wheat": 2
+        }
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          18.80000000000001,
+          5,
+          21.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "mill": {
+      "id": "building-38",
+      "kind": "flourMill",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "06-refunded",
+    "time": 131.75,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "wheat": 2,
+      "flour": 0,
+      "tomato": 1,
+      "pasta": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "tomato",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "wheat",
+        "count": 2
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          21.5,
+          5,
+          16.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "前往制作面粉",
+        "position": [
+          17.5,
+          5,
+          18.975
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          18.80000000000001,
+          5,
+          21.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "mill": {
+      "id": "building-38",
+      "kind": "flourMill",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "07-grinding",
+    "time": 134.25,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "wheat": 0,
+      "flour": 0,
+      "tomato": 1,
+      "pasta": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "tomato",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [
+      {
+        "id": "job-45",
+        "type": "craft",
+        "targetId": "building-38",
+        "x": 19,
+        "y": 5,
+        "z": 15,
+        "progress": 0.525,
+        "work": 5,
+        "state": "working",
+        "assignedTo": "colonist-22",
+        "reserved": {
+          "wheat": 2
+        },
+        "label": "制作面粉",
+        "recipe": "flour",
+        "craftAmount": 1,
+        "craftPhase": "work"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          21.5,
+          5,
+          14.812500000000007
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "制作面粉",
+        "position": [
+          19.5,
+          5,
+          16.5
+        ],
+        "carrying": {
+          "wheat": 2
+        }
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          17.150000000000006,
+          5,
+          21.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "mill": {
+      "id": "building-38",
+      "kind": "flourMill",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "08-flour-ground",
+    "time": 139.25,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "wheat": 0,
+      "flour": 0,
+      "tomato": 1,
+      "pasta": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "tomato",
+        "count": 1
+      }
+    ],
+    "ground": [
+      {
+        "id": "item-46",
+        "resource": "flour",
+        "amount": 1,
+        "x": 19,
+        "y": 5,
+        "z": 16,
+        "age": 0.5,
+        "reservedBy": null
+      }
+    ],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          22.5,
+          5,
+          13.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          20.174999999999997,
+          5,
+          16.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          12.5,
+          5,
+          21.86249999999999
+        ],
+        "carrying": {}
+      }
+    ],
+    "mill": {
+      "id": "building-38",
+      "kind": "flourMill",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "09-flour-stock",
+    "time": 147.75,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "wheat": 0,
+      "flour": 1,
+      "tomato": 1,
+      "pasta": 0
+    },
+    "stacks": [
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "tomato",
+        "count": 1
+      },
+      {
+        "x": 11,
+        "z": 13,
+        "slot": 0,
+        "resource": "flour",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "工作完成",
+        "position": [
+          11.5,
+          5,
+          13.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          25.5,
+          5,
+          18.237499999999976
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          15.187499999999993,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "mill": {
+      "id": "building-38",
+      "kind": "flourMill",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "10-stove",
+    "time": 148,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "wheat": 0,
+      "flour": 0,
+      "tomato": 0,
+      "pasta": 0
+    },
+    "stacks": [],
+    "ground": [],
+    "orders": [
+      {
+        "id": "job-48",
+        "type": "cook",
+        "targetId": "building-16",
+        "x": 22,
+        "y": 5,
+        "z": 18,
+        "progress": 0,
+        "work": 4,
+        "state": "working",
+        "assignedTo": "colonist-21",
+        "reserved": {
+          "flour": 1,
+          "tomato": 1
+        },
+        "label": "制作意大利面",
+        "recipe": "pasta",
+        "craftAmount": 1,
+        "craftPhase": "work"
+      }
+    ],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "领取意大利面的原料",
+        "position": [
+          11.5,
+          5,
+          13.5
+        ],
+        "carrying": {
+          "flour": 1,
+          "tomato": 1
+        }
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 自由活动",
+        "position": [
+          25.5,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          15.5,
+          5,
+          18.52499999999999
+        ],
+        "carrying": {}
+      }
+    ],
+    "mill": {
+      "id": "building-38",
+      "kind": "flourMill",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "11-pasta-stock",
+    "time": 163.75,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "wheat": 0,
+      "flour": 0,
+      "tomato": 0,
+      "pasta": 1
+    },
+    "stacks": [
+      {
+        "x": 17,
+        "z": 18,
+        "slot": 0,
+        "resource": "pasta",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          17.8375,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          25.8375,
+          5,
+          21.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          16.86249999999999,
+          5,
+          24.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "mill": {
+      "id": "building-38",
+      "kind": "flourMill",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  },
+  {
+    "name": "12-reloaded",
+    "time": 163.75,
+    "power": {
+      "generation": 0,
+      "demand": 0,
+      "stored": 0,
+      "capacity": 0,
+      "supplied": 0,
+      "coldStorage": false
+    },
+    "inventory": {
+      "wood": 0,
+      "stone": 0,
+      "wheat": 0,
+      "flour": 0,
+      "tomato": 0,
+      "pasta": 1
+    },
+    "stacks": [
+      {
+        "x": 17,
+        "z": 18,
+        "slot": 0,
+        "resource": "pasta",
+        "count": 1
+      }
+    ],
+    "ground": [],
+    "orders": [],
+    "residents": [
+      {
+        "name": "林夏",
+        "task": "等待工作 · 散步",
+        "position": [
+          17.8375,
+          5,
+          18.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "阿澈",
+        "task": "等待工作 · 散步",
+        "position": [
+          25.8375,
+          5,
+          21.5
+        ],
+        "carrying": {}
+      },
+      {
+        "name": "青禾",
+        "task": "等待工作 · 散步",
+        "position": [
+          16.86249999999999,
+          5,
+          24.5
+        ],
+        "carrying": {}
+      }
+    ],
+    "mill": {
+      "id": "building-38",
+      "kind": "flourMill",
+      "x": 19,
+      "y": 5,
+      "z": 15,
+      "w": 2,
+      "h": 1,
+      "d": 1,
+      "rotation": 0,
+      "phase": "completed",
+      "complete": true,
+      "progress": 1,
+      "reserved": {},
+      "powered": true,
+      "comfort": 0,
+      "roomId": null,
+      "terrainPlanId": "terrain-39"
+    }
+  }
+]

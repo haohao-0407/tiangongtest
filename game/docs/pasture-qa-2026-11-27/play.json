@@ -1,0 +1,1712 @@
+{
+  "schemaVersion": "1.0.0",
+  "passed": true,
+  "root": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture06",
+  "script": "scripts\\pasture-playthrough.mjs",
+  "outputDir": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture06\\artifacts\\play\\scripts\\pasture-playthrough",
+  "report": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture06\\artifacts\\play\\scripts\\pasture-playthrough\\play.json",
+  "captureReport": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture06\\artifacts\\play\\scripts\\pasture-playthrough\\capture.json",
+  "url": "http://localhost:51412/",
+  "backend": "hardware",
+  "timings": {
+    "openMs": 354791,
+    "readyMs": 41754,
+    "scriptMs": 41681,
+    "verifyMs": 2080,
+    "totalMs": 441360
+  },
+  "steps": [],
+  "screenshots": [
+    {
+      "name": "final",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture06\\artifacts\\play\\scripts\\pasture-playthrough\\01-final.png",
+      "rendered": true,
+      "digest": "sha256:4bebe0dc3013e110df4e8676dc7a0d0a7db7ef89fe30cac6dbcf43eb61c59e68"
+    },
+    {
+      "name": "viewport 1280x600",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture06\\artifacts\\play\\scripts\\pasture-playthrough\\02-viewport-1280x600.png",
+      "rendered": true,
+      "digest": "sha256:f5d2f7e2fa8d5e8ab08a4af8e8d43fe472ebb61c1ebda9f3155706822bf77922"
+    }
+  ],
+  "viewports": [
+    "1280x720",
+    "1280x600"
+  ],
+  "layout": [],
+  "state": {
+    "seed": "森屿-跨格立面验收-16",
+    "generatorVersion": 2,
+    "selected": 5,
+    "mode": "build",
+    "tool": "inspect",
+    "crop": "cabbage",
+    "colony": {
+      "version": 1,
+      "speed": 0,
+      "time": 120,
+      "day": 1,
+      "hour": 8,
+      "season": "春季",
+      "weather": "晴朗",
+      "temperature": 22,
+      "resources": {
+        "wood": 168,
+        "stone": 110,
+        "steel": 60,
+        "food": 40,
+        "meal": 14,
+        "medicine": 12,
+        "cloth": 30,
+        "silver": 120,
+        "components": 8,
+        "wheat": 10,
+        "corn": 10,
+        "blueberry": 10,
+        "sugarcane": 10,
+        "cabbage": 10,
+        "leek": 10,
+        "potato": 10,
+        "tomato": 10,
+        "cabbageSeed": 9,
+        "tomatoSeed": 9,
+        "sugarcaneSeed": 9,
+        "wheatSeed": 9,
+        "potatoSeed": 9,
+        "leekSeed": 9,
+        "cornSeed": 9,
+        "friedEgg": 10,
+        "bread": 10,
+        "salad": 10,
+        "pasta": 10,
+        "pancake": 10,
+        "blueberryPie": 10,
+        "pizza": 10,
+        "perfectBreakfast": 10,
+        "lambChopStew": 10,
+        "sugar": 10,
+        "flour": 10,
+        "oil": 10,
+        "blueberryWine": 10,
+        "cheese": 10,
+        "milk": 10,
+        "egg": 10,
+        "wool": 10,
+        "chickenMeat": 10,
+        "mutton": 10,
+        "beef": 10,
+        "pork": 10,
+        "dirt": 0,
+        "pigIron": 0,
+        "plank": 0,
+        "stoneBrick": 0
+      },
+      "playerBag": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "controlledColonistId": null,
+      "chests": [],
+      "colonists": [
+        {
+          "id": "colonist-21",
+          "name": "林夏",
+          "traits": [
+            "勤劳",
+            "巧手"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 9,
+            "grow": 6,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 4,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 1,
+            "construct": 1,
+            "grow": 3,
+            "harvest": 3,
+            "haul": 3,
+            "cook": 3,
+            "chop": 2,
+            "mine": 2,
+            "research": 3,
+            "doctor": 3,
+            "craft": 3
+          },
+          "schedule": "balanced",
+          "position": [
+            18.5,
+            5,
+            18.5
+          ],
+          "health": 100,
+          "hunger": 100,
+          "rest": 100,
+          "recreation": 100,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.78,
+            0.44,
+            0.25
+          ],
+          "carrying": {},
+          "bag": [
+            {
+              "resource": "hammer",
+              "count": 1
+            },
+            {
+              "resource": "axe",
+              "count": 1
+            },
+            {
+              "resource": "pickaxe",
+              "count": 1
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-22",
+          "name": "阿澈",
+          "traits": [
+            "体贴",
+            "乐观"
+          ],
+          "skills": {
+            "terraform": 2,
+            "construct": 2,
+            "grow": 3,
+            "harvest": 6,
+            "haul": 3,
+            "cook": 8,
+            "chop": 3,
+            "mine": 3,
+            "research": 7,
+            "doctor": 7,
+            "craft": 4
+          },
+          "priorities": {
+            "terraform": 3,
+            "construct": 3,
+            "grow": 3,
+            "harvest": 3,
+            "haul": 2,
+            "cook": 1,
+            "chop": 3,
+            "mine": 3,
+            "research": 3,
+            "doctor": 1,
+            "craft": 3
+          },
+          "schedule": "balanced",
+          "position": [
+            18.5,
+            5,
+            19.5
+          ],
+          "health": 100,
+          "hunger": 100,
+          "rest": 100,
+          "recreation": 100,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.29,
+            0.54,
+            0.69
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-23",
+          "name": "青禾",
+          "traits": [
+            "园艺爱好者",
+            "好学"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 5,
+            "grow": 9,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 8,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 3,
+            "construct": 3,
+            "grow": 1,
+            "harvest": 1,
+            "haul": 3,
+            "cook": 3,
+            "chop": 3,
+            "mine": 3,
+            "research": 2,
+            "doctor": 3,
+            "craft": 3
+          },
+          "schedule": "balanced",
+          "position": [
+            18.5,
+            5,
+            20.5
+          ],
+          "health": 100,
+          "hunger": 100,
+          "rest": 100,
+          "recreation": 100,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.55,
+            0.66,
+            0.32
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        }
+      ],
+      "buildings": [
+        {
+          "id": "building-39",
+          "kind": "fence",
+          "x": 22,
+          "z": 16,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-40",
+          "kind": "fence",
+          "x": 21,
+          "z": 17,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-41",
+          "kind": "fence",
+          "x": 23,
+          "z": 17,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-42",
+          "kind": "fence",
+          "x": 20,
+          "z": 18,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-43",
+          "kind": "fence",
+          "x": 24,
+          "z": 18,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-44",
+          "kind": "pastureGate",
+          "x": 19,
+          "z": 19,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 1,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-45",
+          "kind": "fence",
+          "x": 25,
+          "z": 19,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-46",
+          "kind": "fence",
+          "x": 18,
+          "z": 20,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-47",
+          "kind": "fence",
+          "x": 26,
+          "z": 20,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-48",
+          "kind": "fence",
+          "x": 17,
+          "z": 21,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-49",
+          "kind": "fence",
+          "x": 26,
+          "z": 21,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-50",
+          "kind": "fence",
+          "x": 16,
+          "z": 22,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-51",
+          "kind": "fence",
+          "x": 25,
+          "z": 22,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-52",
+          "kind": "fence",
+          "x": 15,
+          "z": 23,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-53",
+          "kind": "fence",
+          "x": 24,
+          "z": 23,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-54",
+          "kind": "fence",
+          "x": 15,
+          "z": 24,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-55",
+          "kind": "fence",
+          "x": 23,
+          "z": 24,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-56",
+          "kind": "fence",
+          "x": 16,
+          "z": 25,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-57",
+          "kind": "fence",
+          "x": 22,
+          "z": 25,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-58",
+          "kind": "fence",
+          "x": 17,
+          "z": 26,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-59",
+          "kind": "fence",
+          "x": 18,
+          "z": 26,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-60",
+          "kind": "fence",
+          "x": 21,
+          "z": 26,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-61",
+          "kind": "fence",
+          "x": 19,
+          "z": 27,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-62",
+          "kind": "fence",
+          "x": 20,
+          "z": 27,
+          "y": 5,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 3
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null
+        }
+      ],
+      "zones": [
+        {
+          "id": "store",
+          "kind": "stockpile",
+          "x": 2,
+          "y": 5,
+          "z": 2,
+          "w": 4,
+          "d": 4,
+          "crop": "cabbage"
+        },
+        {
+          "id": "zone-38",
+          "kind": "pasture",
+          "x": 15,
+          "y": 5,
+          "z": 16,
+          "w": 12,
+          "d": 12,
+          "crop": "cabbage",
+          "cells": [
+            [
+              22,
+              16
+            ],
+            [
+              21,
+              17
+            ],
+            [
+              22,
+              17
+            ],
+            [
+              23,
+              17
+            ],
+            [
+              20,
+              18
+            ],
+            [
+              21,
+              18
+            ],
+            [
+              22,
+              18
+            ],
+            [
+              23,
+              18
+            ],
+            [
+              24,
+              18
+            ],
+            [
+              19,
+              19
+            ],
+            [
+              20,
+              19
+            ],
+            [
+              21,
+              19
+            ],
+            [
+              22,
+              19
+            ],
+            [
+              23,
+              19
+            ],
+            [
+              24,
+              19
+            ],
+            [
+              25,
+              19
+            ],
+            [
+              18,
+              20
+            ],
+            [
+              19,
+              20
+            ],
+            [
+              20,
+              20
+            ],
+            [
+              21,
+              20
+            ],
+            [
+              22,
+              20
+            ],
+            [
+              23,
+              20
+            ],
+            [
+              24,
+              20
+            ],
+            [
+              25,
+              20
+            ],
+            [
+              26,
+              20
+            ],
+            [
+              17,
+              21
+            ],
+            [
+              18,
+              21
+            ],
+            [
+              19,
+              21
+            ],
+            [
+              20,
+              21
+            ],
+            [
+              21,
+              21
+            ],
+            [
+              22,
+              21
+            ],
+            [
+              23,
+              21
+            ],
+            [
+              24,
+              21
+            ],
+            [
+              25,
+              21
+            ],
+            [
+              26,
+              21
+            ],
+            [
+              16,
+              22
+            ],
+            [
+              17,
+              22
+            ],
+            [
+              18,
+              22
+            ],
+            [
+              19,
+              22
+            ],
+            [
+              20,
+              22
+            ],
+            [
+              21,
+              22
+            ],
+            [
+              22,
+              22
+            ],
+            [
+              23,
+              22
+            ],
+            [
+              24,
+              22
+            ],
+            [
+              25,
+              22
+            ],
+            [
+              15,
+              23
+            ],
+            [
+              16,
+              23
+            ],
+            [
+              17,
+              23
+            ],
+            [
+              18,
+              23
+            ],
+            [
+              19,
+              23
+            ],
+            [
+              20,
+              23
+            ],
+            [
+              21,
+              23
+            ],
+            [
+              22,
+              23
+            ],
+            [
+              23,
+              23
+            ],
+            [
+              24,
+              23
+            ],
+            [
+              15,
+              24
+            ],
+            [
+              16,
+              24
+            ],
+            [
+              17,
+              24
+            ],
+            [
+              18,
+              24
+            ],
+            [
+              19,
+              24
+            ],
+            [
+              20,
+              24
+            ],
+            [
+              21,
+              24
+            ],
+            [
+              22,
+              24
+            ],
+            [
+              23,
+              24
+            ],
+            [
+              16,
+              25
+            ],
+            [
+              17,
+              25
+            ],
+            [
+              18,
+              25
+            ],
+            [
+              19,
+              25
+            ],
+            [
+              20,
+              25
+            ],
+            [
+              21,
+              25
+            ],
+            [
+              22,
+              25
+            ],
+            [
+              17,
+              26
+            ],
+            [
+              18,
+              26
+            ],
+            [
+              19,
+              26
+            ],
+            [
+              20,
+              26
+            ],
+            [
+              21,
+              26
+            ],
+            [
+              19,
+              27
+            ],
+            [
+              20,
+              27
+            ]
+          ],
+          "pasture": {
+            "gate": [
+              19,
+              19
+            ],
+            "animals": [],
+            "capacity": 54,
+            "ready": false
+          }
+        }
+      ],
+      "crops": [],
+      "warehouseStacks": [],
+      "items": [],
+      "jobs": [
+        {
+          "id": "job-63",
+          "type": "construct",
+          "targetId": "building-39",
+          "x": 22,
+          "y": 5,
+          "z": 16,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-64",
+          "type": "construct",
+          "targetId": "building-40",
+          "x": 21,
+          "y": 5,
+          "z": 17,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-65",
+          "type": "construct",
+          "targetId": "building-41",
+          "x": 23,
+          "y": 5,
+          "z": 17,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-66",
+          "type": "construct",
+          "targetId": "building-42",
+          "x": 20,
+          "y": 5,
+          "z": 18,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-67",
+          "type": "construct",
+          "targetId": "building-43",
+          "x": 24,
+          "y": 5,
+          "z": 18,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-68",
+          "type": "construct",
+          "targetId": "building-44",
+          "x": 19,
+          "y": 5,
+          "z": 19,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造牧场门"
+        },
+        {
+          "id": "job-69",
+          "type": "construct",
+          "targetId": "building-45",
+          "x": 25,
+          "y": 5,
+          "z": 19,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-70",
+          "type": "construct",
+          "targetId": "building-46",
+          "x": 18,
+          "y": 5,
+          "z": 20,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-71",
+          "type": "construct",
+          "targetId": "building-47",
+          "x": 26,
+          "y": 5,
+          "z": 20,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-72",
+          "type": "construct",
+          "targetId": "building-48",
+          "x": 17,
+          "y": 5,
+          "z": 21,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-73",
+          "type": "construct",
+          "targetId": "building-49",
+          "x": 26,
+          "y": 5,
+          "z": 21,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-74",
+          "type": "construct",
+          "targetId": "building-50",
+          "x": 16,
+          "y": 5,
+          "z": 22,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-75",
+          "type": "construct",
+          "targetId": "building-51",
+          "x": 25,
+          "y": 5,
+          "z": 22,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-76",
+          "type": "construct",
+          "targetId": "building-52",
+          "x": 15,
+          "y": 5,
+          "z": 23,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-77",
+          "type": "construct",
+          "targetId": "building-53",
+          "x": 24,
+          "y": 5,
+          "z": 23,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-78",
+          "type": "construct",
+          "targetId": "building-54",
+          "x": 15,
+          "y": 5,
+          "z": 24,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-79",
+          "type": "construct",
+          "targetId": "building-55",
+          "x": 23,
+          "y": 5,
+          "z": 24,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-80",
+          "type": "construct",
+          "targetId": "building-56",
+          "x": 16,
+          "y": 5,
+          "z": 25,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-81",
+          "type": "construct",
+          "targetId": "building-57",
+          "x": 22,
+          "y": 5,
+          "z": 25,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-82",
+          "type": "construct",
+          "targetId": "building-58",
+          "x": 17,
+          "y": 5,
+          "z": 26,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-83",
+          "type": "construct",
+          "targetId": "building-59",
+          "x": 18,
+          "y": 5,
+          "z": 26,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-84",
+          "type": "construct",
+          "targetId": "building-60",
+          "x": 21,
+          "y": 5,
+          "z": 26,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-85",
+          "type": "construct",
+          "targetId": "building-61",
+          "x": 19,
+          "y": 5,
+          "z": 27,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        },
+        {
+          "id": "job-86",
+          "type": "construct",
+          "targetId": "building-62",
+          "x": 20,
+          "y": 5,
+          "z": 27,
+          "progress": 0,
+          "work": 4,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "建造栅栏"
+        }
+      ],
+      "rooms": [],
+      "research": {
+        "active": null,
+        "progress": {},
+        "completed": []
+      },
+      "power": {
+        "generation": 0,
+        "demand": 0,
+        "stored": 0,
+        "capacity": 0,
+        "supplied": 0,
+        "coldStorage": false
+      },
+      "events": [
+        {
+          "id": "event-26",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "三位旅人抵达河谷。和平营地已建立：先种田、搬运物资，再安排研究与建设。"
+        }
+      ],
+      "metrics": {
+        "jobsCompleted": 0,
+        "built": 0,
+        "harvested": 0,
+        "hauled": 0,
+        "cooked": 0,
+        "researched": 0,
+        "treated": 0,
+        "spoiled": 0,
+        "distanceWalked": 0
+      },
+      "selectedColonistId": null,
+      "terrainPlans": []
+    },
+    "blocks": 5120,
+    "nonAirCount": 5120,
+    "minerals": {
+      "steelOre": {
+        "cells": 0
+      }
+    },
+    "edits": 3586,
+    "editCount": 3586,
+    "revision": 2,
+    "manualCropEdits": 0,
+    "mapToolReturn": 1,
+    "planningGridVisible": true,
+    "zonePreview": null,
+    "undo": false,
+    "redo": false,
+    "hoverCell": [
+      31,
+      5,
+      24
+    ],
+    "status": "已规划牧场，居民将建造外围栏和牧场门",
+    "lastEdit": null,
+    "buildRotation": 0,
+    "selectedBuildingId": null,
+    "hoverBuildingId": null,
+    "hoverBuildingPart": null,
+    "selectedTreeId": null,
+    "hoverTreeId": null,
+    "hoverTreePart": null,
+    "trees": [],
+    "treeModel": {
+      "revision": 2,
+      "instances": 0,
+      "meshes": 0,
+      "materials": 2,
+      "selectedTreeId": null,
+      "triangles": 0,
+      "uniqueTriangles": 0,
+      "models": []
+    },
+    "wildPlants": {
+      "daisy": 0,
+      "poppy": 0,
+      "lavender": 0,
+      "marigold": 0,
+      "hairgrass": 0,
+      "foxtail": 0,
+      "blueberry": 0
+    },
+    "wildAnimals": {
+      "chicken": 0,
+      "cow": 0,
+      "sheep": 0,
+      "pig": 0
+    },
+    "characters": {
+      "residents": [
+        {
+          "id": "colonist-21",
+          "outfit": 6,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-22",
+          "outfit": 7,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-23",
+          "outfit": 8,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "player": null
+    },
+    "placementPreview": null,
+    "camera": {
+      "target": [
+        19.5,
+        4,
+        19.5
+      ],
+      "eye": [
+        42.17295237129021,
+        38.3638539971641,
+        42.17295237129021
+      ],
+      "distance": 47,
+      "yaw": 0.7853981633974483,
+      "pitch": 0.82,
+      "sunShadows": "auto",
+      "shadowDistance": 100,
+      "mode": "god",
+      "followId": null
+    },
+    "player": null,
+    "chunks": 4,
+    "dimensions": [
+      32,
+      24,
+      32
+    ],
+    "worldSize": [
+      32,
+      24,
+      32
+    ],
+    "terrain": {
+      "target": 6,
+      "size": 3,
+      "shape": "brush",
+      "sample": false,
+      "preview": {
+        "cells": 0,
+        "cut": 0,
+        "fill": 0
+      },
+      "minHeight": 1,
+      "maxHeight": 22
+    },
+    "buildHeight": null,
+    "pcg": {
+      "resolution": 16,
+      "version": 2,
+      "revision": 3,
+      "tiles": 0,
+      "pendingTiles": 0,
+      "facades": 0,
+      "windowGroups": 0,
+      "layout": {
+        "version": 2,
+        "groups": []
+      },
+      "windows": 0,
+      "sills": 0,
+      "sidewalks": 0,
+      "stairs": 0,
+      "triangles": 0,
+      "rebuiltTiles": [
+        "2,1",
+        "3,1",
+        "2,2",
+        "3,2",
+        "1,2",
+        "1,3",
+        "2,3",
+        "3,3"
+      ],
+      "features": []
+    },
+    "finaleFade": 0
+  },
+  "execution": "healthy",
+  "errors": {
+    "console": [],
+    "page": [],
+    "inputWarnings": 0
+  },
+  "log": []
+}

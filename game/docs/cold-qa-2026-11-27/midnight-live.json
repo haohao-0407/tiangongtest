@@ -1,0 +1,487 @@
+[
+  {
+    "name": "08-manual-save",
+    "title": null,
+    "time": 719.75,
+    "day": 2,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19608.19346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "premium": {
+          "day": 2,
+          "count": 5
+        }
+      }
+    ],
+    "milk": [
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 3
+        }
+      }
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 599.75,
+      "reservedBy": null,
+      "playerOnly": true
+    },
+    "box": {
+      "resource": "bread",
+      "count": 2,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    },
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    }
+  },
+  {
+    "name": "09-loaded",
+    "title": "面包 · 2 · 2 件保鲜，售价 +20%，次日零点失效 · 加成单价 72 银币",
+    "time": 719.75,
+    "day": 2,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19608.19346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "premium": {
+          "day": 2,
+          "count": 5
+        }
+      }
+    ],
+    "milk": [
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 3
+        }
+      }
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 599.75,
+      "reservedBy": null,
+      "playerOnly": true
+    },
+    "box": {
+      "resource": "bread",
+      "count": 2,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    },
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    }
+  },
+  {
+    "name": "10-expired-chest",
+    "title": "面包 · 2",
+    "time": 720,
+    "day": 3,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19596.94346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 5
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 600,
+      "reservedBy": null,
+      "playerOnly": true
+    },
+    "box": {
+      "resource": "bread",
+      "count": 2,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    },
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    }
+  },
+  {
+    "name": "11-expired",
+    "title": "面包 · 5",
+    "time": 720,
+    "day": 3,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19596.94346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 5
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 600,
+      "reservedBy": null,
+      "playerOnly": true
+    },
+    "box": {
+      "resource": "bread",
+      "count": 2,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    },
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    }
+  },
+  {
+    "name": "12-expired-milk",
+    "title": "牛奶 · 3",
+    "time": 720,
+    "day": 3,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19596.94346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 5
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 600,
+      "reservedBy": null,
+      "playerOnly": true
+    },
+    "box": {
+      "resource": "bread",
+      "count": 2,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    },
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    }
+  },
+  {
+    "name": "16-ground",
+    "title": null,
+    "time": 720,
+    "day": 3,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19596.94346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 5
+          }
+        ]
+      }
+    ],
+    "milk": [
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "freezing": [
+          {
+            "since": 720,
+            "count": 3
+          }
+        ]
+      }
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 600,
+      "reservedBy": null,
+      "playerOnly": true
+    },
+    "box": {
+      "resource": "bread",
+      "count": 2,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    },
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    }
+  },
+  {
+    "name": "18-reentered",
+    "title": null,
+    "time": 719.75,
+    "day": 2,
+    "power": {
+      "generation": 0,
+      "demand": 45,
+      "stored": 19608.19346817869,
+      "capacity": 24000,
+      "supplied": 45,
+      "coldStorage": true
+    },
+    "bread": [
+      {
+        "x": 119,
+        "z": 122,
+        "slot": 2,
+        "resource": "bread",
+        "count": 5,
+        "premium": {
+          "day": 2,
+          "count": 5
+        }
+      }
+    ],
+    "milk": [
+      {
+        "x": 122,
+        "z": 122,
+        "slot": 2,
+        "resource": "milk",
+        "count": 3,
+        "premium": {
+          "day": 2,
+          "count": 3
+        }
+      }
+    ],
+    "ground": {
+      "id": "cold-test-ground",
+      "resource": "bread",
+      "amount": 2,
+      "x": 128,
+      "y": 6,
+      "z": 130,
+      "age": 599.75,
+      "reservedBy": null,
+      "playerOnly": true
+    },
+    "box": {
+      "resource": "bread",
+      "count": 2,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    },
+    "bag": {
+      "resource": "bread",
+      "count": 3,
+      "premium": {
+        "day": 2,
+        "count": 2
+      }
+    }
+  }
+]

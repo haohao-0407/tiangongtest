@@ -1,0 +1,3789 @@
+{
+  "schemaVersion": "1.0.0",
+  "passed": false,
+  "root": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture04-harvest",
+  "script": "scripts\\pasture-harvest-04.mjs",
+  "outputDir": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture04-harvest\\artifacts\\play\\scripts\\pasture-harvest-04",
+  "report": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture04-harvest\\artifacts\\play\\scripts\\pasture-harvest-04\\play.json",
+  "captureReport": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture04-harvest\\artifacts\\play\\scripts\\pasture-harvest-04\\capture.json",
+  "url": "http://localhost:62471/",
+  "backend": "hardware",
+  "timings": {
+    "openMs": 526319,
+    "readyMs": 76142,
+    "scriptMs": 151401,
+    "totalMs": 754991
+  },
+  "steps": [
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 305
+    },
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 222
+    },
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 154
+    },
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 268
+    },
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 174
+    },
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 183
+    },
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 167
+    },
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 134
+    },
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 251
+    },
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 212
+    },
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 197
+    },
+    {
+      "name": "advance 4 s",
+      "ok": true,
+      "ms": 249
+    },
+    {
+      "name": "advance 0.16 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.2 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.16 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "advance 0.2 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.16 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.2 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.16 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "advance 0.2 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "advance 0.16 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.2 s",
+      "ok": true,
+      "ms": 30
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 31
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 39
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 33
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 31
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 33
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 37
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 79
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 71
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 69
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 78
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 63
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 39
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 35
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 66
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 75
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 73
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 30
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 79
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 95
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 67
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 35
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 37
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 37
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 37
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 35
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 39
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 74
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 39
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 39
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 39
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 33
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 33
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 31
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 90
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 69
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 88
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 63
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 75
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 71
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 58
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 66
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 73
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 76
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 74
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 57
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 37
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 76
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 70
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 70
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 39
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 78
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 52
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 49
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 54
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 96
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 51
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 65
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.25 s",
+      "ok": true,
+      "ms": 70
+    },
+    {
+      "name": "advance 0.16 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "advance 0.2 s",
+      "ok": true,
+      "ms": 99
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 147
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 131
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 131
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 122
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 125
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 131
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 161
+    },
+    {
+      "name": "advance 0.16 s",
+      "ok": true,
+      "ms": 62
+    },
+    {
+      "name": "advance 0.2 s",
+      "ok": true,
+      "ms": 98
+    },
+    {
+      "name": "advance 0.16 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "advance 0.2 s",
+      "ok": true,
+      "ms": 101
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 193
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 150
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 160
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 154
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 151
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 134
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 183
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 142
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 196
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 167
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 136
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 135
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 137
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 157
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 153
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 131
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 138
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 137
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 130
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 141
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 130
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 136
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 136
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 121
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 126
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 133
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 146
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 122
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 139
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 115
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 145
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 162
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 157
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 133
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 103
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 115
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 138
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 113
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 127
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 157
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 119
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 123
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 127
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 130
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 137
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 132
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 153
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 126
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 130
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 130
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 97
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 125
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 147
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 159
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 141
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 121
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 131
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 128
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 132
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 126
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 142
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 132
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 120
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 129
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 145
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 156
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 157
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 148
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 141
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 130
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 140
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 132
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 112
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 112
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 109
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 130
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 146
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 129
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 126
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 142
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 136
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 132
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 158
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 137
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 139
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 132
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 130
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 125
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 134
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 142
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 136
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 141
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 145
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 154
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 130
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 133
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 145
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 149
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 120
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 146
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 141
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 141
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 123
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 122
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 132
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 132
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 142
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 135
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 121
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 122
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 113
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 136
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 121
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 105
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 120
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 138
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 124
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 104
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 103
+    },
+    {
+      "name": "advance 2 s",
+      "ok": true,
+      "ms": 118
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "failure",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture04-harvest\\.forgeax\\diag\\artifacts\\play\\scripts\\pasture-harvest-04\\01-failure.png",
+      "rendered": true,
+      "digest": "sha256:7a6d63495a75f576b80de0fc9098a99d7b59731d1a9effb661e37edd6b95d277"
+    }
+  ],
+  "viewports": [
+    "1280x720"
+  ],
+  "layout": [],
+  "state": {
+    "seed": "草场-154",
+    "generatorVersion": 3,
+    "selected": 5,
+    "mode": "build",
+    "tool": "inspect",
+    "crop": "cabbage",
+    "colony": {
+      "version": 1,
+      "speed": 1,
+      "time": 504.25,
+      "day": 2,
+      "hour": 9.616666666666667,
+      "season": "春季",
+      "weather": "晴朗",
+      "temperature": 22.05359426306739,
+      "resources": {
+        "wood": 92,
+        "stone": 0,
+        "steel": 6,
+        "food": 0,
+        "meal": 24,
+        "medicine": 0,
+        "cloth": 0,
+        "silver": 10,
+        "components": 0,
+        "wheat": 0,
+        "corn": 0,
+        "blueberry": 0,
+        "sugarcane": 0,
+        "cabbage": 0,
+        "leek": 0,
+        "potato": 0,
+        "tomato": 0,
+        "cabbageSeed": 0,
+        "tomatoSeed": 0,
+        "sugarcaneSeed": 0,
+        "wheatSeed": 0,
+        "potatoSeed": 0,
+        "leekSeed": 0,
+        "cornSeed": 0,
+        "friedEgg": 0,
+        "bread": 0,
+        "salad": 0,
+        "pasta": 0,
+        "pancake": 0,
+        "blueberryPie": 0,
+        "pizza": 0,
+        "perfectBreakfast": 0,
+        "lambChopStew": 0,
+        "sugar": 0,
+        "flour": 0,
+        "oil": 128,
+        "blueberryWine": 0,
+        "cheese": 0,
+        "milk": 0,
+        "egg": 0,
+        "wool": 0,
+        "chickenMeat": 0,
+        "mutton": 0,
+        "beef": 0,
+        "pork": 0,
+        "dirt": 0,
+        "pigIron": 0,
+        "plank": 0,
+        "stoneBrick": 0
+      },
+      "playerBag": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "controlledColonistId": null,
+      "chests": [],
+      "colonists": [
+        {
+          "id": "colonist-21",
+          "name": "林夏",
+          "traits": [
+            "勤劳",
+            "巧手"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 11.039999999999987,
+            "grow": 6,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 4,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 1,
+            "grow": 0,
+            "harvest": 1,
+            "haul": 0,
+            "cook": 1,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 1
+          },
+          "schedule": "day",
+          "position": [
+            23.80000000000001,
+            7,
+            23.5
+          ],
+          "health": 100,
+          "hunger": 53.88999999999825,
+          "rest": 73.10250000000262,
+          "recreation": 78.86624999999738,
+          "mood": 63.43104884364969,
+          "disease": 0,
+          "task": "建造挤奶器",
+          "jobId": "job-122",
+          "color": [
+            0.78,
+            0.44,
+            0.25
+          ],
+          "carrying": {},
+          "bag": [
+            {
+              "resource": "hammer",
+              "count": 1
+            },
+            {
+              "resource": "axe",
+              "count": 1
+            },
+            {
+              "resource": "pickaxe",
+              "count": 1
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": -1.5707963267948966,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-22",
+          "name": "阿澈",
+          "traits": [
+            "体贴",
+            "乐观"
+          ],
+          "skills": {
+            "terraform": 2,
+            "construct": 3.080000000000001,
+            "grow": 3,
+            "harvest": 6,
+            "haul": 3,
+            "cook": 8,
+            "chop": 3,
+            "mine": 3,
+            "research": 7,
+            "doctor": 7,
+            "craft": 4
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 1,
+            "grow": 0,
+            "harvest": 1,
+            "haul": 0,
+            "cook": 1,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 1
+          },
+          "schedule": "day",
+          "position": [
+            23.5,
+            7,
+            22.974921878051482
+          ],
+          "health": 100,
+          "hunger": 53.88999999999825,
+          "rest": 73.10250000000262,
+          "recreation": 78.86624999999738,
+          "mood": 71.43052637922347,
+          "disease": 0,
+          "task": "前往建造鸡窝",
+          "jobId": "job-126",
+          "color": [
+            0.29,
+            0.54,
+            0.69
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-23",
+          "name": "青禾",
+          "traits": [
+            "园艺爱好者",
+            "好学"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 5,
+            "grow": 9,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 8,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 1,
+            "grow": 0,
+            "harvest": 1,
+            "haul": 0,
+            "cook": 1,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 1
+          },
+          "schedule": "night",
+          "position": [
+            21.5,
+            7,
+            28.5
+          ],
+          "health": 100,
+          "hunger": 53.88999999999825,
+          "rest": 100,
+          "recreation": 87.01999999999839,
+          "mood": 56.415664735963894,
+          "disease": 39.94925000000049,
+          "task": "卧床休养",
+          "jobId": null,
+          "color": [
+            0.55,
+            0.66,
+            0.32
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": -1.5707963267948966,
+          "comfort": 0
+        }
+      ],
+      "buildings": [
+        {
+          "id": "stove",
+          "kind": "stove",
+          "x": 33,
+          "z": 28,
+          "y": 7,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "rotation": 0,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "cheesePress",
+          "kind": "cheesePress",
+          "x": 30,
+          "z": 28,
+          "y": 7,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "rotation": 0,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-39",
+          "kind": "fence",
+          "x": 19,
+          "z": 20,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-40",
+          "kind": "fence",
+          "x": 20,
+          "z": 20,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-41",
+          "kind": "fence",
+          "x": 21,
+          "z": 20,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-42",
+          "kind": "pastureGate",
+          "x": 22,
+          "z": 20,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-43",
+          "kind": "fence",
+          "x": 23,
+          "z": 20,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-44",
+          "kind": "fence",
+          "x": 24,
+          "z": 20,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-45",
+          "kind": "fence",
+          "x": 25,
+          "z": 20,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-46",
+          "kind": "fence",
+          "x": 26,
+          "z": 20,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-47",
+          "kind": "fence",
+          "x": 19,
+          "z": 21,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-48",
+          "kind": "fence",
+          "x": 26,
+          "z": 21,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-49",
+          "kind": "fence",
+          "x": 19,
+          "z": 22,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-50",
+          "kind": "fence",
+          "x": 26,
+          "z": 22,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 1,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-51",
+          "kind": "fence",
+          "x": 19,
+          "z": 23,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-52",
+          "kind": "fence",
+          "x": 26,
+          "z": 23,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-53",
+          "kind": "fence",
+          "x": 19,
+          "z": 24,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-54",
+          "kind": "fence",
+          "x": 26,
+          "z": 24,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-55",
+          "kind": "fence",
+          "x": 19,
+          "z": 25,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-56",
+          "kind": "fence",
+          "x": 20,
+          "z": 25,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-57",
+          "kind": "fence",
+          "x": 21,
+          "z": 25,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-58",
+          "kind": "fence",
+          "x": 22,
+          "z": 25,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-59",
+          "kind": "fence",
+          "x": 23,
+          "z": 25,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-60",
+          "kind": "fence",
+          "x": 24,
+          "z": 25,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-61",
+          "kind": "fence",
+          "x": 25,
+          "z": 25,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-62",
+          "kind": "fence",
+          "x": 26,
+          "z": 25,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "h": 1,
+          "rotation": 0,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "building-120",
+          "kind": "milker",
+          "x": 24,
+          "y": 7,
+          "z": 23,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "rotation": 0,
+          "phase": "constructing",
+          "complete": false,
+          "progress": 0.9791666666666666,
+          "reserved": {
+            "wood": 6,
+            "steel": 2
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null,
+          "terrainPlanId": "terrain-121",
+          "blockedReason": "等待角色离开建筑占地"
+        },
+        {
+          "id": "building-124",
+          "kind": "henNest",
+          "x": 22,
+          "y": 7,
+          "z": 23,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "rotation": 0,
+          "phase": "readyToBuild",
+          "complete": false,
+          "progress": 0,
+          "reserved": {
+            "wood": 4
+          },
+          "powered": false,
+          "comfort": 0,
+          "roomId": null,
+          "terrainPlanId": "terrain-125"
+        }
+      ],
+      "zones": [
+        {
+          "id": "food",
+          "kind": "stockpile",
+          "storageClass": "food",
+          "x": 28,
+          "z": 22,
+          "y": 7,
+          "w": 1,
+          "d": 1,
+          "crop": "cabbage"
+        },
+        {
+          "id": "general",
+          "kind": "stockpile",
+          "x": 30,
+          "z": 20,
+          "y": 7,
+          "w": 5,
+          "d": 4,
+          "crop": "cabbage"
+        },
+        {
+          "id": "zone-38",
+          "kind": "pasture",
+          "x": 19,
+          "y": 7,
+          "z": 20,
+          "w": 8,
+          "d": 6,
+          "crop": "cabbage",
+          "pasture": {
+            "gate": [
+              22,
+              20
+            ],
+            "animals": [
+              {
+                "id": "cow-37-34",
+                "kind": "cow",
+                "young": false,
+                "female": true,
+                "state": "home",
+                "x": 20,
+                "z": 21,
+                "homeX": 20,
+                "homeZ": 21,
+                "readyAt": 215.5
+              },
+              {
+                "id": "cow-38-37",
+                "kind": "cow",
+                "young": false,
+                "female": true,
+                "state": "home",
+                "x": 21,
+                "z": 21,
+                "homeX": 21,
+                "homeZ": 21,
+                "readyAt": 225
+              },
+              {
+                "id": "pig-29-2",
+                "kind": "pig",
+                "young": false,
+                "female": true,
+                "state": "home",
+                "x": 22,
+                "z": 21,
+                "homeX": 22,
+                "homeZ": 21,
+                "readyAt": 194
+              },
+              {
+                "id": "sheep-26-7",
+                "kind": "sheep",
+                "young": false,
+                "female": false,
+                "state": "home",
+                "x": 23,
+                "z": 21,
+                "homeX": 23,
+                "homeZ": 21,
+                "readyAt": 188
+              },
+              {
+                "id": "chicken-22-44",
+                "kind": "chicken",
+                "young": false,
+                "female": true,
+                "state": "home",
+                "x": 24,
+                "z": 21,
+                "homeX": 24,
+                "homeZ": 21,
+                "readyAt": 427.25
+              }
+            ],
+            "capacity": 22,
+            "ready": true
+          }
+        }
+      ],
+      "crops": [],
+      "warehouseStacks": [
+        {
+          "x": 28,
+          "z": 22,
+          "slot": 0,
+          "resource": "oil",
+          "count": 32
+        },
+        {
+          "x": 28,
+          "z": 22,
+          "slot": 1,
+          "resource": "oil",
+          "count": 32
+        },
+        {
+          "x": 28,
+          "z": 22,
+          "slot": 2,
+          "resource": "oil",
+          "count": 32
+        },
+        {
+          "x": 28,
+          "z": 22,
+          "slot": 3,
+          "resource": "oil",
+          "count": 32
+        }
+      ],
+      "items": [],
+      "jobs": [
+        {
+          "id": "job-122",
+          "type": "construct",
+          "targetId": "building-120",
+          "x": 24,
+          "y": 7,
+          "z": 23,
+          "progress": 11.75,
+          "work": 12,
+          "state": "working",
+          "assignedTo": "colonist-21",
+          "reserved": {},
+          "label": "建造挤奶器"
+        },
+        {
+          "id": "job-126",
+          "type": "construct",
+          "targetId": "building-124",
+          "x": 22,
+          "y": 7,
+          "z": 23,
+          "progress": 0,
+          "work": 6,
+          "state": "working",
+          "assignedTo": "colonist-22",
+          "reserved": {},
+          "label": "建造鸡窝"
+        },
+        {
+          "id": "job-130",
+          "type": "doctor",
+          "targetId": "colonist-23",
+          "x": 21,
+          "y": 7,
+          "z": 28,
+          "progress": 0,
+          "work": 9,
+          "state": "queued",
+          "assignedTo": null,
+          "reserved": {},
+          "label": "治疗青禾"
+        }
+      ],
+      "rooms": [],
+      "guideHousing": {
+        "npcId": "guide",
+        "status": "camp",
+        "position": [
+          27.5,
+          7,
+          27.5
+        ],
+        "roomId": null,
+        "bedId": null,
+        "comfort": 0,
+        "cleanliness": 0,
+        "quality": 0,
+        "buyFactor": 1,
+        "recycleFactor": 1
+      },
+      "research": {
+        "active": null,
+        "progress": {},
+        "completed": []
+      },
+      "power": {
+        "generation": 0,
+        "demand": 0,
+        "stored": 0,
+        "capacity": 0,
+        "supplied": 0,
+        "coldStorage": false
+      },
+      "events": [
+        {
+          "id": "event-26",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "三位旅人抵达河谷。和平营地已建立：先种田、搬运物资，再安排研究与建设。"
+        },
+        {
+          "id": "event-87",
+          "time": 123.25,
+          "day": 1,
+          "hour": 8.216666666666667,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-88",
+          "time": 127,
+          "day": 1,
+          "hour": 8.466666666666667,
+          "type": "info",
+          "text": "阿澈完成了栅栏。"
+        },
+        {
+          "id": "event-89",
+          "time": 129.25,
+          "day": 1,
+          "hour": 8.616666666666667,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-90",
+          "time": 132,
+          "day": 1,
+          "hour": 8.799999999999999,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-91",
+          "time": 132,
+          "day": 1,
+          "hour": 8.799999999999999,
+          "type": "info",
+          "text": "阿澈完成了栅栏。"
+        },
+        {
+          "id": "event-92",
+          "time": 134.75,
+          "day": 1,
+          "hour": 8.983333333333334,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-93",
+          "time": 137,
+          "day": 1,
+          "hour": 9.133333333333333,
+          "type": "info",
+          "text": "阿澈完成了牧场门。"
+        },
+        {
+          "id": "event-94",
+          "time": 137.5,
+          "day": 1,
+          "hour": 9.166666666666666,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-95",
+          "time": 140.25,
+          "day": 1,
+          "hour": 9.35,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-96",
+          "time": 142,
+          "day": 1,
+          "hour": 9.466666666666667,
+          "type": "info",
+          "text": "阿澈完成了栅栏。"
+        },
+        {
+          "id": "event-97",
+          "time": 142.75,
+          "day": 1,
+          "hour": 9.516666666666666,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-98",
+          "time": 145,
+          "day": 1,
+          "hour": 9.666666666666668,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-99",
+          "time": 146.75,
+          "day": 1,
+          "hour": 9.783333333333333,
+          "type": "info",
+          "text": "阿澈完成了栅栏。"
+        },
+        {
+          "id": "event-100",
+          "time": 149.5,
+          "day": 1,
+          "hour": 9.966666666666667,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-101",
+          "time": 152.5,
+          "day": 1,
+          "hour": 10.166666666666666,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-102",
+          "time": 152.5,
+          "day": 1,
+          "hour": 10.166666666666666,
+          "type": "info",
+          "text": "阿澈完成了栅栏。"
+        },
+        {
+          "id": "event-103",
+          "time": 155,
+          "day": 1,
+          "hour": 10.333333333333334,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-104",
+          "time": 157.25,
+          "day": 1,
+          "hour": 10.483333333333334,
+          "type": "info",
+          "text": "阿澈完成了栅栏。"
+        },
+        {
+          "id": "event-105",
+          "time": 157.5,
+          "day": 1,
+          "hour": 10.5,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-106",
+          "time": 160,
+          "day": 1,
+          "hour": 10.666666666666666,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-107",
+          "time": 162,
+          "day": 1,
+          "hour": 10.8,
+          "type": "info",
+          "text": "阿澈完成了栅栏。"
+        },
+        {
+          "id": "event-108",
+          "time": 163.5,
+          "day": 1,
+          "hour": 10.9,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-109",
+          "time": 166,
+          "day": 1,
+          "hour": 11.066666666666666,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-110",
+          "time": 166.5,
+          "day": 1,
+          "hour": 11.100000000000001,
+          "type": "info",
+          "text": "阿澈完成了栅栏。"
+        },
+        {
+          "id": "event-117",
+          "time": 256.25,
+          "day": 1,
+          "hour": 17.083333333333336,
+          "type": "info",
+          "text": "林夏完成了牧场门。"
+        },
+        {
+          "id": "event-119",
+          "time": 261.25,
+          "day": 1,
+          "hour": 17.416666666666664,
+          "type": "info",
+          "text": "林夏完成了栅栏。"
+        },
+        {
+          "id": "event-123",
+          "time": 261.75,
+          "day": 1,
+          "hour": 17.45,
+          "type": "info",
+          "text": "已规划挤奶器，地基整平后再施工。"
+        },
+        {
+          "id": "event-127",
+          "time": 261.75,
+          "day": 1,
+          "hour": 17.45,
+          "type": "info",
+          "text": "已规划鸡窝，地基整平后再施工。"
+        },
+        {
+          "id": "event-128",
+          "time": 360,
+          "day": 2,
+          "hour": 0,
+          "type": "weather",
+          "text": "第 2 天：春季，预计晴朗。留意居民需求与食品供应。"
+        },
+        {
+          "id": "event-129",
+          "time": 360,
+          "day": 2,
+          "hour": 0,
+          "type": "health",
+          "text": "青禾出现季节性感冒。安排医生、药品与休养可帮助恢复。"
+        }
+      ],
+      "metrics": {
+        "jobsCompleted": 31,
+        "built": 26,
+        "harvested": 0,
+        "hauled": 0,
+        "cooked": 0,
+        "researched": 0,
+        "treated": 0,
+        "spoiled": 0,
+        "distanceWalked": 575.8515640804806
+      },
+      "selectedColonistId": null,
+      "terrainPlans": [
+        {
+          "id": "terrain-121",
+          "target": 7,
+          "remainingCut": 0,
+          "remainingFill": 0,
+          "progress": 1,
+          "state": "completed",
+          "buildingId": "building-120",
+          "cells": [
+            [
+              24,
+              23
+            ]
+          ]
+        },
+        {
+          "id": "terrain-125",
+          "target": 7,
+          "remainingCut": 0,
+          "remainingFill": 0,
+          "progress": 1,
+          "state": "completed",
+          "buildingId": "building-124",
+          "cells": [
+            [
+              22,
+              23
+            ]
+          ]
+        }
+      ]
+    },
+    "blocks": 16128,
+    "nonAirCount": 16128,
+    "minerals": {
+      "steelOre": {
+        "cells": 0
+      }
+    },
+    "edits": 11641,
+    "editCount": 11641,
+    "revision": 1,
+    "manualCropEdits": 0,
+    "mapToolReturn": 2,
+    "planningGridVisible": false,
+    "zonePreview": null,
+    "undo": false,
+    "redo": false,
+    "hoverCell": [
+      22,
+      7,
+      23
+    ],
+    "status": "1 倍速",
+    "lastEdit": null,
+    "buildRotation": 0,
+    "selectedBuildingId": null,
+    "hoverBuildingId": "building-124",
+    "hoverBuildingPart": {
+      "x": 22,
+      "y": 7,
+      "z": 23,
+      "role": "body"
+    },
+    "selectedTreeId": null,
+    "hoverTreeId": null,
+    "hoverTreePart": null,
+    "trees": [],
+    "treeModel": {
+      "revision": 2,
+      "instances": 0,
+      "meshes": 0,
+      "materials": 2,
+      "selectedTreeId": null,
+      "triangles": 0,
+      "uniqueTriangles": 0,
+      "models": []
+    },
+    "wildPlants": {
+      "daisy": 3,
+      "poppy": 1,
+      "lavender": 1,
+      "marigold": 2,
+      "hairgrass": 13,
+      "foxtail": 4,
+      "blueberry": 1
+    },
+    "wildAnimals": {
+      "chicken": 1,
+      "cow": 2,
+      "sheep": 1,
+      "pig": 1
+    },
+    "characters": {
+      "residents": [
+        {
+          "id": "colonist-21",
+          "outfit": 6,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-22",
+          "outfit": 7,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-23",
+          "outfit": 8,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "player": null
+    },
+    "placementPreview": null,
+    "camera": {
+      "target": [
+        25.825000000000003,
+        6,
+        23.5
+      ],
+      "eye": [
+        48.49795237129021,
+        40.3638539971641,
+        46.17295237129021
+      ],
+      "distance": 47,
+      "yaw": 0.7853981633974483,
+      "pitch": 0.82,
+      "sunShadows": "auto",
+      "shadowDistance": 100,
+      "mode": "god",
+      "followId": null
+    },
+    "player": null,
+    "chunks": 4,
+    "dimensions": [
+      48,
+      24,
+      48
+    ],
+    "worldSize": [
+      48,
+      24,
+      48
+    ],
+    "terrain": {
+      "target": 6,
+      "size": 3,
+      "shape": "brush",
+      "sample": false,
+      "preview": {
+        "cells": 0,
+        "cut": 0,
+        "fill": 0
+      },
+      "minHeight": 1,
+      "maxHeight": 22
+    },
+    "buildHeight": null,
+    "pcg": {
+      "resolution": 16,
+      "version": 2,
+      "revision": 4,
+      "tiles": 0,
+      "pendingTiles": 0,
+      "facades": 0,
+      "windowGroups": 0,
+      "layout": {
+        "version": 2,
+        "groups": []
+      },
+      "windows": 0,
+      "sills": 0,
+      "sidewalks": 0,
+      "stairs": 0,
+      "triangles": 0,
+      "rebuiltTiles": [
+        "2,2",
+        "3,2",
+        "2,3",
+        "3,3"
+      ],
+      "features": []
+    },
+    "finaleFade": 0
+  },
+  "errors": {
+    "console": [],
+    "page": [],
+    "inputWarnings": 0
+  },
+  "log": [],
+  "failure": {
+    "code": "play-step-failed",
+    "reason": "script-error",
+    "message": "stations {\"time\":502.75,\"workers\":[\"建造挤奶器\",\"前往建造鸡窝\",\"卧床休养\"],\"jobs\":[{\"id\":\"job-122\",\"type\":\"construct\",\"targetId\":\"building-120\",\"x\":24,\"y\":7,\"z\":23,\"progress\":11.75,\"work\":12,\"state\":\"working\",\"assignedTo\":\"colonist-21\",\"reserved\":{},\"label\":\"建造挤奶器\"},{\"id\":\"job-126\",\"type\":\"construct\",\"targetId\":\"building-124\",\"x\":22,\"y\":7,\"z\":23,\"progress\":0,\"work\":6,\"s…",
+    "action": "state voxel.world",
+    "screenshot": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\.launcher\\pasture04-harvest\\.forgeax\\diag\\artifacts\\play\\scripts\\pasture-harvest-04\\01-failure.png"
+  }
+}
