@@ -102,6 +102,10 @@ export function coldEffect(resource: InventoryItem) {
 export const STORAGE_CLASSES = {general:'普通仓', food:'食材仓', materials:'建材仓'} as const;
 export type StorageClass = keyof typeof STORAGE_CLASSES;
 export interface BuildingView { storageClass?: StorageClass }
+export interface BuildingView {
+  /** The standing structure while residents convert a fence section into a gate or back. */
+  previousBoundary?: {kind:'fence'|'pastureGate';rotation:BuildingRotation};
+}
 export interface ZoneView { storageClass?: StorageClass }
 export const isStorageClass = (value:unknown):value is StorageClass =>
   typeof value === 'string' && Object.hasOwn(STORAGE_CLASSES,value);

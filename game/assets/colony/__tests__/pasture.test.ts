@@ -41,6 +41,20 @@ it('builds an enclosure, changes its entrance, leads an animal, milks and hauls 
   const next=pastureLayout({x:15,z:8,w:5,d:4}).gates.find(g=>g.cell.join()!==old.join())!.cell;
   expect(sim.command({action:'pastureGate',x:next[0],z:next[1]}).ok).toBe(true);
   expect(pen().gate).toEqual(old);
+  // Cancelling a partially converted, saved gate must preserve the actual standing section.
+  const cancelRenovation=(expectedGates:number)=>{
+    const copy=new ColonySimulation(world);copy.load(sim.serialize());
+    expect(copy.command({action:'cancel',id:result.id}).ok).toBe(true);
+    copy.load(copy.serialize());
+    const standing=copy.snapshot().buildings;
+    expect(standing).toHaveLength(14);
+    expect(standing.every(b=>b.complete && !b.previousBoundary)).toBe(true);
+    expect(standing.filter(b=>b.kind==='pastureGate')).toHaveLength(expectedGates);
+    expect(standing.find(b=>b.x===old[0] && b.z===old[1])?.kind).toBe('pastureGate');
+  };
+  cancelRenovation(1);
+  until(()=>pen().gate.join()===next.join());
+  cancelRenovation(2);
   until(()=>!!pen().ready&&pen().gate.join()===next.join());
   expect(sim.snapshot().buildings.filter(b=>b.kind==='pastureGate'&&b.complete)).toHaveLength(1);
   expect(sim.command({action:'herdAnimal',id:result.id,x:12,z:10}).ok).toBe(true);

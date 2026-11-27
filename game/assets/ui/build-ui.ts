@@ -434,7 +434,11 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       select.disabled=!pen.ready;
       const gate=toolButton('更改门位','pasture-gate','gate-'+zone.id);gate.disabled=!pen.ready;
       actions.append(select,gate);
-      if(!pen.animals.length)actions.append(button('取消牧场','cancel-'+zone.id,{action:'cancel',id:zone.id}));
+      if(!pen.animals.length){
+        const cancel=button('取消牧场规划','cancel-'+zone.id,{action:'cancel',id:zone.id});
+        cancel.title='撤销未完成的围栏施工，保留已经建好的栅栏、门和设施。';
+        actions.append(cancel);
+      }
       section.append(actions);
       if(pen.animals.length)section.append(note(pen.animals.map(a=>(a.young?'幼年':'成年')+(a.female?'母':'公')+STOCK_NAMES[a.kind]+(a.state==='home'?'':'（领入中）')).join('、')));
       root.append(section);

@@ -1248,6 +1248,7 @@ export class ColonySimulation {
     if(!gate||this.buildingAt.get(this.cellKey(c.x!,c.z!))?.kind!=='fence')throw new Error('请选择内外均可通行的外围栏，不可用角格。');
     pen.pendingGate=gate.cell;
     const target=this.buildingAt.get(this.cellKey(...gate.cell))!;
+    target.previousBoundary={kind:'fence',rotation:target.rotation};
     target.kind='pastureGate';target.rotation=gate.outside[0]!==target.x?1:0;target.complete=false;target.progress=0;target.phase='readyToBuild';
     this.invalidateBuildingNavigation();this.refreshJobs();
     return {ok:true,message:'已安排改门，新门建成后居民将补上旧门。'};
@@ -1365,6 +1366,13 @@ export class ColonySimulation {
       if(building.complete)throw new Error('已完工建筑不可作为蓝图取消。');
       this.give(building.reserved); building.reserved={};
       for(const job of [...this.s.jobs])if(job.targetId===building.id)this.removeJob(job,true);
+      if(building.previousBoundary){
+        Object.assign(building,building.previousBoundary,{complete:true,progress:1,phase:'completed'});
+        delete building.previousBoundary;
+        delete building.blockedReason;
+        this.invalidateBuildingNavigation();this.refreshJobs();
+        return {ok:true,message:'改建已取消，原设施已保留'};
+      }
       this.s.buildings.splice(this.s.buildings.indexOf(building),1);
       for(const p of this.s.terrainPlans)if(p.buildingId===building.id)this.terrainCellViews.delete(p.id);
       this.s.terrainPlans=this.s.terrainPlans.filter(p=>p.buildingId!==building.id);this.terrainIndexDirty=true;this.invalidateBuildingNavigation();this.refreshJobs();
@@ -1391,7 +1399,7 @@ export class ColonySimulation {
       }
       if(zone.kind==='stockpile')this.spillStorage(stack => !!stack.shelfId || !containsCell(zone,stack.x,stack.z));
       this.terrainIndexDirty=true;this.refreshJobs();
-      return{ok:true,message:'区域已取消'};
+      return{ok:true,message:zone.pasture?'牧场规划已取消，已建成的栅栏、门和设施已保留':'区域已取消'};
     }
     throw new Error('未找到可取消的蓝图、区域或工作。');
   }
@@ -2232,6 +2240,7 @@ export class ColonySimulation {
     const leaves = buildingParts(building).filter(part => this.world.get(part.x,part.y,part.z) === BLOCK.Leaves);
     if (leaves.length) this.world.edit(leaves.map(({x,y,z}) => ({x,y,z,block:BLOCK.Air})));
     building.complete = true;
+    delete building.previousBoundary;
     building.phase = 'completed';
     building.reserved = {};
     this.s.metrics.built++;
@@ -2250,7 +2259,10 @@ export class ColonySimulation {
       if(pen?.pendingGate){
         const old=this.buildingAt.get(this.cellKey(...pen.gate));
         pen.gate=pen.pendingGate; delete pen.pendingGate;
-        if(old?.kind==='pastureGate'){old.kind='fence';old.complete=false;old.progress=0;old.phase='readyToBuild';}
+        if(old?.kind==='pastureGate'){
+          old.previousBoundary={kind:'pastureGate',rotation:old.rotation};
+          old.kind='fence';old.complete=false;old.progress=0;old.phase='readyToBuild';
+        }
         this.invalidateBuildingNavigation();this.refreshJobs();
       }
     }
@@ -3016,6 +3028,8 @@ export class ColonySimulation {
     for(const b of s.buildings){
       if(!location(b)||!integer(b.y,1,this.world.height-1)||!(b.kind in BUILDING_DEFS)||typeof b.complete!=='boolean'||!finite(b.progress,0,1)||!resources(b.reserved,true)||typeof b.powered!=='boolean'||!finite(b.comfort,0,100)||b.roomId!==null&&!integer(b.roomId,0,area)||!integer(b.w,1,this.world.width)||!integer(b.d,1,this.world.depth)||!integer(b.h,1,this.world.height)||!integer(b.rotation,0,3)||b.x+b.w>this.world.width||b.z+b.d>this.world.depth||b.y+b.h>this.world.height||!['preparingTerrain','readyToBuild','constructing','completed'].includes(b.phase)||b.terrainPlanId!==undefined&&!planIds.has(b.terrainPlanId)||b.blockedReason!==undefined&&!text(b.blockedReason)||isSwingDoor(b.kind)&&typeof b.doorOpen!=='boolean'||!isSwingDoor(b.kind)&&b.doorOpen!==undefined)fail();
       if(b.complete&&(b.phase!=='completed'||b.progress!==1||Object.keys(b.reserved).length)||!b.complete&&b.phase==='completed')fail();
+      if(b.previousBoundary!==undefined && (b.complete || !b.previousBoundary || !integer(b.previousBoundary.rotation,0,3) ||
+        !(b.kind==='pastureGate' && b.previousBoundary.kind==='fence' || b.kind==='fence' && b.previousBoundary.kind==='pastureGate')))fail();
       const slots=BUILDING_DEFS[b.kind].storageSlots;
       if(slots ? !b.complete||!inventory(b.storage,slots) : b.storage!==undefined)fail();
     }

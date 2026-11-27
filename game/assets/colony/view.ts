@@ -1,5 +1,5 @@
 import { sugarPressParts } from './sugar-press.ts';
-import { containsCell, footprintCells, type Footprint } from './zone-cells.ts';
+import { footprintCells, type Footprint } from './zone-cells.ts';
 import type { World, EntityHandle } from '@forgeax/engine/ecs';
 import type { AssetRegistry } from '@forgeax/engine/assets-runtime';
 import { createBoxGeometry } from '@forgeax/engine/geometry';
@@ -11,7 +11,7 @@ import { FARM_SOIL_HEIGHT, type CropCards } from './crop-cards.ts';
 import type { VoxelWorld } from '../voxel/model.ts';
 import type { WallPanel } from '../voxel/pcg/facade.ts';
 import { WALL_HEIGHT } from '../voxel/pcg/rules.ts';
-import { BUILDING_DEFS, STORAGE_QUARTERS, buildingItemKind, isCropSeed, type BuildingKind, type CropKind, type PlayerInventorySlot, type StoredStack } from './contracts.ts';
+import { BUILDING_DEFS, STORAGE_QUARTERS, buildingItemKind, isCropSeed, type BuildingKind, type BuildingView, type CropKind, type PlayerInventorySlot, type StoredStack } from './contracts.ts';
 import { buildingDimensions } from './buildings.ts';
 import textileModels from './textile-models.json';
 import { cardLayers, isWarehouseCard, packageSize, warehouseSlotContents } from './warehouse.ts';
@@ -22,11 +22,12 @@ import { PointLight } from '@forgeax/engine/render';
 type V3=[number,number,number];
 type Rotation=[number,number,number,number];
 const IDENTITY:Rotation=[0,0,0,1];
+const FENCE_DIRECTIONS = [[1,0],[0,1],[-1,0],[0,-1]] as const;
 export type BuildingModel = { mesh: AssetHandle<'mesh'>; scale: V3 };
 type Part = { p: V3; s: V3; shadow?: boolean; rotation?: Rotation } &
   ({ c: string; mesh?: undefined } | { mesh: AssetHandle<'mesh'>; c?: undefined });
 type RenderPawn={id:string;name:string;position:V3;health:number;facing?:number;task?:string;job?:string;bag?:readonly PlayerInventorySlot[];bagSelected?:number;carrying?:Partial<Record<string,number>>};
-type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;h?:number;rotation?:number;doorOpen?:boolean;complete:boolean;progress:number;powered?:boolean;phase?:string};
+type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;h?:number;rotation?:number;doorOpen?:boolean;complete:boolean;progress:number;powered?:boolean;phase?:string;previousBoundary?:BuildingView['previousBoundary']};
 export type ColonyRenderState={
   merchants?: readonly MerchantHousing[];
   colonists:RenderPawn[]; buildings:RenderBuilding[]; finale?:FinaleView;
@@ -156,7 +157,7 @@ export class ColonyView {
     this.put('云影',parts,active,'cloud');
   }
 
-  private buildingGeometry(b: RenderBuilding, scale=1): Part[] {
+  private buildingGeometry(b: RenderBuilding, scale=1, fenceConnections=0): Part[] {
     const w=b.w??1,d=b.d??1,h=b.h??1,x=b.x+w/2,y=b.y,z=b.z+d/2;
     const rotation=b.rotation??0,ghost=b.id==='placement-preview';
     const parts:Part[]=[];
@@ -212,6 +213,19 @@ export class ColonyView {
       case 'pastureGate':
         for(const dx of [-.43,.43]) part(dx,.4,0,.12,.8,.14,'wood');
         part(0,.85,0,.96,.1,.14,'wood'); break;
+      case 'fence':
+        if (fenceConnections === 0) {
+          // Match the standalone section on the construction card and its dropped miniature.
+          for (const dx of [-.43,.43]) part(dx,.46,0,.14,.92,.16,'wood');
+          for (const dy of [.32,.66]) part(0,dy,0,.86,.10,.10,'plank');
+        } else {
+          part(0,.46,0,.16,.92,.16,'wood');
+          for (const [side,[dx,dz]] of FENCE_DIRECTIONS.entries()) {
+            if (!(fenceConnections & (1 << side))) continue;
+            for (const dy of [.32,.66]) part(dx*.25,dy,dz*.25,dx ? .5 : .10,.10,dz ? .5 : .10,'plank');
+          }
+        }
+        break;
       case 'milker':
         part(0,.2,0,.7,.4,.65,'steel');part(-.18,.57,0,.2,.45,.25,'steel');part(.15,.53,0,.28,.25,.34,'white');break;
       case 'henNest':
@@ -405,24 +419,25 @@ export class ColonyView {
         this.drawResident(resident, time, !state.finale && resident.id === state.selectedColonistId);
       }
     }
-    const penBorders=new Set(state.buildings.filter(b=>b.kind==='fence'||b.kind==='pastureGate').map(b=>b.x+','+b.z));
-    for(const b of state.buildPreview?[...state.buildings,state.buildPreview]:state.buildings){
+    const builtFenceCells=new Set(state.buildings
+      .filter(b=>(b.complete || b.previousBoundary) && (b.kind==='fence' || b.kind==='pastureGate'))
+      .map(b=>`${b.x},${b.y},${b.z}`));
+    for(const plan of state.buildPreview?[...state.buildings,state.buildPreview]:state.buildings){
+      const b=plan.previousBoundary ? {...plan,...plan.previousBoundary,complete:true} : plan;
       const w=b.w??1,d=b.d??1,h=b.h??1,x=b.x+w/2,y=b.y,z=b.z+d/2,rotation=b.rotation??0;
-      let parts=this.buildingGeometry(b);
-      let fenceNeighbors='';
-      if(b.kind==='fence'&&b.complete&&state.zones.some(z=>z.kind==='pasture'&&containsCell(z,b.x,b.z))){
-        parts=[{p:[x,y+.4,z],s:[.14,.8,.14],c:'wood'}];
-        for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){
-          if(!penBorders.has((b.x+dx!)+','+(b.z+dz!)))continue;
-          fenceNeighbors+=dx+','+dz+';';
-          for(const dy of [.28,.60])parts.push({p:[x+dx!*.25,y+dy,z+dz!*.25],s:[dx ? .50:.095,.095,dz ? .50:.095],c:'wood'});
+      let fenceConnections=0;
+      if (b.kind==='fence' && (b.complete || b.id==='placement-preview')) {
+        for (let side=0;side<FENCE_DIRECTIONS.length;side++) {
+          const [dx,dz]=FENCE_DIRECTIONS[(side+rotation)%4]!;
+          if (builtFenceCells.has(`${b.x+dx},${b.y},${b.z+dz}`)) fenceConnections |= 1 << side;
         }
       }
+      const parts=this.buildingGeometry(b,1,fenceConnections);
       if (b.kind==='campfirePlaza' && b.complete && b.id!=='placement-preview') {
         this.plazaEffects(b,time,state.finale?.buildingId===b.id ? state.finale : undefined,active);
       }
       if(state.selectedBuildingId===b.id)parts.push({p:[x,y+.025,z],s:[w+.04,.045,d+.04],c:'selected',shadow:false});
-      this.put(`设施/${b.id}`,parts,active,`${b.kind}:${fenceNeighbors}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
+      this.put(`设施/${b.id}`,parts,active,`${b.kind}:${fenceConnections}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
     }
     const plannedCells = new Set<string>();
     for(const zone of state.showPlanningGrid ? state.zones : []){

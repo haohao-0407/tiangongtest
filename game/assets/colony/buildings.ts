@@ -30,6 +30,7 @@ export function buildingParts(b:Pick<BuildingView,'kind'|'x'|'y'|'z'|'rotation'>
   }
   return result;
 }
-export function buildingBlocksMovement(b:Pick<BuildingView,'kind'|'complete'|'doorOpen'>):boolean{
+export function buildingBlocksMovement(b:Pick<BuildingView,'kind'|'complete'|'doorOpen'|'previousBoundary'>):boolean{
+  if (b.previousBoundary) return BUILDING_DEFS[b.previousBoundary.kind].blocking;
   return b.complete&&(isSwingDoor(b.kind)?!b.doorOpen:BUILDING_DEFS[b.kind].blocking);
 }
