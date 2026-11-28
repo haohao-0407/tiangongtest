@@ -16,6 +16,7 @@ import { Name, PROPAGATE_TRANSFORMS_SYSTEM, Transform } from '@forgeax/engine/sc
 import { skinningPlugin } from '@forgeax/engine/skinning';
 import { RenderQueue, type AssetHandle } from '@forgeax/engine/types';
 import { assetGuid, guidText, PACKAGE_IDS, SUN_OUTGOING_DIRECTION } from '../shared/asset-refs.ts';
+import { SceneAssets } from '../shared/scene-assets.ts';
 import { BLOCK, BLOCKS, VoxelWorld } from './model.ts';
 import { buildChunkMesh } from './mesh.ts';
 import { PcgView } from './pcg/view.ts';
@@ -28,8 +29,8 @@ import { WILD_ANIMAL_KINDS, type WildAnimalKind } from './wild-animals.ts';
 import { treeParts, type TreeInstance } from './trees.ts';
 import { overlaps, raycastTree, treesBlockBox, treeSupportHeight, treeProtectingVoxel } from './tree-interaction.ts';
 import { ColonySimulation, playerTerrainRule, withinPlayerWorkReach, withinTerrainReach } from '../colony/simulation.ts';
-import { ColonyView, type BuildingModel } from '../colony/view.ts';
-import type { CharacterAssets } from '../colony/character-view.ts';
+import { ColonyView } from '../colony/view.ts';
+import { ColonyModels, type ColonyModelConfig } from '../colony/colony-models.ts';
 import { inConversationRange, pickMerchant, townMerchants } from '../colony/merchant-interaction.ts';
 import type { MerchantId } from '../colony/contracts.ts';
 import { SPECIALISTS, housingToolResident } from '../colony/specialist-catalog.ts';
@@ -40,7 +41,7 @@ import {
   CROP_DEFS, DEFAULT_CROP, RESEARCH_DEFS, isCropKind, type CropKind, type BuildingKind, type ColonyCommand, type ChestView, type MapToolMenu,
 } from '../colony/contracts.ts';
 import { CropCards } from '../colony/crop-cards.ts';
-import { buildingDimensions, isRoomStructure, isRoomDoor, isSwingDoor, WALL_THICKNESS, type BuildingPart } from '../colony/buildings.ts';
+import { buildingDimensions, isSwingDoor, type BuildingPart } from '../colony/buildings.ts';
 import { DUSK_SECONDS, PAN_SECONDS, FINALE_SECONDS, smooth } from '../colony/plaza.ts';
 import { raycastBuilding, raycastCrop, buildingProtectingVoxel } from '../colony/interaction.ts';
 
@@ -53,7 +54,7 @@ const TAN_HALF_FOV = Math.tan(CAMERA_FOV / 2);
 const NEAR_SHADOW_DISTANCE = 100;
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
-export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:string; characterMaterial:string; characters: {scene:string;walks:string[]}[]; buildings: Record<string,string>; plaza:Record<string,string>; wildPlants: Record<WildPlantKind,string>; wildAnimals: Record<WildAnimalKind,string> }> = {
+export const voxelGame: Plugin.Object<ColonyModelConfig & { readonly environment?: string; evening:string; wildPlants: Record<WildPlantKind,string>; wildAnimals: Record<WildAnimalKind,string> }> = {
   name: 'voxel-homestead',
   inject: ['world', 'assets', 'gameHost'],
   async apply(ctx, config) {
@@ -64,7 +65,9 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
       let voxels = new VoxelWorld();
       let colony = new ColonySimulation(voxels);
       let colonyState = colony.snapshot();
-      const cropCards = await CropCards.create(world, assets);
+      const sceneAssets = new SceneAssets(assets);
+      const models = new ColonyModels(assets, sceneAssets, config);
+      const cropCards = new CropCards(world, assets, sceneAssets);
       let colonyView: ColonyView;
       const terrainView = new TerrainPlanView(world, assets, () => voxels);
       const pcgView = new PcgView(world, assets);
@@ -282,6 +285,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         for (const entity of entities) world.despawn(entity).unwrap();
         for (const handle of ownedHandles) assets.release(handle).unwrap();
         ownedHandles.clear();
+        sceneAssets.dispose();
       };
       const track = (entity: EntityHandle) => {
         entities.add(entity); return entity;
@@ -322,37 +326,20 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         direction: SUN_OUTGOING_DIRECTION, color: [1, 0.89, 0.71], intensity: 3.2,
         castShadow: true, shadowDistance,
       } }).unwrap());
-      const sky = own((await assets.load(config.environment ?? guidText(assetGuid(PACKAGE_IDS.environment, 'environment/daylight')), 'equirect')).unwrap());
-      const characterMaterial = own((await assets.load(config.characterMaterial, 'material')).unwrap());
-      const characters: CharacterAssets[] = await Promise.all(config.characters.map(async model => ({
-        scene: own((await assets.load(model.scene, 'scene')).unwrap()),
-        walks: await Promise.all(model.walks.map(async guid => own((await assets.load(guid, 'animation-clip')).unwrap()))),
-        material: characterMaterial,
-      })));
-      const buildingModels = new Map<string, BuildingModel>();
-      for (const kind of WILD_PLANT_KINDS) plantModels.set(kind, own((await assets.load(config.wildPlants[kind], 'mesh')).unwrap()));
-      for (const kind of WILD_ANIMAL_KINDS) animalModels.set(kind, kind === 'pig' ? own(assets.create(pigMesh()).unwrap()) : own((await assets.load(config.wildAnimals[kind], 'mesh')).unwrap()));
-      for (const [kind, guid] of Object.entries(config.buildings)) {
-        const mesh = own((await assets.load(guid, 'mesh')).unwrap());
-        const geometry = assets.read(mesh).unwrap(), bounds = geometry.aabb!;
-        // The general workbench and machining station share art but occupy different grids.
-        for (const key of kind === 'fabricator' ? [kind, 'workbench', 'carpenterBench'] : [kind]) {
-          const { w, h, d } = buildingDimensions(key === 'doorOpen' ? 'door' : key as BuildingKind);
-          const horizontal = Math.min(1, w / (bounds[3]! - bounds[0]!), d / (bounds[5]! - bounds[2]!));
-          const vertical = h / (bounds[4]! - bounds[1]!);
-          const wall = isRoomStructure(key) && !isRoomDoor(key);
-          buildingModels.set(key, { mesh,
-            scale: wall ? [1/(bounds[3]!-bounds[0]!),vertical,WALL_THICKNESS/(bounds[5]!-bounds[2]!)]
-              : [horizontal,Math.min(horizontal,vertical),horizontal] });
-        }
-      }
-      const plazaMeshes=new Map<string,AssetHandle<'mesh'>>();
-      for (const [layer,guid] of Object.entries(config.plaza)) plazaMeshes.set(layer,own((await assets.load(guid,'mesh')).unwrap()));
-      colonyView = new ColonyView(world, assets, () => voxels, characters, cropCards, buildingModels, pcgView.windowedWalls,plazaMeshes);
+      const skyGuid = config.environment ?? guidText(assetGuid(PACKAGE_IDS.environment, 'environment/daylight'));
+      const [sky, , plants, animals] = await Promise.all([
+        sceneAssets.preload(skyGuid, 'equirect'),
+        models.prepareOpening(colonyState),
+        Promise.all(WILD_PLANT_KINDS.map(kind => sceneAssets.preload(config.wildPlants[kind], 'mesh'))),
+        Promise.all(WILD_ANIMAL_KINDS.map(kind => kind === 'pig' ? own(assets.create(pigMesh()).unwrap())
+          : sceneAssets.preload(config.wildAnimals[kind], 'mesh'))),
+      ]);
+      WILD_PLANT_KINDS.forEach((kind, i) => plantModels.set(kind, plants[i]!));
+      WILD_ANIMAL_KINDS.forEach((kind, i) => animalModels.set(kind, animals[i]!));
+      colonyView = new ColonyView(world, assets, () => voxels, models, cropCards, pcgView.windowedWalls);
       const ambientEntity = track(world.spawn({ component: Name, data: { value: '柔和天光' } }, { component: Skylight, data: {
         equirect: sky, color: [1, 0.96, 0.86], intensity: 0.85,
       } }).unwrap());
-      const evening=own((await assets.load(config.evening,'equirect')).unwrap());
       const backdrop=track(world.spawn({ component: SkyboxBackground, data: { equirect: sky, mode: SKYBOX_MODE_CUBEMAP } }).unwrap());
       let nightSky=false;
       host.setPointerLockAllowed?.(false);
@@ -658,9 +645,12 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         description: '程序化地图、居民需求、资源任务、设施农田、研究电力和相机的只读状态。',
         read: () => read() as unknown as GameProjectionValue,
       });
+      let firstUpdate = true;
       world.addSystem(Update, {
         name: CAMERA_SYSTEM, before: [PROPAGATE_TRANSFORMS_SYSTEM], queries: [],
         fn: () => {
+          if (!firstUpdate) sceneAssets.update();
+          firstUpdate = false;
           const input = world.getResource<InputSnapshot>(INPUT_SNAPSHOT_RESOURCE_KEY);
           const dt = Math.min(world.getResource(Time).delta, 0.1);
           const constructionId = colony.playerConstructionId;
@@ -747,9 +737,9 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
             const day = Math.max(0, Math.sin((colonyState.hour-6)/12*Math.PI));
             const afterSunset=colonyState.hour>=19.5 || colonyState.hour<5.5;
             const atNight=afterSunset && colonyState.buildings.some(b=>b.kind==='campfirePlaza'&&b.complete);
-            if (nightSky!==atNight) {
+            const equirect=atNight ? sceneAssets.get(config.evening, 'equirect') : sky;
+            if (nightSky!==atNight && equirect!==undefined) {
               nightSky=atNight;
-              const equirect=atNight?evening:sky;
               world.set(backdrop,SkyboxBackground,{equirect}).unwrap();
               world.set(ambientEntity,Skylight,{equirect}).unwrap();
             }

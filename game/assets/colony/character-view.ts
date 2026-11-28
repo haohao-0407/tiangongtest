@@ -10,6 +10,7 @@ type Point = [number, number, number];
 // The authored character faces +Z, so +X is its left.
 export const WALK_CLIPS = ['Walk_Forward', 'Walk_Left', 'Walk_Backward', 'Walk_Right'] as const;
 export interface CharacterAssets {
+  outfit: number;
   scene: AssetHandle<'scene'>;
   walks: AssetHandle<'animation-clip'>[];
   material: AssetHandle<'material'>;
@@ -32,7 +33,7 @@ export class CharacterView {
   position: Point | undefined;
   lastStep = -Infinity;
 
-  constructor(private world: World, assets: AssetRegistry, private model: CharacterAssets, private outfit: number) {
+  constructor(private world: World, assets: AssetRegistry, readonly model: CharacterAssets) {
     this.root = assets.instantiate(model.scene, world).unwrap();
     try {
       const targets: EntityHandle[] = [];
@@ -109,7 +110,7 @@ export class CharacterView {
 
   read() {
     const animation = this.world.get(this.root, AnimationPlayer).unwrap();
-    return {outfit:this.outfit, meshes:this.meshCount, joints:this.jointCount,
+    return {outfit:this.model.outfit, meshes:this.meshCount, joints:this.jointCount,
       walk:WALK_CLIPS[this.walk] ?? null, time:animation.times[0] ?? 0};
   }
 

@@ -3,6 +3,7 @@ import type { EntityHandle, World } from '@forgeax/engine/ecs';
 import { MeshFilter, MeshRenderer, ShadowParticipation } from '@forgeax/engine/render';
 import { Name, Transform } from '@forgeax/engine/scene';
 import type { AssetHandle } from '@forgeax/engine/types';
+import type { SceneAssets } from '../shared/scene-assets.ts';
 import type { CropKind, CropView } from './contracts.ts';
 import { ITEM_CARD_MESHES } from './item-cards.ts';
 
@@ -63,54 +64,35 @@ interface Entry {
 }
 
 export class CropCards {
-  private readonly meshes = new Map<CropKind, AssetHandle<'mesh'>[]>();
-  private readonly itemModels = new Map<string, { mesh:AssetHandle<'mesh'>; bottom:number }>();
+  private readonly models = new Map<string, { mesh:AssetHandle<'mesh'>; bottom:number } | null>();
   private readonly entries = new Map<string, Entry>();
 
-  private constructor(private readonly world: World, private readonly assets: AssetRegistry) {}
+  constructor(private readonly world: World, private readonly assets: AssetRegistry, private readonly loads: SceneAssets) {}
 
-  static async create(world: World, assets: AssetRegistry): Promise<CropCards> {
-    const cards = new CropCards(world, assets);
-    await Promise.all([
-      ...(Object.keys(CROP_MESHES) as CropKind[]).map(kind => cards.load(kind)),
-      ...Object.entries(ITEM_CARD_MESHES).map(([kind, guid]) => cards.loadItem(kind, guid)),
-    ]);
-    return cards;
+  private cropModel(crop: Pick<RenderCrop,'kind'|'growth'>) {
+    if (!crop.kind) return;
+    const stage = crop.growth < 0.4 ? 0 : crop.growth < 0.75 ? 1 : 2;
+    return this.cutout(CROP_MESHES[crop.kind][stage]);
   }
 
-  private async load(kind: CropKind): Promise<void> {
-    const loaded: AssetHandle<'mesh'>[] = [];
+  private cutout(guid: string) {
+    const cached = this.models.get(guid);
+    if (cached !== undefined) return cached ?? undefined;
+    const mesh = this.loads.get(guid, 'mesh');
+    if (mesh === undefined) return;
     try {
-      for (const guid of CROP_MESHES[kind]) loaded.push(await this.loadCutoutMesh(guid));
-      this.meshes.set(kind, loaded);
-    } catch (error) {
-      for (const mesh of loaded) this.assets.release(mesh).unwrap();
-      console.warn(`作物模型 ${kind} 加载失败，使用方块显示。`, error);
-    }
-  }
-
-  private async loadItem(kind: string, guid: string): Promise<void> {
-    try {
-      const mesh=await this.loadCutoutMesh(guid);
-      this.itemModels.set(kind,{mesh,bottom:this.assets.read(mesh).unwrap().aabb?.[1]??-.5});
-    } catch (error) {
-      console.warn(`物品贴图 ${kind} 加载失败。`, error);
-    }
-  }
-
-  private async loadCutoutMesh(guid: string): Promise<AssetHandle<'mesh'>> {
-    const mesh = (await this.assets.load(guid, 'mesh')).unwrap();
-    try {
-      for (const { defaultMaterial } of this.assets.read(mesh).unwrap().materialSlots ?? []) {
+      const geometry = this.assets.read(mesh).unwrap();
+      for (const { defaultMaterial } of geometry.materialSlots ?? []) {
         if (typeof defaultMaterial !== 'number') continue;
-        // ForgeAX 0.5.0 的 glTF MASK 在裁剪后需要输出不透明像素，避免亮边。
-        // 裁剪和阴影仍读取贴图 Alpha。
+        // 裁剪后输出不透明像素，保留贴图轮廓和阴影，避免 FXAA 亮边。
         this.assets.update(defaultMaterial, { values: { alphaMode: 1 } }).unwrap();
       }
-      return mesh;
+      const model = { mesh, bottom: geometry.aabb?.[1] ?? -.5 };
+      this.models.set(guid, model);
+      return model;
     } catch (error) {
-      this.assets.release(mesh).unwrap();
-      throw error;
+      this.models.set(guid, null);
+      console.warn(`贴片模型 ${guid} 无法显示，使用方块。`, error);
     }
   }
 
@@ -119,23 +101,24 @@ export class CropCards {
   }
 
   itemModel(resource:string) {
-    return this.itemModels.get(resource);
+    if (!Object.hasOwn(ITEM_CARD_MESHES, resource)) return;
+    return this.cutout(ITEM_CARD_MESHES[resource as keyof typeof ITEM_CARD_MESHES]);
   }
 
-  hasModel(kind?: CropKind): boolean {
-    return kind !== undefined && this.meshes.has(kind);
+  hasModel(crop: Pick<RenderCrop,'kind'|'growth'>): boolean {
+    return this.cropModel(crop) !== undefined;
   }
 
   update(crops: readonly RenderCrop[]): void {
     const seen = new Set<string>();
     for (const crop of crops) {
       if (crop.planted === false || !crop.kind) continue;
-      const stages = this.meshes.get(crop.kind);
-      if (!stages) continue;
-      const { x, y, z, growth } = crop;
+      const model = this.cropModel(crop);
+      if (!model) continue;
+      const { x, y, z } = crop;
       const id = crop.id ?? `${x},${z}`;
       seen.add(id);
-      const mesh = stages[growth < 0.4 ? 0 : growth < 0.75 ? 1 : 2]!;
+      const { mesh } = model;
       const pos: [number, number, number] = [x + 0.5, y + FARM_SOIL_HEIGHT - ROOT_EMBED_DEPTH, z + 0.5];
       const entry = this.entries.get(id);
       if (entry) {
@@ -168,11 +151,6 @@ export class CropCards {
   dispose(): void {
     for (const entry of this.entries.values()) this.world.despawn(entry.entity).unwrap();
     this.entries.clear();
-    for (const stages of this.meshes.values()) {
-      for (const mesh of stages) this.assets.release(mesh).unwrap();
-    }
-    this.meshes.clear();
-    for (const {mesh} of this.itemModels.values()) this.assets.release(mesh).unwrap();
-    this.itemModels.clear();
+    this.models.clear();
   }
 }

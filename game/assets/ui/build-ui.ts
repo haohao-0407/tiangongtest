@@ -6,7 +6,7 @@ import { createGuideShop } from './guide-shop.ts';
 import { residentMap, residentWindow, type HousingCamera } from './resident-housing.ts';
 import type { MerchantId } from '../colony/contracts.ts';
 import { STORAGE_CLASSES } from '../colony/contracts.ts';
-import type { GameHost } from '@forgeax/engine/app';
+import { markLoadTimeline, type GameHost } from '@forgeax/engine/app';
 import { mountUi, type UiAsset, type UiInstance } from '@forgeax/engine/ui';
 import {
   BUILDING_DEFS, HAMMER, AXE, PICKAXE, JOB_NAMES, JOB_TYPES, PLAYER_DELIVERY_TARGET, PLAYER_SLOTS, SHELF_BAYS, STORAGE_QUARTERS,
@@ -1710,6 +1710,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     syncTerrainControls();
     if (!booted) {
       booted = true; lastSavedStamp = latestStamp; lastSavedSim = c?.time ?? 0;
+      markLoadTimeline('colony-hud-ready');
       send('setting', { key: 'sunShadows', value: sunShadows.value });
       const data = readSave(false); if (data) requestLoad(data, '正在恢复上次的家园…');
     }

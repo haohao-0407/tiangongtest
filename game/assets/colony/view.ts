@@ -6,7 +6,8 @@ import { createBoxGeometry } from '@forgeax/engine/geometry';
 import { Materials, MeshFilter, MeshRenderer, ShadowParticipation } from '@forgeax/engine/render';
 import { Name, Transform } from '@forgeax/engine/scene';
 import { RenderQueue, type AssetHandle } from '@forgeax/engine/types';
-import { CharacterView, residentOutfit, type CharacterAssets } from './character-view.ts';
+import { CharacterView } from './character-view.ts';
+import type { ColonyModels } from './colony-models.ts';
 import { FARM_SOIL_HEIGHT, type CropCards } from './crop-cards.ts';
 import type { VoxelWorld } from '../voxel/model.ts';
 import type { WallPanel } from '../voxel/pcg/facade.ts';
@@ -22,7 +23,6 @@ import { PointLight } from '@forgeax/engine/render';
 type V3=[number,number,number];
 type Rotation=[number,number,number,number];
 const IDENTITY:Rotation=[0,0,0,1];
-export type BuildingModel = { mesh: AssetHandle<'mesh'>; scale: V3 };
 type Part = { p: V3; s: V3; shadow?: boolean; rotation?: Rotation } &
   ({ c: string; mesh?: undefined } | { mesh: AssetHandle<'mesh'>; c?: undefined });
 type RenderPawn={id:string;name:string;position:V3;health:number;facing?:number;task?:string;job?:string;bag?:readonly PlayerInventorySlot[];bagSelected?:number;carrying?:Partial<Record<string,number>>};
@@ -65,9 +65,8 @@ export class ColonyView {
   private merchants = new Map<MerchantId, CharacterView>();
   private plazaLights=new Map<string,EntityHandle[]>();
   constructor(private world:World, private assets:AssetRegistry, private terrain:()=>VoxelWorld,
-    private characters:readonly CharacterAssets[], private readonly cropCards:Pick<CropCards,'update'|'hasModel'|'itemMesh'|'itemModel'>,
-    private readonly buildingModels:ReadonlyMap<string,BuildingModel>, private readonly windowedWalls:ReadonlyMap<string,WallPanel[]>,
-    private readonly plazaMeshes:ReadonlyMap<string,AssetHandle<'mesh'>>){
+    private readonly models:ColonyModels, private readonly cropCards:CropCards,
+    private readonly windowedWalls:ReadonlyMap<string,WallPanel[]>){
     this.cube=assets.create(createBoxGeometry(1,1,1).unwrap()).unwrap();
   }
   private material(key:string):AssetHandle<'material'>{
@@ -164,14 +163,15 @@ export class ColonyView {
     if (b.kind==='campfirePlaza') {
       const q:Rotation=[0,Math.sin(-rotation*Math.PI/4),0,Math.cos(-rotation*Math.PI/4)];
       for (const [layer,at] of PLAZA_LAYERS) if (ghost || b.complete || b.progress>=at) {
-        parts.push({mesh:this.plazaMeshes.get(layer)!,p:[x,y+.065*scale,z],s:[scale,scale,scale],rotation:rotation ? q : undefined,shadow:!ghost});
+        const mesh = this.models.plaza(layer);
+        if (mesh !== undefined) parts.push({mesh,p:[x,y+.065*scale,z],s:[scale,scale,scale],rotation:rotation ? q : undefined,shadow:!ghost});
       }
-      if (!b.complete && !ghost) {
+      if (!parts.length || !b.complete && !ghost) {
         parts.push({p:[x,y+.031,z],s:[w,.055,d],c:'blueprint',shadow:false});
       }
       return parts;
     }
-    const model=this.buildingModels.get(b.kind==='door'&&b.doorOpen?'doorOpen':b.kind);
+    const model=this.models.building(b.kind==='door'&&b.doorOpen?'doorOpen':b.kind);
     const plan=ghost || !b.complete;
     if(b.connections!==undefined && !isRoomDoor(b.kind)){
       const stone=b.kind==='wall',height=stone?WALL_HEIGHT:h;
@@ -378,17 +378,23 @@ export class ColonyView {
     const site={x:b.x,y:b.y+.065,z:b.z,w:b.w!,d:b.d!,rotation:(b.rotation??0) as 0|1|2|3};
     const turn=-site.rotation*Math.PI/4, rotation:Rotation=[0,Math.sin(turn),0,Math.cos(turn)];
     const at=(x:number,y:number,z:number)=>plazaPoint(site,x,y,z);
-    const mesh=(layer:string,x=0,y=0,z=0,sy=1):Part=>({
-      mesh:this.plazaMeshes.get(layer)!,p:at(x,y,z),rotation,s:[1,sy,1],shadow:false,
-    });
-    const parts:Part[]=[mesh('flames',0,0,0,1+.12*Math.sin(clock*6)+.055*Math.sin(clock*13))];
+    const parts:Part[]=[];
+    const addMesh=(layer:string,x=0,y=0,z=0,sy=1)=>{
+      const mesh=this.models.plaza(layer);
+      if(mesh!==undefined) parts.push({mesh,p:at(x,y,z),rotation,s:[1,sy,1],shadow:false});
+    };
+    addMesh('flames',0,0,0,1+.12*Math.sin(clock*6)+.055*Math.sin(clock*13));
     const t=finale?.phase==='show' ? finale.elapsed : -1;
+    if (finale?.phase === 'gathering') {
+      // Start the short-lived show effects while the guests are still walking in.
+      for (const layer of ['sky', 'title', 'meteor']) this.models.plaza(layer);
+    }
     if (finale && finale.phase!=='departing' && (finale.phase==='show' || finale.elapsed>=3)) {
-      parts.push(mesh('sky'));
-      if (t>=1.4) parts.push(mesh('title',0,-3.8*(1-smooth((t-1.4)/3.6)),0));
+      addMesh('sky');
+      if (t>=1.4) addMesh('title',0,-3.8*(1-smooth((t-1.4)/3.6)),0);
       if (t>=9.9 && t<11.2) {
         const travel=(t-10.5)/1.3;
-        parts.push(mesh('meteor',-travel*24,-travel*6,0));
+        addMesh('meteor',-travel*24,-travel*6,0);
       }
     }
     this.put('晚会布景/'+b.id,parts,active);
@@ -438,12 +444,7 @@ export class ColonyView {
       this.merchants.delete(id);
     }
     for (const {npcId:id, position} of state.merchants ?? []) {
-      let actor = this.merchants.get(id);
-      if (!actor) {
-        const outfit = {guide:0, chef:1, tailor:2, cheesemaker:3, blacksmith:4}[id] % this.characters.length;
-        actor = new CharacterView(this.world, this.assets, this.characters[outfit]!, outfit+1);
-        this.merchants.set(id, actor);
-      }
+      const actor = this.actorFor(this.merchants, id, this.models.merchantOutfit(id));
       actor.updateResident(position, time, Math.PI/4);
       const [x,y,z]=position, a=actor.facing;
       const prop=(dx:number,dy:number,dz:number,s:V3,c:string):Part=>({
@@ -488,7 +489,7 @@ export class ColonyView {
         this.plazaEffects(b,time,state.finale?.buildingId===b.id ? state.finale : undefined,active);
       }
       if(state.selectedBuildingId===b.id)parts.push({p:[x,y+.025,z],s:[w+.04,.045,d+.04],c:'selected',shadow:false});
-      this.put(`设施/${b.id}`,parts,active,`${b.kind}:${b.connections??fenceConnections}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
+      this.put(`设施/${b.id}`,parts,active);
     }
     const plannedCells = new Set<string>();
     for(const zone of state.showPlanningGrid ? state.zones : []){
@@ -507,7 +508,7 @@ export class ColonyView {
     for(const p of state.crops){
       const x=p.x+.5,y=p.y,z=p.z+.5;
       const parts:Part[]=[{p:[x,y+FARM_SOIL_HEIGHT/2,z],s:[.84,FARM_SOIL_HEIGHT,.84],c:'soil',shadow:false}];
-      if(!this.cropCards.hasModel(p.kind)&&p.planted!==false){
+      if(p.planted!==false && !this.cropCards.hasModel(p)){
         const g=Math.max(.01,Math.min(1,p.growth));
         for(const [dx,dz]of[[-.22,-.2],[.22,-.2],[-.22,.2],[.22,.2]]){
           parts.push({p:[x+dx,y+.12+g*.3,z+dz],s:[.08,.2+g*.6,.08],c:'green'});
@@ -582,13 +583,18 @@ export class ColonyView {
     this.assets.release(this.cube).unwrap();
   }
 
+  private actorFor<K extends string>(actors:Map<K,CharacterView>, id:K, outfit:number) {
+    const model = this.models.character(outfit);
+    const previous = actors.get(id);
+    if (previous?.model === model) return previous;
+    const actor = new CharacterView(this.world, this.assets, model);
+    actors.set(id, actor);
+    previous?.dispose();
+    return actor;
+  }
+
   drawResident(resident:RenderPawn, time:number, selected:boolean, control?:{ moving:boolean; grounded:boolean }) {
-    let actor = this.residents.get(resident.id);
-    if (!actor) {
-      const outfit = residentOutfit(resident.id, this.characters.length);
-      actor = new CharacterView(this.world, this.assets, this.characters[outfit - 1]!, outfit);
-      this.residents.set(resident.id, actor);
-    }
+    const actor = this.actorFor(this.residents, resident.id, this.models.residentOutfit(resident.id));
     if (control) actor.updatePlayer(resident.position, resident.facing ?? 0, control.moving && control.grounded);
     else actor.updateResident(resident.position, time, resident.facing ?? 0);
 
