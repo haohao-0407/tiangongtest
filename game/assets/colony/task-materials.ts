@@ -47,7 +47,8 @@ export function taskMaterials(c: ColonySnapshot) {
   const crops = new Map(c.crops.map(crop => [crop.id, crop]));
   const residents = new Map(c.colonists.map(person => [person.id, person]));
   for (const b of c.buildings) {
-    if (!b.complete) addUnreserved(demand, BUILDING_DEFS[b.kind].cost, b.reserved);
+    // Construction reserves the full bill at once. A saved reservation owns its original price.
+    if (!b.complete && !Object.keys(b.reserved).length) addUnreserved(demand, BUILDING_DEFS[b.kind].cost, b.reserved);
   }
   for (const job of c.jobs) {
     const recipe = recipeFor(job.recipe);

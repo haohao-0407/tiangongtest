@@ -16,7 +16,7 @@ import {
 import { buildingDimensions, buildingSealsRoom, connectionLabel, isSwingDoor } from '../colony/buildings.ts';
 import { packageSize, warehouseSlotContents } from '../colony/warehouse.ts';
 import { PLAZA_RECIPE } from '../colony/plaza.ts';
-import type { TreeInstance } from '../voxel/trees.ts';
+import { treeWoodYield, type TreeInstance } from '../voxel/trees.ts';
 import buildingIcons from './building-icons.json';
 import { RECIPES, recipeCost, recipeFor } from '../colony/recipes.ts';
 
@@ -395,7 +395,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       const title = make('span', 'card-title'); title.append(buildingCardIcon(def.id), make('span', '', def.name));
       const dimensions = buildingDimensions(def.id, state?.buildRotation ?? 0);
       b.append(title, make('span', 'card-description', `${dimensions.w} × ${dimensions.d} 格 · 高 ${dimensions.h} 格 · ${def.description}`),
-        make('span','card-cost',def.id==='campfirePlaza'?'测试配方 · 全部材料消耗 0':costText(def.cost)));
+        make('span','card-cost',costText(def.cost) || '材料消耗 0'));
       if (def.id==='campfirePlaza') b.title=plazaIngredients;
       if (locked) {
         b.style.opacity = '0.62';
@@ -1364,7 +1364,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       details.append(note('室外 · 检查四周的墙和门是否闭合。单个房间最多识别 120 个内侧地格。'));
     }
     if (b.kind === 'bed' || b.kind === 'medicalBed') details.append(note('床头与床尾共用一座设施，整体建造、使用和拆除。'));
-    if (b.kind==='campfirePlaza') details.append(note(plazaIngredients),note('测试阶段 · 以上材料消耗均为 0'));
+    if (b.kind==='campfirePlaza') details.append(note(plazaIngredients),note(costText(BUILDING_DEFS.campfirePlaza.cost) || '测试阶段 · 以上材料消耗均为 0'));
     if (b.blockedReason) details.append(make('p', 'thought bad', b.blockedReason));
     const actions = make('div', 'building-inspector-actions');
     if (isSwingDoor(b.kind)) {
@@ -1397,7 +1397,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const actions = make('div', 'building-inspector-actions');
     if (job) actions.append(button('取消伐木', 'tree-cancel-chop', { action: 'cancel', id: job.id }));
     else actions.append(button('安排整棵伐木', 'tree-chop', { action: 'designate', kind: 'chop', id: tree.id }, 'primary'));
-    details.append(actions, note(`居民会走到树干旁砍伐，完成后整棵移除，产出 ${tree.trunkHeight * 6} 木材。相邻树木保持独立。`));
+    details.append(actions, note(`居民会走到树干旁砍伐，完成后整棵移除，产出 ${treeWoodYield(tree)} 木材。相邻树木保持独立。`));
     root.append(details);
   }
   function renderInspector(c: ColonySnapshot, force = false) {

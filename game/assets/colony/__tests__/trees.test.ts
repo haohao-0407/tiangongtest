@@ -37,11 +37,11 @@ describe('whole-tree colony work',()=>{
     expect(Math.abs(Math.floor(worker.position[0])-a.x)+Math.abs(Math.floor(worker.position[2])-a.z)).toBe(1);
     expect(worker.position[1]).toBe(a.y);expect(looseWood(sim)).toBe(0);
     until(sim,()=>!world.getTree(a.id));
-    expect(world.getTree(b.id)).toEqual(b);expect(looseWood(sim)).toBe(a.trunkHeight*6);
+    expect(world.getTree(b.id)).toEqual(b);expect(looseWood(sim)).toBe(a.trunkHeight*3);
     for(const p of treeCells(b))expect(world.treesAtVoxel(p.x,p.y,p.z).some(t=>t.id===b.id)).toBe(true);
     const completed=sim.snapshot().metrics.jobsCompleted;
     expect(sim.command({action:'designate',kind:'chop',id:a.id}).ok).toBe(false);sim.tick(15);
-    expect(looseWood(sim)).toBe(a.trunkHeight*6);expect(sim.snapshot().metrics.jobsCompleted).toBe(completed);
+    expect(looseWood(sim)).toBe(a.trunkHeight*3);expect(sim.snapshot().metrics.jobsCompleted).toBe(completed);
   });
   it('saves an in-progress cut and resumes deterministically without duplicating its yield',()=>{
     const{world,sim}=setup();enable(sim,'chop');sim.command({action:'designate',kind:'chop',id:'tree-a'});
@@ -50,7 +50,7 @@ describe('whole-tree colony work',()=>{
     expect(restored.serialize()).toEqual(sim.serialize());
     for(let n=0;n<240;n++){sim.tick(.25);restored.tick(.25);}
     expect(restored.serialize()).toEqual(sim.serialize());expect(restoredWorld.serialize()).toEqual(world.serialize());
-    expect(world.getTrees()).toHaveLength(0);expect(looseWood(sim)).toBe(24);
+    expect(world.getTrees()).toHaveLength(0);expect(looseWood(sim)).toBe(12);
   });
   it('migrates coordinate jobs, preserves their progress and releases duplicate or missing targets',()=>{
     const{sim}=setup();sim.command({action:'designate',kind:'chop',id:'tree-a'});const saved:any=sim.serialize(),job=saved.jobs[0];
@@ -98,7 +98,7 @@ describe('whole-tree colony work',()=>{
     expect(chopJobs(sim)).toHaveLength(1);expect(chopJobs(sim)[0]).toMatchObject({targetId:t.id,x:20,z:20,label:'清理整地树木'});
     expect(sim.snapshot().buildings.find(b=>b.id===order.id)!.phase).toBe('preparingTerrain');
     until(sim,()=>sim.snapshot().buildings.find(b=>b.id===order.id)!.complete);
-    expect(world.getTree(t.id)).toBeUndefined();expect(looseWood(sim)).toBe(18);expect(world.terrainHeight(18,20)).toBe(7);
+    expect(world.getTree(t.id)).toBeUndefined();expect(looseWood(sim)).toBe(9);expect(world.terrainHeight(18,20)).toBe(7);
   });
   it('retains automatic clearing until the last plan is cancelled and retains an explicit chop order afterwards',()=>{
     const{world,sim}=setup(),a=sim.command({action:'level',x:20,z:20,target:6}),b=sim.command({action:'level',x:20,z:20,target:6});

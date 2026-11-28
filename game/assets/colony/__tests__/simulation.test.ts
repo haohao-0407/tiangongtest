@@ -290,6 +290,20 @@ expect(finished.playerBag[TOOL_KINDS.length]).toEqual({ resource: 'steel', count
     expect(sim.snapshot().metrics.built).toBe(before.metrics.built + 1);
   });
 
+  it('refunds only what an old wall actually reserved, once, then charges the current price',()=>{
+    const {sim,world}=setup();sim.command({action:'speed',value:0});
+    const pos=freeCell(sim,world),order=sim.command({action:'build',kind:'woodWall',...pos});
+    const old=raw(sim),wall=old.buildings.find((b:{id:string})=>b.id===order.id);
+    expect(wall.reserved).toEqual({wood:2});
+    wall.reserved={wood:5};
+    sim.load(old);const before=sim.snapshot().resources.wood;
+    sim.load(sim.serialize());expect(sim.snapshot().resources.wood).toBe(before);
+    expect(sim.command({action:'cancel',id:order.id}).ok).toBe(true);
+    expect(sim.snapshot().resources.wood).toBe(before+5);
+    expect(sim.command({action:'cancel',id:order.id}).ok).toBe(false);
+    expect(sim.command({action:'build',kind:'woodWall',...pos}).ok).toBe(true);
+    expect(sim.snapshot().resources.wood).toBe(before+3);
+  });
   it('reserves construction once, cancels once and conserves materials',()=>{
     const{sim,world}=setup();sim.command({action:'speed',value:0});
     const pos=freeCell(sim,world),before=sim.snapshot().resources;
@@ -664,10 +678,10 @@ describe('resident needs and civilian production',()=>{
     const before=sim.snapshot().items.filter(i=>i.resource==='wood').reduce((n,i)=>n+i.amount,0);
     const result=sim.playerFellTree(tree.id);
     expect(result.ok).toBe(true);
-    expect(result.wood).toBe(tree.trunkHeight*6);
+    expect(result.wood).toBe(tree.trunkHeight*3);
     expect(world.getTree(tree.id)).toBeUndefined();
     // 掉落进世界，不是直接进仓库
-    expect(sim.snapshot().items.filter(i=>i.resource==='wood').reduce((n,i)=>n+i.amount,0)).toBe(before+tree.trunkHeight*6);
+    expect(sim.snapshot().items.filter(i=>i.resource==='wood').reduce((n,i)=>n+i.amount,0)).toBe(before+tree.trunkHeight*3);
     // 那条随从任务必须被清掉，否则居民会守着一棵不存在的树
     expect(sim.snapshot().jobs.some(j=>j.type==='chop'&&j.targetId===tree.id)).toBe(false);
     expect(sim.playerFellTree(tree.id).ok).toBe(false);

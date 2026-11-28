@@ -202,7 +202,7 @@ export default async function treePlaythrough(play) {
     assert.ok(sawWorking && sawStandingBesideTrunk, 'A resident must work next to the trunk before removal.');
     assert.equal(jobsFor(state, harvested.id).length, 0);
     assert.deepEqual(clone(state.trees), otherTrees, 'Every neighbouring tree remains independent.');
-    assert.equal(wood(state), wood(before) + harvested.trunkHeight * 6, 'The complete tree yields wood exactly once.');
+    assert.equal(wood(state), wood(before) + harvested.trunkHeight * 3, 'The complete tree yields wood exactly once.');
     await wait(s => s.treeModel.instances === s.trees.length);
     await capture('tree-05-resident-harvested-whole-tree-neighbours-preserved');
   });

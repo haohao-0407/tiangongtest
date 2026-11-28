@@ -1,9 +1,10 @@
+import balance from './resource-balance.json';
 import type { BuildingDefinition } from './contracts.ts';
 import type { Recipe } from './recipes.ts';
 
 export const sugarPress: BuildingDefinition = {
   id: 'sugarPress', name: '手摇制糖台', description: '居民摇动压辊榨取蔗汁，在台侧糖锅熬糖。每 2 份甘蔗制成 1 份糖。',
-  cost: { wood: 12, stone: 8 }, work: 16, power: 0, blocking: true,
+  cost: balance.buildingCosts.sugarPress, work: 16, power: 0, blocking: true,
   color: [.65, .43, .22], footprint: [2, 1], height: 1, category: 'production',
 };
 

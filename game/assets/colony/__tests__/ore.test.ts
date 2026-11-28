@@ -121,8 +121,8 @@ describe('finite iron ore mining',()=>{
     expect(world.get(21, 5, 20)).toBe(BLOCK.Grass);
   });
 
-  it.each([[BLOCK.StoneDeposit,'stone',24],[BLOCK.SteelOre,'pigIron',18]] as const)(
-    'requires a finished station and its worker’s physical tool for block %i', (block,resource,capacity)=>{
+  it.each([[BLOCK.StoneDeposit,'stone',12,2],[BLOCK.SteelOre,'pigIron',18,3]] as const)(
+    'requires a finished station and its worker’s physical tool for block %i', (block,resource,capacity,batch)=>{
       const {world,sim}=setup();
       const opening:any=sim.serialize();opening.items=[];opening.warehouseStacks=[];
       for(const r of Object.keys(opening.resources))opening.resources[r]=0;
@@ -140,10 +140,10 @@ describe('finite iron ore mining',()=>{
       expect(worker.bag.some(s=>s?.resource==='pickaxe')).toBe(true);
       expect(Math.abs(Math.floor(worker.position[0])-20)+Math.abs(Math.floor(worker.position[2])-20)).toBe(1);
       expect(sim.depositAt(20,20)?.remaining).toBe(capacity);
-      until(sim,()=>loose(sim,resource)===3);
+      until(sim,()=>loose(sim,resource)===batch);
       expect(sim.snapshot().resources[resource]).toBe(initial);
       const second=new ColonySimulation(VoxelWorld.deserialize(world.serialize()));second.load(sim.serialize());
-      expect(second.depositAt(20,20)?.remaining).toBe(capacity-3);
+      expect(second.depositAt(20,20)?.remaining).toBe(capacity-batch);
       expect(second.command({action:'designate',kind:'stockpile',x:16,z:16,w:2,d:2}).ok).toBe(true);
       enable(second,'haul','mine');until(second,()=>second.snapshot().resources[resource]===initial+capacity,360);
       expect(second.depositAt(20,20)?.remaining).toBe(0);
@@ -157,6 +157,22 @@ describe('finite iron ore mining',()=>{
       expect(second.snapshot().buildings.find(b=>b.id===rebuilt.id)?.mining?.status).toBe('已采尽');
       expect(mining(second)).toHaveLength(0);
     });
+  it.each([21, 1, 0])('preserves the recorded old stone balance of %i across reloads', remaining=>{
+    const {world,sim}=setup();world.set(20,5,20,BLOCK.StoneDeposit);
+    const saved=sim.serialize() as {depositRemaining:Record<number,number>};
+    saved.depositRemaining[world.index(20,5,20)]=remaining;
+    sim.load(saved);
+    expect(sim.depositAt(20,20)?.remaining).toBe(remaining);
+    sim.load(sim.serialize());
+    expect(sim.depositAt(20,20)?.remaining).toBe(remaining);
+    enable(sim,'construct','mine');
+    expect(sim.command({action:'build',kind:'extractionStation',x:20,z:20}).ok).toBe(true);
+    until(sim,()=>sim.snapshot().buildings.some(b=>b.kind==='extractionStation'&&b.complete));
+    if(remaining) until(sim,()=>loose(sim,'stone')>0);
+    const output=Math.min(remaining,2);
+    expect(loose(sim,'stone')).toBe(output);
+    expect(sim.depositAt(20,20)?.remaining).toBe(remaining-output);
+  });
   it('preserves a partially mined cell when its station is dismantled, saved and built again',()=>{
     const {world,sim}=setup();world.set(20,5,20,BLOCK.SteelOre);enable(sim,'construct','mine');
     const first=sim.command({action:'build',kind:'extractionStation',x:20,z:20});
@@ -181,7 +197,7 @@ describe('finite iron ore mining',()=>{
     const station=()=>sim.snapshot().buildings.find(b=>b.kind==='extractionStation')!;
     until(sim,()=>station().complete);sim.tick(5);
     expect(station().mining?.status).toContain('等待可用石镐');
-    expect(station().mining?.remaining).toBe(24);
+    expect(station().mining?.remaining).toBe(12);
     const box={kind:'chest' as const,id:chest.id!,slot:0};
     expect(sim.transferInventory({kind:'follower',id:owner!.id,slot:2},box,'pickaxe',1).ok).toBe(true);
     until(sim,()=>mining(sim).some(j=>j.progress>0));
@@ -189,7 +205,7 @@ describe('finite iron ore mining',()=>{
     const slot=carrier.bag.findIndex(s=>s?.resource==='pickaxe');expect(slot).toBeGreaterThanOrEqual(0);
     expect(sim.snapshot().chests.find(b=>b.id===chest.id)?.slots[0]).toBeNull();
     expect(sim.transferInventory({kind:'follower',id:worker!.id,slot},{kind:'follower',id:owner!.id,slot:2},'pickaxe',1).ok).toBe(true);
-    sim.tick(10);expect(station().mining?.remaining).toBe(24);expect(loose(sim,'stone')).toBe(0);
+    sim.tick(10);expect(station().mining?.remaining).toBe(12);expect(loose(sim,'stone')).toBe(0);
   });
   it('retires a legacy ground order without paying it or touching its old loose stack',()=>{
     const {world,sim}=setup();world.set(20,5,20,BLOCK.Air);

@@ -1,3 +1,4 @@
+import balance from '../colony/resource-balance.json';
 /** Natural vegetation has one identity; branches and crown are model parts, never loose blocks. */
 export interface TreeInstance {
   readonly id: string;
@@ -9,6 +10,10 @@ export interface TreeInstance {
   readonly variant: number;
   readonly rotation: 0 | 1 | 2 | 3;
 }
+export function treeWoodYield(tree: Pick<TreeInstance, 'trunkHeight'>): number {
+  return tree.trunkHeight * balance.woodPerTrunkLevel;
+}
+
 export type TreeRole = 'trunk' | 'branch' | 'crown';
 export type TreePoint = [number, number, number];
 export interface TreePart { min: TreePoint; max: TreePoint; role: TreeRole; tone: number }

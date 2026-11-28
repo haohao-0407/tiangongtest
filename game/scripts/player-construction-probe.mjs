@@ -51,7 +51,7 @@ export default async function playerConstruction(play) {
     if (blueprint) break;
   }
   assert.ok(blueprint && blueprint.phase === 'readyToBuild', '应通过建造菜单放置处于待施工状态的蓝图');
-  assert.equal(blueprint.reserved.wood, 3);
+  assert.equal(blueprint.reserved.wood, 1);
   const target = (s) => s.colony.buildings.find(building => building.id === blueprint.id);
   await returnToMap(play);
   await possessResident(play,builderId);
@@ -95,7 +95,7 @@ export default async function playerConstruction(play) {
   const complete = await advance(2);
   assert.equal(target(complete).complete, true);
   assert.equal(complete.player.constructionId, null);
-  assert.equal(woodInColony(complete), woodInColony(planning) - 3, '计入居民搬运的木材后，应只扣蓝图预留的 3 个');
+  assert.equal(woodInColony(complete), woodInColony(planning) - 1, '计入居民搬运的木材后，应只扣蓝图预留的 1 个');
   assert.deepEqual(complete.player.bag[0], { resource: 'hammer', count: 1 });
   await play.screenshot('player-hammer-completed');
   await play.page.waitForFunction(id => {

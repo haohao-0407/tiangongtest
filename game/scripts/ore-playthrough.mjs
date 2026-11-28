@@ -8,7 +8,7 @@ export default async function orePlaythrough(play) {
   const {VoxelWorld,BLOCK}=await tsImport('../assets/voxel/model.ts',import.meta.url);
   const {ColonySimulation}=await tsImport('../assets/colony/simulation.ts',import.meta.url);
   const world=VoxelWorld.deserialize(createFacadeTerrainFixture());
-  const sites=[[16,20,BLOCK.StoneDeposit,'stone',24],[21,17,BLOCK.SteelOre,'pigIron',18]];
+  const sites=[[16,20,BLOCK.StoneDeposit,'stone',12,2],[21,17,BLOCK.SteelOre,'pigIron',18,3]];
   for(const [x,z,block] of sites)world.set(x,4,z,block);
   const sim=new ColonySimulation(world),opening=sim.serialize();
   opening.speed=0;opening.time=325;opening.crops=[];opening.items=[];opening.jobs=[];
@@ -30,7 +30,7 @@ export default async function orePlaythrough(play) {
   const close=async()=>{for(const id of ['panel-close','inspector-close'])if(await page.locator('#'+id).isVisible())await page.locator('#'+id).click();};
   const stations=c=>c.buildings.filter(b=>b.kind==='extractionStation');
   const station=(c,r)=>stations(c).find(b=>b.mining?.resource===r);
-  const out='docs/extraction-station-18-qa/',records=[];
+  const out='artifacts/extraction-station/',records=[];
   mkdirSync(out,{recursive:true});
   async function frame(name){
     const s=await state(),c=s.colony;
@@ -106,7 +106,7 @@ export default async function orePlaythrough(play) {
     await frame('06-miner-'+resource);
     if(!n){
       await reach(c=>c.items.some(i=>i.resource===resource));
-      const c=(await state()).colony;assert.equal(c.resources[resource],0);assert.equal(station(c,resource).mining.remaining,sites.find(s=>s[3]===resource)[4]-3);
+      const c=(await state()).colony;assert.equal(c.resources[resource],0);assert.equal(station(c,resource).mining.remaining,sites.find(s=>s[3]===resource)[4]-sites.find(s=>s[3]===resource)[5]);
       await frame('07-first-drop');
       await button('menu-work').click();await button('priority-'+people[1].id+'-haul').click();await close();
       await reach(c=>c.colonists.some(p=>p.carrying[resource]>0),.25);
@@ -114,7 +114,7 @@ export default async function orePlaythrough(play) {
       const restored=(await state()).colony;assert.ok(restored.colonists.some(p=>p.carrying[resource]>0));
     }
   }
-  await reach(c=>c.resources.stone===24&&c.resources.pigIron===18,1.5);
+  await reach(c=>c.resources.stone===12&&c.resources.pigIron===18,1.5);
   let c=(await state()).colony;assert.ok(c.day>=2);assert.equal(c.jobs.filter(j=>j.type==='mine').length,0);
   await inspect(sites[0]);assert.match(await button('extraction-station-status').textContent(),/剩余 0 · 已采尽/);
   await frame('10-exhausted-stock');const old=station(c,'stone').id;await button('building-demolish').click();await close();
@@ -123,5 +123,5 @@ export default async function orePlaythrough(play) {
   await reload();await inspect(sites[0]);await frame('12-rebuilt-and-reloaded');
   c=(await state()).colony;
   assert.deepEqual(stations(c).map(b=>b.mining.remaining),[0,0]);assert.equal(c.jobs.some(j=>j.type==='mine'),false);
-  assert.deepEqual([c.resources.stone,c.resources.pigIron],[24,18]);
+  assert.deepEqual([c.resources.stone,c.resources.pigIron],[12,18]);
 }

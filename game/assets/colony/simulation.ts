@@ -1,3 +1,5 @@
+import balance from './resource-balance.json';
+import { treeWoodYield } from '../voxel/trees.ts';
 import { containsCell, footprintCells, type Footprint, type ZoneCell } from './zone-cells.ts';
 import { merchantOrder, type TradeSide } from './guide-shop.ts';
 import type { GuideSale, MerchantId, MerchantHousing, SpecialistMarketView } from './contracts.ts';
@@ -20,7 +22,7 @@ import { recipeCost, recipeFor, type Recipe } from './recipes.ts';
 import { isWarehouseCard, packageMask, warehouseBayContents, warehouseBayKey, warehouseSlotContents, warehouseSlotKey } from './warehouse.ts';
 import {
   BUILDING_DEFS, CROP_DEFS, CROP_SEEDS, DEFAULT_CROP, RESEARCH_DEFS, cropPlantingItem, cropForPlantingItem, JOB_TYPES, JOB_NAMES, RESOURCE_TYPES, SCHEDULES, SUPPLY_TYPES, isCropKind, type CropKind,
-  CHEST_SLOTS, CHEST_WOOD_COST, CHOP_WORK, HAMMER, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET, PLAYER_STAMINA_REGEN, PLAYER_WORK_REACH, RESIDENT_HEIGHT, RESIDENT_RADIUS, workPercent,
+  CHEST_SLOTS, CHOP_WORK, HAMMER, PICKAXE, TOOL_KINDS, COLONIST_CHOP_STAMINA, ITEM_PICKUP_DELAY, ITEM_PICKUP_RANGE, PLAYER_BUILD_MULTIPLIER, PLAYER_BUILD_REACH, PLAYER_DELIVERY_TARGET, PLAYER_STAMINA_REGEN, PLAYER_WORK_REACH, RESIDENT_HEIGHT, RESIDENT_RADIUS, workPercent,
   PLAYER_SLOTS, RESOURCE_NAMES, STACK_LIMIT, inventorySpace, isToolKind, isResource, buildingItemKind, itemName,
   HAUL_LIMIT, SHELF_BAYS, STORAGE_QUARTERS, WAREHOUSE_STACK_LIMIT,
   type BuildingKind, type BuildingView, type BuildingRotation, type ColonyCommand, type ColonyEvent,
@@ -351,10 +353,11 @@ export class ColonySimulation {
       return { ok: false, message: '请选择一块空地放置木箱' };
     }
     if(this.s.zones.some(zone=>zone.pasture&&containsCell(zone,x,zz)))return {ok:false,message:'牧场内请使用畜产采集设施。'};
-    if (this.s.resources.wood < CHEST_WOOD_COST) return { ok: false, message: '仓库里的木材不足' };
+    const cost = BUILDING_DEFS.chest.cost;
+    if (!this.afford(cost)) return { ok: false, message: '仓库里的建箱材料不足' };
     const id = this.id('chest');
     this.s.buildings.push(this.chestBuilding({ id, x, z: zz, slots: emptySlots(CHEST_SLOTS) }, {x,y,z:zz}));
-    this.withdrawStock('wood', CHEST_WOOD_COST);
+    this.take(cost);
     this.rebuildBuildings();
     return { ok: true, message: '已放置木箱', id };
   }
@@ -1052,7 +1055,7 @@ export class ColonySimulation {
     const resource=depositResource(this.world.get(x,y,z));
     if(!resource)return undefined;
     const index=this.world.index(x,y,z);
-    return {resource,index,remaining:this.s.depositRemaining[index]??MINING_RULES.reserves[resource]};
+    return {resource,index,remaining:this.s.depositRemaining[index]??balance.deposits[resource].reserve};
   }
   depositHint(x:number,z:number):string {
     const deposit=this.depositAt(x,z);
@@ -1121,7 +1124,7 @@ export class ColonySimulation {
     job.progress+=dt*this.workRate(c,'mine');
     if(job.progress<job.work)return;
     const deposit=this.depositAt(b.x,b.z)!;
-    const amount=Math.min(MINING_RULES.batch,deposit.remaining);
+    const amount=Math.min(balance.deposits[deposit.resource].batch,deposit.remaining);
     this.s.depositRemaining[deposit.index]=deposit.remaining-amount;
     // Keep the extraction position free for the next batch and leave access for a porter.
     const output=this.buildingStands(b).filter(p=>!this.residentAt(p))
@@ -2139,13 +2142,6 @@ export class ColonySimulation {
   }
   private treeBase(x:number,z:number):number{return this.world.treeAtColumn(x,z)?.y??-1;}
   /**
-   * 玩家亲手砍倒一棵树（角色视角按住左键）。
-   *
-   * 和随从砍完的效果一致：整棵移除、掉落 trunkHeight*6 木材。
-   * 但玩家不经过 job 队列——所以这里要顺手清掉这棵树可能挂着的待办，
-   * 否则随从会走到一棵已经不存在的树旁边站着。
-   */
-  /**
    * 玩家亲手推进一棵树的砍伐进度（按工作量算，不是按秒）。
    *
    * 关键点：进度写进**同一条 chop job**，所以玩家和随从砍的是同一个进度条。
@@ -2165,14 +2161,19 @@ export class ColonySimulation {
     return{felled:false,progress:job.progress/job.work,wood:0,message:`砍伐中 ${workPercent(job.progress, job.work)}%`};
   }
 
+  private harvestTree(tree: TreeInstance): number {
+    this.world.removeTree(tree.id, {recordHistory:false});
+    this.refreshGround();
+    this.navigationDirty = true;
+    const wood = treeWoodYield(tree);
+    this.drop('wood', wood, tree.x, tree.z);
+    return wood;
+  }
+
   playerFellTree(treeId:string):{ok:boolean;wood:number;message:string}{
     const tree=this.world.getTree(treeId);
     if(!tree)return{ok:false,wood:0,message:'这棵树已经不在了'};
-    this.world.removeTree(tree.id,{recordHistory:false});
-    this.refreshGround();
-    this.navigationDirty=true;
-    const wood=tree.trunkHeight*6;
-    this.drop('wood',wood,tree.x,tree.z);
+    const wood = this.harvestTree(tree);
     const stale=this.s.jobs.filter(job=>job.type==='chop'&&job.targetId===tree.id);
     for(const job of stale)this.removeJob(job,false);
     return{ok:true,wood,message:`砍倒树木 · 掉落 ${wood} 木材`};
@@ -2938,9 +2939,7 @@ export class ColonySimulation {
     }else if(job.type==='chop'){
       const tree=this.world.getTree(job.targetId);
       if(!tree){this.removeJob(job,false);return;}
-      // Simulation harvesting is irreversible through sandbox history: one identity yields once.
-      this.world.removeTree(tree.id,{recordHistory:false});this.refreshGround();this.navigationDirty=true;
-      this.drop('wood',tree.trunkHeight*6,tree.x,tree.z);
+      this.harvestTree(tree);
     }
     const skill = workSkill(job.type);
     job.reserved={};c.skills[skill]=Math.min(20,c.skills[skill]+.12);this.s.metrics.jobsCompleted++;

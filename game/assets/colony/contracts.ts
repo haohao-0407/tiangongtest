@@ -1,3 +1,4 @@
+import balance from './resource-balance.json';
 import { sugarPress } from './sugar-press.ts';
 import { SPECIALIST_BASE_PRICES } from './specialist-catalog.ts';
 import type { Pasture } from './pasture.ts';
@@ -28,7 +29,7 @@ export type DishType = typeof DISH_TYPES[number];
 export type Resource = typeof RESOURCE_TYPES[number];
 export const isResource = (item: unknown): item is Resource => (RESOURCE_TYPES as readonly unknown[]).includes(item);
 export type Resources = Record<Resource, number>;
-export const PLAYER_SLOTS = 9, CHEST_SLOTS = 20, STACK_LIMIT = 99, CHEST_WOOD_COST = 4;
+export const PLAYER_SLOTS = 9, CHEST_SLOTS = 20, STACK_LIMIT = 99;
 export const SHELF_BAYS = 6, STORAGE_QUARTERS = 4, WAREHOUSE_STACK_LIMIT = 32, HAUL_LIMIT = 12;
 export const PLAYER_DELIVERY_TARGET = 'player-delivery';
 export const HAMMER = 'hammer', AXE = 'axe', PICKAXE = 'pickaxe', PLAYER_BUILD_MULTIPLIER = 2, PLAYER_BUILD_REACH = 3;
@@ -152,69 +153,69 @@ export type BuildingRotation = 0|1|2|3;
 export interface BuildingDefinition { id: BuildingKind; name: string; description: string; cost: Partial<Resources>; work: number; research?: string; power: number; blocking: boolean; color: [number,number,number]; footprint?:[number,number]; height?:number; category?: BuildingCategory; storageSlots?:number }
 export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
   sugarPress,
-  extractionStation:{id:'extractionStation',name:'采集站',description:'建在石料点或铁矿点上。居民携石镐分批采出，由搬运员送仓。',cost:{wood:8},work:12,power:0,blocking:true,color:[.62,.48,.32],category:'production'},
-  pastureGate:{id:'pastureGate',name:'牧场门',description:'供居民领动物进出。',cost:{wood:3},work:4,power:0,blocking:false,color:[.6,.39,.2],category:'structure'},
-  milker:{id:'milker',name:'挤奶器',description:'在牧场内为成年母牛挤奶。',cost:{wood:6,steel:2},work:12,power:0,blocking:true,color:[.7,.75,.7],category:'agriculture'},
-  henNest:{id:'henNest',name:'鸡窝',description:'居民在巢内收取母鸡产下的蛋。',cost:{wood:4},work:6,power:0,blocking:true,color:[.73,.59,.27],category:'agriculture'},
-  shearingStand:{id:'shearingStand',name:'剪毛台',description:'建在牧场内。每只成年羊每天可剪出 2 份羊毛。',cost:{wood:6},work:8,power:0,blocking:true,color:[.68,.47,.29],category:'agriculture'},
-  loom:{id:'loom',name:'织布机',description:'居民手工将 2 份羊毛织成 1 份布料。',cost:{wood:12},work:14,power:0,blocking:true,color:[.59,.40,.24],footprint:[2,1],category:'production'},
-  campfirePlaza:{id:'campfirePlaza',name:'篝火晚会广场',description:'居民整地、搭台设宴。完工当晚，全村围火相聚。',footprint:[26,22],height:4,cost:{},work:72,power:0,blocking:false,color:[.86,.52,.23],category:'core'},
-  bed:{id:'bed',name:'木床',description:'为居民提供安稳睡眠。',cost:{plank:24,cloth:3},work:18,power:0,blocking:true,color:[0.60,0.42,0.23],footprint:[1,2]},
-  table:{id:'table',name:'餐桌',description:'就餐与休闲，改善心情。',cost:{plank:30},work:16,power:0,blocking:true,color:[0.64,0.44,0.23]},
-  stove:{id:'stove',name:'炉灶',description:'村民按制作清单烹饪料理。',cost:{stoneBrick:8,steel:6},work:24,power:0,blocking:true,color:[0.40,0.43,0.44]},
-  workbench:{id:'workbench',name:'工作台',description:'研究后可按制作清单加工零件。',cost:{plank:40,steel:10},work:28,power:0,blocking:true,color:[0.58,0.40,0.23],footprint:[2,1]},
-  researchDesk:{id:'researchDesk',name:'研究桌',description:'分配研究项目，由居民逐步研究。',cost:{plank:40,steel:8},work:25,power:0,blocking:true,color:[0.40,0.49,0.55]},
-  solar:{id:'solar',name:'太阳能板',description:'晴天白昼发电，阴雨天减产。',cost:{steel:22,components:2},work:36,research:'electricity',power:-120,blocking:true,color:[0.19,0.35,0.55]},
-  battery:{id:'battery',name:'蓄电池',description:'保存白天余电，在夜间供电。',cost:{steel:16,components:2},work:30,research:'electricity',power:0,blocking:true,color:[0.40,0.47,0.29]},
-  cooler:{id:'cooler',name:'冷藏机',description:'消耗 45 W。仓储食物、饮品连续冷藏满一天后获得保鲜或冰镇，售价提高 20%，到次日零点失效。',cost:{steel:18,components:3},work:35,research:'refrigeration',power:45,blocking:true,color:[0.59,0.72,0.73]},
-  medicalBed:{id:'medicalBed',name:'医护床',description:'病人休养并接受医护治疗。',cost:{plank:36,steel:6,cloth:8},work:30,research:'medicine',power:0,blocking:true,color:[0.80,0.85,0.79],footprint:[1,2]},
-  wall:{id:'wall',name:'石墙',description:'原石砌成的厚墙，连续墙面可形成嵌窗。',cost:{stone:5},work:9,power:0,blocking:true,color:[0.61,0.63,0.57],height:2,category:'structure'},
-  door:{id:'door',name:'木门',description:'上下两格组成一扇门。打开通行，关闭围合房间。',cost:{wood:8},work:12,power:0,blocking:true,color:[0.54,0.36,0.20],height:2,category:'structure'},
-  floor:{id:'floor',name:'木地板',description:'可通行，提升封闭房间舒适度。',cost:{wood:3},work:5,power:0,blocking:false,color:[0.70,0.52,0.31],category:'structure'},
+  extractionStation:{id:'extractionStation',name:'采集站',description:'建在石料点或铁矿点上。居民携石镐分批采出，由搬运员送仓。',cost:balance.buildingCosts.extractionStation,work:12,power:0,blocking:true,color:[.62,.48,.32],category:'production'},
+  pastureGate:{id:'pastureGate',name:'牧场门',description:'供居民领动物进出。',cost:balance.buildingCosts.pastureGate,work:4,power:0,blocking:false,color:[.6,.39,.2],category:'structure'},
+  milker:{id:'milker',name:'挤奶器',description:'在牧场内为成年母牛挤奶。',cost:balance.buildingCosts.milker,work:12,power:0,blocking:true,color:[.7,.75,.7],category:'agriculture'},
+  henNest:{id:'henNest',name:'鸡窝',description:'居民在巢内收取母鸡产下的蛋。',cost:balance.buildingCosts.henNest,work:6,power:0,blocking:true,color:[.73,.59,.27],category:'agriculture'},
+  shearingStand:{id:'shearingStand',name:'剪毛台',description:'建在牧场内。每只成年羊每天可剪出 2 份羊毛。',cost:balance.buildingCosts.shearingStand,work:8,power:0,blocking:true,color:[.68,.47,.29],category:'agriculture'},
+  loom:{id:'loom',name:'织布机',description:'居民手工将 2 份羊毛织成 1 份布料。',cost:balance.buildingCosts.loom,work:14,power:0,blocking:true,color:[.59,.40,.24],footprint:[2,1],category:'production'},
+  campfirePlaza:{id:'campfirePlaza',name:'篝火晚会广场',description:'居民整地、搭台设宴。完工当晚，全村围火相聚。',footprint:[26,22],height:4,cost:balance.buildingCosts.campfirePlaza,work:72,power:0,blocking:false,color:[.86,.52,.23],category:'core'},
+  bed:{id:'bed',name:'木床',description:'为居民提供安稳睡眠。',cost:balance.buildingCosts.bed,work:18,power:0,blocking:true,color:[0.60,0.42,0.23],footprint:[1,2]},
+  table:{id:'table',name:'餐桌',description:'就餐与休闲，改善心情。',cost:balance.buildingCosts.table,work:16,power:0,blocking:true,color:[0.64,0.44,0.23]},
+  stove:{id:'stove',name:'炉灶',description:'村民按制作清单烹饪料理。',cost:balance.buildingCosts.stove,work:24,power:0,blocking:true,color:[0.40,0.43,0.44]},
+  workbench:{id:'workbench',name:'工作台',description:'研究后可按制作清单加工零件。',cost:balance.buildingCosts.workbench,work:28,power:0,blocking:true,color:[0.58,0.40,0.23],footprint:[2,1]},
+  researchDesk:{id:'researchDesk',name:'研究桌',description:'分配研究项目，由居民逐步研究。',cost:balance.buildingCosts.researchDesk,work:25,power:0,blocking:true,color:[0.40,0.49,0.55]},
+  solar:{id:'solar',name:'太阳能板',description:'晴天白昼发电，阴雨天减产。',cost:balance.buildingCosts.solar,work:36,research:'electricity',power:-120,blocking:true,color:[0.19,0.35,0.55]},
+  battery:{id:'battery',name:'蓄电池',description:'保存白天余电，在夜间供电。',cost:balance.buildingCosts.battery,work:30,research:'electricity',power:0,blocking:true,color:[0.40,0.47,0.29]},
+  cooler:{id:'cooler',name:'冷藏机',description:'消耗 45 W。仓储食物、饮品连续冷藏满一天后获得保鲜或冰镇，售价提高 20%，到次日零点失效。',cost:balance.buildingCosts.cooler,work:35,research:'refrigeration',power:45,blocking:true,color:[0.59,0.72,0.73]},
+  medicalBed:{id:'medicalBed',name:'医护床',description:'病人休养并接受医护治疗。',cost:balance.buildingCosts.medicalBed,work:30,research:'medicine',power:0,blocking:true,color:[0.80,0.85,0.79],footprint:[1,2]},
+  wall:{id:'wall',name:'石墙',description:'原石砌成的厚墙，连续墙面可形成嵌窗。',cost:balance.buildingCosts.wall,work:9,power:0,blocking:true,color:[0.61,0.63,0.57],height:2,category:'structure'},
+  door:{id:'door',name:'木门',description:'上下两格组成一扇门。打开通行，关闭围合房间。',cost:balance.buildingCosts.door,work:12,power:0,blocking:true,color:[0.54,0.36,0.20],height:2,category:'structure'},
+  floor:{id:'floor',name:'木地板',description:'可通行，提升封闭房间舒适度。',cost:balance.buildingCosts.floor,work:5,power:0,blocking:false,color:[0.70,0.52,0.31],category:'structure'},
 
   // ---- 结构类（占位符：颜色区分，形状统一） ----
-  woodWall:{id:'woodWall',name:'木墙',description:'木质隔断，成本低。',cost:{wood:5},work:8,power:0,blocking:true,color:[0.62,0.45,0.26],height:2,category:'structure'},
-  brickWall:{id:'brickWall',name:'砖墙',description:'黏土砖砌成，耐久。',cost:{stoneBrick:4},work:11,power:0,blocking:true,color:[0.66,0.42,0.34],height:2,category:'structure'},
-  stoneDoor:{id:'stoneDoor',name:'石门',description:'石门，通行与围合。',cost:{stoneBrick:5,stone:2},work:14,power:0,blocking:true,color:[0.58,0.60,0.55],height:2,category:'structure'},
-  autoDoor:{id:'autoDoor',name:'自动门',description:'感应开合，需要电力。',cost:{steel:12,components:2},work:20,research:'electricity',power:8,blocking:true,color:[0.52,0.58,0.62],height:2,category:'structure'},
-  fence:{id:'fence',name:'栅栏',description:'轻质围挡，划分地块。',cost:{wood:3},work:4,power:0,blocking:true,color:[0.70,0.56,0.34],category:'structure'},
+  woodWall:{id:'woodWall',name:'木墙',description:'木质隔断，成本低。',cost:balance.buildingCosts.woodWall,work:8,power:0,blocking:true,color:[0.62,0.45,0.26],height:2,category:'structure'},
+  brickWall:{id:'brickWall',name:'砖墙',description:'黏土砖砌成，耐久。',cost:balance.buildingCosts.brickWall,work:11,power:0,blocking:true,color:[0.66,0.42,0.34],height:2,category:'structure'},
+  stoneDoor:{id:'stoneDoor',name:'石门',description:'石门，通行与围合。',cost:balance.buildingCosts.stoneDoor,work:14,power:0,blocking:true,color:[0.58,0.60,0.55],height:2,category:'structure'},
+  autoDoor:{id:'autoDoor',name:'自动门',description:'感应开合，需要电力。',cost:balance.buildingCosts.autoDoor,work:20,research:'electricity',power:8,blocking:true,color:[0.52,0.58,0.62],height:2,category:'structure'},
+  fence:{id:'fence',name:'栅栏',description:'轻质围挡，划分地块。',cost:balance.buildingCosts.fence,work:4,power:0,blocking:true,color:[0.70,0.56,0.34],category:'structure'},
 
   // ---- 家具类 ----
-  chest:{id:'chest',name:'木箱',description:`独立储物 · ${CHEST_SLOTS} 格`,cost:{wood:CHEST_WOOD_COST},work:8,power:0,blocking:false,color:[0.60,0.42,0.23],category:'furniture',storageSlots:CHEST_SLOTS},
-  bedroll:{id:'bedroll',name:'地铺',description:'最简陋的睡眠点。',cost:{cloth:4},work:6,power:0,blocking:true,color:[0.68,0.58,0.42],category:'furniture'},
-  doubleBed:{id:'doubleBed',name:'双人床',description:'两位居民同住，节省空间。',cost:{plank:44,cloth:6},work:26,power:0,blocking:true,color:[0.60,0.42,0.23],footprint:[2,2],category:'furniture'},
-  chair:{id:'chair',name:'椅子',description:'就餐与休闲。',cost:{plank:12},work:8,power:0,blocking:true,color:[0.64,0.44,0.23],category:'furniture'},
-  stool:{id:'stool',name:'凳子',description:'最简单的座位。',cost:{wood:3},work:4,power:0,blocking:true,color:[0.66,0.47,0.27],category:'furniture'},
-  shelf:{id:'shelf',name:'储物架',description:`自动规划为仓储区 · ${SHELF_BAYS} 个分区，每区可按体积放置物资。`,cost:{plank:28},work:16,power:0,blocking:true,color:[0.56,0.39,0.22],footprint:[2,1],height:2,category:'furniture'},
-  planter:{id:'planter',name:'盆栽',description:'室内绿植，提升心情。',cost:{plank:12,stone:2},work:8,power:0,blocking:true,color:[0.42,0.60,0.36],category:'furniture'},
-  painting:{id:'painting',name:'挂画',description:'墙上装饰，提升心情。',cost:{plank:10,cloth:2},work:10,power:0,blocking:false,color:[0.72,0.56,0.38],category:'furniture'},
-  sculpture:{id:'sculpture',name:'雕塑',description:'艺术台产物，大幅提升心情。',cost:{stoneBrick:6},work:22,power:0,blocking:true,color:[0.72,0.70,0.64],category:'furniture'},
-  vase:{id:'vase',name:'花瓶',description:'陶制摆设。',cost:{stoneBrick:2},work:6,power:0,blocking:true,color:[0.76,0.62,0.46],category:'furniture'},
-  campfire:{id:'campfire',name:'篝火',description:'夜间照明与聚会。',cost:{wood:8,stone:4},work:8,power:0,blocking:true,color:[0.85,0.48,0.20],category:'furniture'},
-  torch:{id:'torch',name:'火把',description:'廉价照明。',cost:{wood:2},work:2,power:0,blocking:false,color:[0.88,0.56,0.24],category:'furniture'},
-  floorLamp:{id:'floorLamp',name:'落地灯',description:'照明，需要电力。',cost:{steel:6,components:1},work:12,research:'electricity',power:6,blocking:true,color:[0.86,0.80,0.52],category:'furniture'},
-  chandelier:{id:'chandelier',name:'吊灯',description:'大厅照明，耗电较高。',cost:{steel:10,components:2},work:18,research:'electricity',power:12,blocking:false,color:[0.90,0.84,0.58],category:'furniture'},
+  chest:{id:'chest',name:'木箱',description:`独立储物 · ${CHEST_SLOTS} 格`,cost:balance.buildingCosts.chest,work:8,power:0,blocking:false,color:[0.60,0.42,0.23],category:'furniture',storageSlots:CHEST_SLOTS},
+  bedroll:{id:'bedroll',name:'地铺',description:'最简陋的睡眠点。',cost:balance.buildingCosts.bedroll,work:6,power:0,blocking:true,color:[0.68,0.58,0.42],category:'furniture'},
+  doubleBed:{id:'doubleBed',name:'双人床',description:'两位居民同住，节省空间。',cost:balance.buildingCosts.doubleBed,work:26,power:0,blocking:true,color:[0.60,0.42,0.23],footprint:[2,2],category:'furniture'},
+  chair:{id:'chair',name:'椅子',description:'就餐与休闲。',cost:balance.buildingCosts.chair,work:8,power:0,blocking:true,color:[0.64,0.44,0.23],category:'furniture'},
+  stool:{id:'stool',name:'凳子',description:'最简单的座位。',cost:balance.buildingCosts.stool,work:4,power:0,blocking:true,color:[0.66,0.47,0.27],category:'furniture'},
+  shelf:{id:'shelf',name:'储物架',description:`自动规划为仓储区 · ${SHELF_BAYS} 个分区，每区可按体积放置物资。`,cost:balance.buildingCosts.shelf,work:16,power:0,blocking:true,color:[0.56,0.39,0.22],footprint:[2,1],height:2,category:'furniture'},
+  planter:{id:'planter',name:'盆栽',description:'室内绿植，提升心情。',cost:balance.buildingCosts.planter,work:8,power:0,blocking:true,color:[0.42,0.60,0.36],category:'furniture'},
+  painting:{id:'painting',name:'挂画',description:'墙上装饰，提升心情。',cost:balance.buildingCosts.painting,work:10,power:0,blocking:false,color:[0.72,0.56,0.38],category:'furniture'},
+  sculpture:{id:'sculpture',name:'雕塑',description:'艺术台产物，大幅提升心情。',cost:balance.buildingCosts.sculpture,work:22,power:0,blocking:true,color:[0.72,0.70,0.64],category:'furniture'},
+  vase:{id:'vase',name:'花瓶',description:'陶制摆设。',cost:balance.buildingCosts.vase,work:6,power:0,blocking:true,color:[0.76,0.62,0.46],category:'furniture'},
+  campfire:{id:'campfire',name:'篝火',description:'夜间照明与聚会。',cost:balance.buildingCosts.campfire,work:8,power:0,blocking:true,color:[0.85,0.48,0.20],category:'furniture'},
+  torch:{id:'torch',name:'火把',description:'廉价照明。',cost:balance.buildingCosts.torch,work:2,power:0,blocking:false,color:[0.88,0.56,0.24],category:'furniture'},
+  floorLamp:{id:'floorLamp',name:'落地灯',description:'照明，需要电力。',cost:balance.buildingCosts.floorLamp,work:12,research:'electricity',power:6,blocking:true,color:[0.86,0.80,0.52],category:'furniture'},
+  chandelier:{id:'chandelier',name:'吊灯',description:'大厅照明，耗电较高。',cost:balance.buildingCosts.chandelier,work:18,research:'electricity',power:12,blocking:false,color:[0.90,0.84,0.58],category:'furniture'},
 
   // ---- 生产类 ----
-  carpenterBench:{id:'carpenterBench',name:'木工台',description:'把木材加工成木板。',cost:{wood:10,stone:4},work:14,power:0,blocking:true,color:[0.62,0.45,0.27],footprint:[2,1],category:'production'},
-  flourMill:{id:'flourMill',name:'面粉机',description:'居民用手摇石磨把 2 份小麦磨成 1 份面粉。',cost:{wood:10,stone:8},work:14,power:0,blocking:true,color:[0.59,0.56,0.49],footprint:[2,1],category:'production'},
-  campStove:{id:'campStove',name:'篝火灶台',description:'早期烹饪，效率低。',cost:{plank:20,stone:6},work:10,power:0,blocking:true,color:[0.80,0.50,0.24],category:'production'},
-  stoneCutter:{id:'stoneCutter',name:'切石台',description:'石块加工成石砖。',cost:{plank:24,stone:8},work:16,power:0,blocking:true,color:[0.62,0.64,0.58],category:'production'},
-  forgery:{id:'forgery',name:'锻造台',description:'将生铁加工成钢铁。',cost:{stoneBrick:10,pigIron:12},work:26,power:0,blocking:true,color:[0.48,0.50,0.52],category:'production'},
-  fabricator:{id:'fabricator',name:'机械加工台',description:'制作零件。',cost:{steel:18,components:4},work:32,research:'electricity',power:20,blocking:true,color:[0.44,0.52,0.58],category:'production'},
-  tailorBench:{id:'tailorBench',name:'裁缝台',description:'缝制衣物。',cost:{plank:24,steel:4,cloth:6},work:20,power:0,blocking:true,color:[0.66,0.52,0.62],category:'production'},
-  pickleBarrel:{id:'pickleBarrel',name:'腌制桶',description:'果蔬腌制成腌菜。',cost:{plank:28},work:18,power:0,blocking:true,color:[0.58,0.44,0.28],category:'production'},
-  brewBarrel:{id:'brewBarrel',name:'酿酒桶',description:'发酵酿酒。',cost:{plank:32},work:22,power:0,blocking:true,color:[0.52,0.38,0.26],category:'production'},
-  cheesePress:{id:'cheesePress',name:'奶酪机',description:'牛奶加工成奶酪。',cost:{plank:16,steel:10},work:20,power:0,blocking:true,color:[0.78,0.72,0.50],category:'production'},
-  advancedResearchDesk:{id:'advancedResearchDesk',name:'高级研究台',description:'研究速度更快。',cost:{steel:16,stoneBrick:6,components:3},work:34,research:'electricity',power:10,blocking:true,color:[0.36,0.46,0.54],category:'production'},
-  artBench:{id:'artBench',name:'艺术台',description:'雕刻雕塑与装饰。',cost:{plank:28,stoneBrick:3},work:24,power:0,blocking:true,color:[0.68,0.56,0.42],category:'production'},
+  carpenterBench:{id:'carpenterBench',name:'木工台',description:'把木材加工成木板。',cost:balance.buildingCosts.carpenterBench,work:14,power:0,blocking:true,color:[0.62,0.45,0.27],footprint:[2,1],category:'production'},
+  flourMill:{id:'flourMill',name:'面粉机',description:'居民用手摇石磨把 2 份小麦磨成 1 份面粉。',cost:balance.buildingCosts.flourMill,work:14,power:0,blocking:true,color:[0.59,0.56,0.49],footprint:[2,1],category:'production'},
+  campStove:{id:'campStove',name:'篝火灶台',description:'早期烹饪，效率低。',cost:balance.buildingCosts.campStove,work:10,power:0,blocking:true,color:[0.80,0.50,0.24],category:'production'},
+  stoneCutter:{id:'stoneCutter',name:'切石台',description:'石块加工成石砖。',cost:balance.buildingCosts.stoneCutter,work:16,power:0,blocking:true,color:[0.62,0.64,0.58],category:'production'},
+  forgery:{id:'forgery',name:'锻造台',description:'将生铁加工成钢铁。',cost:balance.buildingCosts.forgery,work:26,power:0,blocking:true,color:[0.48,0.50,0.52],category:'production'},
+  fabricator:{id:'fabricator',name:'机械加工台',description:'制作零件。',cost:balance.buildingCosts.fabricator,work:32,research:'electricity',power:20,blocking:true,color:[0.44,0.52,0.58],category:'production'},
+  tailorBench:{id:'tailorBench',name:'裁缝台',description:'缝制衣物。',cost:balance.buildingCosts.tailorBench,work:20,power:0,blocking:true,color:[0.66,0.52,0.62],category:'production'},
+  pickleBarrel:{id:'pickleBarrel',name:'腌制桶',description:'果蔬腌制成腌菜。',cost:balance.buildingCosts.pickleBarrel,work:18,power:0,blocking:true,color:[0.58,0.44,0.28],category:'production'},
+  brewBarrel:{id:'brewBarrel',name:'酿酒桶',description:'发酵酿酒。',cost:balance.buildingCosts.brewBarrel,work:22,power:0,blocking:true,color:[0.52,0.38,0.26],category:'production'},
+  cheesePress:{id:'cheesePress',name:'奶酪机',description:'牛奶加工成奶酪。',cost:balance.buildingCosts.cheesePress,work:20,power:0,blocking:true,color:[0.78,0.72,0.50],category:'production'},
+  advancedResearchDesk:{id:'advancedResearchDesk',name:'高级研究台',description:'研究速度更快。',cost:balance.buildingCosts.advancedResearchDesk,work:34,research:'electricity',power:10,blocking:true,color:[0.36,0.46,0.54],category:'production'},
+  artBench:{id:'artBench',name:'艺术台',description:'雕刻雕塑与装饰。',cost:balance.buildingCosts.artBench,work:24,power:0,blocking:true,color:[0.68,0.56,0.42],category:'production'},
 
   // ---- 农业类 ----
-  hydroponics:{id:'hydroponics',name:'水培盆',description:'室内快速种植，需要电力。',cost:{steel:10,components:2},work:22,research:'agriculture',power:14,blocking:true,color:[0.42,0.66,0.46],category:'agriculture'},
-  sprinkler:{id:'sprinkler',name:'灌溉花洒',description:'自动浇水。',cost:{steel:6,components:1},work:14,power:4,blocking:false,color:[0.50,0.70,0.78],category:'agriculture'},
-  greenhouseWall:{id:'greenhouseWall',name:'温室墙',description:'透光墙体，维持室温。',cost:{plank:4,steel:4},work:10,power:0,blocking:true,color:[0.76,0.86,0.82],height:2,category:'agriculture'},
-  scarecrow:{id:'scarecrow',name:'稻草人',description:'防鸟，减少作物损失。',cost:{plank:12,cloth:2},work:12,power:0,blocking:true,color:[0.74,0.62,0.36],category:'agriculture'},
-  compostBin:{id:'compostBin',name:'堆肥箱',description:'秸秆转化成肥料。',cost:{plank:20},work:16,power:0,blocking:true,color:[0.50,0.42,0.28],category:'agriculture'},
+  hydroponics:{id:'hydroponics',name:'水培盆',description:'室内快速种植，需要电力。',cost:balance.buildingCosts.hydroponics,work:22,research:'agriculture',power:14,blocking:true,color:[0.42,0.66,0.46],category:'agriculture'},
+  sprinkler:{id:'sprinkler',name:'灌溉花洒',description:'自动浇水。',cost:balance.buildingCosts.sprinkler,work:14,power:4,blocking:false,color:[0.50,0.70,0.78],category:'agriculture'},
+  greenhouseWall:{id:'greenhouseWall',name:'温室墙',description:'透光墙体，维持室温。',cost:balance.buildingCosts.greenhouseWall,work:10,power:0,blocking:true,color:[0.76,0.86,0.82],height:2,category:'agriculture'},
+  scarecrow:{id:'scarecrow',name:'稻草人',description:'防鸟，减少作物损失。',cost:balance.buildingCosts.scarecrow,work:12,power:0,blocking:true,color:[0.74,0.62,0.36],category:'agriculture'},
+  compostBin:{id:'compostBin',name:'堆肥箱',description:'秸秆转化成肥料。',cost:balance.buildingCosts.compostBin,work:16,power:0,blocking:true,color:[0.50,0.42,0.28],category:'agriculture'},
 };
 export function buildingItemKind(item: string | undefined): BuildingKind | undefined {
   if (!item?.startsWith('building:')) return;

@@ -6,7 +6,7 @@ import { stockConstructionFixture } from './construction-supplies.mjs';
 import assert from 'node:assert/strict';
 
 const READ = 'voxel.world';
-const COSTS = { bed: { plank: 24, cloth: 3 }, floor: { wood: 3 } };
+const COSTS = { bed: { plank: 24, cloth: 3 }, floor: { wood: 1 } };
 const FOOTPRINTS = { bed: [1, 2], floor: [1, 1] };
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const pawnBy = (state, id) => state.colony.colonists.find((pawn) => pawn.id === id);
