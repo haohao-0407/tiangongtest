@@ -23,7 +23,6 @@ import { PcgView } from './pcg/view.ts';
 import { TreeView } from './tree-view.ts';
 import { WildPlantView } from './wild-plant-view.ts';
 import { landFootprintKey, WILD_PLANT_KINDS, type WildPlantKind } from './wild-plants.ts';
-import { pigMesh } from './pig-mesh.ts';
 import { WildAnimalView } from './wild-animal-view.ts';
 import { WILD_ANIMAL_KINDS, type WildAnimalKind } from './wild-animals.ts';
 import { treeParts, type TreeInstance } from './trees.ts';
@@ -66,7 +65,6 @@ export const voxelGame: Plugin.Object<ColonyModelConfig & { readonly environment
       let colony = new ColonySimulation(voxels);
       let colonyState = colony.snapshot();
       const sceneAssets = new SceneAssets(assets);
-      const models = new ColonyModels(assets, sceneAssets, config);
       const cropCards = new CropCards(world, assets, sceneAssets);
       let colonyView: ColonyView;
       const terrainView = new TerrainPlanView(world, assets, () => voxels);
@@ -294,6 +292,7 @@ export const voxelGame: Plugin.Object<ColonyModelConfig & { readonly environment
         baseColor: [1, 1, 1, 1], metallic: 0, roughness: 0.94,
       })).unwrap());
       animalView = new WildAnimalView(world, animalModels, terrainMaterial);
+      const models = new ColonyModels(assets, sceneAssets, config, terrainMaterial);
       const ghost = (rgba: [number, number, number, number]) => own(assets.create(Materials.unlit(rgba, {
         renderState: {
           cullMode: 'none', depthWriteEnabled: false,
@@ -331,8 +330,7 @@ export const voxelGame: Plugin.Object<ColonyModelConfig & { readonly environment
         sceneAssets.preload(skyGuid, 'equirect'),
         models.prepareOpening(colonyState),
         Promise.all(WILD_PLANT_KINDS.map(kind => sceneAssets.preload(config.wildPlants[kind], 'mesh'))),
-        Promise.all(WILD_ANIMAL_KINDS.map(kind => kind === 'pig' ? own(assets.create(pigMesh()).unwrap())
-          : sceneAssets.preload(config.wildAnimals[kind], 'mesh'))),
+        Promise.all(WILD_ANIMAL_KINDS.map(kind => sceneAssets.preload(config.wildAnimals[kind], 'mesh'))),
       ]);
       WILD_PLANT_KINDS.forEach((kind, i) => plantModels.set(kind, plants[i]!));
       WILD_ANIMAL_KINDS.forEach((kind, i) => animalModels.set(kind, animals[i]!));

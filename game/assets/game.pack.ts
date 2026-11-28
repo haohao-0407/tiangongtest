@@ -20,6 +20,8 @@ import villager15 from './models/villagers/villager-15.glb.meta.json';
 import villager16 from './models/villagers/villager-16.glb.meta.json';
 import villager17 from './models/villagers/villager-17.glb.meta.json';
 import buildings from './models/buildings.glb.meta.json';
+import homestead from './models/homestead.glb.meta.json';
+import guide from './models/guide-merchant.glb.meta.json';
 import plaza from './models/campfire-plaza.glb.meta.json';
 import flora from './models/wild-plants.glb.meta.json';
 import wildlife from './models/wild-animals.glb.meta.json';
@@ -29,6 +31,14 @@ const villagers = [
   villager01, villager02, villager03, villager04, villager05, villager06, villager07, villager08, villager09,
   villager10, villager11, villager12, villager13, villager14, villager15, villager16, villager17,
 ];
+
+function characterConfig(model:{subAssets: {kind:string; name?:string; guid:string}[]}) {
+  return {
+    scene:{$asset:model.subAssets.find(asset => asset.kind==='scene')!.guid},
+    walks:WALK_CLIPS.map(name => ({$asset:model.subAssets.find(asset =>
+      asset.kind==='animation-clip' && asset.name===name)!.guid})),
+  };
+}
 
 export const game = voxelGame;
 export default definePack({
@@ -41,16 +51,15 @@ export default definePack({
       plaza:Object.fromEntries(plaza.subAssets.filter(asset=>asset.kind==='mesh').map(asset=>[asset.name,{$asset:asset.guid}])),
       wildPlants:Object.fromEntries(flora.subAssets.filter(asset => asset.kind === 'mesh')
         .map(asset => [asset.name, { $asset:asset.guid }])),
-      wildAnimals:Object.fromEntries(wildlife.subAssets.filter(asset => asset.kind === 'mesh')
+      homestead:Object.fromEntries(homestead.subAssets.filter(asset=>asset.kind==='mesh' && asset.name!=='pig')
+        .map(asset=>[asset.name,{$asset:asset.guid}])),
+      wildAnimals:Object.fromEntries([...wildlife.subAssets, ...homestead.subAssets.filter(asset=>asset.name==='pig')].filter(asset => asset.kind === 'mesh')
         .map(asset => [asset.name, { $asset:asset.guid }])),
       buildings:Object.fromEntries(buildings.subAssets.filter(asset => asset.kind === 'mesh')
         .map(asset => [asset.name, { $asset:asset.guid }])),
       characterMaterial:{$asset:villager01.subAssets.find(asset => asset.kind === 'material')!.guid},
-      characters:villagers.map(model => ({
-        scene:{$asset:model.subAssets.find(asset => asset.kind === 'scene')!.guid},
-        walks:WALK_CLIPS.map(name => ({$asset:model.subAssets.find(asset =>
-          asset.kind === 'animation-clip' && asset.name === name)!.guid})),
-      })),
+      characters:villagers.map(characterConfig),
+      guide:characterConfig(guide),
     },
   }}),
 });

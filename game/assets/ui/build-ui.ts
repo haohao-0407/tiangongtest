@@ -63,9 +63,9 @@ const BUILD_ICONS: Record<string, string> = {
 const SUPPLY_TEXTURES = [
   'egg', 'milk', 'oil', 'blueberryWine', 'flour', 'cheese', 'chickenMeat', 'beef', 'pork', 'sugar', 'wool', 'mutton',
 ] as const satisfies readonly SupplyType[];
-const RESOURCE_ICONS: Record<Exclude<Resource, CropSeed | CropType | DishType | typeof SUPPLY_TEXTURES[number]>, string> = {
-  wood: '▰', stone: '◆', steel: '▱', pigIron: '◈', plank: '▤', stoneBrick: '▦', dirt: '▩', food: '♧', meal: '◉', medicine: '+', cloth: '▨', silver: '○', components: '⚙',
-
+const MATERIAL_TEXTURES = ['cloth', 'steel', 'plank', 'pigIron', 'stone', 'stoneBrick', 'silver'] as const satisfies readonly Resource[];
+const RESOURCE_ICONS: Record<Exclude<Resource, CropSeed | CropType | DishType | typeof SUPPLY_TEXTURES[number] | typeof MATERIAL_TEXTURES[number]>, string> = {
+  wood: '▰', dirt: '▩', food: '♧', meal: '◉', medicine: '+', components: '⚙',
 };
 const int = (value: number) => Math.floor(Number.isFinite(value) ? value : 0);
 const percent = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
@@ -85,7 +85,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const sugarPressIcon = ui.resourceUrl('ui/sugar-press.png');
     if (!sugarPressIcon.ok) throw sugarPressIcon.error;
     itemImages.set('building:sugarPress', sugarPressIcon.value);
-    for (const [folder, items] of [['crop-icons', CROP_TYPES], ['dish-icons', DISH_TYPES], ['seed-icons', CROP_SEEDS], ['supply-icons', SUPPLY_TEXTURES]] as const) {
+    for (const [folder, items] of [['crop-icons', CROP_TYPES], ['dish-icons', DISH_TYPES], ['seed-icons', CROP_SEEDS], ['supply-icons', SUPPLY_TEXTURES], ['material-icons', MATERIAL_TEXTURES]] as const) {
       for (const item of items) {
         const icon = ui.resourceUrl(`ui/${folder}/${item}.png`);
         if (!icon.ok) throw icon.error;
@@ -98,7 +98,6 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   }
   const releases: (() => void)[] = [];
   const get = <T extends HTMLElement>(id: string) => shadow.getElementById(id) as T;
-  const updateMaterials = materialHud(shadow.querySelector<HTMLElement>('.shell')!);
   const make = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?: string): HTMLElementTagNameMap[K] => {
     const el = doc.createElement(tag); el.className = className; if (text !== undefined) el.textContent = text; return el;
   };
@@ -145,6 +144,9 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const portrait = ui.resourceUrl('ui/guide-portrait.png');
   if (!portrait.ok) { ui.dispose(); throw portrait.error; }
   const guideShop = createGuideShop(doc, portrait.value, itemIcon, ()=>renderPanel(true), colonyCommand);
+  const updateMaterials = materialHud(shadow.querySelector<HTMLElement>('.shell')!, itemIcon);
+  get('vital-gold').before(itemIcon('silver', 'coin-icon'));
+  get('vital-gold').parentElement!.title = '银币';
   const saySave = (text: string) => { get('save-status').textContent = text; get('quick-save').textContent = text; };
   const button = (text: string, testId: string, command?: ColonyCommand, className = '') => {
     const b = make('button', className, text); b.type = 'button'; b.dataset.testid = testId;

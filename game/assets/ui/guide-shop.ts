@@ -73,6 +73,7 @@ export function createGuideShop(doc:Document, portraitUrl:string, icon:(item:Res
       const event=merchantId==='guide'?undefined:activeMarketEvent(c.specialistMarket.events,c.day,merchantId,SPECIALISTS[merchantId].request.item);
       const store=el('div','guide-store'), heading=el('div','guide-heading');
       const balance=el('strong','guide-balance',`可用 ${c.resources.silver} 银币`);
+      balance.prepend(icon('silver','coin-icon'));
       balance.dataset.testid='guide-balance';
       const pages=Math.ceil(listings.length/3), nav=el('div','guide-pages');
       nav.append(button('‹','prev',()=>{shelfPage=(shelfPage+pages-1)%pages;refresh();}),el('span','',`${shelfPage+1} / ${pages}`),
@@ -84,8 +85,9 @@ export function createGuideShop(doc:Document, portraitUrl:string, icon:(item:Res
       for (const {item} of listings.slice(shelfPage*3,shelfPage*3+3)) {
         const card=button('','buy-'+item,()=>select('buy',item),'guide-sku');
         card.setAttribute('aria-pressed',String(order?.side==='buy' && order.item===item));
-        card.append(el('strong','',RESOURCE_NAMES[item]),icon(item,'guide-product '+item),
-          el('span','guide-plinth',`${merchantOrder(c,'buy',item,1,merchantId).total} 银币`));
+        const price=el('span','guide-plinth',`${merchantOrder(c,'buy',item,1,merchantId).total} 银币`);
+        price.prepend(icon('silver','coin-icon'));
+        card.append(el('strong','',RESOURCE_NAMES[item]),icon(item,'guide-product '+item),price);
         shelf.append(card);
       }
       const recycle=el('div','guide-recycle'), choices=el('div','guide-choices');
@@ -119,6 +121,7 @@ export function createGuideShop(doc:Document, portraitUrl:string, icon:(item:Res
           submit({action:'guide-trade',merchantId,value:side,kind:item,amount:count,target:quote.total});
         },'guide-confirm');
         confirm.disabled=pending || !available;
+        if (quote) confirm.prepend(icon('silver','coin-icon'));
         checkout.append(summary,stepper,confirm,button('取消','cancel',()=>{order=null;receipt='';refresh();}));
         if (!buy && event?.item===item) checkout.append(el('small','guide-detail',`本次可提交 ${Math.min(c.resources[item],event.remaining)} 件`));
         if (quote?.premiumCount) checkout.append(el('small','guide-detail',`保鲜 ${quote.premiumCount} 件 · 普通 ${quote.normalCount} 件`));
@@ -133,8 +136,9 @@ export function createGuideShop(doc:Document, portraitUrl:string, icon:(item:Res
         const buy=s.side==='buy', name=RESOURCE_NAMES[s.item];
         const worker=c.colonists.find(p=>p.id===job.assignedTo)?.name??'等待居民';
         const row=el('div','guide-order');
-        row.append(el('strong','',`${name} × ${s.count} · ${job.label}`),el('span','',`${worker} · 在途 ${s.inTransit} · ${buy?'入库':'交付'} ${s.delivered}/${s.count}`),
-          el('span','',buy?`预留余 ${s.total-s.paid} · 已付 ${s.paid} 银币`:`锁价 ${s.total} · 已收 ${s.paid} 银币`));
+        const payment=el('span','',buy?`预留余 ${s.total-s.paid} · 已付 ${s.paid} 银币`:`锁价 ${s.total} · 已收 ${s.paid} 银币`);
+        payment.prepend(icon('silver','coin-icon'));
+        row.append(el('strong','',`${name} × ${s.count} · ${job.label}`),el('span','',`${worker} · 在途 ${s.inTransit} · ${buy?'入库':'交付'} ${s.delivered}/${s.count}`),payment);
         orders.append(row);
       }
       const finished=c.events.filter(e=>e.text.startsWith(name()+'采购已入库')||e.text.startsWith(name()+'回收已交付')).slice(-2);

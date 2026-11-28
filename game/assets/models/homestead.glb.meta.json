@@ -1,0 +1,1216 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "pig",
+        "fence",
+        "fenceCorner",
+        "pastureGate",
+        "milker",
+        "henNest",
+        "sugarPress",
+        "shearingStand",
+        "loom",
+        "flourMill",
+        "cooler",
+        "solar",
+        "battery",
+        "torch",
+        "floorLamp",
+        "chandelier",
+        "sculpture",
+        "vase"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "homestead.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:pig"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:fence"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:fenceCorner"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:pastureGate"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:milker"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:henNest"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:sugarPress"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:shearingStand"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:loom"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:flourMill"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:cooler"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:solar"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:battery"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:torch"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:floorLamp"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:chandelier"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:sculpture"
+    },
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:vase"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:battery": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:chandelier": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:cooler": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:fence": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:fenceCorner": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:floorLamp": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:flourMill": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:henNest": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:loom": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:milker": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:pastureGate": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:pig": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:sculpture": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:shearingStand": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:solar": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:sugarPress": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:torch": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    },
+    "mesh:vase": {
+      "materialSlots": [
+        {
+          "slotName": "Building palette 1.0",
+          "sourceKey": "material:Building palette 1.0",
+          "tombstone": true
+        },
+        {
+          "slotName": "Homestead palette 1",
+          "sourceKey": "material:Homestead palette 1",
+          "tombstone": true
+        },
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a221a6-6cf6-7d06-bb1c-e0b6ac177c61",
+      "kind": "mesh",
+      "name": "pig",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:pig"
+    },
+    {
+      "guid": "01a221a6-6cf8-77d8-9006-aaffc3343e5e",
+      "kind": "mesh",
+      "name": "fence",
+      "sourceIndex": 1,
+      "sourceKey": "mesh:fence"
+    },
+    {
+      "guid": "01a221a6-6cf8-77d8-9006-ab008cb423f7",
+      "kind": "mesh",
+      "name": "fenceCorner",
+      "sourceIndex": 2,
+      "sourceKey": "mesh:fenceCorner"
+    },
+    {
+      "guid": "01a221a6-6cf8-77d8-9006-ab0106e87390",
+      "kind": "mesh",
+      "name": "pastureGate",
+      "sourceIndex": 3,
+      "sourceKey": "mesh:pastureGate"
+    },
+    {
+      "guid": "01a221a6-6cf8-77d8-9006-ab02c38de864",
+      "kind": "mesh",
+      "name": "milker",
+      "sourceIndex": 4,
+      "sourceKey": "mesh:milker"
+    },
+    {
+      "guid": "01a221a6-6cf8-77d8-9006-ab038656a8f3",
+      "kind": "mesh",
+      "name": "henNest",
+      "sourceIndex": 5,
+      "sourceKey": "mesh:henNest"
+    },
+    {
+      "guid": "01a221a6-6cf8-77d8-9006-ab04b8746d5f",
+      "kind": "mesh",
+      "name": "sugarPress",
+      "sourceIndex": 6,
+      "sourceKey": "mesh:sugarPress"
+    },
+    {
+      "guid": "01a221a6-6cf8-77d8-9006-ab05dee01c60",
+      "kind": "mesh",
+      "name": "shearingStand",
+      "sourceIndex": 7,
+      "sourceKey": "mesh:shearingStand"
+    },
+    {
+      "guid": "01a221a6-6cf8-77d8-9006-ab066c41c858",
+      "kind": "mesh",
+      "name": "loom",
+      "sourceIndex": 8,
+      "sourceKey": "mesh:loom"
+    },
+    {
+      "guid": "01a221a6-6cf9-723b-bff7-ac91d34f8263",
+      "kind": "mesh",
+      "name": "flourMill",
+      "sourceIndex": 9,
+      "sourceKey": "mesh:flourMill"
+    },
+    {
+      "guid": "01a221a6-6cf9-723b-bff7-ac92e4ef4291",
+      "kind": "mesh",
+      "name": "cooler",
+      "sourceIndex": 10,
+      "sourceKey": "mesh:cooler"
+    },
+    {
+      "guid": "01a221a6-6cf9-723b-bff7-ac9371d87d40",
+      "kind": "mesh",
+      "name": "solar",
+      "sourceIndex": 11,
+      "sourceKey": "mesh:solar"
+    },
+    {
+      "guid": "01a221a6-6cf9-723b-bff7-ac9409474ad1",
+      "kind": "mesh",
+      "name": "battery",
+      "sourceIndex": 12,
+      "sourceKey": "mesh:battery"
+    },
+    {
+      "guid": "01a221a6-6cf9-723b-bff7-ac9587f663e3",
+      "kind": "mesh",
+      "name": "torch",
+      "sourceIndex": 13,
+      "sourceKey": "mesh:torch"
+    },
+    {
+      "guid": "01a221a6-6cf9-723b-bff7-ac96204128ad",
+      "kind": "mesh",
+      "name": "floorLamp",
+      "sourceIndex": 14,
+      "sourceKey": "mesh:floorLamp"
+    },
+    {
+      "guid": "01a221a6-6cf9-723b-bff7-ac97f2ec58f5",
+      "kind": "mesh",
+      "name": "chandelier",
+      "sourceIndex": 15,
+      "sourceKey": "mesh:chandelier"
+    },
+    {
+      "guid": "01a221a6-6cf9-723b-bff7-ac98b653c03c",
+      "kind": "mesh",
+      "name": "sculpture",
+      "sourceIndex": 16,
+      "sourceKey": "mesh:sculpture"
+    },
+    {
+      "guid": "01a221a6-6cf9-723b-bff7-ac9957d347f2",
+      "kind": "mesh",
+      "name": "vase",
+      "sourceIndex": 17,
+      "sourceKey": "mesh:vase"
+    },
+    {
+      "guid": "01a221a6-6cf9-723b-bff7-ac9b9fa89c4d",
+      "kind": "scene",
+      "name": "Scene",
+      "sourceIndex": 0,
+      "sourceKey": "scene:Scene"
+    }
+  ]
+}

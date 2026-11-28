@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { tsImport } from 'tsx/esm/api';
 
-async function checkDecoded({guids, expected}) {
+export async function checkDecoded({guids, expected}) {
   const timeline = await globalThis.__forgeaxLoadTimeline.collect({timeoutMs: 1200});
   const decoded = new Set(timeline.realms.flatMap(realm => realm.records
     .filter(r => r.kind === 'decode' && r.detail?.stage === 'asset' && r.detail.ok).map(r => r.name)));
@@ -19,7 +19,8 @@ async function restoreModels(play) {
   const used = new Set([...current.characters.residents, ...current.characters.merchants].map(actor => actor.outfit));
   const directory = new URL('../assets/models/villagers/', import.meta.url);
   const variants = (await readdir(directory)).filter(file => file.endsWith('.glb.meta.json')).sort();
-  const count = variants.length + 1; // The guide's model is in the parent directory.
+  const count = variants.length + 1; // Villager 01 is in the parent directory.
+  assert.equal(current.characters.merchants.find(actor => actor.id === 'guide')?.outfit, count + 1);
   const file = variants.find(file => !used.has(Number(file.match(/(\d+)\.glb/)[1])));
   assert.ok(file);
   const outfit = Number(file.match(/(\d+)\.glb/)[1]);
@@ -27,8 +28,12 @@ async function restoreModels(play) {
     const meta = JSON.parse(await readFile(new URL(file, directory), 'utf8'));
     return meta.subAssets.find(asset => asset.kind === kind && (!name || asset.name === name)).guid;
   };
+  const openingGuids = await Promise.all([assetGuid('../guide-merchant.glb.meta.json', 'scene'),
+    assetGuid('../homestead.glb.meta.json', 'mesh', 'pig')]);
+  assert.equal(await play.page.evaluate(checkDecoded, {guids: openingGuids, expected: true}), true);
   const guids = await Promise.all([assetGuid(file, 'scene'),
     assetGuid('../buildings.glb.meta.json', 'mesh', 'medicalBed'),
+    assetGuid('../homestead.glb.meta.json', 'mesh', 'milker'),
     assetGuid('../crops/tomato.glb.meta.json', 'mesh', 'tomato-mature')]);
   assert.equal(await play.page.evaluate(checkDecoded, {guids, expected: false}), true);
 
@@ -38,6 +43,7 @@ async function restoreModels(play) {
   colony.nextId = serial + 1;
   colony.speed = 0;
   colony.buildings.find(b => b.kind === 'bed').kind = 'medicalBed';
+  colony.buildings.find(b => b.kind === 'researchDesk').kind = 'milker';
   colony.zones.find(z => z.kind === 'farm').crop = 'tomato';
   Object.assign(colony.crops[0], {kind: 'tomato', planted: true, growth: .9});
   const save = JSON.stringify({version: 2, voxel: world.serialize(), colony});
@@ -95,6 +101,6 @@ export default async function startupAssets(play) {
       assert.equal((await play.screenshot('playable-colony')).rendered, true);
     }
   }
-  const restoredOutfit = await play.step('暂停存档按需恢复居民、医护床和成熟番茄', () => restoreModels(play));
+  const restoredOutfit = await play.step('开局加载向导与猪，暂停读档后按需加载居民、医护床、挤奶器和成熟番茄', () => restoreModels(play));
   return { samples, restoredOutfit };
 }

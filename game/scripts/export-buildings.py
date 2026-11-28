@@ -40,7 +40,7 @@ def bounds(points):
     return [Vector([op(p[i] for p in points) for i in range(3)]) for op in (min, max)]
 
 
-def bake(kind, path, palettes):
+def bake(kind, path, palettes, transform=None):
     before = set(bpy.data.objects)
     bpy.ops.import_scene.fbx(filepath=str(path))
     imported = set(bpy.data.objects) - before
@@ -63,7 +63,7 @@ def bake(kind, path, palettes):
         for p in points:
             if kind == "doorOpen" and "_Frame_" not in obj.name:
                 p = hinge + swing @ (p - hinge)
-            p = p - center
+            p = transform(p, center) if transform else p - center
             if kind in ("door", "doorOpen", "stoneDoor", "autoDoor"):
                 p.y += .405
             if kind == "wall":
@@ -127,11 +127,13 @@ def bake(kind, path, palettes):
         for i in face.loop_indices:
             attr.data[i].color = color
     bpy.context.collection.objects.link(bpy.data.objects.new(kind, mesh))
+    return lo, hi
 
 
-bpy.ops.wm.read_factory_settings(use_empty=True)
-palettes = {}
-for kind, filename in BUILDINGS.items():
-    bake(kind, SOURCES[filename], palettes)
-bpy.ops.export_scene.gltf(filepath=str(MODELS / "buildings.glb"), export_format="GLB",
-                          export_vertex_color="ACTIVE", export_yup=True, export_animations=False)
+if __name__ == "__main__":
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    palettes = {}
+    for kind, filename in BUILDINGS.items():
+        bake(kind, SOURCES[filename], palettes)
+    bpy.ops.export_scene.gltf(filepath=str(MODELS / "buildings.glb"), export_format="GLB",
+                              export_vertex_color="ACTIVE", export_yup=True, export_animations=False)
