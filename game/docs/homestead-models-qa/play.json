@@ -1,0 +1,1224 @@
+{
+  "schemaVersion": "1.0.0",
+  "passed": true,
+  "root": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game",
+  "script": "scripts\\homestead-models-playthrough.mjs",
+  "outputDir": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough",
+  "report": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\play.json",
+  "captureReport": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\capture.json",
+  "url": "http://localhost:64162/",
+  "backend": "hardware",
+  "timings": {
+    "openMs": 531935,
+    "readyMs": 38268,
+    "scriptMs": 28403,
+    "verifyMs": 1051,
+    "totalMs": 600671
+  },
+  "steps": [
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 20
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 24
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 22
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 21
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 20
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 17
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 25
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 23
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 26
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 23
+    },
+    {
+      "name": "ranch > advance 0.22 s",
+      "ok": true,
+      "ms": 24
+    },
+    {
+      "name": "ranch > advance 0.22 s",
+      "ok": true,
+      "ms": 35
+    },
+    {
+      "name": "ranch > advance 0.22 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "ranch > advance 0.22 s",
+      "ok": true,
+      "ms": 33
+    },
+    {
+      "name": "ranch > advance 0.22 s",
+      "ok": true,
+      "ms": 20
+    },
+    {
+      "name": "ranch > advance 0.22 s",
+      "ok": true,
+      "ms": 22
+    },
+    {
+      "name": "ranch > advance 0.22 s",
+      "ok": true,
+      "ms": 26
+    },
+    {
+      "name": "ranch > advance 0.22 s",
+      "ok": true,
+      "ms": 13
+    },
+    {
+      "name": "ranch",
+      "ok": true,
+      "ms": 6092
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 15
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 21
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 11
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 17
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 14
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 16
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 19
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 16
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 20
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 11
+    },
+    {
+      "name": "workshop > advance 0.22 s",
+      "ok": true,
+      "ms": 23
+    },
+    {
+      "name": "workshop > advance 0.22 s",
+      "ok": true,
+      "ms": 28
+    },
+    {
+      "name": "workshop > advance 0.22 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "workshop > advance 0.22 s",
+      "ok": true,
+      "ms": 30
+    },
+    {
+      "name": "workshop > advance 0.22 s",
+      "ok": true,
+      "ms": 22
+    },
+    {
+      "name": "workshop > advance 0.22 s",
+      "ok": true,
+      "ms": 28
+    },
+    {
+      "name": "workshop > advance 0.22 s",
+      "ok": true,
+      "ms": 20
+    },
+    {
+      "name": "workshop > advance 0.22 s",
+      "ok": true,
+      "ms": 30
+    },
+    {
+      "name": "workshop",
+      "ok": true,
+      "ms": 6018
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 27
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 21
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 21
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 16
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 19
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 13
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 19
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 12
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 16
+    },
+    {
+      "name": "power > advance 0.22 s",
+      "ok": true,
+      "ms": 18
+    },
+    {
+      "name": "power > advance 0.22 s",
+      "ok": true,
+      "ms": 21
+    },
+    {
+      "name": "power > advance 0.22 s",
+      "ok": true,
+      "ms": 23
+    },
+    {
+      "name": "power > advance 0.22 s",
+      "ok": true,
+      "ms": 33
+    },
+    {
+      "name": "power > advance 0.22 s",
+      "ok": true,
+      "ms": 24
+    },
+    {
+      "name": "power > advance 0.22 s",
+      "ok": true,
+      "ms": 32
+    },
+    {
+      "name": "power",
+      "ok": true,
+      "ms": 4744
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 25
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 18
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 12
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 25
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 16
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 17
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 21
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 20
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 26
+    },
+    {
+      "name": "advance 0.22 s",
+      "ok": true,
+      "ms": 31
+    },
+    {
+      "name": "lighting > advance 0.22 s",
+      "ok": true,
+      "ms": 28
+    },
+    {
+      "name": "lighting > advance 0.22 s",
+      "ok": true,
+      "ms": 21
+    },
+    {
+      "name": "lighting > advance 0.22 s",
+      "ok": true,
+      "ms": 26
+    },
+    {
+      "name": "lighting > advance 0.22 s",
+      "ok": true,
+      "ms": 26
+    },
+    {
+      "name": "lighting > advance 0.22 s",
+      "ok": true,
+      "ms": 21
+    },
+    {
+      "name": "lighting > advance 0.22 s",
+      "ok": true,
+      "ms": 22
+    },
+    {
+      "name": "lighting > advance 0.22 s",
+      "ok": true,
+      "ms": 26
+    },
+    {
+      "name": "lighting > advance 0.22 s",
+      "ok": true,
+      "ms": 18
+    },
+    {
+      "name": "lighting > advance 0.22 s",
+      "ok": true,
+      "ms": 17
+    },
+    {
+      "name": "lighting > advance 0.22 s",
+      "ok": true,
+      "ms": 20
+    },
+    {
+      "name": "lighting",
+      "ok": true,
+      "ms": 7651
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "01-guide-02-pigs-03-fence-corners-04-gate",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\01-01-guide-02-pigs-03-fence-corners-04-gate.png",
+      "rendered": true,
+      "digest": "sha256:6af3f2f2829dce31b56e188536d1e1f67e188eea867fea810fd97a79fa78f295"
+    },
+    {
+      "name": "fence",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\02-fence.png",
+      "rendered": true,
+      "digest": "sha256:047620648fbe1e3a2ce21040a4e2b5d42b28933022b98fbc2437d7eb7fda6f73"
+    },
+    {
+      "name": "pastureGate",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\03-pastureGate.png",
+      "rendered": true,
+      "digest": "sha256:569ffc8017192b1ca373c57d733dc6f19b2b8654a10a63031f3369c264e41c93"
+    },
+    {
+      "name": "milker",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\04-milker.png",
+      "rendered": true,
+      "digest": "sha256:c7ce2009506d93625af8587df87fe5cfebd9f98575720ad477d888c689efc1b0"
+    },
+    {
+      "name": "henNest",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\05-henNest.png",
+      "rendered": true,
+      "digest": "sha256:c4e5cba0156b8857654bb86fc3245a46820aa410adc183afb02371b527e2d054"
+    },
+    {
+      "name": "workshop",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\06-workshop.png",
+      "rendered": true,
+      "digest": "sha256:ebd014202c938b460b2523a137beacaaae95bd596b5a649fd432ac095fba3211"
+    },
+    {
+      "name": "sugarPress",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\07-sugarPress.png",
+      "rendered": true,
+      "digest": "sha256:59e2a027f854eddda60286651a0b3bef1fc4f5da387b092d4564362755e97ef8"
+    },
+    {
+      "name": "shearingStand",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\08-shearingStand.png",
+      "rendered": true,
+      "digest": "sha256:d57c3d7ed78226976513136a91cc9f74e58ed5184ff1ac74a2c14b82c1975dfb"
+    },
+    {
+      "name": "loom",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\09-loom.png",
+      "rendered": true,
+      "digest": "sha256:6e8594eac841129d0c0ca202c80a2e0648e8a12ecef345e415329f7d277b8f69"
+    },
+    {
+      "name": "flourMill",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\10-flourMill.png",
+      "rendered": true,
+      "digest": "sha256:2dacb11ff0eaec1dbef41b41d43c7461b4fe93b3fa39f46603a68545b8aabd46"
+    },
+    {
+      "name": "power",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\11-power.png",
+      "rendered": true,
+      "digest": "sha256:447d684c71c0ceafa715aaab6cff36b158518ca8e16653b8a81213829313db81"
+    },
+    {
+      "name": "solar",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\12-solar.png",
+      "rendered": true,
+      "digest": "sha256:0a2f1d36825de9eb5ad4c0f331156b61bf6eae9a9eec81f5ba7edc1e22ea2211"
+    },
+    {
+      "name": "battery",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\13-battery.png",
+      "rendered": true,
+      "digest": "sha256:0e08262536f2291aecbc9e4f07c64598e8d2e5f0a8b7f8a257936c5ce5b4d39c"
+    },
+    {
+      "name": "cooler",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\14-cooler.png",
+      "rendered": true,
+      "digest": "sha256:b0e09fee331c2d689d2a3fc6e7b0c15f1c57ee14317b2663c4542179c999dd00"
+    },
+    {
+      "name": "lighting",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\15-lighting.png",
+      "rendered": true,
+      "digest": "sha256:a5f5a669f8b3683f48ba1f5cd2d937c5465899fafce66744be4be0141f5aa892"
+    },
+    {
+      "name": "torch",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\16-torch.png",
+      "rendered": true,
+      "digest": "sha256:b67183ef0bbb8eebeadbc450c1cd46781fd67efc7a96bbb390311b026dae8a7b"
+    },
+    {
+      "name": "floorLamp",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\17-floorLamp.png",
+      "rendered": true,
+      "digest": "sha256:d4b4bd46f62b27beadaabbe221c958581f78afa055ebbc37021290f2fbf72118"
+    },
+    {
+      "name": "chandelier",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\18-chandelier.png",
+      "rendered": true,
+      "digest": "sha256:30b6741be974cb9cd0c4243bc420a8bb2ebd0108edce7b6e0d7704fda3e6c877"
+    },
+    {
+      "name": "sculpture",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\19-sculpture.png",
+      "rendered": true,
+      "digest": "sha256:627a8f57592a5aa69d67c6740a0fdbfc5f7ad1e7845e7c4c8aa2e1d270b052b8"
+    },
+    {
+      "name": "vase",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\20-vase.png",
+      "rendered": true,
+      "digest": "sha256:caec248d6bcdb14fdb7686d3d4c7edf1ec4f8142460d1c54b18b7581e152c0e8"
+    },
+    {
+      "name": "final",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\homestead-models-playthrough\\21-final.png",
+      "rendered": true,
+      "digest": "sha256:e06caf8557fee69bd664abb22bd2274791bcb477442a856873782adc621f9b20"
+    }
+  ],
+  "viewports": [
+    "1280x720"
+  ],
+  "layout": [],
+  "state": {
+    "seed": "森屿-跨格立面验收-16",
+    "generatorVersion": 2,
+    "selected": 5,
+    "mode": "build",
+    "tool": "inspect",
+    "crop": "cabbage",
+    "colony": {
+      "version": 1,
+      "speed": 0,
+      "time": 120,
+      "day": 1,
+      "hour": 8,
+      "season": "春季",
+      "weather": "晴朗",
+      "temperature": 22,
+      "resources": {
+        "wood": 140,
+        "stone": 110,
+        "steel": 60,
+        "food": 40,
+        "meal": 14,
+        "medicine": 12,
+        "cloth": 30,
+        "silver": 120,
+        "components": 8,
+        "wheat": 10,
+        "corn": 10,
+        "blueberry": 10,
+        "sugarcane": 10,
+        "cabbage": 10,
+        "leek": 10,
+        "potato": 10,
+        "tomato": 10,
+        "cabbageSeed": 9,
+        "tomatoSeed": 9,
+        "sugarcaneSeed": 9,
+        "wheatSeed": 9,
+        "potatoSeed": 9,
+        "leekSeed": 9,
+        "cornSeed": 9,
+        "friedEgg": 10,
+        "bread": 10,
+        "salad": 10,
+        "pasta": 10,
+        "pancake": 10,
+        "blueberryPie": 10,
+        "pizza": 10,
+        "perfectBreakfast": 10,
+        "lambChopStew": 10,
+        "sugar": 10,
+        "flour": 10,
+        "oil": 10,
+        "blueberryWine": 10,
+        "cheese": 10,
+        "milk": 10,
+        "egg": 10,
+        "wool": 10,
+        "chickenMeat": 10,
+        "mutton": 10,
+        "beef": 10,
+        "pork": 10,
+        "dirt": 0,
+        "pigIron": 0,
+        "plank": 0,
+        "stoneBrick": 0
+      },
+      "playerBag": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "controlledColonistId": null,
+      "chests": [],
+      "colonists": [
+        {
+          "id": "colonist-21",
+          "name": "林夏",
+          "traits": [
+            "勤劳",
+            "巧手"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 9,
+            "grow": 6,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 4,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 1,
+            "construct": 1,
+            "grow": 3,
+            "harvest": 3,
+            "haul": 3,
+            "cook": 3,
+            "chop": 2,
+            "mine": 2,
+            "research": 3,
+            "doctor": 3,
+            "craft": 3
+          },
+          "schedule": "balanced",
+          "position": [
+            15.5,
+            5,
+            15.5
+          ],
+          "health": 100,
+          "hunger": 72,
+          "rest": 88,
+          "recreation": 76,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.78,
+            0.44,
+            0.25
+          ],
+          "carrying": {},
+          "bag": [
+            {
+              "resource": "hammer",
+              "count": 1
+            },
+            {
+              "resource": "axe",
+              "count": 1
+            },
+            {
+              "resource": "pickaxe",
+              "count": 1
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-22",
+          "name": "阿澈",
+          "traits": [
+            "体贴",
+            "乐观"
+          ],
+          "skills": {
+            "terraform": 2,
+            "construct": 2,
+            "grow": 3,
+            "harvest": 6,
+            "haul": 3,
+            "cook": 8,
+            "chop": 3,
+            "mine": 3,
+            "research": 7,
+            "doctor": 7,
+            "craft": 4
+          },
+          "priorities": {
+            "terraform": 3,
+            "construct": 3,
+            "grow": 3,
+            "harvest": 3,
+            "haul": 2,
+            "cook": 1,
+            "chop": 3,
+            "mine": 3,
+            "research": 3,
+            "doctor": 1,
+            "craft": 3
+          },
+          "schedule": "balanced",
+          "position": [
+            17.5,
+            5,
+            14.5
+          ],
+          "health": 100,
+          "hunger": 77,
+          "rest": 88,
+          "recreation": 76,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.29,
+            0.54,
+            0.69
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-23",
+          "name": "青禾",
+          "traits": [
+            "园艺爱好者",
+            "好学"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 5,
+            "grow": 9,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 8,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 3,
+            "construct": 3,
+            "grow": 1,
+            "harvest": 1,
+            "haul": 3,
+            "cook": 3,
+            "chop": 3,
+            "mine": 3,
+            "research": 2,
+            "doctor": 3,
+            "craft": 3
+          },
+          "schedule": "balanced",
+          "position": [
+            19.5,
+            5,
+            13.5
+          ],
+          "health": 100,
+          "hunger": 82,
+          "rest": 88,
+          "recreation": 76,
+          "mood": 78,
+          "disease": 0,
+          "task": "观察新营地",
+          "jobId": null,
+          "color": [
+            0.55,
+            0.66,
+            0.32
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 0,
+          "comfort": 0
+        }
+      ],
+      "buildings": [
+        {
+          "id": "lighting-torch-14-16",
+          "kind": "torch",
+          "x": 14,
+          "y": 5,
+          "z": 16,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "lighting-floorLamp-17-16",
+          "kind": "floorLamp",
+          "x": 17,
+          "y": 5,
+          "z": 16,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "lighting-chandelier-20-16",
+          "kind": "chandelier",
+          "x": 20,
+          "y": 5,
+          "z": 16,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "lighting-sculpture-14-19",
+          "kind": "sculpture",
+          "x": 14,
+          "y": 5,
+          "z": 19,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "lighting-vase-17-19",
+          "kind": "vase",
+          "x": 17,
+          "y": 5,
+          "z": 19,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        },
+        {
+          "id": "lighting-solar-12-13",
+          "kind": "solar",
+          "x": 12,
+          "y": 5,
+          "z": 13,
+          "rotation": 0,
+          "w": 1,
+          "h": 1,
+          "d": 1,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null
+        }
+      ],
+      "zones": [],
+      "crops": [],
+      "warehouseStacks": [],
+      "items": [],
+      "jobs": [],
+      "rooms": [],
+      "guideHousing": {
+        "npcId": "guide",
+        "status": "camp",
+        "position": [
+          13.5,
+          5,
+          16.5
+        ],
+        "roomId": null,
+        "bedId": null,
+        "comfort": 0,
+        "cleanliness": 0,
+        "quality": 0,
+        "buyFactor": 1,
+        "recycleFactor": 1
+      },
+      "specialistMarket": {
+        "flags": {},
+        "events": [],
+        "merchants": [
+          {
+            "id": "chef",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "tailor",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "cheesemaker",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "blacksmith",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          }
+        ],
+        "availableRooms": []
+      },
+      "research": {
+        "active": null,
+        "progress": {},
+        "completed": []
+      },
+      "power": {
+        "generation": 0,
+        "demand": 0,
+        "stored": 0,
+        "capacity": 0,
+        "supplied": 0,
+        "coldStorage": false
+      },
+      "events": [
+        {
+          "id": "event-26",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "三位旅人抵达河谷。和平营地已建立：先种田、搬运物资，再安排研究与建设。"
+        }
+      ],
+      "metrics": {
+        "jobsCompleted": 0,
+        "built": 0,
+        "harvested": 0,
+        "hauled": 0,
+        "cooked": 0,
+        "researched": 0,
+        "treated": 0,
+        "spoiled": 0,
+        "distanceWalked": 0
+      },
+      "selectedColonistId": null,
+      "terrainPlans": []
+    },
+    "blocks": 5120,
+    "nonAirCount": 5120,
+    "minerals": {
+      "steelOre": {
+        "cells": 0
+      },
+      "stoneDeposit": {
+        "cells": 0
+      }
+    },
+    "edits": 3586,
+    "editCount": 3586,
+    "revision": 2,
+    "manualCropEdits": 0,
+    "mapToolReturn": 0,
+    "planningGridVisible": false,
+    "zonePreview": null,
+    "undo": false,
+    "redo": false,
+    "hoverCell": [
+      17,
+      5,
+      19
+    ],
+    "status": "花瓶 · 已建成",
+    "lastEdit": null,
+    "buildRotation": 0,
+    "selectedBuildingId": "lighting-vase-17-19",
+    "hoverBuildingId": "lighting-vase-17-19",
+    "hoverBuildingPart": {
+      "x": 17,
+      "y": 5,
+      "z": 19,
+      "role": "body"
+    },
+    "selectedTreeId": null,
+    "hoverTreeId": null,
+    "hoverTreePart": null,
+    "trees": [],
+    "treeModel": {
+      "revision": 5,
+      "instances": 0,
+      "meshes": 0,
+      "materials": 2,
+      "selectedTreeId": null,
+      "triangles": 0,
+      "uniqueTriangles": 0,
+      "models": []
+    },
+    "wildPlants": {
+      "daisy": 0,
+      "poppy": 0,
+      "lavender": 0,
+      "marigold": 0,
+      "hairgrass": 0,
+      "foxtail": 0,
+      "blueberry": 0
+    },
+    "wildAnimals": {
+      "chicken": 0,
+      "cow": 0,
+      "sheep": 0,
+      "pig": 0
+    },
+    "characters": {
+      "residents": [
+        {
+          "id": "colonist-21",
+          "outfit": 6,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-22",
+          "outfit": 7,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-23",
+          "outfit": 8,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "merchants": [
+        {
+          "id": "guide",
+          "position": [
+            13.5,
+            5,
+            16.5
+          ],
+          "outfit": 18,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "player": null
+    },
+    "placementPreview": null,
+    "camera": {
+      "target": [
+        16.5,
+        4,
+        16.5
+      ],
+      "eye": [
+        23.736048629135173,
+        14.967187445903438,
+        23.736048629135173
+      ],
+      "distance": 15,
+      "yaw": 0.7853981633974483,
+      "pitch": 0.82,
+      "overhead": false,
+      "sunShadows": "auto",
+      "shadowDistance": 100,
+      "mode": "god",
+      "followId": null
+    },
+    "player": null,
+    "chunks": 4,
+    "dimensions": [
+      32,
+      24,
+      32
+    ],
+    "worldSize": [
+      32,
+      24,
+      32
+    ],
+    "terrain": {
+      "target": 6,
+      "size": 3,
+      "shape": "brush",
+      "sample": false,
+      "preview": {
+        "cells": 0,
+        "cut": 0,
+        "fill": 0
+      },
+      "minHeight": 1,
+      "maxHeight": 22
+    },
+    "buildHeight": null,
+    "pcg": {
+      "resolution": 16,
+      "version": 2,
+      "revision": 5,
+      "tiles": 0,
+      "pendingTiles": 0,
+      "facades": 0,
+      "windowGroups": 0,
+      "layout": {
+        "version": 2,
+        "groups": []
+      },
+      "windows": 0,
+      "sills": 0,
+      "sidewalks": 0,
+      "stairs": 0,
+      "triangles": 0,
+      "rebuiltTiles": [
+        "1,1",
+        "2,1",
+        "1,2",
+        "2,2"
+      ],
+      "features": []
+    },
+    "finaleFade": 0
+  },
+  "execution": "healthy",
+  "errors": {
+    "console": [],
+    "page": [],
+    "inputWarnings": 0
+  },
+  "log": []
+}

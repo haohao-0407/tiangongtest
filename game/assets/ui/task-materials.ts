@@ -1,7 +1,7 @@
-import { RESOURCE_NAMES, type ColonySnapshot } from '../colony/contracts.ts';
+import { RESOURCE_NAMES, type ColonySnapshot, type InventoryItem } from '../colony/contracts.ts';
 import { taskMaterials } from '../colony/task-materials.ts';
 
-export function materialHud(shell: HTMLElement) {
+export function materialHud(shell: HTMLElement, icon: (item: InventoryItem, className: string) => HTMLElement) {
   const doc = shell.ownerDocument;
   const style = doc.createElement('style');
   style.textContent = `#task-materials{position:absolute;top:12px;right:16px;width:min(236px,42%);padding:9px 12px;z-index:5}
@@ -42,6 +42,7 @@ export function materialHud(shell: HTMLElement) {
       row.dataset.material = item;
       const name = doc.createElement('strong'), quantity = doc.createElement('b');
       name.textContent = RESOURCE_NAMES[item];
+      name.prepend(icon(item, 'material-mini'));
       quantity.textContent = `缺 ${missing}`;
       row.append(name, quantity);
       const hint = (text: string) => {

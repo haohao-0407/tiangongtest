@@ -252,6 +252,8 @@
 .guide-heading,.guide-pages,.guide-stepper,.guide-checkout,.guide-chip,.guide-choices{display:flex;align-items:center;gap:6px}
 .guide-heading h3,.guide-recycle h3{margin:0;font-size:15px;color:#354437}
 .guide-balance{margin-left:auto;color:#5e4520;background:#ead6a6;border-radius:4px;padding:5px 8px;font-size:12px}
+.coin-icon,.material-mini{display:inline-block;width:16px;height:16px;vertical-align:middle;margin-right:3px}
+.guide-plinth .coin-icon,.guide-order .coin-icon{width:14px;height:14px}
 .guide-pages button,.guide-stepper button{min-width:25px;padding:2px 4px}.guide-pages span{font-size:10px}
 .guide-shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .guide-sku{display:grid;justify-items:center;gap:3px;padding:8px 4px 6px;background:#eee4cd;color:#463a28;border:1px solid #bdad8d;border-bottom:4px solid #bba17a;border-radius:6px}

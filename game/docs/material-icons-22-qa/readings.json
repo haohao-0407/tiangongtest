@@ -1,0 +1,189 @@
+[
+  {
+    "id": "plank",
+    "hash": "d2128e6d38dc8a25ec7a00a1b77e39750d159aa22fcfa77395d8c3a7fd697f4b",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "pigIron",
+    "hash": "3cbb94ce5fa1529f6db25a7fc0123985ca130fe13b1b843bf05b963698f4bbd6",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "stone",
+    "hash": "e37e8de451f181183c3731e009605258e79aff5e1e5f1ab4180b89f46cd172bd",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "stoneBrick",
+    "hash": "6129a40e9d449107a9e86aa279abbe76a2837507c58a1b628a4bc46e613a928e",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "steel",
+    "hash": "59216eeec14345f48c3a7af6baf337425e0be14339afbff4938ebc33242a8976",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "cloth",
+    "hash": "ce42776287c57ff8f97fb8c2eaa4b4c6fc56a901eeac991b818ad379606f1112",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "silver",
+    "hash": "6d4a1834adb413767528835da1b0cfa63257d5540c60a46d165c0e2ac2f7939f",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "plank",
+    "hash": "d2128e6d38dc8a25ec7a00a1b77e39750d159aa22fcfa77395d8c3a7fd697f4b",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "stoneBrick",
+    "hash": "6129a40e9d449107a9e86aa279abbe76a2837507c58a1b628a4bc46e613a928e",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "steel",
+    "hash": "59216eeec14345f48c3a7af6baf337425e0be14339afbff4938ebc33242a8976",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "cloth",
+    "hash": "ce42776287c57ff8f97fb8c2eaa4b4c6fc56a901eeac991b818ad379606f1112",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "plank",
+    "hash": "d2128e6d38dc8a25ec7a00a1b77e39750d159aa22fcfa77395d8c3a7fd697f4b",
+    "natural": 32,
+    "size": 25,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "pigIron",
+    "hash": "3cbb94ce5fa1529f6db25a7fc0123985ca130fe13b1b843bf05b963698f4bbd6",
+    "natural": 32,
+    "size": 25,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "stone",
+    "hash": "e37e8de451f181183c3731e009605258e79aff5e1e5f1ab4180b89f46cd172bd",
+    "natural": 32,
+    "size": 25,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "stoneBrick",
+    "hash": "6129a40e9d449107a9e86aa279abbe76a2837507c58a1b628a4bc46e613a928e",
+    "natural": 32,
+    "size": 25,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "steel",
+    "hash": "59216eeec14345f48c3a7af6baf337425e0be14339afbff4938ebc33242a8976",
+    "natural": 32,
+    "size": 25,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "cloth",
+    "hash": "ce42776287c57ff8f97fb8c2eaa4b4c6fc56a901eeac991b818ad379606f1112",
+    "natural": 32,
+    "size": 25,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "silver",
+    "hash": "6d4a1834adb413767528835da1b0cfa63257d5540c60a46d165c0e2ac2f7939f",
+    "natural": 32,
+    "size": 25,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "silver",
+    "hash": "6d4a1834adb413767528835da1b0cfa63257d5540c60a46d165c0e2ac2f7939f",
+    "natural": 32,
+    "size": 16,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "cloth",
+    "hash": "ce42776287c57ff8f97fb8c2eaa4b4c6fc56a901eeac991b818ad379606f1112",
+    "natural": 32,
+    "size": 48,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "cloth",
+    "hash": "ce42776287c57ff8f97fb8c2eaa4b4c6fc56a901eeac991b818ad379606f1112",
+    "natural": 32,
+    "size": 20,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "silver",
+    "hash": "6d4a1834adb413767528835da1b0cfa63257d5540c60a46d165c0e2ac2f7939f",
+    "natural": 32,
+    "size": 16,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "silver",
+    "hash": "6d4a1834adb413767528835da1b0cfa63257d5540c60a46d165c0e2ac2f7939f",
+    "natural": 32,
+    "size": 14,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "silver",
+    "hash": "6d4a1834adb413767528835da1b0cfa63257d5540c60a46d165c0e2ac2f7939f",
+    "natural": 32,
+    "size": 16,
+    "sampling": "pixelated"
+  },
+  {
+    "id": "silver",
+    "hash": "6d4a1834adb413767528835da1b0cfa63257d5540c60a46d165c0e2ac2f7939f",
+    "natural": 32,
+    "size": 14,
+    "sampling": "pixelated"
+  },
+  {
+    "before": 30,
+    "quote": 19,
+    "after": 11
+  },
+  {
+    "id": "silver",
+    "hash": "6d4a1834adb413767528835da1b0cfa63257d5540c60a46d165c0e2ac2f7939f",
+    "natural": 32,
+    "size": 32,
+    "sampling": "pixelated"
+  }
+]

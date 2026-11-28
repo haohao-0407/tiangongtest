@@ -22,7 +22,6 @@ import { PcgView } from './pcg/view.ts';
 import { TreeView } from './tree-view.ts';
 import { WildPlantView } from './wild-plant-view.ts';
 import { landFootprintKey, WILD_PLANT_KINDS, type WildPlantKind } from './wild-plants.ts';
-import { pigMesh } from './pig-mesh.ts';
 import { WildAnimalView } from './wild-animal-view.ts';
 import { WILD_ANIMAL_KINDS, type WildAnimalKind } from './wild-animals.ts';
 import { treeParts, type TreeInstance } from './trees.ts';
@@ -53,7 +52,9 @@ const TAN_HALF_FOV = Math.tan(CAMERA_FOV / 2);
 const NEAR_SHADOW_DISTANCE = 100;
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
-export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:string; characterMaterial:string; characters: {scene:string;walks:string[]}[]; buildings: Record<string,string>; plaza:Record<string,string>; wildPlants: Record<WildPlantKind,string>; wildAnimals: Record<WildAnimalKind,string> }> = {
+type CharacterConfig = {scene:string; walks:string[]};
+
+export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:string; characterMaterial:string; characters: CharacterConfig[]; guide: CharacterConfig; homestead: Record<string,string>; buildings: Record<string,string>; plaza:Record<string,string>; wildPlants: Record<WildPlantKind,string>; wildAnimals: Record<WildAnimalKind,string> }> = {
   name: 'voxel-homestead',
   inject: ['world', 'assets', 'gameHost'],
   async apply(ctx, config) {
@@ -324,14 +325,16 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
       } }).unwrap());
       const sky = own((await assets.load(config.environment ?? guidText(assetGuid(PACKAGE_IDS.environment, 'environment/daylight')), 'equirect')).unwrap());
       const characterMaterial = own((await assets.load(config.characterMaterial, 'material')).unwrap());
-      const characters: CharacterAssets[] = await Promise.all(config.characters.map(async model => ({
+      const loadCharacter = async (model:CharacterConfig):Promise<CharacterAssets> => ({
         scene: own((await assets.load(model.scene, 'scene')).unwrap()),
         walks: await Promise.all(model.walks.map(async guid => own((await assets.load(guid, 'animation-clip')).unwrap()))),
         material: characterMaterial,
-      })));
+      });
+      const characters = await Promise.all(config.characters.map(loadCharacter));
+      const guide = await loadCharacter(config.guide);
       const buildingModels = new Map<string, BuildingModel>();
       for (const kind of WILD_PLANT_KINDS) plantModels.set(kind, own((await assets.load(config.wildPlants[kind], 'mesh')).unwrap()));
-      for (const kind of WILD_ANIMAL_KINDS) animalModels.set(kind, kind === 'pig' ? own(assets.create(pigMesh()).unwrap()) : own((await assets.load(config.wildAnimals[kind], 'mesh')).unwrap()));
+      for (const kind of WILD_ANIMAL_KINDS) animalModels.set(kind, own((await assets.load(config.wildAnimals[kind], 'mesh')).unwrap()));
       for (const [kind, guid] of Object.entries(config.buildings)) {
         const mesh = own((await assets.load(guid, 'mesh')).unwrap());
         const geometry = assets.read(mesh).unwrap(), bounds = geometry.aabb!;
@@ -346,9 +349,16 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
               : [horizontal,Math.min(horizontal,vertical),horizontal] });
         }
       }
+      for (const [kind,guid] of Object.entries(config.homestead)) {
+        const mesh = own((await assets.load(guid,'mesh')).unwrap());
+        const bounds = assets.read(mesh).unwrap().aabb!;
+        const { w, d } = buildingDimensions(kind==='fenceCorner' ? 'fence' : kind as BuildingKind);
+        const fit = Math.min(1,w/(bounds[3]!-bounds[0]!),d/(bounds[5]!-bounds[2]!));
+        buildingModels.set(kind,{mesh,material:terrainMaterial,scale:[fit,fit,fit]});
+      }
       const plazaMeshes=new Map<string,AssetHandle<'mesh'>>();
       for (const [layer,guid] of Object.entries(config.plaza)) plazaMeshes.set(layer,own((await assets.load(guid,'mesh')).unwrap()));
-      colonyView = new ColonyView(world, assets, () => voxels, characters, cropCards, buildingModels, pcgView.windowedWalls,plazaMeshes);
+      colonyView = new ColonyView(world, assets, () => voxels, characters, guide, cropCards, buildingModels, pcgView.windowedWalls,plazaMeshes);
       const ambientEntity = track(world.spawn({ component: Name, data: { value: '柔和天光' } }, { component: Skylight, data: {
         equirect: sky, color: [1, 0.96, 0.86], intensity: 0.85,
       } }).unwrap());

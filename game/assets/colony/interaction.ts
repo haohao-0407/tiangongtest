@@ -7,6 +7,15 @@ import { rayBox } from '../voxel/tree-interaction.ts';
 export function raycastBuilding(buildings: readonly BuildingView[], origin: Position, direction: Position, limit = Infinity) {
   let nearest: { building: BuildingView; part: ReturnType<typeof buildingParts>[number]; distance: number } | null = null;
   for (const building of buildings) {
+    // Hanging hardware and the tall lamp can be selected above their saved ground cell.
+    if (building.complete && (building.kind==='chandelier' || building.kind==='floorLamp')) {
+      const {x,y,z}=building, hanging=building.kind==='chandelier';
+      const inset=hanging ? .35 : 0;
+      const distance=rayBox(origin,direction,[x+inset,y+(hanging?1.3:1),z+inset],
+        [x+1-inset,y+(hanging?2:4),z+1-inset],nearest?.distance??limit);
+      if(distance!==null && (!nearest || distance<nearest.distance))
+        nearest={building,part:{x,y,z,role:'body'},distance};
+    }
     if (building.kind==='campfirePlaza') {
       // The reserved air above the paths must not intercept clicks on villagers.
       const {x,y,z,w,d}=building;

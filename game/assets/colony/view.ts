@@ -1,4 +1,3 @@
-import { sugarPressParts } from './sugar-press.ts';
 import { footprintCells, type Footprint } from './zone-cells.ts';
 import type { World, EntityHandle } from '@forgeax/engine/ecs';
 import type { AssetRegistry } from '@forgeax/engine/assets-runtime';
@@ -13,7 +12,6 @@ import type { WallPanel } from '../voxel/pcg/facade.ts';
 import { WALL_HEIGHT } from '../voxel/pcg/rules.ts';
 import { BUILDING_DEFS, STORAGE_QUARTERS, buildingItemKind, isCropSeed, type BuildingKind, type BuildingView, type CropKind, type PlayerInventorySlot, type StoredStack } from './contracts.ts';
 import { buildingDimensions, CARDINALS, isRoomDoor, isRoomStructure, WALL_THICKNESS, wallSpans } from './buildings.ts';
-import textileModels from './textile-models.json';
 import { cardLayers, isWarehouseCard, packageSize, warehouseSlotContents } from './warehouse.ts';
 import { PLAZA_LAYERS, plazaPoint, smooth } from './plaza.ts';
 import type { FinaleView, MerchantHousing, MerchantId } from './contracts.ts';
@@ -22,8 +20,8 @@ import { PointLight } from '@forgeax/engine/render';
 type V3=[number,number,number];
 type Rotation=[number,number,number,number];
 const IDENTITY:Rotation=[0,0,0,1];
-export type BuildingModel = { mesh: AssetHandle<'mesh'>; scale: V3 };
-type Part = { p: V3; s: V3; shadow?: boolean; rotation?: Rotation } &
+export type BuildingModel = { material?: AssetHandle<'material'>; mesh: AssetHandle<'mesh'>; scale: V3 };
+type Part = { material?: AssetHandle<'material'>; light?: { intensity:number; range:number }; p: V3; s: V3; shadow?: boolean; rotation?: Rotation } &
   ({ c: string; mesh?: undefined } | { mesh: AssetHandle<'mesh'>; c?: undefined });
 type RenderPawn={id:string;name:string;position:V3;health:number;facing?:number;task?:string;job?:string;bag?:readonly PlayerInventorySlot[];bagSelected?:number;carrying?:Partial<Record<string,number>>};
 type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;h?:number;rotation?:number;connections?:number;doorOpen?:boolean;complete:boolean;progress:number;powered?:boolean;phase?:string;previousBoundary?:BuildingView['previousBoundary']};
@@ -65,7 +63,7 @@ export class ColonyView {
   private merchants = new Map<MerchantId, CharacterView>();
   private plazaLights=new Map<string,EntityHandle[]>();
   constructor(private world:World, private assets:AssetRegistry, private terrain:()=>VoxelWorld,
-    private characters:readonly CharacterAssets[], private readonly cropCards:Pick<CropCards,'update'|'hasModel'|'itemMesh'|'itemModel'>,
+    private characters:readonly CharacterAssets[], private guide:CharacterAssets, private readonly cropCards:Pick<CropCards,'update'|'hasModel'|'itemMesh'|'itemModel'>,
     private readonly buildingModels:ReadonlyMap<string,BuildingModel>, private readonly windowedWalls:ReadonlyMap<string,WallPanel[]>,
     private readonly plazaMeshes:ReadonlyMap<string,AssetHandle<'mesh'>>){
     this.cube=assets.create(createBoxGeometry(1,1,1).unwrap()).unwrap();
@@ -90,8 +88,9 @@ export class ColonyView {
     if(!group){
       group={signature:sig,transforms:parts.map(p=>[...p.p,...p.s,...(p.rotation??rotation)]),entities:parts.map((p,i)=>this.world.spawn(
         {component:Name,data:{value:`${key}/${i}`}},{component:Transform,data:{pos:p.p,scale:p.s,quat:p.rotation??rotation}},
-        {component:MeshFilter,data:{assetHandle:p.mesh??this.cube}},{component:MeshRenderer,data:{materials:p.mesh===undefined?[this.material(p.c)]:[]}},
+        {component:MeshFilter,data:{assetHandle:p.mesh??this.cube}},{component:MeshRenderer,data:{materials:p.mesh===undefined?[this.material(p.c)]:p.material ? [p.material] : []}},
         {component:ShadowParticipation,data:{cast:p.shadow!==false,receive:true}},
+        ...(p.light ? [{component:PointLight,data:{color:[1,.57,.24],...p.light}}] : []),
       ).unwrap())};this.groups.set(key,group);
     }else for(let i=0;i<parts.length;i++){
       const p=parts[i]!,q=p.rotation??rotation,next=[...p.p,...p.s,...q];
@@ -210,10 +209,33 @@ export class ColonyView {
       if(!ghost && b.progress>0) parts.push({p:[x,y+h+.02,z],s:[.8*b.progress,.05,.07],c:'light',shadow:false});
       return parts;
     }
+    if (b.kind==='fence' && model && (b.complete || ghost)) {
+      const edge = (turn:number, offset:number, width:number, corner=false) => {
+        const direction = (rotation+turn)%4, angle = -direction*Math.PI/4;
+        const [dx,dz] = CARDINALS[direction]!;
+        const section = corner ? this.buildingModels.get('fenceCorner')! : model;
+        const depth = corner ? width : model.scale[2];
+        parts.push({mesh:section.mesh,material:section.material,p:[x+dx*offset*scale,y,z+dz*offset*scale],
+          s:[width*scale,model.scale[1]*scale,depth*scale],shadow:!ghost,
+          rotation:direction ? [0,Math.sin(angle),0,Math.cos(angle)] : undefined});
+      };
+      // Authored elbow opens toward +X/-Z. Its corner post is the cell centre.
+      for(let turn=0;turn<4;turn++) if(fenceConnections===((1<<turn)|(1<<((turn+3)%4)))) {
+        edge(turn,0,.5/1.76,true);
+        return parts;
+      }
+      if(!fenceConnections || fenceConnections===5 || fenceConnections===10) {
+        edge(fenceConnections===10 ? 1 : 0,0,model.scale[0]);
+      } else {
+        for(let turn=0;turn<4;turn++) if(fenceConnections & (1<<turn))
+          edge(turn,.25,model.scale[0]/2);
+      }
+      return parts;
+    }
     if(model && (b.complete || ghost) && !(b.kind==='stoneDoor' && b.doorOpen)){
       const angle=-rotation*Math.PI/4;
       const q:Rotation|undefined=rotation ? [0,Math.sin(angle),0,Math.cos(angle)] : undefined;
-      const body={mesh:model.mesh,rotation:q,shadow:!ghost};
+      const body={mesh:model.mesh,material:model.material,rotation:q,shadow:!ghost};
       if(b.kind==='wall'){
         const panels=this.windowedWalls.get(b.id) ?? [{min:[b.x,y,b.z],max:[b.x+w,y+WALL_HEIGHT,b.z+d]}];
         for(const {min,max} of panels){
@@ -226,7 +248,28 @@ export class ColonyView {
         const fit=scale*(b.kind==='shelf' ? shelfFit(w,d) : 1);
         // The authored frame sits at local Z=-.405 (including the open-leaf model).
         const offset=isRoomDoor(b.kind) && b.connections!==undefined ? .405*sz*fit : 0;
-        parts.push({...body,p:[x-CARDINALS[rotation]![1]*offset,y,z+CARDINALS[rotation]![0]*offset],s:[sx*fit,sy*fit,sz*fit]});
+        parts.push({...body,p:[x-CARDINALS[rotation]![1]*offset,y+(b.kind==='chandelier' ? 2*fit : 0),z+CARDINALS[rotation]![0]*offset],s:[sx*fit,sy*fit,sz*fit]});
+      }
+      if(b.complete && !ghost && scale===1) {
+        // Place the live power indication on the first authored status segment.
+        const status = b.kind==='solar' ? [-.04,.44,.773] : b.kind==='cooler'
+          ? [.00,1.77,.116] : b.kind==='battery' ? [-.42,.72,.546] : undefined;
+        if(status) {
+          const [cx,cz]=CARDINALS[rotation]!, [sx,sy,sz]=model.scale;
+          const dx=status[0]!*sx,dz=status[2]!*sz;
+          parts.push({p:[x+cx*dx-cz*dz,y+status[1]!*sy,z+cz*dx+cx*dz],
+            s:[.075*sx,.10*sy,.02*sz],rotation:q,c:b.powered?'glow:#7cdb76':'bad',shadow:false});
+        }
+        // A small luminous core casts light at the actual flame or pane.
+        const light=b.kind==='torch' ? [0,1.09,.21,12,4]
+          : b.kind==='floorLamp' && b.powered ? [.3375,3.125,0,30,6]
+          : b.kind==='chandelier' && b.powered ? [0,1.48,0,16,4] : undefined;
+        if(light) {
+          const [dx,dy,dz,intensity,range]=light as [number,number,number,number,number];
+          const [cx,cz]=CARDINALS[rotation]!;
+          parts.push({p:[x+cx*dx-cz*dz,y+dy,z+cz*dx+cx*dz],s:[.045,.045,.045],
+            c:'glow:#ffcf78',shadow:false,light:{intensity,range}});
+        }
       }
       return parts;
     }
@@ -250,9 +293,6 @@ export class ColonyView {
         part(.1,.34,.13,.29,.22,.27,'steel');
         for(const dz of [-.30,-.05]) part(-.13,.14,dz,.55,.20,.06,'plank');
         break;
-      case 'sugarPress':
-        for (const box of sugarPressParts) part(...box);
-        break;
       case 'stoneDoor':
         if(b.doorOpen) {
           for(const dx of [-.45,.45]) part(dx,h/2,0,.10,h,.18,'stone');
@@ -261,48 +301,7 @@ export class ColonyView {
         }
         else part(0,h/2,0,.86,h,.16,'stone');
         break;
-      case 'pastureGate':
-        for(const dx of [-.43,.43]) part(dx,.4,0,.12,.8,.14,'wood');
-        part(0,.85,0,.96,.1,.14,'wood'); break;
-      case 'fence':
-        if (fenceConnections === 0) {
-          // Match the standalone section on the construction card and its dropped miniature.
-          for (const dx of [-.43,.43]) part(dx,.46,0,.14,.92,.16,'wood');
-          for (const dy of [.32,.66]) part(0,dy,0,.86,.10,.10,'plank');
-        } else {
-          part(0,.46,0,.16,.92,.16,'wood');
-          for (const [side,[dx,dz]] of CARDINALS.entries()) {
-            if (!(fenceConnections & (1 << side))) continue;
-            for (const dy of [.32,.66]) part(dx*.25,dy,dz*.25,dx ? .5 : .10,.10,dz ? .5 : .10,'plank');
-          }
-        }
-        break;
-      case 'milker':
-        part(0,.2,0,.7,.4,.65,'steel');part(-.18,.57,0,.2,.45,.25,'steel');part(.15,.53,0,.28,.25,.34,'white');break;
-      case 'henNest':
-        part(0,.12,0,.85,.24,.8,'gold');for(const dx of [-.38,.38])part(dx,.25,0,.1,.35,.8,'wood');
-        part(0,.29,-.34,.8,.42,.1,'wood'); break;
-      case 'shearingStand':
-      case 'loom':
-        for(const {center:[dx,dy,dz],size:[sx,sy,sz],color} of textileModels[b.kind]){
-          part(dx,dy,dz,sx,sy,sz,color);
-        }
-        break;
-      case 'flourMill':
-        // Timber bed, two stepped millstones and an offset wooden crank.
-        part(0,.19,0,1.66,.38,.76,'wood');
-        for (const [dy,width,color] of [[.47,.85,'#746e61'],[.65,.79,'#aca697']] as const) {
-          part(-.25,dy,0,width,.16,.55,color);
-          for (const dz of [-.33,.33]) part(-.25,dy,dz,width*.68,.16,.11,color);
-        }
-        part(-.25,.77,0,.12,.12,.12,'dark');
-        part(.02,.82,0,.66,.09,.10,'wood');
-        part(.30,.92,0,.10,.19,.10,'wood');
-        break;
       case 'floor':part(0,.025,0,.98,.05,.98,'wood');break;
-      case 'solar':case 'solarPanel':part(0,.4,0,.18,.8,.18,'steel');part(0,.88,0,1.45,.11,1.25,'dark');part(0,.96,0,1.33,.04,1.13,'blue');part(0,.99,0,.035,.015,1.13,'steel');part(0,.99,0,1.33,.015,.035,'steel');break;
-      case 'battery':part(0,.45,0,.7,.9,.7,'dark');part(0,.5,.36,.45,.55,.035,'green');part(-.18,.95,0,.12,.1,.15,'gold');part(.18,.95,0,.12,.1,.15,'steel');break;
-      case 'cooler':case 'fridge':case 'freezer':part(0,.65,0,.85,1.3,.85,'white');part(0,.75,.44,.71,.95,.04,'blanket');part(.26,.75,.49,.06,.35,.04,'steel');break;
       default:{
         // 没有对应模型的设施继续使用建造目录中的颜色。
         const def=BUILDING_DEFS[b.kind as BuildingKind];
@@ -313,7 +312,6 @@ export class ColonyView {
         break;
       }
     }
-    if(b.complete&&['solar','battery','cooler'].includes(b.kind))part(.26,.7,.47,.08,.08,.025,b.powered?'green':'bad',false);
     return parts;
   }
   private drawStoredStack(contents:StoredStack[],shelf:RenderBuilding|undefined,active:Set<string>):void {
@@ -441,7 +439,7 @@ export class ColonyView {
       let actor = this.merchants.get(id);
       if (!actor) {
         const outfit = {guide:0, chef:1, tailor:2, cheesemaker:3, blacksmith:4}[id] % this.characters.length;
-        actor = new CharacterView(this.world, this.assets, this.characters[outfit]!, outfit+1);
+        actor = new CharacterView(this.world, this.assets, id==='guide' ? this.guide : this.characters[outfit]!, id==='guide' ? this.characters.length+1 : outfit+1);
         this.merchants.set(id, actor);
       }
       actor.updateResident(position, time, Math.PI/4);
@@ -457,7 +455,6 @@ export class ColonyView {
       if (id==='cheesemaker') pieces.push(prop(0,1.76,0,[.68,.09,.60],'gold'),prop(0,1.86,0,[.40,.16,.37],'cream'),
         prop(.36,.82,.1,[.32,.24,.32],'#f1b745'));
       if (id==='blacksmith') pieces.push(prop(.38,1,.08,[.10,.65,.11],'luggageTrim'),prop(.38,1.34,.08,[.49,.26,.26],'steel'));
-      if (id==='guide') pieces.push(prop(0,1.04,-.22,[.49,.60,.30],'luggageTrim'),prop(0,1.29,-.24,[.52,.10,.33],'gold'));
       this.put('商人/'+id,pieces,active);
     }
     for (const [id, actor] of this.residents) if (!present.has(id)) {

@@ -11,7 +11,7 @@ BODY_PARTS = ("Head_", "UpperBody_", "LowerBody_", "Shoes_")
 WALKS = {"Walk_Forward", "Walk_Backward", "Walk_Left", "Walk_Right"}
 
 
-def bake_resident(source, destination, name, shared_material):
+def bake_resident(source, destination, name, shared_material, whole_character=False):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.fbx(filepath=str(source))
     scene = bpy.context.scene
@@ -31,8 +31,8 @@ def bake_resident(source, destination, name, shared_material):
     # Gameplay attaches the held item separately. Keep the four dressed body
     # parts and their weights from the approved full-character file.
     meshes = [obj for obj in scene.objects if obj.type == "MESH"]
-    parts = []
-    for prefix in BODY_PARTS:
+    parts = meshes.copy() if whole_character else []
+    for prefix in (() if whole_character else BODY_PARTS):
         part, = [mesh for mesh in meshes if mesh.name.startswith(prefix)]
         parts.append(part)
     for prop in meshes:
@@ -80,13 +80,14 @@ def bake_resident(source, destination, name, shared_material):
                               export_yup=True, export_cameras=False, export_lights=False)
 
 
-outfits = sorted(SOURCE.glob("*/Villager_*.fbx"))
-assert len(outfits) == 17
-directory = MODELS / "villagers"
-directory.mkdir(exist_ok=True)
-for number, source in enumerate(outfits, 1):
-    assert source.parent.name.startswith(f"{number:02d}_"), source
-    name = f"Villager-{number:02d}"
-    destination = MODELS / "villagers.glb" if number == 1 else directory / f"{name.lower()}.glb"
-    # Import one skinned palette material for the complete roster.
-    bake_resident(source, destination, name, shared_material=number == 1)
+if __name__ == "__main__":
+    outfits = sorted(SOURCE.glob("*/Villager_*.fbx"))
+    assert len(outfits) == 17
+    directory = MODELS / "villagers"
+    directory.mkdir(exist_ok=True)
+    for number, source in enumerate(outfits, 1):
+        assert source.parent.name.startswith(f"{number:02d}_"), source
+        name = f"Villager-{number:02d}"
+        destination = MODELS / "villagers.glb" if number == 1 else directory / f"{name.lower()}.glb"
+        # Import one skinned palette material for the complete roster.
+        bake_resident(source, destination, name, shared_material=number == 1)

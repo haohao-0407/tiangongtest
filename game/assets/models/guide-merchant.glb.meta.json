@@ -1,0 +1,147 @@
+{
+  "importSettings": {
+    "defaultSceneIndex": 0,
+    "diagnostics": {
+      "matrixTrsCoexistNodes": [],
+      "nodeNames": [
+        "Head",
+        "Neck",
+        "Hand.L",
+        "Forearm.L",
+        "UpperArm.L",
+        "Shoulder.L",
+        "Hand.R",
+        "Forearm.R",
+        "UpperArm.R",
+        "Shoulder.R",
+        "Chest",
+        "Spine",
+        "Toe.L",
+        "Foot.L",
+        "Shin.L",
+        "Thigh.L",
+        "Toe.R",
+        "Foot.R",
+        "Shin.R",
+        "Thigh.R",
+        "Hips",
+        "Root",
+        "GuideMerchant",
+        "Guide_Villager_Rig_22"
+      ],
+      "unsupportedExtensions": []
+    }
+  },
+  "importer": "gltf",
+  "kind": "external-asset-package",
+  "schemaVersion": 1,
+  "source": "guide-merchant.glb",
+  "sourceOverrideDescriptors": [
+    {
+      "payloadSchema": {
+        "additionalProperties": true,
+        "properties": {
+          "materialSlotDefaultOverrides": {
+            "additionalProperties": {
+              "nullable": true,
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "materialSlots": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "defaultMaterialGuid": {
+                  "type": "string"
+                },
+                "slotName": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "slotName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "semantic": "mesh-material-slot-defaults",
+      "sourceKey": "mesh:GuideMerchant"
+    }
+  ],
+  "sourceOverrides": {
+    "mesh:GuideMerchant": {
+      "materialSlots": [
+        {
+          "slotName": "Default",
+          "sourceKey": "gltf:default"
+        }
+      ]
+    }
+  },
+  "subAssets": [
+    {
+      "guid": "01a221a6-98ef-73b3-ad05-0a3a54279ea8",
+      "kind": "mesh",
+      "name": "GuideMerchant",
+      "sourceIndex": 0,
+      "sourceKey": "mesh:GuideMerchant"
+    },
+    {
+      "guid": "01a221a6-98f1-72dd-9384-303f16299883",
+      "kind": "scene",
+      "name": "GuideMerchant",
+      "sourceIndex": 0,
+      "sourceKey": "scene:GuideMerchant"
+    },
+    {
+      "guid": "01a221a6-98f1-72dd-9384-3040a580002a",
+      "kind": "skeleton",
+      "sourceIndex": 0,
+      "sourceKey": "skeleton"
+    },
+    {
+      "guid": "01a221a6-98f1-72dd-9384-304191e5482a",
+      "kind": "skin",
+      "sourceIndex": 0,
+      "sourceKey": "skin"
+    },
+    {
+      "guid": "01a221a6-98f1-72dd-9384-304246f7aa44",
+      "kind": "animation-clip",
+      "name": "Walk_Backward",
+      "sourceIndex": 0,
+      "sourceKey": "animation-clip:Walk_Backward"
+    },
+    {
+      "guid": "01a221a6-98f2-7279-b197-6e1366e9d8fd",
+      "kind": "animation-clip",
+      "name": "Walk_Forward",
+      "sourceIndex": 1,
+      "sourceKey": "animation-clip:Walk_Forward"
+    },
+    {
+      "guid": "01a221a6-98f2-7279-b197-6e14b9252561",
+      "kind": "animation-clip",
+      "name": "Walk_Left",
+      "sourceIndex": 2,
+      "sourceKey": "animation-clip:Walk_Left"
+    },
+    {
+      "guid": "01a221a6-98f2-7279-b197-6e15d2f10555",
+      "kind": "animation-clip",
+      "name": "Walk_Right",
+      "sourceIndex": 3,
+      "sourceKey": "animation-clip:Walk_Right"
+    }
+  ]
+}
