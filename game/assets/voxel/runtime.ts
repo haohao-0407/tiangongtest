@@ -40,7 +40,7 @@ import {
   CROP_DEFS, DEFAULT_CROP, RESEARCH_DEFS, isCropKind, type CropKind, type BuildingKind, type ColonyCommand, type ChestView, type MapToolMenu,
 } from '../colony/contracts.ts';
 import { CropCards } from '../colony/crop-cards.ts';
-import { buildingDimensions, isSwingDoor, type BuildingPart } from '../colony/buildings.ts';
+import { buildingDimensions, isRoomStructure, isRoomDoor, isSwingDoor, WALL_THICKNESS, type BuildingPart } from '../colony/buildings.ts';
 import { DUSK_SECONDS, PAN_SECONDS, FINALE_SECONDS, smooth } from '../colony/plaza.ts';
 import { raycastBuilding, raycastCrop, buildingProtectingVoxel } from '../colony/interaction.ts';
 
@@ -96,6 +96,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
       let mapToolMenu: MapToolMenu | null = null, mapToolReturn = 0;
       let planningPanelOpen = false, planningGridVisible = false;
       let buildRotation = 0, selectedBuildingId: string | null = null;
+      let previewConnection:ReturnType<typeof colony.placementConnection>;
       let hoverBuildingId: string | null = null, hoverBuildingPart: BuildingPart | null = null;
       let selectedTreeId: string | null = null, hoverTreeId: string | null = null;
       // 玩家手工拆建筑：按住左键推进，换目标或松手归零。
@@ -240,6 +241,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         top = treeSupportHeight(voxels, cx - PLAYER_HALF, cz - PLAYER_HALF, cx + PLAYER_HALF, cz + PLAYER_HALF, top, Math.min(maximum, fromY + .25));
         return pcgView.supportHeight(cx - PLAYER_HALF, cz - PLAYER_HALF, cx + PLAYER_HALF, cz + PLAYER_HALF, top, maximum);
       };
+      colony.setCrowdObstacleSampler(blocked);
       const constrainResidentHeight = (nextY:number) => followId
         ? colony.residentVerticalLimit([player.x,player.y,player.z],nextY,followId) : nextY;
 
@@ -259,7 +261,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
           const ground = player.grounded ? groundUnder(nx, nz, player.y) : player.y;
           const raised = ground > player.y + 1e-5 && ground <= player.y + .25001;
           const footY = raised ? ground : player.y;
-          if (blocked(nx, nz, footY) || followId && colony.residentBlocksMove([player.x, player.y, player.z], [nx, footY, nz], followId)) return false;
+          if (blocked(nx, nz, footY) || followId && !colony.tryPlayerCrowdStep([player.x, player.y, player.z], [nx, footY, nz])) return false;
           player.x = nx;
           player.z = nz;
           if (raised) player.y = footY;
@@ -338,9 +340,10 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
           const { w, h, d } = buildingDimensions(key === 'doorOpen' ? 'door' : key as BuildingKind);
           const horizontal = Math.min(1, w / (bounds[3]! - bounds[0]!), d / (bounds[5]! - bounds[2]!));
           const vertical = h / (bounds[4]! - bounds[1]!);
-          const structure = ['woodWall', 'brickWall', 'greenhouseWall'].includes(key);
+          const wall = isRoomStructure(key) && !isRoomDoor(key);
           buildingModels.set(key, { mesh,
-            scale: [horizontal, structure ? vertical : Math.min(horizontal, vertical), horizontal] });
+            scale: wall ? [1/(bounds[3]!-bounds[0]!),vertical,WALL_THICKNESS/(bounds[5]!-bounds[2]!)]
+              : [horizontal,Math.min(horizontal,vertical),horizontal] });
         }
       }
       const plazaMeshes=new Map<string,AssetHandle<'mesh'>>();
@@ -399,7 +402,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         wildPlants: plantView.read(),
         wildAnimals: animalView.read(),
         characters: colonyView.readCharacters(followId),
-        placementPreview: colonyView.readPlacementPreview(),
+        placementPreview: colonyView.readPlacementPreview(), previewConnection,
         camera: { target: [...target], eye: [...eye], distance, yaw:overhead()?0:yaw, pitch:overhead()?Math.PI/2:pitch, overhead:overhead(), sunShadows,
           shadowDistance: sunShadows === 'off' ? 0 : shadowDistance, mode: viewMode, followId },
         player: followId ? { id:followId, name:colony.controlledColonist?.name, x: player.x, y: player.y, z: player.z, grounded: player.grounded, moving: player.moving, facing: player.facing,
@@ -519,6 +522,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
         voxels = nextWorld; colony = nextColony; colonyState = colony.snapshot();
         connectPlayerOccupancy(); selectedBuildingId = null; hoverBuildingId = null; hoverBuildingPart = null; buildRotation = 0;
         selectedTreeId = null; hoverTreeId = null; hoverTreePart = null;
+        colony.setCrowdObstacleSampler(blocked);
         colony.setWalkSurfaceSampler((x,z,fallback)=>pcgView.walkHeight(x,z,fallback));
         terrainView.clear(); pcgView.clear();
         cancelStroke(); terrainTarget = clamp(terrainTarget, 1, voxels.height - 2); buildHeight = null; viewMode = 'god'; followId = null;
@@ -629,6 +633,7 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
             voxels = new VoxelWorld(c.seed.trim().slice(0, 80)); colony = new ColonySimulation(voxels); colonyState = colony.snapshot();
             connectPlayerOccupancy(); selectedBuildingId = null; hoverBuildingId = null; hoverBuildingPart = null; buildRotation = 0;
             selectedTreeId = null; hoverTreeId = null; hoverTreePart = null;
+            colony.setCrowdObstacleSampler(blocked);
             colony.setWalkSurfaceSampler((x,z,fallback)=>pcgView.walkHeight(x,z,fallback));
             terrainView.clear(); pcgView.clear();
             viewMode = 'god'; followId = null; terrainTarget = clamp(terrainTarget, 1, voxels.height - 2);
@@ -702,7 +707,16 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
             simViewElapsed = 0;
             if (selectedTreeId && !voxels.getTree(selectedTreeId)) { selectedTreeId = null; refreshState = true; }
             treeView.update(voxels, selectedTreeId ?? hoverTreeId);
-            const renderState = colony.renderState();
+            const previewKind=tool.startsWith('build:')?tool.slice(6) as BuildingKind:null;
+            const proposal=previewKind&&BUILDING_DEFS[previewKind]&&hoverCell&&!uiHover?{
+              id:'placement-preview',kind:previewKind,x:hoverCell[0],y:buildHeight??hoverCell[1],z:hoverCell[2],
+              ...buildingDimensions(previewKind,buildRotation),rotation:buildRotation as 0|1|2|3,doorOpen:false,complete:true,progress:0,
+            }:null;
+            const connection=proposal ? colony.placementConnection(proposal) : undefined;
+            if(connection?.rotation!==previewConnection?.rotation || connection?.connections!==previewConnection?.connections) refreshState=true;
+            previewConnection=connection;
+            const buildPreview=proposal && {...proposal,...previewConnection};
+            const renderState = colony.renderState(proposal);
             animalView.animate(colony.simulationTime);
             if (selectedBuildingId && !renderState.buildings.some(b => b.id === selectedBuildingId)) {
               selectedBuildingId = null;
@@ -710,18 +724,13 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
             }
             if (pcgView.update(voxels, renderState.buildings)) refreshState = true;
             // Ground the displayed residents on the same derived steps used by player collision.
-            const previewKind=tool.startsWith('build:')?tool.slice(6) as BuildingKind:null;
-            const buildPreview=previewKind&&BUILDING_DEFS[previewKind]&&hoverCell&&!uiHover?{
-              id:'placement-preview',kind:previewKind,x:hoverCell[0],y:buildHeight??hoverCell[1],z:hoverCell[2],
-              ...buildingDimensions(previewKind,buildRotation),rotation:buildRotation,doorOpen:false,complete:true,progress:0,
-            }:null;
             const showPlanningGrid = viewMode === 'god' && !finale && (planningPanelOpen || mapToolMenu === 'plan');
             if (showPlanningGrid !== planningGridVisible) {
               planningGridVisible = showPlanningGrid;
               terrainView.update(showPlanningGrid ? colonyState.terrainPlans : []);
               refreshState = true;
             }
-            colonyView.update({ ...renderState, merchants:townMerchants(colonyState), selectedBuildingId, buildPreview, finale, showPlanningGrid, hideClouds:overhead(),
+            colonyView.update({ ...renderState, merchants:townMerchants(colonyState).map(m=>({...m,position:colony.merchantPosition(m.npcId)})), selectedBuildingId, buildPreview, finale, showPlanningGrid, hideClouds:overhead(),
               controlledColonistId: followId,
               colonists: renderState.colonists.map(p => ({ ...p,
               position: [p.position[0], pcgView.walkHeight(p.position[0], p.position[2], p.position[1]), p.position[2]] as Point,
@@ -846,13 +855,15 @@ export const voxelGame: Plugin.Object<{ readonly environment?: string; evening:s
 
               if (!player.grounded) {
                 player.vy += PLAYER_GRAVITY * dt;
-                const nextY = player.y + player.vy * dt, ny=constrainResidentHeight(nextY);
-                const g = constrainResidentHeight(groundUnder(player.x, player.z, player.y + 0.1));
+                const nextY = player.y + player.vy * dt;
+                const g = groundUnder(player.x, player.z, player.y + 0.1);
+                colony.clearLanding([player.x,player.y,player.z],Math.max(g,nextY),dt);
+                const ny=constrainResidentHeight(nextY);
                 if (ny <= g) { player.y = g; player.vy = 0; player.grounded = true; }
-                else { player.y = ny; if (ny < nextY)player.vy=0; }
+                else { player.y = ny; if (ny !== nextY)player.vy=0; }
               } else {
                 // 走出台沿：脚下空了就开始掉
-                const g = constrainResidentHeight(groundUnder(player.x, player.z, player.y + 0.1));
+                const g = groundUnder(player.x, player.z, player.y + 0.1);
                 if (player.y > g + 0.05) { player.grounded = false; player.vy = 0; }
                 else player.y = g;
               }

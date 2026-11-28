@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { crowdFixture, checkBodies } from './crowd-fixture.mjs';
 import { tsImport } from 'tsx/esm/api';
 import { createFacadeTerrainFixture } from './facade-playthrough.mjs';
 import { possessResident } from './select-resident.mjs';
@@ -49,33 +51,77 @@ export default async function residentMovement(play) {
   };
 
   await wait(s=>s.colony?.colonists.length===3);
-  await page.evaluate(({key,value})=>localStorage.setItem(key,JSON.stringify(value)),{
-    key:SAVE,value:{version:2,voxel:world.serialize(),colony:sim.serialize()},
+  const readings=[];
+  const record=(name,state)=>{
+    readings.push({name,time:state.colony.time,player:state.player&&point(state.player),
+      people:state.colony.colonists.map(({position,task,jobId})=>({position,task,jobId})),
+      buildings:state.colony.buildings.filter(b=>b.kind==='floor').map(({id,complete})=>({id,complete}))});
+    mkdirSync('artifacts/crowd-19',{recursive:true});
+    writeFileSync('artifacts/crowd-19/readings.json',JSON.stringify(readings,null,2));
+  };
+  const load=async save=>{
+    await page.evaluate(({key,value})=>localStorage.setItem(key,JSON.stringify(value)),{key:SAVE,value:save});
+    await play.reload();
+    return wait(s=>s.colony?.speed===0 && s.colony.colonists[0].position[0]===save.colony.colonists[0].position[0]
+      && s.colony.buildings.length===save.colony.buildings.length);
+  };
+  const speed=async n=>{
+    await page.locator('[data-testid="speed-'+n+'"]').evaluate(b=>b.click());
+    await wait(s=>s.colony.speed===n);
+  };
+  for(const kind of ['open','wall']){
+    await play.step(kind==='open'?'附身走过两个相贴的闲置居民':'在床与工作台之间推至墙边，松开后工人返回施工',async()=>{
+      const {save,order}=await crowdFixture(kind);
+      const initial=await load(save),[first]=initial.colony.colonists;
+      await possessResident(play,first.id);
+      // Raise the normal follow camera so the beds do not hide the two people.
+      const {width,height}=page.viewportSize();
+      await page.mouse.move(width*.53,height*.31);
+      await page.mouse.down({button:'right'});
+      await page.mouse.move(width*.53,height*.72,{steps:10});
+      await page.mouse.up({button:'right'});
+      await page.mouse.wheel(0,-160);
+      await advance(.2);
+      await capture(kind+'-before');
+      record(kind+'-before',initial);
+      await hold('KeyA',1.25);
+      const after=await advance(.6);
+      checkBodies(after.colony.colonists,after.colony.buildings);
+      assert.ok(after.colony.colonists.slice(1).every((p,i)=>distance(p.position,initial.colony.colonists[i+1].position)>.1),JSON.stringify(after.player));
+      if(kind==='open')assert.ok(after.player.x>26);
+      else assert.ok(after.player.x>24 && after.player.x<25.6);
+      const rested=await advance(.8);
+      assert.deepEqual(rested.colony.colonists.map(p=>p.position),after.colony.colonists.map(p=>p.position));
+      await capture(kind+'-released');record(kind+'-released',rested);
+      if(order){
+        assert.equal(rested.colony.colonists[1].jobId,order.id);
+        await page.keyboard.press('KeyR');await wait(s=>!s.player);
+        await speed(1);
+        let state=await read();
+        for(let i=0;i<80&&!state.colony.buildings.find(b=>b.id===order.targetId)?.complete;i++){
+          state=await advance(.75);checkBodies(state.colony.colonists,state.colony.buildings);
+          if(state.colony.jobs.some(j=>j.id===order.id))assert.equal(state.colony.colonists[1].jobId,order.id);
+        }
+        assert.ok(state.colony.buildings.find(b=>b.id===order.targetId)?.complete);
+        await capture('original-job-finished');record('original-job-finished',state);
+      }
+    });
+  }
+  await play.step('居民从两端进入六格长的单格通道并抵达对侧',async()=>{
+    const {save}=await crowdFixture('cross');
+    await load(save);
+    await speed(1);
+    let state;
+    for(let i=0;i<60;i++){
+      state=await advance(.4);checkBodies([...state.colony.colonists,state.colony.guideHousing],state.colony.buildings);
+      if(i===9)await capture('bottleneck-yield');
+      if(state.colony.colonists[0].position[0]>27.3&&state.colony.colonists[1].position[0]<18.7)break;
+    }
+    assert.ok(state.colony.colonists[0].position[0]>27.3&&state.colony.colonists[1].position[0]<18.7);
+    await capture('bottleneck-passed');record('bottleneck-passed',state);
   });
-  await play.reload();
-  const initial=await wait(s=>s.colony?.speed===0&&s.colony.buildings.length===0);
-  const [first,second,resting]=initial.colony.colonists;
-
-  await play.step('附身后正面被村民挡住，从旁边可以绕过',async()=>{
-    const start=await possessResident(play,first.id);
-    const blocked=await hold('KeyA',.9);
-    assert.ok(blocked.player.x>start.player.x+.2);
-    assert.ok(blocked.player.x<second.position[0]);
-    const gap=distance(point(blocked.player),second.position);
-    assert.ok(gap>=RESIDENT_RADIUS*2-1e-6&&gap<.65,JSON.stringify(blocked.player));
-    const jumping=await page.keyboard.press('Space').then(()=>hold('KeyA',.2));
-    assert.ok(jumping.player.y>blocked.player.y+.2);
-    assert.ok(distance(point(jumping.player),second.position)>=RESIDENT_RADIUS*2-1e-6);
-    await advance(.8);
-    await capture('resident-collider');
-    await hold('KeyS',.45);
-    const passed=await hold('KeyA',.5);
-    assert.ok(passed.player.x>second.position[0]+.25);
-    separation(passed);
-    await page.keyboard.press('KeyR');
-    await wait(s=>!s.player);
-  });
-
+  const initial=await load({version:2,voxel:world.serialize(),colony:sim.serialize()});
+  const [,second,resting]=initial.colony.colonists;
   await play.step('等待工作和休息的村民在附近走动',async()=>{
     await focusMap();
     const before=await read();

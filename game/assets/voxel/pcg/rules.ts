@@ -1,5 +1,6 @@
 import { MicroVolume, meshMicroVolume, type PcgMeshData, type PcgPoint } from './geometry.ts';
 import { planFacades, type FacadeGroup, type FacadeLayout, type FacadePlan } from './facade.ts';
+import { WALL_THICKNESS } from '../../colony/buildings.ts';
 
 export const PCG_TILE_SIZE = 8;
 export const PCG_VERSION = 2;
@@ -129,14 +130,14 @@ function wallBodyRecipe(source: PcgSource, wall: WallColumn, recipe: Recipe, mod
     feature(recipe, 'wall', id, [x, y, z], [x, y, z], [x + 1, y + height, z + 1]);
   }
   // A restrained top band is shared across a connected row and disappears when it is extended upward.
-  if (colony || source.get(x, y + height, z) !== BRICK) {
+  if (colony ? !modelBodies : source.get(x, y + height, z) !== BRICK) {
     const top = y + height;
     recipe.trim.push({ min: [x, top - 1 / 16, z], max: [x + 1, top + 1 / 16, z + 1], material: colony ? 4 : 3 });
   }
 }
 
 /** Geometry is subordinate to a whole-facade plan. A group may cross source cells and render tiles. */
-function windowGroupRecipe(group: FacadeGroup, recipe: Recipe): void {
+function windowGroupRecipe(group: FacadeGroup, recipe: Recipe, thickness=1): void {
   const { id, axis, plane, base, lower, upper, u0, u1, panes, faces, dependencies, facadeId } = group;
   if (!faces.length) return;
   const orient = (umin: number, ymin: number, dmin: number, umax: number, ymax: number, dmax: number): Stamp => ({
@@ -151,7 +152,7 @@ function windowGroupRecipe(group: FacadeGroup, recipe: Recipe): void {
   recipe.trim.push({ ...orient(u0, lower, plane + 7 / 16, u1, upper, plane + 9 / 16), material: 5 });
   feature(recipe, 'window', id, anchor, cut.min, cut.max, dependencies, detail);
   for (const sign of faces) {
-    const face = plane + (sign > 0 ? 1 : 0);
+    const face = plane + .5 + sign*thickness/2;
     const d0 = sign > 0 ? face - 1 / 16 : face - 2 / 16;
     const d1 = sign > 0 ? face + 2 / 16 : face + 1 / 16;
     recipe.trim.push(orient(u0 - 1 / 16, lower - 1 / 16, d0, u0 + 1 / 16, upper + 1 / 16, d1));
@@ -211,7 +212,12 @@ export function buildPcgTile(source: PcgSource, buildings: readonly PcgBuilding[
     const bounds = group.axis === 'x'
       ? { min: [group.u0 - .125, group.lower - .125, group.plane - .25] as PcgPoint, max: [group.u1 + .125, group.upper + .125, group.plane + 1.25] as PcgPoint }
       : { min: [group.plane - .25, group.lower - .125, group.u0 - .125] as PcgPoint, max: [group.plane + 1.25, group.upper + .125, group.u1 + .125] as PcgPoint };
-    if (intersects(bounds, [min[0] - 1, min[1], min[2] - 1], [max[0] + 1, max[1], max[2] + 1])) windowGroupRecipe(group, recipe);
+    if (intersects(bounds, [min[0] - 1, min[1], min[2] - 1], [max[0] + 1, max[1], max[2] + 1])) {
+      const colonyWindow=modelBodies && buildings.some(b=>b.complete && b.kind==='wall' && b.y===group.base &&
+        (group.axis==='x' ? b.z : b.x)===group.plane &&
+        (group.axis==='x' ? b.x : b.z)>=Math.floor(group.u0) && (group.axis==='x' ? b.x : b.z)<group.u1);
+      windowGroupRecipe(group,recipe,colonyWindow?WALL_THICKNESS:1);
+    }
   }
   const stamps = [...recipe.bases, ...recipe.cuts, ...recipe.trim];
   if (!stamps.length) return empty();

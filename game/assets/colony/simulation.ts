@@ -10,7 +10,7 @@ import { MINING_RULES } from '../voxel/surface-ore.ts';
 import { BLOCK, BLOCKS, depositResource, VoxelWorld } from '../voxel/model.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
 import { treeProtectingVoxel } from '../voxel/tree-interaction.ts';
-import {buildingDimensions,buildingParts,buildingBlocksMovement,buildingSealsRoom,isSwingDoor} from './buildings.ts';
+import {buildingDimensions,buildingParts,buildingBlocksMovement,buildingSealsRoom,isSwingDoor,isRoomStructure,structureConnection} from './buildings.ts';
 import { DUSK_SECONDS, PAN_SECONDS, FINALE_SECONDS, gatheringSpot, plazaObstacle, smooth } from './plaza.ts';
 import { coldEffect, premiumCount, type ColdMark } from './contracts.ts';
 import { isStorageClass, storageClassFor, STORAGE_CLASSES, type StorageClass } from './contracts.ts';
@@ -96,7 +96,8 @@ type SavedState = {
 
 const specialistIds=Object.keys(SPECIALISTS) as SpecialistId[];
 const merchantName=(id:MerchantId='guide')=>id==='guide'?'向导':SPECIALISTS[id].name;
-type MerchantWalk={position:Position;path:Position[];retryAt:number};
+type Walker = {position:Position; path:Position[]};
+type MerchantWalk = Walker & {retryAt:number};
 type MarketSave={
   progress:Record<SpecialistId,{sold:number;arrivalDay:number|null;bedId:string|null}>;
   walks:Partial<Record<MerchantId,MerchantWalk>>;
@@ -201,6 +202,8 @@ export class ColonySimulation {
   private walkSurface: ((x:number,z:number,fallback:number)=>number) | undefined;
   /** Source graph/pathfinding stay coarse; derived treads determine actual motion height. */
   setWalkSurfaceSampler(sampler:(x:number,z:number,fallback:number)=>number):void {this.walkSurface=sampler;}
+  private staticBodyBlocked:((x:number,z:number,y:number)=>boolean)|undefined;
+  setCrowdObstacleSampler(sampler:(x:number,z:number,y:number)=>boolean):void {this.staticBodyBlocked=sampler;}
   private externalOccupancy:((x:number,y:number,z:number,w:number,h:number,d:number)=>boolean)|undefined;
   setExternalOccupancySampler(sampler:(x:number,y:number,z:number,w:number,h:number,d:number)=>boolean):void {this.externalOccupancy=sampler;}
   private s: SavedState;
@@ -1029,7 +1032,9 @@ export class ColonySimulation {
       ?this.s.zones.find(z=>z.pasture?.seamIds?.length&&containsCell(z,b.x,b.z)):undefined;
     const inner=(p:Position)=>Number(!!expanding&&containsCell(expanding,Math.floor(p[0]),Math.floor(p[2])));
     // Avoid closing the last exit behind a builder while the old perimeter still stands.
-    options.sort((a,b)=>inner(a)-inner(b)||horizontalDistance(a,from)-horizontalDistance(b,from));
+    const claimed=(p:Position)=>this.people().some(body=>body.position!==from &&
+      (residentsOverlap(body.position,p)||body.path.length>0&&residentsOverlap(body.path.at(-1)!,p)));
+    options.sort((a,b)=>inner(a)-inner(b)||Number(claimed(a))-Number(claimed(b))||horizontalDistance(a,from)-horizontalDistance(b,from));
     for(const p of options){const route=this.path(from,p);if(route!==null)return route;}
     return null;
   }
@@ -1689,24 +1694,114 @@ export class ColonySimulation {
     return this.walkResidentPath(c, c.path, dt * speed * (c.hunger < 15 ? .7 : 1));
   }
 
-  private residentAt(position:Position, exceptId?:string):Colonist|undefined {
-    return this.s.colonists.find(other => other.id !== exceptId && residentsOverlap(position, other.position));
+  private people():Walker[] {
+    return [...this.s.colonists,...Object.values(this.s.specialistMarket.walks)];
   }
 
-  residentBlocksMove(from:Position, to:Position, id:string):boolean {
-    return !!this.blockingResident(from,to,id);
+  private residentAt(position:Position, exceptId?:string):Walker|undefined {
+    return this.people().find(p=>(!('id' in p)||p.id!==exceptId)&&residentsOverlap(position,p.position));
   }
 
-  private blockingResident(from:Position, to:Position, id:string):Colonist|undefined {
-    return this.s.colonists.find(other => other.id !== id && residentsOverlap(to, other.position) &&
-      (!residentsOverlap(from, other.position) || horizontalDistance(to, other.position) <= horizontalDistance(from, other.position)));
+  private blockingPerson(body:Walker, from:Position, to:Position):Walker|undefined {
+    return this.people().find(other=>other!==body && residentsOverlap(to,other.position) &&
+      (!residentsOverlap(from,other.position)||horizontalDistance(to,other.position)<=horizontalDistance(from,other.position)));
+  }
+
+  private positionCell([x,,z]:Position):number {
+    return this.cellKey(Math.floor(x),Math.floor(z));
+  }
+
+  private bodyFits(x:number,z:number,ground:number):boolean {
+    const r=RESIDENT_RADIUS-1e-6;
+    for(let xx=Math.floor(x-r);xx<=Math.floor(x+r);xx++)for(let zz=Math.floor(z-r);zz<=Math.floor(z+r);zz++){
+      if(!this.walkable(xx,zz)||Math.abs(this.groundY(xx,zz)-ground)>1)return false;
+    }
+    return true;
+  }
+
+  // Each contact consumes at most the incoming substep. Try the near shoulder,
+  // then the contact normal when a wall leaves no lateral room.
+  private pushPerson(body:Walker,from:Position,to:Position,other:Walker):boolean {
+    const people=this.people();
+    const shifts=new Map<Walker,Position>([[body,to]]);
+    const plan=(mover:Walker,start:Position,end:Position,contact:Walker,depth:number):boolean=>{
+      if(contact===this.controlled||depth>3||shifts.has(contact))return false;
+      const old=contact.position,travel=horizontalDistance(start,end);
+      if(travel<1e-6)return false;
+      const vx=(end[0]-start[0])/travel,vz=(end[2]-start[2])/travel;
+      const side=(old[2]-start[2])*vx-(old[0]-start[0])*vz>=0?1:-1;
+      const gap=horizontalDistance(end,old);
+      const nx=gap>.001?(old[0]-end[0])/gap:vx,nz=gap>.001?(old[2]-end[2])/gap:vz;
+      const need=RESIDENT_RADIUS*2-gap+.000002;
+      for(const [dx,dz] of [[nx-vz*side*.7,nz+vx*side*.7],[nx,nz],[vx,vz],[nx+vz*side*.7,nz-vx*side*.7]] as const){
+        const length=Math.hypot(dx,dz);
+        const amount=Math.min(.125,travel*1.25,need*length/Math.max(.1,dx*nx+dz*nz));
+        const x=old[0]+dx/length*amount,z=old[2]+dz/length*amount;
+        const ground=this.groundY(Math.floor(x),Math.floor(z));
+        const y=this.walkSurface?.(x,z,ground)??ground;
+        if(!this.bodyFits(x,z,ground)||Math.abs(y-old[1])>.251||this.staticBodyBlocked?.(x,z,y))continue;
+        const pos:Position=[x,y,z];
+        if(residentsOverlap(pos,end))continue;
+        const checkpoint=new Map(shifts);
+        shifts.set(contact,pos);
+        if(people.every(p=>p===mover||p===contact||!residentsOverlap(pos,shifts.get(p)??p.position)||plan(contact,old,pos,p,depth+1)))return true;
+        shifts.clear();
+        for(const [p,v] of checkpoint)shifts.set(p,v);
+      }
+      return false;
+    };
+    if(!plan(body,from,to,other,0))return false;
+    for(const p of people){
+      if(p!==body&&residentsOverlap(to,shifts.get(p)??p.position)&&!plan(body,from,to,p,0))return false;
+    }
+    shifts.delete(body);
+    for(const [walker,pos] of shifts){
+      const old=walker.position;
+      // Retain the original work stand when contact carries its owner across
+      // a cell boundary. This return trip survives saving during the push.
+      if(this.positionCell(pos)!==this.positionCell(old)){
+        const active='jobId' in walker && (walker.jobId||('personal' in walker&&walker.personal));
+        const path=walker.path;
+        if((path.length||active)&&this.positionCell(path[0]??pos)!==this.positionCell(old)){
+          const x=Math.floor(old[0]),z=Math.floor(old[2]);
+          path.unshift([x+.5,this.groundY(x,z),z+.5]);
+        }
+      }
+      walker.position=pos;
+    }
+    return true;
+  }
+
+  tryPlayerCrowdStep(from:Position,to:Position):boolean {
+    if(!this.controlled)return true;
+    const blocker=this.blockingPerson(this.controlled,from,to);
+    return !blocker||this.pushPerson(this.controlled,from,to,blocker);
+  }
+
+  clearLanding(position:Position,nextY:number,dt:number):void {
+    if(!this.controlled||nextY>=position[1])return;
+    for(const other of this.people()){
+      const top=other.position[1]+RESIDENT_HEIGHT;
+      if(other===this.controlled||position[1]<top-1e-6||nextY>top||!residentsTouchHorizontally(position,other.position))continue;
+      const [x,y,z]=other.position;
+      const angle=Math.atan2(z-position[2],x-position[0]);
+      // A falling character has no horizontal stride. Ease the occupant out
+      // from below their feet, using the same wall and neighbour checks.
+      const step=Math.min(.05,dt*1.5);
+      for(const turn of [0,Math.PI/2,-Math.PI/2,Math.PI]){
+        const dx=Math.cos(angle+turn),dz=Math.sin(angle+turn),r=RESIDENT_RADIUS*2;
+        const from:Position=[x-r*dx,y,z-r*dz];
+        const to:Position=[from[0]+step*dx,y,from[2]+step*dz];
+        if(this.pushPerson(this.controlled,from,to,other))break;
+      }
+    }
   }
 
   residentVerticalLimit(position:Position, nextY:number, id:string):number {
     const feet=position[1], climbing=nextY>feet;
     let limit=nextY;
-    for(const other of this.s.colonists){
-      if(other.id===id||!residentsTouchHorizontally(position,other.position))continue;
+    for(const other of this.people()){
+      if(('id' in other&&other.id===id)||!residentsTouchHorizontally(position,other.position))continue;
       const edge=other.position[1]+(climbing?-RESIDENT_HEIGHT:RESIDENT_HEIGHT);
       if(climbing&&feet<=edge+1e-6)limit=Math.min(limit,edge);
       if(!climbing&&feet>=edge-1e-6)limit=Math.max(limit,edge);
@@ -1714,57 +1809,85 @@ export class ColonySimulation {
     return limit;
   }
 
-  private detourResident(c:Colonist, route:Position[]):boolean {
-    const occupied = new Set<number>();
-    for (const other of this.s.colonists) {
-      const [x,y,z] = other.position;
-      if (other !== c && Math.abs(y - c.position[1]) < RESIDENT_HEIGHT && horizontalDistance(c.position, other.position) < 5) {
-        occupied.add(this.cellKey(Math.floor(x), Math.floor(z)));
-      }
-    }
-    for (let i=0; i<Math.min(route.length,4); i++) {
+  private detour(body:Walker, route:Position[], blocker:Walker):boolean {
+    const occupied=new Set(this.people().filter(p=>p!==body && horizontalDistance(body.position,p.position)<8)
+      .map(p=>this.positionCell(p.position)));
+    for(let i=0;i<Math.min(route.length,6);i++){
       const waypoint=route[i]!;
-      if (this.residentAt(waypoint, c.id)) continue;
-      const path=this.path(c.position,waypoint,false,occupied,8);
-      if (!path?.length || horizontalDistance(path[0]!,route[0]!)<.01) continue;
-      if (horizontalDistance(path[path.length-1]!,waypoint)>.01) path.push(waypoint);
+      const path=this.path(body.position,waypoint,false,occupied,10);
+      if(!path?.length||horizontalDistance(path[0]!,route[0]!)<.01)continue;
+      if(horizontalDistance(path.at(-1)!,waypoint)>.01)path.push(waypoint);
       route.splice(0,i+1,...path);
       return true;
+    }
+    // In a single-file corridor, back out along the oncoming person's
+    // itinerary to a free side cell, then rejoin the original destination.
+    const oncoming=blocker.path;
+    if(!oncoming.length)return false;
+    const lane=new Set(oncoming.map(p=>this.positionCell(p)));
+    lane.add(this.positionCell(blocker.position));
+    const goal=route.at(-1)!;
+    for(const point of oncoming.slice(0,12)){
+      for(const [dx,dz] of CARDINAL_STEPS){
+        const x=Math.floor(point[0])+dx,z=Math.floor(point[2])+dz;
+        if(!this.walkable(x,z)||lane.has(this.cellKey(x,z)))continue;
+        const bay:Position=[x+.5,this.groundY(x,z),z+.5];
+        const out=this.path(body.position,bay,false,occupied,12);
+        if(!out?.length || horizontalDistance(out[0]!,body.position)<.01)continue;
+        const back=this.path(bay,goal);
+        if(!back)continue;
+        route.splice(0,route.length,...out,...back);
+        return true;
+      }
     }
     return false;
   }
 
-  private walkResidentPath(c:Colonist, route:Position[], remaining:number, procession=false):boolean {
-    while (remaining>1e-8 && route.length) {
-      const next=route[0]!, x=Math.floor(next[0]), z=Math.floor(next[2]);
-      if (!procession && (!this.walkable(x,z) || Math.abs(next[1]-this.groundY(x,z))>.1)) {
-        this.releasePerson(c); c.retryAt=this.s.time+1; return false;
-      }
-      const nextHeight=this.walkSurface?.(next[0],next[2],next[1])??next[1];
-      const currentSurface=this.walkSurface?.(c.position[0],c.position[2],NaN);
-      const detailed=Number.isFinite(currentSurface)||nextHeight!==next[1];
-      const [px,py,pz]=c.position, dx=next[0]-px, dz=next[2]-pz;
-      const distance=procession||detailed?Math.hypot(dx,dz):Math.hypot(dx,next[1]-py,dz);
-      const step=Math.min(remaining,.2,distance);
-      const fraction=distance<1e-8?1:step/distance;
-      const to:Position=[px+dx*fraction, fraction===1?nextHeight:py+(next[1]-py)*fraction, pz+dz*fraction];
-      if(this.walkSurface)to[1]=this.walkSurface(to[0],to[2],to[1]);
-      const blocker=this.blockingResident(c.position,to,c.id);
-      if(blocker){
-        const next=(procession?this.processionPaths.get(blocker.id):blocker.path)?.[0];
-        // Give a resident already turning away time to clear the shared lane.
-        if(next){
-          const [bx,by,bz]=blocker.position, stride=Math.min(1,.25/horizontalDistance(blocker.position,next));
-          const predicted:Position=[bx+(next[0]-bx)*stride,by,bz+(next[2]-bz)*stride];
-          if(horizontalDistance(c.position,predicted)>horizontalDistance(c.position,blocker.position)+.012)return false;
-        }
-        if(!this.detourResident(c,route) && !procession && c.personal?.kind==='wander')this.releasePerson(c);
+  private walkResidentPath(body:Walker,route:Position[],remaining:number,procession=false):boolean {
+    const resident='jobId' in body?body as Colonist:undefined;
+    while(remaining>1e-8&&route.length){
+      const next=route[0]!,x=Math.floor(next[0]),z=Math.floor(next[2]);
+      if(!procession&&(!this.walkable(x,z)||Math.abs(next[1]-this.groundY(x,z))>.1)){
+        if(resident){this.releasePerson(resident);resident.retryAt=this.s.time+1;}
+        else route.length=0;
         return false;
       }
-      if(Math.hypot(dx,dz)>.001)c.facing=Math.atan2(dx,dz);
-      c.position=to;
-      if(fraction===1)route.shift();
-      remaining-=step;this.s.metrics.distanceWalked+=step;
+      const [px,py,pz]=body.position,dx=next[0]-px,dz=next[2]-pz;
+      const surface=this.walkSurface?.(px,pz,NaN);
+      const distance=procession||Number.isFinite(surface)?Math.hypot(dx,dz):Math.hypot(dx,next[1]-py,dz);
+      const step=Math.min(remaining,.1,distance),f=distance<1e-8?1:step/distance;
+      const to:Position=[px+dx*f,py+(next[1]-py)*f,pz+dz*f];
+      if(this.walkSurface)to[1]=this.walkSurface(to[0],to[2],to[1]);
+      const ground=this.groundY(Math.floor(to[0]),Math.floor(to[2]));
+      if(!procession && !this.bodyFits(to[0],to[2],ground) &&
+        this.bodyFits(px,pz,this.groundY(Math.floor(px),Math.floor(pz)))){
+        const cx=Math.floor(px),cz=Math.floor(pz);
+        const centre:Position=[cx+.5,this.groundY(cx,cz),cz+.5];
+        if(horizontalDistance(centre,body.position)>.02 && this.positionCell(next)!==this.positionCell(centre))route.unshift(centre);
+        return false;
+      }
+      const blocker=this.blockingPerson(body,body.position,to);
+      if(blocker){
+        // Interaction rules use the destination cell. Two workers can finish
+        // at different points in that cell without competing for its centre.
+        if(!procession && resident && route.length===1 && this.positionCell(body.position)===this.positionCell(next)){
+          route.shift();return true;
+        }
+        const forward=blocker.path[0];
+        // Following traffic keeps its spacing. Opposing traffic first tries a
+        // reachable detour. An idle occupant can slide under the contact.
+        if(forward && (forward[0]-blocker.position[0])*dx+(forward[2]-blocker.position[2])*dz>0)return false;
+        if(!procession && this.detour(body,route,blocker))return false;
+        if(!this.pushPerson(body,body.position,to,blocker))return false;
+      }
+      if(resident&&Math.hypot(dx,dz)>.001)resident.facing=Math.atan2(dx,dz);
+      body.position=to;
+      if(f===1){
+        route.shift();
+        if(!resident)break;
+      }
+      remaining-=step;
+      if(resident)this.s.metrics.distanceWalked+=step;
     }
     return route.length===0;
   }
@@ -2883,7 +3006,7 @@ export class ColonySimulation {
     return ['guide',...specialistIds.filter(id=>this.s.specialistMarket.progress[id].arrivalDay!==null)];
   }
 
-  private merchantPosition(id:MerchantId='guide'):Position {
+  merchantPosition(id:MerchantId='guide'):Position {
     return this.s.specialistMarket.walks[id]?.position??this.camp;
   }
 
@@ -2892,7 +3015,7 @@ export class ColonySimulation {
     const offsets=[[0,0],[3,0],[-3,0],[0,3],[0,-3]];
     const [dx,dz]=offsets[index]??[0,0];
     const start=this.closestOpen(this.camp[0]+dx!,this.camp[2]+dz!,true,p=>
-      this.roomAt[this.cellKey(Math.floor(p[0]),Math.floor(p[2]))]!<0 && this.path(this.camp,p)!==null)??this.camp;
+      !this.residentAt(p) && this.roomAt[this.cellKey(Math.floor(p[0]),Math.floor(p[2]))]!<0 && this.path(this.camp,p)!==null)??this.camp;
     this.s.specialistMarket.walks[id]={position:[...(this.merchantHomes.get(id)?.position??start)],path:[],retryAt:this.s.time};
   }
 
@@ -2900,7 +3023,7 @@ export class ColonySimulation {
     for(const id of this.arrivedMerchants()){
       const walk=this.s.specialistMarket.walks[id]!,home=this.merchantHomes.get(id);
       if(!walk.path.length){
-        if(this.s.time<walk.retryAt || home && horizontalDistance(walk.position,home.position)<.02)continue;
+        if(this.s.time<walk.retryAt || home && this.positionCell(walk.position)===this.positionCell(home.position) && horizontalDistance(walk.position,home.position)<.45)continue;
         walk.retryAt=this.s.time+3;
         const stride=Math.floor(this.s.time/3)+this.arrivedMerchants().indexOf(id)*5;
         const target=home?.position??this.closestOpen(this.camp[0]+(stride*7%13)-6,
@@ -2915,9 +3038,9 @@ export class ColonySimulation {
         if(!door?.complete || !isSwingDoor(door.kind) || !home && this.roomAt[this.cellKey(Math.floor(walk.position[0]),Math.floor(walk.position[2]))]!<0){walk.path=[];continue;}
         this.toggleDoor({action:'toggleDoor',id:door.id});
       }
-      const distance=Math.hypot(next[0]-walk.position[0],next[1]-walk.position[1],next[2]-walk.position[2]);
-      if(distance<=dt*1.35){walk.position=walk.path.shift()??next;continue;}
-      for(const axis of [0,1,2] as const)walk.position[axis]+=(next[axis]-walk.position[axis])*dt*1.35/distance;
+      // Advance through this waypoint only. Door ownership is checked above
+      // before entering each new cell.
+      this.walkResidentPath(walk,walk.path,dt*1.35);
     }
   }
 
@@ -3073,15 +3196,24 @@ export class ColonySimulation {
     }
   }
 
+  // Include the proposed cell when neighbouring doors choose their axis, just as after placement.
+  placementConnection(b:Pick<BuildingView,'kind'|'x'|'y'|'z'|'rotation'>) {
+    return isRoomStructure(b.kind) ? structureConnection(b,(x,z)=>
+      x===b.x && z===b.z ? b : this.buildingAt.get(this.cellKey(x,z))) : undefined;
+  }
+
   /** Internal renderer projection; consumers must never mutate simulation data. */
-  renderState(){
+  renderState(proposal?:Pick<BuildingView,'kind'|'x'|'y'|'z'|'rotation'>|null){
     const carriers = this.s.jobs.filter(job => job.assignedTo &&
       ((job.guideSale || job.targetId === PLAYER_DELIVERY_TARGET) && job.phase === 'deliver' || job.recipe && job.phase === 'work'));
     const colonists = carriers.length ? this.s.colonists.map(colonist => {
       const carrying = carriers.find(job => job.assignedTo === colonist.id);
       return carrying ? { ...colonist, carrying: carrying.guideSale ? {[carrying.guideSale.item]:carrying.guideSale.inTransit} : carrying.reserved } : colonist;
     }) : this.s.colonists;
-    return {colonists,buildings:this.s.buildings,zones:this.zones(),crops:this.s.crops,items:this.s.items,
+    const preview=proposal && isRoomStructure(proposal.kind) && !this.buildingAt.has(this.cellKey(proposal.x,proposal.z)) ? proposal : null;
+    const at=(x:number,z:number)=>preview && x===preview.x && z===preview.z ? preview : this.buildingAt.get(this.cellKey(x,z));
+    const buildings=this.s.buildings.map(b=>isRoomStructure(b.kind) ? {...b,...structureConnection(b,at)} : b);
+    return {colonists,buildings,zones:this.zones(),crops:this.s.crops,items:this.s.items,
       warehouseStacks:this.s.warehouseStacks,selectedColonistId:this.s.selectedColonistId};
   }
   snapshot():ColonySnapshot {
@@ -3090,7 +3222,7 @@ export class ColonySimulation {
     const rendered=this.renderState();
     const snapshot=copy({version:1 as const,speed:this.s.speed,time:this.s.time,day:this.day(),hour:this.hour(),season:this.season(),weather:this.s.weather,temperature:this.s.temperature,
       resources:this.s.resources,playerBag:this.inventoryColonist?.bag??emptySlots(PLAYER_SLOTS),bagSelected:this.inventoryColonist?.bagSelected??0,controlledColonistId:this.controlled?.id??null,chests,
-      colonists:rendered.colonists.map(({path,personal,destination,retryAt,...view})=>view),buildings:this.s.buildings.map(b=>b.kind==='extractionStation'?{...b,mining:this.miningView(b)}:b),
+      colonists:rendered.colonists.map(({path,personal,destination,retryAt,...view})=>view),buildings:rendered.buildings.map(b=>b.kind==='extractionStation'?{...b,mining:this.miningView(b)}:b),
       zones:rendered.zones.map(z=>z.pasture?{...z,pasture:{...z.pasture,capacity:this.pastureSpace(z).length,ready:this.pastureReady(z)}}:z),crops:this.s.crops,warehouseStacks:this.s.warehouseStacks,
       items:this.s.items,jobs:this.s.jobs.map(({phase,resource,amount,destination,...view}) => {
         if (view.recipe) return { ...view, craftAmount: amount, craftPhase: phase === 'pickup' ? 'pickup' as const : 'work' as const };
@@ -3133,6 +3265,12 @@ export class ColonySimulation {
       if(!this.s.colonists.slice(0,i).some(other=>residentsOverlap(c.position,other.position)))continue;
       const free=this.closestOpen(c.position[0],c.position[2],false,p=>!this.residentAt(p,c.id));
       if(free){this.releasePerson(c);c.position=free;c.task='等待工作';}
+    }
+    for(const walk of Object.values(this.s.specialistMarket.walks)){
+      if(!this.people().some(p=>p!==walk&&residentsOverlap(walk.position,p.position)))continue;
+      const goal=walk.path.at(-1);
+      const free=this.closestOpen(walk.position[0],walk.position[2],false,p=>!this.residentAt(p));
+      if(free){walk.position=free;walk.path=goal?this.path(free,goal,false,undefined,Infinity,true)??[]:[];}
     }
     this.refreshTreeJobs();
     this.stopPlayerConstruction();

@@ -1,0 +1,1040 @@
+{
+  "schemaVersion": "1.0.0",
+  "passed": true,
+  "root": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game",
+  "script": "scripts\\resident-movement-playthrough.mjs",
+  "outputDir": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough",
+  "report": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\play.json",
+  "captureReport": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\capture.json",
+  "url": "http://localhost:55609/",
+  "backend": "hardware",
+  "timings": {
+    "openMs": 185287,
+    "readyMs": 37818,
+    "scriptMs": 195705,
+    "verifyMs": 1289,
+    "totalMs": 421236
+  },
+  "steps": [
+    {
+      "name": "附身走过两个相贴的闲置居民 > advance 0.15 s",
+      "ok": true,
+      "ms": 90
+    },
+    {
+      "name": "附身走过两个相贴的闲置居民 > advance 0.2 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "附身走过两个相贴的闲置居民 > advance 1.25 s",
+      "ok": true,
+      "ms": 127
+    },
+    {
+      "name": "附身走过两个相贴的闲置居民 > advance 0.6 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "附身走过两个相贴的闲置居民 > advance 0.8 s",
+      "ok": true,
+      "ms": 64
+    },
+    {
+      "name": "附身走过两个相贴的闲置居民",
+      "ok": true,
+      "ms": 54245
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.15 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.2 s",
+      "ok": true,
+      "ms": 21
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 1.25 s",
+      "ok": true,
+      "ms": 60
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.6 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.8 s",
+      "ok": true,
+      "ms": 35
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.75 s",
+      "ok": true,
+      "ms": 35
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.75 s",
+      "ok": true,
+      "ms": 37
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.75 s",
+      "ok": true,
+      "ms": 44
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.75 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.75 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.75 s",
+      "ok": true,
+      "ms": 66
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.75 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.75 s",
+      "ok": true,
+      "ms": 59
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工 > advance 0.75 s",
+      "ok": true,
+      "ms": 63
+    },
+    {
+      "name": "在床与工作台之间推至墙边，松开后工人返回施工",
+      "ok": true,
+      "ms": 34473
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 29
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 26
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 29
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 29
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 26
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 26
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 32
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 29
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 53
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 30
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 29
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 31
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 28
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 32
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 30
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 33
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 31
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 22
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 22
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 22
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 20
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 26
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 21
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧 > advance 0.4 s",
+      "ok": true,
+      "ms": 32
+    },
+    {
+      "name": "居民从两端进入六格长的单格通道并抵达对侧",
+      "ok": true,
+      "ms": 29511
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.1 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 35
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 46
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 39
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 66
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 56
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 50
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 55
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 33
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 26
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动 > advance 0.25 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "等待工作和休息的村民在附近走动",
+      "ok": true,
+      "ms": 2835
+    },
+    {
+      "name": "重新读档后村民仍会继续走动并保持间距 > advance 0.1 s",
+      "ok": true,
+      "ms": 35
+    },
+    {
+      "name": "重新读档后村民仍会继续走动并保持间距 > advance 0.1 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "重新读档后村民仍会继续走动并保持间距 > advance 3 s",
+      "ok": true,
+      "ms": 198
+    },
+    {
+      "name": "重新读档后村民仍会继续走动并保持间距",
+      "ok": true,
+      "ms": 41575
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "open-before",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\01-open-before.png",
+      "rendered": true,
+      "digest": "sha256:c69cc63206b1924b17a104b5bfd6ff09b92aaba094b6d3eb7df0ee4cb4be2985"
+    },
+    {
+      "name": "open-released",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\02-open-released.png",
+      "rendered": true,
+      "digest": "sha256:700682cbd4748f2da42ac878d32b6f7a34f525f5fb05f2cd96291ccc6276b125"
+    },
+    {
+      "name": "wall-before",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\03-wall-before.png",
+      "rendered": true,
+      "digest": "sha256:f9e5d269cb830c730b79b05ffc9ce2950f599784514b1f5d4df08108de153bb0"
+    },
+    {
+      "name": "wall-released",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\04-wall-released.png",
+      "rendered": true,
+      "digest": "sha256:6fc7918a1cf9a3feebfa2e631ba02c84ea81c50c8b59afe64f4396d4cfe41ca4"
+    },
+    {
+      "name": "original-job-finished",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\05-original-job-finished.png",
+      "rendered": true,
+      "digest": "sha256:4e59d8819f033d5091f938bd164f8aead3a39e4d83d407b35faca9aaac87464f"
+    },
+    {
+      "name": "bottleneck-yield",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\06-bottleneck-yield.png",
+      "rendered": true,
+      "digest": "sha256:897213358c04e7c06a6cbaca5291f8194f9a600277ff274b157e1409ef6483f9"
+    },
+    {
+      "name": "bottleneck-passed",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\07-bottleneck-passed.png",
+      "rendered": true,
+      "digest": "sha256:4120cc15d89e267f8124be73aa765ca9b2b2a7b22edc1a71cc11398f9e994789"
+    },
+    {
+      "name": "waiting-and-resting-residents-walk",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\08-waiting-and-resting-residents-walk.png",
+      "rendered": true,
+      "digest": "sha256:17f42815f32d656bfcfef5c341afe72edd4af0c9a2a6a4491006bd9930b9a66a"
+    },
+    {
+      "name": "resident-walking-after-reload",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\09-resident-walking-after-reload.png",
+      "rendered": true,
+      "digest": "sha256:a00380414e56a673aa13501704483bfb60b3d2b3292d9f0f4c99a7015cbd9aa5"
+    },
+    {
+      "name": "final",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\resident-movement-playthrough\\10-final.png",
+      "rendered": true,
+      "digest": "sha256:916f3d6063b9bbff947111cd22606af630a6cf4996766478d50846e80cae6bdb"
+    }
+  ],
+  "viewports": [
+    "1280x720"
+  ],
+  "layout": [],
+  "state": {
+    "seed": "森屿-跨格立面验收-16",
+    "generatorVersion": 2,
+    "selected": 5,
+    "mode": "build",
+    "tool": "inspect",
+    "crop": "cabbage",
+    "colony": {
+      "version": 1,
+      "speed": 1,
+      "time": 132.75,
+      "day": 1,
+      "hour": 8.850000000000001,
+      "season": "春季",
+      "weather": "晴朗",
+      "temperature": 21.103487175107507,
+      "resources": {
+        "wood": 140,
+        "stone": 110,
+        "steel": 60,
+        "food": 40,
+        "meal": 14,
+        "medicine": 12,
+        "cloth": 30,
+        "silver": 120,
+        "components": 8,
+        "wheat": 10,
+        "corn": 10,
+        "blueberry": 10,
+        "sugarcane": 10,
+        "cabbage": 10,
+        "leek": 10,
+        "potato": 10,
+        "tomato": 10,
+        "cabbageSeed": 9,
+        "tomatoSeed": 9,
+        "sugarcaneSeed": 9,
+        "wheatSeed": 9,
+        "potatoSeed": 9,
+        "leekSeed": 9,
+        "cornSeed": 9,
+        "friedEgg": 10,
+        "bread": 10,
+        "salad": 10,
+        "pasta": 10,
+        "pancake": 10,
+        "blueberryPie": 10,
+        "pizza": 10,
+        "perfectBreakfast": 10,
+        "lambChopStew": 10,
+        "sugar": 10,
+        "flour": 10,
+        "oil": 10,
+        "blueberryWine": 10,
+        "cheese": 10,
+        "milk": 10,
+        "egg": 10,
+        "wool": 10,
+        "chickenMeat": 10,
+        "mutton": 10,
+        "beef": 10,
+        "pork": 10,
+        "dirt": 0,
+        "pigIron": 0,
+        "plank": 0,
+        "stoneBrick": 0
+      },
+      "playerBag": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "controlledColonistId": null,
+      "chests": [],
+      "colonists": [
+        {
+          "id": "colonist-21",
+          "name": "林夏",
+          "traits": [
+            "勤劳",
+            "巧手"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 9,
+            "grow": 6,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 4,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 1,
+            "construct": 1,
+            "grow": 3,
+            "harvest": 3,
+            "haul": 3,
+            "cook": 3,
+            "chop": 2,
+            "mine": 2,
+            "research": 3,
+            "doctor": 3,
+            "craft": 3
+          },
+          "schedule": "day",
+          "position": [
+            20.5,
+            5,
+            17.5
+          ],
+          "health": 100,
+          "hunger": 98.46999999999994,
+          "rest": 99.10750000000009,
+          "recreation": 99.29874999999991,
+          "mood": 78.99379732596549,
+          "disease": 0,
+          "task": "等待工作 · 自由活动",
+          "jobId": null,
+          "color": [
+            0.78,
+            0.44,
+            0.25
+          ],
+          "carrying": {},
+          "bag": [
+            {
+              "resource": "hammer",
+              "count": 1
+            },
+            {
+              "resource": "axe",
+              "count": 1
+            },
+            {
+              "resource": "pickaxe",
+              "count": 1
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 3.141592653589793,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-22",
+          "name": "阿澈",
+          "traits": [
+            "体贴",
+            "乐观"
+          ],
+          "skills": {
+            "terraform": 2,
+            "construct": 2,
+            "grow": 3,
+            "harvest": 6,
+            "haul": 3,
+            "cook": 8,
+            "chop": 3,
+            "mine": 3,
+            "research": 7,
+            "doctor": 7,
+            "craft": 4
+          },
+          "priorities": {
+            "terraform": 3,
+            "construct": 3,
+            "grow": 3,
+            "harvest": 3,
+            "haul": 2,
+            "cook": 1,
+            "chop": 3,
+            "mine": 3,
+            "research": 3,
+            "doctor": 1,
+            "craft": 3
+          },
+          "schedule": "day",
+          "position": [
+            20.5,
+            5,
+            16.5
+          ],
+          "health": 100,
+          "hunger": 98.46999999999994,
+          "rest": 99.10750000000009,
+          "recreation": 99.29874999999991,
+          "mood": 81.18315408197772,
+          "disease": 0,
+          "task": "等待工作 · 自由活动",
+          "jobId": null,
+          "color": [
+            0.29,
+            0.54,
+            0.69
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": 1.5707963267948966,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-23",
+          "name": "青禾",
+          "traits": [
+            "园艺爱好者",
+            "好学"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 5,
+            "grow": 9,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 8,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 3,
+            "construct": 3,
+            "grow": 1,
+            "harvest": 1,
+            "haul": 3,
+            "cook": 3,
+            "chop": 3,
+            "mine": 3,
+            "research": 2,
+            "doctor": 3,
+            "craft": 3
+          },
+          "schedule": "rest",
+          "position": [
+            21.5,
+            5,
+            20.5
+          ],
+          "health": 100,
+          "hunger": 98.46999999999994,
+          "rest": 99.10750000000009,
+          "recreation": 100,
+          "mood": 79.01376407777994,
+          "disease": 0,
+          "task": "休息 · 自由活动",
+          "jobId": null,
+          "color": [
+            0.55,
+            0.66,
+            0.32
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": -1.5707963267948966,
+          "comfort": 0
+        }
+      ],
+      "buildings": [],
+      "zones": [],
+      "crops": [],
+      "warehouseStacks": [],
+      "items": [],
+      "jobs": [],
+      "rooms": [],
+      "guideHousing": {
+        "npcId": "guide",
+        "status": "camp",
+        "position": [
+          15.5,
+          5,
+          19.5
+        ],
+        "roomId": null,
+        "bedId": null,
+        "comfort": 0,
+        "cleanliness": 0,
+        "quality": 0,
+        "buyFactor": 1,
+        "recycleFactor": 1
+      },
+      "specialistMarket": {
+        "flags": {},
+        "events": [],
+        "merchants": [
+          {
+            "id": "chef",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "tailor",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "cheesemaker",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "blacksmith",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          }
+        ],
+        "availableRooms": []
+      },
+      "research": {
+        "active": null,
+        "progress": {},
+        "completed": []
+      },
+      "power": {
+        "generation": 0,
+        "demand": 0,
+        "stored": 0,
+        "capacity": 0,
+        "supplied": 0,
+        "coldStorage": false
+      },
+      "events": [
+        {
+          "id": "event-26",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "三位旅人抵达河谷。和平营地已建立：先种田、搬运物资，再安排研究与建设。"
+        }
+      ],
+      "metrics": {
+        "jobsCompleted": 0,
+        "built": 0,
+        "harvested": 0,
+        "hauled": 0,
+        "cooked": 0,
+        "researched": 0,
+        "treated": 0,
+        "spoiled": 0,
+        "distanceWalked": 29.10498756211182
+      },
+      "selectedColonistId": null,
+      "terrainPlans": []
+    },
+    "blocks": 5120,
+    "nonAirCount": 5120,
+    "minerals": {
+      "steelOre": {
+        "cells": 0
+      },
+      "stoneDeposit": {
+        "cells": 0
+      }
+    },
+    "edits": 3586,
+    "editCount": 3586,
+    "revision": 2,
+    "manualCropEdits": 0,
+    "mapToolReturn": 0,
+    "planningGridVisible": false,
+    "zonePreview": null,
+    "undo": false,
+    "redo": false,
+    "hoverCell": null,
+    "status": "1 倍速",
+    "lastEdit": null,
+    "buildRotation": 0,
+    "selectedBuildingId": null,
+    "hoverBuildingId": null,
+    "hoverBuildingPart": null,
+    "selectedTreeId": null,
+    "hoverTreeId": null,
+    "hoverTreePart": null,
+    "trees": [],
+    "treeModel": {
+      "revision": 2,
+      "instances": 0,
+      "meshes": 0,
+      "materials": 2,
+      "selectedTreeId": null,
+      "triangles": 0,
+      "uniqueTriangles": 0,
+      "models": []
+    },
+    "wildPlants": {
+      "daisy": 0,
+      "poppy": 0,
+      "lavender": 0,
+      "marigold": 0,
+      "hairgrass": 0,
+      "foxtail": 0,
+      "blueberry": 0
+    },
+    "wildAnimals": {
+      "chicken": 0,
+      "cow": 0,
+      "sheep": 0,
+      "pig": 0
+    },
+    "characters": {
+      "residents": [
+        {
+          "id": "colonist-21",
+          "outfit": 6,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-22",
+          "outfit": 7,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-23",
+          "outfit": 8,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "merchants": [
+        {
+          "id": "guide",
+          "position": [
+            15.5,
+            5,
+            19.5
+          ],
+          "outfit": 1,
+          "meshes": 1,
+          "joints": 22,
+          "walk": "Walk_Forward",
+          "time": 0.5954418653249746
+        }
+      ],
+      "player": null
+    },
+    "placementPreview": null,
+    "camera": {
+      "target": [
+        21.5,
+        4,
+        19.200000000000045
+      ],
+      "eye": [
+        44.17295237129021,
+        38.3638539971641,
+        41.87295237129025
+      ],
+      "distance": 47,
+      "yaw": 0.7853981633974483,
+      "pitch": 0.82,
+      "overhead": false,
+      "sunShadows": "auto",
+      "shadowDistance": 100,
+      "mode": "god",
+      "followId": null
+    },
+    "player": null,
+    "chunks": 4,
+    "dimensions": [
+      32,
+      24,
+      32
+    ],
+    "worldSize": [
+      32,
+      24,
+      32
+    ],
+    "terrain": {
+      "target": 6,
+      "size": 3,
+      "shape": "brush",
+      "sample": false,
+      "preview": {
+        "cells": 0,
+        "cut": 0,
+        "fill": 0
+      },
+      "minHeight": 1,
+      "maxHeight": 22
+    },
+    "buildHeight": null,
+    "pcg": {
+      "resolution": 16,
+      "version": 2,
+      "revision": 2,
+      "tiles": 0,
+      "pendingTiles": 0,
+      "facades": 0,
+      "windowGroups": 0,
+      "layout": {
+        "version": 2,
+        "groups": []
+      },
+      "windows": 0,
+      "sills": 0,
+      "sidewalks": 0,
+      "stairs": 0,
+      "triangles": 0,
+      "rebuiltTiles": [],
+      "features": []
+    },
+    "finaleFade": 0
+  },
+  "execution": "healthy",
+  "errors": {
+    "console": [],
+    "page": [],
+    "inputWarnings": 0
+  },
+  "log": []
+}

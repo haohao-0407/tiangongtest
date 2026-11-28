@@ -102,6 +102,8 @@ export function coldEffect(resource: InventoryItem) {
 export const STORAGE_CLASSES = {general:'普通仓', food:'食材仓', materials:'建材仓'} as const;
 export type StorageClass = keyof typeof STORAGE_CLASSES;
 export interface BuildingView {
+  /** World-space +X,+Z,-X,-Z bits. Derived for display, never required in a save. */
+  connections?:number;
   mining?: {resource:'stone'|'pigIron'; remaining:number; status:string};
   storageClass?: StorageClass }
 export interface BuildingView {
@@ -166,9 +168,9 @@ export const BUILDING_DEFS: Record<BuildingKind,BuildingDefinition> = {
   battery:{id:'battery',name:'蓄电池',description:'保存白天余电，在夜间供电。',cost:{steel:16,components:2},work:30,research:'electricity',power:0,blocking:true,color:[0.40,0.47,0.29]},
   cooler:{id:'cooler',name:'冷藏机',description:'消耗 45 W。仓储食物、饮品连续冷藏满一天后获得保鲜或冰镇，售价提高 20%，到次日零点失效。',cost:{steel:18,components:3},work:35,research:'refrigeration',power:45,blocking:true,color:[0.59,0.72,0.73]},
   medicalBed:{id:'medicalBed',name:'医护床',description:'病人休养并接受医护治疗。',cost:{plank:36,steel:6,cloth:8},work:30,research:'medicine',power:0,blocking:true,color:[0.80,0.85,0.79],footprint:[1,2]},
-  wall:{id:'wall',name:'石墙',description:'阻挡通行，围合室内房间。',cost:{stone:5},work:9,power:0,blocking:true,color:[0.61,0.63,0.57],height:2},
-  door:{id:'door',name:'木门',description:'上下两格组成一扇门。打开通行，关闭围合房间。',cost:{wood:8},work:12,power:0,blocking:true,color:[0.54,0.36,0.20],height:2},
-  floor:{id:'floor',name:'木地板',description:'可通行，提升封闭房间舒适度。',cost:{wood:3},work:5,power:0,blocking:false,color:[0.70,0.52,0.31]},
+  wall:{id:'wall',name:'石墙',description:'原石砌成的厚墙，连续墙面可形成嵌窗。',cost:{stone:5},work:9,power:0,blocking:true,color:[0.61,0.63,0.57],height:2,category:'structure'},
+  door:{id:'door',name:'木门',description:'上下两格组成一扇门。打开通行，关闭围合房间。',cost:{wood:8},work:12,power:0,blocking:true,color:[0.54,0.36,0.20],height:2,category:'structure'},
+  floor:{id:'floor',name:'木地板',description:'可通行，提升封闭房间舒适度。',cost:{wood:3},work:5,power:0,blocking:false,color:[0.70,0.52,0.31],category:'structure'},
 
   // ---- 结构类（占位符：颜色区分，形状统一） ----
   woodWall:{id:'woodWall',name:'木墙',description:'木质隔断，成本低。',cost:{wood:5},work:8,power:0,blocking:true,color:[0.62,0.45,0.26],height:2,category:'structure'},

@@ -1,5 +1,6 @@
 import type { PcgBuilding, PcgSource } from './rules.ts';
 import type { PcgPoint } from './geometry.ts';
+import { isRoomDoor } from '../../colony/buildings.ts';
 
 /** Layout is semantic save data; positions are world units on the 1/16 grid. */
 export interface FacadeWindowState {
@@ -93,7 +94,7 @@ function extractRuns(source: PcgSource, buildings: readonly PcgBuilding[], previ
   const columns = wallColumns(source, buildings), bands = new Map<string, Band>();
   const hasWall = (x: number, z: number, lo: number, hi: number) => columns.get(key(x, z))?.spans.some(s => overlaps(lo, hi, s.lo, s.hi)) ?? false;
   const entranceAt = (axis: Axis, plane: number, u: number, base: number) => buildings.some(b => {
-    if (b.kind !== 'door') return false; // A planned door already reserves its opening.
+    if (!isRoomDoor(b.kind)) return false; // A planned door already reserves its opening.
     const u0 = axis === 'x' ? b.x : b.z, u1 = u0 + (axis === 'x' ? b.w ?? 1 : b.d ?? 1);
     const depth = axis === 'x' ? b.z : b.x, thickness = axis === 'x' ? b.d ?? 1 : b.w ?? 1;
     return overlaps(u, u + 1, u0, u1) && overlaps(plane - 1, plane + 2, depth, depth + thickness)
@@ -103,7 +104,7 @@ function extractRuns(source: PcgSource, buildings: readonly PcgBuilding[], previ
     const [x, , z] = at(axis, plane + side, u, base / SCALE);
     for (let y = Math.floor((base + LOWER - 2) / SCALE); y < Math.ceil((base + UPPER + 1) / SCALE); y++)
       if (source.get(x, y, z) !== AIR) return false;
-    return !buildings.some(b => b.kind !== 'floor' && (b.complete || b.kind === 'door')
+    return !buildings.some(b => b.kind !== 'floor' && (b.complete || isRoomDoor(b.kind))
       && x >= b.x && x < b.x + (b.w ?? 1) && z >= b.z && z < b.z + (b.d ?? 1)
       && overlaps((base + LOWER - 2) / SCALE, (base + UPPER + 1) / SCALE, b.y, b.y + 2));
   };

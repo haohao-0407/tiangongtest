@@ -74,9 +74,18 @@ describe('PCG renderer cache and derived collisions', () => {
     view.update(source, walls);
     expect(view.read().windows).toBeGreaterThan(0);
     expect(view.blocks([7.3, 3.6, 7.3], [7.7, 4.7, 7.7])).toBe(true);
-    expect(view.blocks([7.3, 3.3, 8.1], [7.7, 4.7, 8.2])).toBe(true); // Protruding sill.
+    const sill=view.read().features.find(f=>f.kind==='sill' && f.max[2]>7.5)!;
+    expect(sill.max[2]).toBe(7.9375); // Center + half a 6/16 wall + a 4/16 protrusion.
+    expect(sill.min[1]).toBeLessThan(3.3);
+    expect(sill.max[1]).toBeGreaterThan(3.3);
+    expect(view.blocks([7.3,3.30,7.88],[7.7,3.35,7.92])).toBe(true);
+    expect(view.blocks([7.3,3.3,8.1],[7.7,4.7,8.2])).toBe(false);
+    const panels=view.windowedWalls.get('wall-7')!;
+    expect(panels.length).toBeGreaterThan(0);
+    expect(panels.some(p=>p.min[0]<7.5 && p.max[0]>7.5 && p.min[1]<4 && p.max[1]>4)).toBe(false);
     view.update(source, []);
     expect(view.blocks([7.3, 3.6, 7.3], [7.7, 4.7, 7.7])).toBe(false);
+    expect(view.blocks([7.3,3.30,7.88],[7.7,3.35,7.92])).toBe(false);
     expect(view.read().windows).toBe(0);
     expect(liveEntities.size).toBe(0);
     view.dispose();

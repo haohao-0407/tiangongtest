@@ -1,0 +1,2111 @@
+{
+  "schemaVersion": "1.0.0",
+  "passed": true,
+  "root": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game",
+  "script": "scripts\\wall-connections-playthrough.mjs",
+  "outputDir": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough",
+  "report": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\play.json",
+  "captureReport": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\capture.json",
+  "url": "http://localhost:58024/",
+  "backend": "hardware",
+  "timings": {
+    "openMs": 218976,
+    "readyMs": 42615,
+    "scriptMs": 27880,
+    "verifyMs": 1241,
+    "totalMs": 292457
+  },
+  "steps": [
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 31
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 20
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 19
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 15
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 22
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 22
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 17
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 31
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 29
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 48
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销 > advance 0.15 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "旧蓝图纵墙、四角、补门和撤销",
+      "ok": true,
+      "ms": 11900
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 35
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 42
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 105
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 107
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 90
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 97
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 75
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 90
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 40
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 84
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 94
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 38
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 39
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 25
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 43
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 47
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 148
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 142
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 139
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 141
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 1 s",
+      "ok": true,
+      "ms": 186
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 61
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 33
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 31
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 36
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 45
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 35
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 34
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门 > advance 0.15 s",
+      "ok": true,
+      "ms": 41
+    },
+    {
+      "name": "混合旧实体、嵌窗、补建木门、石门和自动门",
+      "ok": true,
+      "ms": 15595
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "01-before-door",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\01-01-before-door.png",
+      "rendered": true,
+      "digest": "sha256:aa10ff176471e5f6efcb79654efec813ae7cd2224e6d9008573a288f4d256896"
+    },
+    {
+      "name": "00-structure-catalog",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\02-00-structure-catalog.png",
+      "rendered": true,
+      "digest": "sha256:d00fceaf6e72e21acf934b1f349394855acb053fc381d553a178b1436dfde089"
+    },
+    {
+      "name": "02-door-preview",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\03-02-door-preview.png",
+      "rendered": true,
+      "digest": "sha256:59384449bdf62d38cacd56300f68b271332400a0621730e64b604c308dbe617d"
+    },
+    {
+      "name": "03-full-rectangle",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\04-03-full-rectangle.png",
+      "rendered": true,
+      "digest": "sha256:cf6a994e66f567fb2a77c0245e5810c1db5e149287d85d04affed33bdf6771fd"
+    },
+    {
+      "name": "04-cancelled",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\05-04-cancelled.png",
+      "rendered": true,
+      "digest": "sha256:a7f9e03411c91091866face8faed629305b3f621a0703ce65c8337c12ea62c88"
+    },
+    {
+      "name": "04b-tee",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\06-04b-tee.png",
+      "rendered": true,
+      "digest": "sha256:e6907765944a0f5452d3eb3b6e973017546d51223fc2b8892f0fbce6bcbc4091"
+    },
+    {
+      "name": "04c-cross",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\07-04c-cross.png",
+      "rendered": true,
+      "digest": "sha256:cbbb26dd451d20ef18b8fcdd2de6ccd0981b7e7271fbc73d7fb2d8451096a3b0"
+    },
+    {
+      "name": "05-window",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\08-05-window.png",
+      "rendered": true,
+      "digest": "sha256:b3debeedf1e8fb9ac91631629645f045c672398f20d53d6d7a1a01ac6960ba2e"
+    },
+    {
+      "name": "06-auto-door",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\09-06-auto-door.png",
+      "rendered": true,
+      "digest": "sha256:c0156bd5e1260bbc3c44bd4ab6957680fa3110111cc686590eefee36ecce4efb"
+    },
+    {
+      "name": "07-stone-door-open",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\10-07-stone-door-open.png",
+      "rendered": true,
+      "digest": "sha256:fb6428fb389e8f4091f5538fb926451e92534ac903e08f8e1fc32121b545c548"
+    },
+    {
+      "name": "08-wood-door-open",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\11-08-wood-door-open.png",
+      "rendered": true,
+      "digest": "sha256:7617c3017f7b7d06598baae706e0c104959d68290a2c159744be2353ac87a904"
+    },
+    {
+      "name": "09-before-demolition",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\12-09-before-demolition.png",
+      "rendered": true,
+      "digest": "sha256:949e3dd2ba03bf0455ded2790defa3d59094871420ce851fd855095a328ab952"
+    },
+    {
+      "name": "10-demolished",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\13-10-demolished.png",
+      "rendered": true,
+      "digest": "sha256:1160d97f97a58c4a18027b54299ec268f140d4055098f4b06beefb5d1f6b6a49"
+    },
+    {
+      "name": "11-reloaded",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\14-11-reloaded.png",
+      "rendered": true,
+      "digest": "sha256:88f28bb56848f72522eb2317049cd48b95932426eb0a222afbbfda58b634dc4d"
+    },
+    {
+      "name": "final",
+      "path": "C:\\Users\\26853\\Documents\\Codex\\2026-11-24\\https-github-com-haohao-0407-tiangongtest\\tiangongtest\\game\\artifacts\\play\\scripts\\wall-connections-playthrough\\15-final.png",
+      "rendered": true,
+      "digest": "sha256:8ad72cbba6bc6e03cde5c19d8951139a54f0da272d4c0e3d18d8103b3c4fcd8e"
+    }
+  ],
+  "viewports": [
+    "1280x720"
+  ],
+  "layout": [],
+  "state": {
+    "seed": "森屿-跨格立面验收-16",
+    "generatorVersion": 2,
+    "selected": 5,
+    "mode": "build",
+    "tool": "inspect",
+    "crop": "cabbage",
+    "colony": {
+      "version": 1,
+      "speed": 0,
+      "time": 162.25,
+      "day": 1,
+      "hour": 10.816666666666666,
+      "season": "春季",
+      "weather": "晴朗",
+      "temperature": 23.361834037173338,
+      "resources": {
+        "wood": 132,
+        "stone": 110,
+        "steel": 60,
+        "food": 40,
+        "meal": 14,
+        "medicine": 12,
+        "cloth": 30,
+        "silver": 120,
+        "components": 8,
+        "wheat": 10,
+        "corn": 10,
+        "blueberry": 10,
+        "sugarcane": 10,
+        "cabbage": 10,
+        "leek": 10,
+        "potato": 10,
+        "tomato": 10,
+        "cabbageSeed": 9,
+        "tomatoSeed": 9,
+        "sugarcaneSeed": 9,
+        "wheatSeed": 9,
+        "potatoSeed": 9,
+        "leekSeed": 9,
+        "cornSeed": 9,
+        "friedEgg": 10,
+        "bread": 10,
+        "salad": 10,
+        "pasta": 10,
+        "pancake": 10,
+        "blueberryPie": 10,
+        "pizza": 10,
+        "perfectBreakfast": 10,
+        "lambChopStew": 10,
+        "sugar": 10,
+        "flour": 10,
+        "oil": 10,
+        "blueberryWine": 10,
+        "cheese": 10,
+        "milk": 10,
+        "egg": 10,
+        "wool": 10,
+        "chickenMeat": 10,
+        "mutton": 10,
+        "beef": 10,
+        "pork": 10,
+        "dirt": 0,
+        "pigIron": 0,
+        "plank": 0,
+        "stoneBrick": 0
+      },
+      "playerBag": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bagSelected": 0,
+      "controlledColonistId": null,
+      "chests": [],
+      "colonists": [
+        {
+          "id": "colonist-21",
+          "name": "林夏",
+          "traits": [
+            "勤劳",
+            "巧手"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 9,
+            "grow": 6,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 4,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 0,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 0,
+            "cook": 0,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "balanced",
+          "position": [
+            29.11249999999996,
+            5,
+            14.5
+          ],
+          "health": 100,
+          "hunger": 94.92999999999981,
+          "rest": 97.04250000000029,
+          "recreation": 97.67624999999971,
+          "mood": 79.82385744759065,
+          "disease": 0,
+          "task": "等待工作 · 散步",
+          "jobId": null,
+          "color": [
+            0.78,
+            0.44,
+            0.25
+          ],
+          "carrying": {},
+          "bag": [
+            {
+              "resource": "hammer",
+              "count": 1
+            },
+            {
+              "resource": "axe",
+              "count": 1
+            },
+            {
+              "resource": "pickaxe",
+              "count": 1
+            },
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": -1.5707963267948966,
+          "comfort": 0
+        },
+        {
+          "id": "colonist-22",
+          "name": "阿澈",
+          "traits": [
+            "体贴",
+            "乐观"
+          ],
+          "skills": {
+            "terraform": 2,
+            "construct": 2.12,
+            "grow": 3,
+            "harvest": 6,
+            "haul": 3,
+            "cook": 8,
+            "chop": 3,
+            "mine": 3,
+            "research": 7,
+            "doctor": 7,
+            "craft": 4
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 1,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 0,
+            "cook": 0,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "balanced",
+          "position": [
+            18.487499999999983,
+            5,
+            18.5
+          ],
+          "health": 100,
+          "hunger": 94.92999999999981,
+          "rest": 97.04250000000029,
+          "recreation": 97.67624999999971,
+          "mood": 86.72055788048361,
+          "disease": 0,
+          "task": "等待工作 · 散步",
+          "jobId": null,
+          "color": [
+            0.29,
+            0.54,
+            0.69
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": -1.5707963267948966,
+          "comfort": 35
+        },
+        {
+          "id": "colonist-23",
+          "name": "青禾",
+          "traits": [
+            "园艺爱好者",
+            "好学"
+          ],
+          "skills": {
+            "terraform": 5,
+            "construct": 5.12,
+            "grow": 9,
+            "harvest": 3,
+            "haul": 6,
+            "cook": 6,
+            "chop": 6,
+            "mine": 6,
+            "research": 8,
+            "doctor": 2,
+            "craft": 7
+          },
+          "priorities": {
+            "terraform": 0,
+            "construct": 1,
+            "grow": 0,
+            "harvest": 0,
+            "haul": 0,
+            "cook": 0,
+            "chop": 0,
+            "mine": 0,
+            "research": 0,
+            "doctor": 0,
+            "craft": 0
+          },
+          "schedule": "balanced",
+          "position": [
+            19.78749999999994,
+            5,
+            21.5
+          ],
+          "health": 100,
+          "hunger": 94.92999999999981,
+          "rest": 97.04250000000029,
+          "recreation": 97.67624999999971,
+          "mood": 79.73620973980347,
+          "disease": 0,
+          "task": "等待工作 · 散步",
+          "jobId": null,
+          "color": [
+            0.55,
+            0.66,
+            0.32
+          ],
+          "carrying": {},
+          "bag": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "bagSelected": 0,
+          "stamina": 100,
+          "facing": -1.5707963267948966,
+          "comfort": 0
+        }
+      ],
+      "buildings": [
+        {
+          "id": "wall-13-13",
+          "kind": "wall",
+          "x": 13,
+          "y": 5,
+          "z": 13,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 3
+        },
+        {
+          "id": "greenhouseWall-13-14",
+          "kind": "greenhouseWall",
+          "x": 13,
+          "y": 5,
+          "z": 14,
+          "rotation": 1,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 10
+        },
+        {
+          "id": "greenhouseWall-13-15",
+          "kind": "greenhouseWall",
+          "x": 13,
+          "y": 5,
+          "z": 15,
+          "rotation": 1,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 10
+        },
+        {
+          "id": "greenhouseWall-13-16",
+          "kind": "greenhouseWall",
+          "x": 13,
+          "y": 5,
+          "z": 16,
+          "rotation": 1,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 10
+        },
+        {
+          "id": "autoDoor-13-17",
+          "kind": "autoDoor",
+          "x": 13,
+          "y": 5,
+          "z": 17,
+          "rotation": 1,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 10
+        },
+        {
+          "id": "greenhouseWall-13-18",
+          "kind": "greenhouseWall",
+          "x": 13,
+          "y": 5,
+          "z": 18,
+          "rotation": 1,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 10
+        },
+        {
+          "id": "greenhouseWall-13-19",
+          "kind": "greenhouseWall",
+          "x": 13,
+          "y": 5,
+          "z": 19,
+          "rotation": 1,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 10
+        },
+        {
+          "id": "greenhouseWall-13-20",
+          "kind": "greenhouseWall",
+          "x": 13,
+          "y": 5,
+          "z": 20,
+          "rotation": 3,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 9
+        },
+        {
+          "id": "wall-14-13",
+          "kind": "wall",
+          "x": 14,
+          "y": 5,
+          "z": 13,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "brickWall-14-20",
+          "kind": "brickWall",
+          "x": 14,
+          "y": 5,
+          "z": 20,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "wall-15-13",
+          "kind": "wall",
+          "x": 15,
+          "y": 5,
+          "z": 13,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "brickWall-15-20",
+          "kind": "brickWall",
+          "x": 15,
+          "y": 5,
+          "z": 20,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "wall-16-13",
+          "kind": "wall",
+          "x": 16,
+          "y": 5,
+          "z": 13,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "brickWall-16-20",
+          "kind": "brickWall",
+          "x": 16,
+          "y": 5,
+          "z": 20,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "wall-17-13",
+          "kind": "wall",
+          "x": 17,
+          "y": 5,
+          "z": 13,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "stoneDoor-17-20",
+          "kind": "stoneDoor",
+          "x": 17,
+          "y": 5,
+          "z": 20,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "doorOpen": false,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "wall-18-13",
+          "kind": "wall",
+          "x": 18,
+          "y": 5,
+          "z": 13,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "brickWall-18-20",
+          "kind": "brickWall",
+          "x": 18,
+          "y": 5,
+          "z": 20,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "wall-19-13",
+          "kind": "wall",
+          "x": 19,
+          "y": 5,
+          "z": 13,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "brickWall-19-20",
+          "kind": "brickWall",
+          "x": 19,
+          "y": 5,
+          "z": 20,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "wall-20-13",
+          "kind": "wall",
+          "x": 20,
+          "y": 5,
+          "z": 13,
+          "rotation": 0,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 5
+        },
+        {
+          "id": "brickWall-20-20",
+          "kind": "brickWall",
+          "x": 20,
+          "y": 5,
+          "z": 20,
+          "rotation": 2,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 4
+        },
+        {
+          "id": "wall-21-13",
+          "kind": "wall",
+          "x": 21,
+          "y": 5,
+          "z": 13,
+          "rotation": 1,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 6
+        },
+        {
+          "id": "woodWall-21-14",
+          "kind": "woodWall",
+          "x": 21,
+          "y": 5,
+          "z": 14,
+          "rotation": 1,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 10
+        },
+        {
+          "id": "woodWall-21-15",
+          "kind": "woodWall",
+          "x": 21,
+          "y": 5,
+          "z": 15,
+          "rotation": 1,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 10
+        },
+        {
+          "id": "woodWall-21-16",
+          "kind": "woodWall",
+          "x": 21,
+          "y": 5,
+          "z": 16,
+          "rotation": 1,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 10
+        },
+        {
+          "id": "woodWall-21-18",
+          "kind": "woodWall",
+          "x": 21,
+          "y": 5,
+          "z": 18,
+          "rotation": 1,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 10
+        },
+        {
+          "id": "woodWall-21-19",
+          "kind": "woodWall",
+          "x": 21,
+          "y": 5,
+          "z": 19,
+          "rotation": 3,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "complete": true,
+          "phase": "completed",
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "connections": 8
+        },
+        {
+          "id": "building-38",
+          "kind": "door",
+          "x": 21,
+          "y": 5,
+          "z": 17,
+          "w": 1,
+          "h": 2,
+          "d": 1,
+          "rotation": 1,
+          "doorOpen": false,
+          "phase": "completed",
+          "complete": true,
+          "progress": 1,
+          "reserved": {},
+          "powered": true,
+          "comfort": 0,
+          "roomId": null,
+          "terrainPlanId": "terrain-39",
+          "connections": 10
+        }
+      ],
+      "zones": [],
+      "crops": [],
+      "warehouseStacks": [],
+      "items": [
+        {
+          "id": "item-44",
+          "resource": "building:brickWall",
+          "amount": 1,
+          "x": 21,
+          "y": 5,
+          "z": 20,
+          "age": 2.75,
+          "reservedBy": null,
+          "playerOnly": true
+        }
+      ],
+      "jobs": [],
+      "rooms": [
+        {
+          "id": 0,
+          "cells": [
+            [
+              14,
+              14
+            ],
+            [
+              15,
+              14
+            ],
+            [
+              14,
+              15
+            ],
+            [
+              16,
+              14
+            ],
+            [
+              15,
+              15
+            ],
+            [
+              14,
+              16
+            ],
+            [
+              17,
+              14
+            ],
+            [
+              16,
+              15
+            ],
+            [
+              15,
+              16
+            ],
+            [
+              14,
+              17
+            ],
+            [
+              18,
+              14
+            ],
+            [
+              17,
+              15
+            ],
+            [
+              16,
+              16
+            ],
+            [
+              15,
+              17
+            ],
+            [
+              14,
+              18
+            ],
+            [
+              19,
+              14
+            ],
+            [
+              18,
+              15
+            ],
+            [
+              17,
+              16
+            ],
+            [
+              16,
+              17
+            ],
+            [
+              15,
+              18
+            ],
+            [
+              14,
+              19
+            ],
+            [
+              20,
+              14
+            ],
+            [
+              19,
+              15
+            ],
+            [
+              18,
+              16
+            ],
+            [
+              17,
+              17
+            ],
+            [
+              16,
+              18
+            ],
+            [
+              15,
+              19
+            ],
+            [
+              20,
+              15
+            ],
+            [
+              19,
+              16
+            ],
+            [
+              18,
+              17
+            ],
+            [
+              17,
+              18
+            ],
+            [
+              16,
+              19
+            ],
+            [
+              20,
+              16
+            ],
+            [
+              19,
+              17
+            ],
+            [
+              18,
+              18
+            ],
+            [
+              17,
+              19
+            ],
+            [
+              20,
+              17
+            ],
+            [
+              19,
+              18
+            ],
+            [
+              18,
+              19
+            ],
+            [
+              20,
+              18
+            ],
+            [
+              19,
+              19
+            ],
+            [
+              20,
+              19
+            ]
+          ],
+          "enclosed": true,
+          "comfort": 35,
+          "temperature": 21.944733614869335,
+          "cleanliness": 100
+        }
+      ],
+      "guideHousing": {
+        "npcId": "guide",
+        "status": "camp",
+        "position": [
+          12.5,
+          5,
+          21.5
+        ],
+        "roomId": null,
+        "bedId": null,
+        "comfort": 0,
+        "cleanliness": 0,
+        "quality": 0,
+        "buyFactor": 1,
+        "recycleFactor": 1
+      },
+      "specialistMarket": {
+        "flags": {},
+        "events": [],
+        "merchants": [
+          {
+            "id": "chef",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "tailor",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "cheesemaker",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          },
+          {
+            "id": "blacksmith",
+            "sold": 0,
+            "arrivalDay": null,
+            "status": "locked",
+            "housing": null
+          }
+        ],
+        "availableRooms": []
+      },
+      "research": {
+        "active": null,
+        "progress": {},
+        "completed": []
+      },
+      "power": {
+        "generation": 0,
+        "demand": 0,
+        "stored": 0,
+        "capacity": 0,
+        "supplied": 0,
+        "coldStorage": false
+      },
+      "events": [
+        {
+          "id": "event-26",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "三位旅人抵达河谷。和平营地已建立：先种田、搬运物资，再安排研究与建设。"
+        },
+        {
+          "id": "event-41",
+          "time": 120,
+          "day": 1,
+          "hour": 8,
+          "type": "info",
+          "text": "已规划木门，地基整平后再施工。"
+        },
+        {
+          "id": "event-42",
+          "time": 136.5,
+          "day": 1,
+          "hour": 9.1,
+          "type": "info",
+          "text": "阿澈完成了木门。"
+        },
+        {
+          "id": "event-45",
+          "time": 159.5,
+          "day": 1,
+          "hour": 10.633333333333333,
+          "type": "info",
+          "text": "青禾拆除了砖墙，可在地上拾取"
+        }
+      ],
+      "metrics": {
+        "jobsCompleted": 2,
+        "built": 1,
+        "harvested": 0,
+        "hauled": 0,
+        "cooked": 0,
+        "researched": 0,
+        "treated": 0,
+        "spoiled": 0,
+        "distanceWalked": 89.1971036456413
+      },
+      "selectedColonistId": null,
+      "terrainPlans": [
+        {
+          "id": "terrain-39",
+          "target": 5,
+          "remainingCut": 0,
+          "remainingFill": 0,
+          "progress": 1,
+          "state": "completed",
+          "buildingId": "building-38",
+          "cells": [
+            [
+              21,
+              17
+            ]
+          ]
+        }
+      ]
+    },
+    "blocks": 5120,
+    "nonAirCount": 5120,
+    "minerals": {
+      "steelOre": {
+        "cells": 0
+      },
+      "stoneDeposit": {
+        "cells": 0
+      }
+    },
+    "edits": 3586,
+    "editCount": 3586,
+    "revision": 2,
+    "manualCropEdits": 0,
+    "mapToolReturn": 4,
+    "planningGridVisible": false,
+    "zonePreview": null,
+    "undo": false,
+    "redo": false,
+    "hoverCell": [
+      21,
+      6,
+      19
+    ],
+    "status": "木墙 · 已建成",
+    "lastEdit": null,
+    "buildRotation": 0,
+    "selectedBuildingId": "woodWall-21-19",
+    "hoverBuildingId": "woodWall-21-19",
+    "hoverBuildingPart": {
+      "x": 21,
+      "y": 6,
+      "z": 19,
+      "role": "body"
+    },
+    "selectedTreeId": null,
+    "hoverTreeId": null,
+    "hoverTreePart": null,
+    "trees": [],
+    "treeModel": {
+      "revision": 5,
+      "instances": 0,
+      "meshes": 0,
+      "materials": 2,
+      "selectedTreeId": null,
+      "triangles": 0,
+      "uniqueTriangles": 0,
+      "models": []
+    },
+    "wildPlants": {
+      "daisy": 0,
+      "poppy": 0,
+      "lavender": 0,
+      "marigold": 0,
+      "hairgrass": 0,
+      "foxtail": 0,
+      "blueberry": 0
+    },
+    "wildAnimals": {
+      "chicken": 0,
+      "cow": 0,
+      "sheep": 0,
+      "pig": 0
+    },
+    "characters": {
+      "residents": [
+        {
+          "id": "colonist-21",
+          "outfit": 6,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-22",
+          "outfit": 7,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        },
+        {
+          "id": "colonist-23",
+          "outfit": 8,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "merchants": [
+        {
+          "id": "guide",
+          "position": [
+            12.5,
+            5,
+            21.5
+          ],
+          "outfit": 1,
+          "meshes": 1,
+          "joints": 22,
+          "walk": null,
+          "time": 0
+        }
+      ],
+      "player": null
+    },
+    "placementPreview": null,
+    "camera": {
+      "target": [
+        30.11249999999996,
+        4,
+        15.5
+      ],
+      "eye": [
+        52.78545237129016,
+        38.3638539971641,
+        38.17295237129021
+      ],
+      "distance": 47,
+      "yaw": 0.7853981633974483,
+      "pitch": 0.82,
+      "overhead": false,
+      "sunShadows": "auto",
+      "shadowDistance": 100,
+      "mode": "god",
+      "followId": null
+    },
+    "player": null,
+    "chunks": 4,
+    "dimensions": [
+      32,
+      24,
+      32
+    ],
+    "worldSize": [
+      32,
+      24,
+      32
+    ],
+    "terrain": {
+      "target": 6,
+      "size": 3,
+      "shape": "brush",
+      "sample": false,
+      "preview": {
+        "cells": 0,
+        "cut": 0,
+        "fill": 0
+      },
+      "minHeight": 1,
+      "maxHeight": 22
+    },
+    "buildHeight": null,
+    "pcg": {
+      "resolution": 16,
+      "version": 2,
+      "revision": 12,
+      "tiles": 2,
+      "pendingTiles": 0,
+      "facades": 1,
+      "windowGroups": 3,
+      "layout": {
+        "version": 2,
+        "groups": [
+          {
+            "id": "window-group:x:13:80:217:251",
+            "axis": "x",
+            "plane": 13,
+            "base": 5,
+            "lower": 5.375,
+            "upper": 6.5625,
+            "u0": 13.5625,
+            "u1": 15.6875,
+            "panes": 2
+          },
+          {
+            "id": "window-group:x:13:80:263:297",
+            "axis": "x",
+            "plane": 13,
+            "base": 5,
+            "lower": 5.375,
+            "upper": 6.5625,
+            "u0": 16.4375,
+            "u1": 18.5625,
+            "panes": 2
+          },
+          {
+            "id": "window-group:x:13:80:309:343",
+            "axis": "x",
+            "plane": 13,
+            "base": 5,
+            "lower": 5.375,
+            "upper": 6.5625,
+            "u0": 19.3125,
+            "u1": 21.4375,
+            "panes": 2
+          }
+        ]
+      },
+      "windows": 3,
+      "sills": 4,
+      "sidewalks": 0,
+      "stairs": 0,
+      "triangles": 380,
+      "rebuiltTiles": [
+        "1,1",
+        "2,1",
+        "1,2",
+        "2,2",
+        "3,1",
+        "3,2"
+      ],
+      "features": [
+        {
+          "id": "wall:wall-13-13",
+          "kind": "wall",
+          "anchor": [
+            13,
+            5,
+            13
+          ],
+          "min": [
+            13,
+            5,
+            13
+          ],
+          "max": [
+            14,
+            6.8125,
+            14
+          ]
+        },
+        {
+          "id": "wall:wall-14-13",
+          "kind": "wall",
+          "anchor": [
+            14,
+            5,
+            13
+          ],
+          "min": [
+            14,
+            5,
+            13
+          ],
+          "max": [
+            15,
+            6.8125,
+            14
+          ]
+        },
+        {
+          "id": "wall:wall-15-13",
+          "kind": "wall",
+          "anchor": [
+            15,
+            5,
+            13
+          ],
+          "min": [
+            15,
+            5,
+            13
+          ],
+          "max": [
+            16,
+            6.8125,
+            14
+          ]
+        },
+        {
+          "id": "window-group:x:13:80:217:251",
+          "kind": "window",
+          "anchor": [
+            13.5625,
+            5,
+            13
+          ],
+          "min": [
+            13.5625,
+            5.375,
+            13
+          ],
+          "max": [
+            15.6875,
+            6.5625,
+            14
+          ],
+          "groupId": "window-group:x:13:80:217:251",
+          "facadeId": "facade:x:13:80:13:22",
+          "panes": 2
+        },
+        {
+          "id": "window-group:x:13:80:217:251:sill:-1",
+          "kind": "sill",
+          "anchor": [
+            13.5625,
+            5,
+            13
+          ],
+          "min": [
+            13.4375,
+            5.25,
+            13.0625
+          ],
+          "max": [
+            15.8125,
+            5.375,
+            13.375
+          ],
+          "groupId": "window-group:x:13:80:217:251",
+          "facadeId": "facade:x:13:80:13:22",
+          "panes": 2
+        },
+        {
+          "id": "wall:wall-16-13",
+          "kind": "wall",
+          "anchor": [
+            16,
+            5,
+            13
+          ],
+          "min": [
+            16,
+            5,
+            13
+          ],
+          "max": [
+            17,
+            6.8125,
+            14
+          ]
+        },
+        {
+          "id": "wall:wall-17-13",
+          "kind": "wall",
+          "anchor": [
+            17,
+            5,
+            13
+          ],
+          "min": [
+            17,
+            5,
+            13
+          ],
+          "max": [
+            18,
+            6.8125,
+            14
+          ]
+        },
+        {
+          "id": "wall:wall-18-13",
+          "kind": "wall",
+          "anchor": [
+            18,
+            5,
+            13
+          ],
+          "min": [
+            18,
+            5,
+            13
+          ],
+          "max": [
+            19,
+            6.8125,
+            14
+          ]
+        },
+        {
+          "id": "wall:wall-19-13",
+          "kind": "wall",
+          "anchor": [
+            19,
+            5,
+            13
+          ],
+          "min": [
+            19,
+            5,
+            13
+          ],
+          "max": [
+            20,
+            6.8125,
+            14
+          ]
+        },
+        {
+          "id": "wall:wall-20-13",
+          "kind": "wall",
+          "anchor": [
+            20,
+            5,
+            13
+          ],
+          "min": [
+            20,
+            5,
+            13
+          ],
+          "max": [
+            21,
+            6.8125,
+            14
+          ]
+        },
+        {
+          "id": "wall:wall-21-13",
+          "kind": "wall",
+          "anchor": [
+            21,
+            5,
+            13
+          ],
+          "min": [
+            21,
+            5,
+            13
+          ],
+          "max": [
+            22,
+            6.8125,
+            14
+          ]
+        },
+        {
+          "id": "window-group:x:13:80:263:297",
+          "kind": "window",
+          "anchor": [
+            16.4375,
+            5,
+            13
+          ],
+          "min": [
+            16.4375,
+            5.375,
+            13
+          ],
+          "max": [
+            18.5625,
+            6.5625,
+            14
+          ],
+          "groupId": "window-group:x:13:80:263:297",
+          "facadeId": "facade:x:13:80:13:22",
+          "panes": 2
+        },
+        {
+          "id": "window-group:x:13:80:263:297:sill:-1",
+          "kind": "sill",
+          "anchor": [
+            16.4375,
+            5,
+            13
+          ],
+          "min": [
+            16.3125,
+            5.25,
+            13.0625
+          ],
+          "max": [
+            18.6875,
+            5.375,
+            13.375
+          ],
+          "groupId": "window-group:x:13:80:263:297",
+          "facadeId": "facade:x:13:80:13:22",
+          "panes": 2
+        },
+        {
+          "id": "window-group:x:13:80:263:297:sill:1",
+          "kind": "sill",
+          "anchor": [
+            16.4375,
+            5,
+            13
+          ],
+          "min": [
+            16.3125,
+            5.25,
+            13.625
+          ],
+          "max": [
+            18.6875,
+            5.375,
+            13.9375
+          ],
+          "groupId": "window-group:x:13:80:263:297",
+          "facadeId": "facade:x:13:80:13:22",
+          "panes": 2
+        },
+        {
+          "id": "window-group:x:13:80:309:343",
+          "kind": "window",
+          "anchor": [
+            19.3125,
+            5,
+            13
+          ],
+          "min": [
+            19.3125,
+            5.375,
+            13
+          ],
+          "max": [
+            21.4375,
+            6.5625,
+            14
+          ],
+          "groupId": "window-group:x:13:80:309:343",
+          "facadeId": "facade:x:13:80:13:22",
+          "panes": 2
+        },
+        {
+          "id": "window-group:x:13:80:309:343:sill:-1",
+          "kind": "sill",
+          "anchor": [
+            19.3125,
+            5,
+            13
+          ],
+          "min": [
+            19.1875,
+            5.25,
+            13.0625
+          ],
+          "max": [
+            21.5625,
+            5.375,
+            13.375
+          ],
+          "groupId": "window-group:x:13:80:309:343",
+          "facadeId": "facade:x:13:80:13:22",
+          "panes": 2
+        }
+      ]
+    },
+    "finaleFade": 0
+  },
+  "execution": "healthy",
+  "errors": {
+    "console": [],
+    "page": [],
+    "inputWarnings": 0
+  },
+  "log": []
+}

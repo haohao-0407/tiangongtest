@@ -13,7 +13,7 @@ import {
   coldEffect, premiumCount, coldSaleValue, RESOURCE_PRICES, CROP_DEFS, CROP_KINDS, CROP_SEEDS, CROP_TYPES, DEFAULT_CROP, DISH_TYPES, RESEARCH_DEFS, RESOURCE_NAMES, RESOURCE_TYPES, SCHEDULES, buildingItemKind, cropPlantingItem, cropForPlantingItem, inventorySpace, isCropSeed, isResource, isSupplyType, itemName, workPercent,
   type ColonyCommand, type ColonySnapshot, type CropSeed, type CropType, type DishType, type ColonistView, type InventoryItem, type InventoryLocation, type PlayerInventorySlot, type Resource, type SupplyType, type MapToolMenu,
 } from '../colony/contracts.ts';
-import { buildingDimensions, buildingSealsRoom, isSwingDoor } from '../colony/buildings.ts';
+import { buildingDimensions, buildingSealsRoom, connectionLabel, isSwingDoor } from '../colony/buildings.ts';
 import { packageSize, warehouseSlotContents } from '../colony/warehouse.ts';
 import { PLAZA_RECIPE } from '../colony/plaza.ts';
 import type { TreeInstance } from '../voxel/trees.ts';
@@ -28,6 +28,7 @@ const SHADOW_SETTING_KEY = 'homestead.settings.sunShadows';
 type State = { seed: string; selected: number; mode: string; tool?: string; crop?: string; edits: number; undo: boolean; redo: boolean; hoverCell?: unknown; depositHint?:string; status?: string; revision?: number; colony?: ColonySnapshot;
   manualCropEdits?: number; finaleFade?:number; mapToolReturn?: number;
   worldSize?: [number, number, number]; buildHeight?: number | null; buildRotation?: number; selectedBuildingId?: string | null;
+  previewConnection?:{connections:number;rotation:number};
   trees?: TreeInstance[]; selectedTreeId?: string | null;
   terrain?: { target: number; size: number; shape: 'brush' | 'rectangle'; sample: boolean; minHeight: number; maxHeight: number; preview?: { cells: number; cut: number; fill: number } };
   /** 相机状态。mode 决定哪些 HUD 该出现：指挥官视角要菜单，玩家视角不要。 */
@@ -187,9 +188,10 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
   const orientationText = (rotation = 0) => `${rotation * 90}°`;
   function syncBuildControls() {
     const kind = currentTool.startsWith('build:') ? currentTool.slice(6) as keyof typeof BUILDING_DEFS : null;
-    const def = kind ? BUILDING_DEFS[kind] : undefined, rotation = state?.buildRotation ?? 0;
+    const def = kind ? BUILDING_DEFS[kind] : undefined, rotation = state?.previewConnection?.rotation ?? state?.buildRotation ?? 0;
     const dimensions = def ? buildingDimensions(def.id, rotation) : null;
-    buildOrientation.textContent = `${def?.name ?? '建筑'} · 朝向 ${orientationText(rotation)}`;
+    buildOrientation.textContent = `${def?.name ?? '建筑'} · 朝向 ${orientationText(rotation)}` +
+      (kind && state?.previewConnection ? ' · '+connectionLabel(kind,state.previewConnection.connections) : '');
     buildFootprint.textContent = dimensions ? `占地 ${dimensions.w} × ${dimensions.d} 格 · 高 ${dimensions.h} 格` : '选择建筑后可旋转放置';
     rotateBuild.disabled = !def;
     const floating = get('build-toolbar'), inBuild = panel === 'build' && !get('workspace').hidden;
@@ -311,7 +313,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
     const placementHint = mapToolSession?.menu === 'build' ? ' · Ctrl + 左键连续摆放' : '';
     get('tool-hint').textContent = tool === 'level'
       ? `等高整地 · 标高 ${state?.terrain?.target ?? 6} · ${state?.terrain?.shape === 'rectangle' ? '左键拖框' : '左键拖涂'} · 松开提交 · Shift 取样`
-      : tool.startsWith('herd:') ? '点击野外的牛、猪、羊或鸡，居民会将其领入选定的牧场' : tool.startsWith('build:') ? `建造 ${BUILDING_DEFS[tool.slice(6) as keyof typeof BUILDING_DEFS]?.name ?? ''} · R 旋转 ${orientationText(state?.buildRotation)}${placementHint} · ${state?.buildHeight == null ? '取落点标高' : `地基标高 ${state.buildHeight}`}`
+      : tool.startsWith('herd:') ? '点击野外的牛、猪、羊或鸡，居民会将其领入选定的牧场' : tool.startsWith('build:') ? `建造 ${BUILDING_DEFS[tool.slice(6) as keyof typeof BUILDING_DEFS]?.name ?? ''} · 朝向 ${orientationText(state?.previewConnection?.rotation ?? state?.buildRotation)} · R 旋转${placementHint} · ${state?.buildHeight == null ? '取落点标高' : `地基标高 ${state.buildHeight}`}`
         : tool === 'place-chest' ? `木箱 · 左键放置${placementHint}` : hints[tool] ?? '点击地图执行当前规划';
     if(tool==='build:extractionStation')get('tool-hint').textContent=state?.depositHint??'采集站 · 在石料点或铁矿点选择一格';
     if(tool.startsWith('house:'))get('tool-hint').textContent='左键插旗 · 右键或 Esc 取消';
@@ -1338,6 +1340,7 @@ export async function createBuildUi(asset: UiAsset, host: GameHost): Promise<UiI
       : `${buildingPhase(b.phase)}${b.complete ? '' : ` · ${percent(b.progress * 100)}%`}`;
     details.append(make('div', 'resident-activity', activity));
     const measurements = make('p', 'building-dimensions', `占地 ${b.w} × ${b.d} 格 · 高 ${b.h} 格 · 朝向 ${orientationText(b.rotation)}`);
+    if(b.connections!==undefined) measurements.append(' · '+connectionLabel(b.kind,b.connections));
     measurements.dataset.testid = 'building-dimensions'; details.append(measurements);
     details.append(make('p', 'panel-note', `位置 [${b.x}, ${b.y}, ${b.z}] · 点击任一部分都选中整个物体。`));
     if (b.kind==='extractionStation') {

@@ -12,7 +12,7 @@ import type { VoxelWorld } from '../voxel/model.ts';
 import type { WallPanel } from '../voxel/pcg/facade.ts';
 import { WALL_HEIGHT } from '../voxel/pcg/rules.ts';
 import { BUILDING_DEFS, STORAGE_QUARTERS, buildingItemKind, isCropSeed, type BuildingKind, type BuildingView, type CropKind, type PlayerInventorySlot, type StoredStack } from './contracts.ts';
-import { buildingDimensions } from './buildings.ts';
+import { buildingDimensions, CARDINALS, isRoomDoor, isRoomStructure, WALL_THICKNESS, wallSpans } from './buildings.ts';
 import textileModels from './textile-models.json';
 import { cardLayers, isWarehouseCard, packageSize, warehouseSlotContents } from './warehouse.ts';
 import { PLAZA_LAYERS, plazaPoint, smooth } from './plaza.ts';
@@ -22,12 +22,11 @@ import { PointLight } from '@forgeax/engine/render';
 type V3=[number,number,number];
 type Rotation=[number,number,number,number];
 const IDENTITY:Rotation=[0,0,0,1];
-const FENCE_DIRECTIONS = [[1,0],[0,1],[-1,0],[0,-1]] as const;
 export type BuildingModel = { mesh: AssetHandle<'mesh'>; scale: V3 };
 type Part = { p: V3; s: V3; shadow?: boolean; rotation?: Rotation } &
   ({ c: string; mesh?: undefined } | { mesh: AssetHandle<'mesh'>; c?: undefined });
 type RenderPawn={id:string;name:string;position:V3;health:number;facing?:number;task?:string;job?:string;bag?:readonly PlayerInventorySlot[];bagSelected?:number;carrying?:Partial<Record<string,number>>};
-type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;h?:number;rotation?:number;doorOpen?:boolean;complete:boolean;progress:number;powered?:boolean;phase?:string;previousBoundary?:BuildingView['previousBoundary']};
+type RenderBuilding={id:string;kind:string;x:number;y:number;z:number;w?:number;d?:number;h?:number;rotation?:number;connections?:number;doorOpen?:boolean;complete:boolean;progress:number;powered?:boolean;phase?:string;previousBoundary?:BuildingView['previousBoundary']};
 export type ColonyRenderState={
   merchants?: readonly MerchantHousing[];
   colonists:RenderPawn[]; buildings:RenderBuilding[]; finale?:FinaleView;
@@ -173,6 +172,44 @@ export class ColonyView {
       return parts;
     }
     const model=this.buildingModels.get(b.kind==='door'&&b.doorOpen?'doorOpen':b.kind);
+    const plan=ghost || !b.complete;
+    if(b.connections!==undefined && !isRoomDoor(b.kind)){
+      const stone=b.kind==='wall',height=stone?WALL_HEIGHT:h;
+      const thickness=WALL_THICKNESS;
+      const panels=stone && !plan && this.windowedWalls.get(b.id);
+      for(const {axis,offset,length} of wallSpans(b.connections,rotation,thickness)){
+        const alongX=axis==='x',cx=x+(alongX?offset:0),cz=z+(alongX?0:offset);
+        const width=alongX?length:thickness,depth=alongX?thickness:length;
+        if(plan || !model){
+          parts.push({p:[cx,y+height/2,cz],s:[width,height,depth],c:'blueprint',shadow:false});
+        }else if(panels){
+          // Intersect every branch with the original facade solids. Even a new tee
+          // entering a window cell must leave its glass and opening exposed.
+          for(const {min,max} of panels){
+            const x0=Math.max(min[0],cx-width/2),x1=Math.min(max[0],cx+width/2);
+            const z0=Math.max(min[2],cz-depth/2),z1=Math.min(max[2],cz+depth/2);
+            if(x0<x1 && z0<z1) parts.push({mesh:model.mesh,p:[(x0+x1)/2,min[1],(z0+z1)/2],
+              s:[x1-x0,max[1]-min[1],z1-z0]});
+          }
+        }else{
+          const [sx,sy,sz]=model.scale;
+          parts.push({mesh:model.mesh,p:[cx,y,cz],s:[sx*length,stone?height:sy,sz],
+            rotation:alongX?undefined:[0,-Math.SQRT1_2,0,Math.SQRT1_2]});
+        }
+      }
+      if(!plan) return parts;
+    }
+    if(plan && b.connections!==undefined && isRoomDoor(b.kind)){
+      // The two jambs and lintel distinguish a door in a continuous blueprint.
+      const vertical=rotation%2===1;
+      for(const [along,up,width,height] of [[-.43,h/2,.14,h],[.43,h/2,.14,h],[0,h-.09,.72,.18]] as const)
+        parts.push({p:[x+(vertical?0:along),y+up,z+(vertical?along:0)],
+          s:[vertical?.2:width,height,vertical?width:.2],c:'blueprint',shadow:false});
+    }
+    if(plan && b.connections!==undefined){
+      if(!ghost && b.progress>0) parts.push({p:[x,y+h+.02,z],s:[.8*b.progress,.05,.07],c:'light',shadow:false});
+      return parts;
+    }
     if(model && (b.complete || ghost) && !(b.kind==='stoneDoor' && b.doorOpen)){
       const angle=-rotation*Math.PI/4;
       const q:Rotation|undefined=rotation ? [0,Math.sin(angle),0,Math.cos(angle)] : undefined;
@@ -187,7 +224,9 @@ export class ColonyView {
       }else{
         const [sx,sy,sz]=model.scale;
         const fit=scale*(b.kind==='shelf' ? shelfFit(w,d) : 1);
-        parts.push({...body,p:[x,y,z],s:[sx*fit,sy*fit,sz*fit]});
+        // The authored frame sits at local Z=-.405 (including the open-leaf model).
+        const offset=isRoomDoor(b.kind) && b.connections!==undefined ? .405*sz*fit : 0;
+        parts.push({...body,p:[x-CARDINALS[rotation]![1]*offset,y,z+CARDINALS[rotation]![0]*offset],s:[sx*fit,sy*fit,sz*fit]});
       }
       return parts;
     }
@@ -215,7 +254,11 @@ export class ColonyView {
         for (const box of sugarPressParts) part(...box);
         break;
       case 'stoneDoor':
-        if(b.doorOpen) part(-.42,h/2,0,.14,h,.85,'stone');
+        if(b.doorOpen) {
+          for(const dx of [-.45,.45]) part(dx,h/2,0,.10,h,.18,'stone');
+          part(0,h-.08,0,.8,.16,.18,'stone');
+          part(-.38,(h-.16)/2,.20,.12,h-.16,.55,'stone');
+        }
         else part(0,h/2,0,.86,h,.16,'stone');
         break;
       case 'pastureGate':
@@ -228,7 +271,7 @@ export class ColonyView {
           for (const dy of [.32,.66]) part(0,dy,0,.86,.10,.10,'plank');
         } else {
           part(0,.46,0,.16,.92,.16,'wood');
-          for (const [side,[dx,dz]] of FENCE_DIRECTIONS.entries()) {
+          for (const [side,[dx,dz]] of CARDINALS.entries()) {
             if (!(fenceConnections & (1 << side))) continue;
             for (const dy of [.32,.66]) part(dx*.25,dy,dz*.25,dx ? .5 : .10,.10,dz ? .5 : .10,'plank');
           }
@@ -435,8 +478,8 @@ export class ColonyView {
       const w=b.w??1,d=b.d??1,h=b.h??1,x=b.x+w/2,y=b.y,z=b.z+d/2,rotation=b.rotation??0;
       let fenceConnections=0;
       if (b.kind==='fence' && (b.complete || b.id==='placement-preview')) {
-        for (let side=0;side<FENCE_DIRECTIONS.length;side++) {
-          const [dx,dz]=FENCE_DIRECTIONS[(side+rotation)%4]!;
+        for (let side=0;side<CARDINALS.length;side++) {
+          const [dx,dz]=CARDINALS[(side+rotation)%4]!;
           if (builtFenceCells.has(`${b.x+dx},${b.y},${b.z+dz}`)) fenceConnections |= 1 << side;
         }
       }
@@ -445,7 +488,7 @@ export class ColonyView {
         this.plazaEffects(b,time,state.finale?.buildingId===b.id ? state.finale : undefined,active);
       }
       if(state.selectedBuildingId===b.id)parts.push({p:[x,y+.025,z],s:[w+.04,.045,d+.04],c:'selected',shadow:false});
-      this.put(`设施/${b.id}`,parts,active,`${b.kind}:${fenceConnections}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
+      this.put(`设施/${b.id}`,parts,active,`${b.kind}:${b.connections??fenceConnections}:${b.complete}:${b.powered}:${b.phase}:${w}:${d}:${h}:${rotation}:${b.doorOpen}:${state.selectedBuildingId===b.id}`);
     }
     const plannedCells = new Set<string>();
     for(const zone of state.showPlanningGrid ? state.zones : []){
@@ -502,9 +545,15 @@ export class ColonyView {
         const dimensions = buildingDimensions(buildingKind);
         const miniature = { id: item.id, kind: buildingKind, x: x - dimensions.w / 2, y: y + .02,
           z: z - dimensions.d / 2, ...dimensions, complete: true, progress: 1 };
-        const parts = this.buildingGeometry(miniature, .56 / Math.max(dimensions.w, dimensions.h, dimensions.d));
+        const fit=.56 / Math.max(dimensions.w, dimensions.h, dimensions.d);
+        const structural=isRoomStructure(buildingKind);
+        const parts = structural ? this.buildingGeometry({...miniature,connections:0}) : this.buildingGeometry(miniature,fit);
         const cos = Math.cos(yaw), sin = Math.sin(yaw);
         for (const part of parts) {
+          if(structural){
+            part.p=[x+(part.p[0]-x)*fit,miniature.y+(part.p[1]-miniature.y)*fit,z+(part.p[2]-z)*fit];
+            part.s=[part.s[0]*fit,part.s[1]*fit,part.s[2]*fit];
+          }
           const dx = part.p[0] - x, dz = part.p[2] - z;
           part.p[0] = x + dx * cos + dz * sin;
           part.p[2] = z - dx * sin + dz * cos;

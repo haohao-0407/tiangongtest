@@ -186,6 +186,9 @@ for index, kind in enumerate(kinds):
         subjects = [obj]
     elif kind in buildings:
         subjects = [buildings[kind]]
+        # Blender uses Z up. Match the proportions of the free-standing wall in game.
+        if kind in ("wall", "woodWall", "brickWall", "greenhouseWall"):
+            subjects[0].dimensions = (1, 6/16, 29/16 if kind == "wall" else 2)
     else:
         subjects = [box(*part) for part in PLACEHOLDERS[kind]]
     bpy.context.view_layer.update()

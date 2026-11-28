@@ -1,0 +1,235 @@
+[
+  {
+    "name": "open-before",
+    "time": 120,
+    "player": null,
+    "people": [
+      {
+        "position": [
+          23.5,
+          5,
+          25.5
+        ],
+        "task": "观察新营地",
+        "jobId": null
+      },
+      {
+        "position": [
+          24.1,
+          5,
+          25.5
+        ],
+        "task": "观察新营地",
+        "jobId": null
+      },
+      {
+        "position": [
+          24.66,
+          5,
+          25.5
+        ],
+        "task": "观察新营地",
+        "jobId": null
+      }
+    ],
+    "buildings": []
+  },
+  {
+    "name": "open-released",
+    "time": 120,
+    "player": [
+      29.170674999892906,
+      5,
+      25.5
+    ],
+    "people": [
+      {
+        "position": [
+          29.170674999892906,
+          5,
+          25.5
+        ],
+        "task": "由玩家控制",
+        "jobId": null
+      },
+      {
+        "position": [
+          24.514940825860144,
+          5,
+          26.05964262663349
+        ],
+        "task": "观察新营地",
+        "jobId": null
+      },
+      {
+        "position": [
+          25.117453150394837,
+          5,
+          24.940003791468055
+        ],
+        "task": "观察新营地",
+        "jobId": null
+      }
+    ],
+    "buildings": []
+  },
+  {
+    "name": "wall-before",
+    "time": 120.25,
+    "player": null,
+    "people": [
+      {
+        "position": [
+          23.5,
+          5,
+          25.5
+        ],
+        "task": "等待工作 · 自由活动",
+        "jobId": null
+      },
+      {
+        "position": [
+          24.1,
+          5,
+          25.5
+        ],
+        "task": "前往建造木地板",
+        "jobId": "job-40"
+      },
+      {
+        "position": [
+          24.66,
+          5,
+          25.5
+        ],
+        "task": "等待工作 · 散步",
+        "jobId": null
+      }
+    ],
+    "buildings": [
+      {
+        "id": "building-38",
+        "complete": false
+      }
+    ]
+  },
+  {
+    "name": "wall-released",
+    "time": 120.25,
+    "player": [
+      24.832360000059058,
+      5,
+      25.5
+    ],
+    "people": [
+      {
+        "position": [
+          24.832360000059058,
+          5,
+          25.5
+        ],
+        "task": "由玩家控制",
+        "jobId": null
+      },
+      {
+        "position": [
+          25.349502480304608,
+          5,
+          25.714862502846547
+        ],
+        "task": "前往建造木地板",
+        "jobId": "job-40"
+      },
+      {
+        "position": [
+          25.703521566130966,
+          5,
+          25.28095771599029
+        ],
+        "task": "等待工作 · 散步",
+        "jobId": null
+      }
+    ],
+    "buildings": [
+      {
+        "id": "building-38",
+        "complete": false
+      }
+    ]
+  },
+  {
+    "name": "original-job-finished",
+    "time": 126.75,
+    "player": null,
+    "people": [
+      {
+        "position": [
+          20.5,
+          5,
+          25.5
+        ],
+        "task": "等待工作 · 自由活动",
+        "jobId": null
+      },
+      {
+        "position": [
+          25.17374640704122,
+          5,
+          25.5
+        ],
+        "task": "工作完成",
+        "jobId": null
+      },
+      {
+        "position": [
+          25.703521566130966,
+          5,
+          25.28095771599029
+        ],
+        "task": "等待工作 · 自由活动",
+        "jobId": null
+      }
+    ],
+    "buildings": [
+      {
+        "id": "building-38",
+        "complete": true
+      }
+    ]
+  },
+  {
+    "name": "bottleneck-passed",
+    "time": 132.5,
+    "player": null,
+    "people": [
+      {
+        "position": [
+          27.5,
+          5,
+          25.5
+        ],
+        "task": "等待工作 · 自由活动",
+        "jobId": null
+      },
+      {
+        "position": [
+          18.5,
+          5,
+          25.5
+        ],
+        "task": "等待工作 · 自由活动",
+        "jobId": null
+      },
+      {
+        "position": [
+          17.5,
+          5,
+          25.5
+        ],
+        "task": "等待工作 · 自由活动",
+        "jobId": null
+      }
+    ],
+    "buildings": []
+  }
+]

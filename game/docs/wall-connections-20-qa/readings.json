@@ -1,0 +1,3449 @@
+[
+  {
+    "name": "01-before-door",
+    "rooms": [],
+    "windows": 0,
+    "buildings": [
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 3,
+        "connections": 8,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 2,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": false
+      }
+    ]
+  },
+  {
+    "name": "00-structure-catalog",
+    "rooms": [],
+    "windows": 0,
+    "buildings": [
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 3,
+        "connections": 8,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 2,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": false
+      }
+    ]
+  },
+  {
+    "name": "02-door-preview",
+    "preview": {
+      "connections": 10,
+      "rotation": 1
+    },
+    "rooms": [],
+    "windows": 0,
+    "buildings": [
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 3,
+        "connections": 8,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 2,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": false
+      }
+    ]
+  },
+  {
+    "name": "03-full-rectangle",
+    "rooms": [],
+    "windows": 0,
+    "buildings": [
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": false
+      },
+      {
+        "kind": "door",
+        "x": 21,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false,
+        "doorOpen": false
+      }
+    ]
+  },
+  {
+    "name": "04-cancelled",
+    "rooms": [],
+    "windows": 0,
+    "buildings": [
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 3,
+        "connections": 8,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 2,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": false
+      }
+    ]
+  },
+  {
+    "name": "04b-tee",
+    "rooms": [],
+    "windows": 0,
+    "buildings": [
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 14,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 3,
+        "connections": 8,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 2,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 15,
+        "rotation": 0,
+        "connections": 1,
+        "complete": false
+      }
+    ]
+  },
+  {
+    "name": "04c-cross",
+    "rooms": [],
+    "windows": 0,
+    "buildings": [
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 0,
+        "connections": 15,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 3,
+        "connections": 8,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 2,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 20,
+        "z": 15,
+        "rotation": 0,
+        "connections": 1,
+        "complete": false
+      },
+      {
+        "kind": "woodWall",
+        "x": 22,
+        "z": 15,
+        "rotation": 2,
+        "connections": 4,
+        "complete": false
+      }
+    ]
+  },
+  {
+    "name": "05-window",
+    "rooms": [
+      42
+    ],
+    "windows": 3,
+    "buildings": [
+      {
+        "kind": "wall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "autoDoor",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "stoneDoor",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true,
+        "doorOpen": false
+      },
+      {
+        "kind": "wall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": true
+      },
+      {
+        "kind": "door",
+        "x": 21,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true,
+        "doorOpen": false
+      }
+    ]
+  },
+  {
+    "name": "06-auto-door",
+    "rooms": [
+      42
+    ],
+    "windows": 3,
+    "buildings": [
+      {
+        "kind": "wall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "autoDoor",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "stoneDoor",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true,
+        "doorOpen": false
+      },
+      {
+        "kind": "wall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": true
+      },
+      {
+        "kind": "door",
+        "x": 21,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true,
+        "doorOpen": false
+      }
+    ]
+  },
+  {
+    "name": "07-stone-door-open",
+    "rooms": [],
+    "windows": 3,
+    "buildings": [
+      {
+        "kind": "wall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "autoDoor",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "stoneDoor",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true,
+        "doorOpen": true
+      },
+      {
+        "kind": "wall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": true
+      },
+      {
+        "kind": "door",
+        "x": 21,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true,
+        "doorOpen": false
+      }
+    ]
+  },
+  {
+    "name": "08-wood-door-open",
+    "rooms": [],
+    "windows": 3,
+    "buildings": [
+      {
+        "kind": "wall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "autoDoor",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "stoneDoor",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true,
+        "doorOpen": false
+      },
+      {
+        "kind": "wall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": true
+      },
+      {
+        "kind": "door",
+        "x": 21,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true,
+        "doorOpen": true
+      }
+    ]
+  },
+  {
+    "name": "09-before-demolition",
+    "rooms": [
+      42
+    ],
+    "windows": 3,
+    "buildings": [
+      {
+        "kind": "wall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "autoDoor",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "stoneDoor",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true,
+        "doorOpen": false
+      },
+      {
+        "kind": "wall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 21,
+        "z": 20,
+        "rotation": 2,
+        "connections": 12,
+        "complete": true
+      },
+      {
+        "kind": "door",
+        "x": 21,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true,
+        "doorOpen": false
+      }
+    ]
+  },
+  {
+    "name": "10-demolished",
+    "rooms": [
+      42
+    ],
+    "windows": 3,
+    "buildings": [
+      {
+        "kind": "wall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "autoDoor",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "stoneDoor",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true,
+        "doorOpen": false
+      },
+      {
+        "kind": "wall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 2,
+        "connections": 4,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 3,
+        "connections": 8,
+        "complete": true
+      },
+      {
+        "kind": "door",
+        "x": 21,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true,
+        "doorOpen": false
+      }
+    ]
+  },
+  {
+    "name": "11-reloaded",
+    "rooms": [
+      42
+    ],
+    "windows": 3,
+    "buildings": [
+      {
+        "kind": "wall",
+        "x": 13,
+        "z": 13,
+        "rotation": 0,
+        "connections": 3,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "autoDoor",
+        "x": 13,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 19,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "greenhouseWall",
+        "x": 13,
+        "z": 20,
+        "rotation": 3,
+        "connections": 9,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 14,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 14,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 15,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 15,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 16,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 16,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 17,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "stoneDoor",
+        "x": 17,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true,
+        "doorOpen": false
+      },
+      {
+        "kind": "wall",
+        "x": 18,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 18,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 19,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 19,
+        "z": 20,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 20,
+        "z": 13,
+        "rotation": 0,
+        "connections": 5,
+        "complete": true
+      },
+      {
+        "kind": "brickWall",
+        "x": 20,
+        "z": 20,
+        "rotation": 2,
+        "connections": 4,
+        "complete": true
+      },
+      {
+        "kind": "wall",
+        "x": 21,
+        "z": 13,
+        "rotation": 1,
+        "connections": 6,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 14,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 15,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 16,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 18,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true
+      },
+      {
+        "kind": "woodWall",
+        "x": 21,
+        "z": 19,
+        "rotation": 3,
+        "connections": 8,
+        "complete": true
+      },
+      {
+        "kind": "door",
+        "x": 21,
+        "z": 17,
+        "rotation": 1,
+        "connections": 10,
+        "complete": true,
+        "doorOpen": false
+      }
+    ]
+  }
+]
